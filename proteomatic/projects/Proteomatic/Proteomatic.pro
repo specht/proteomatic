@@ -1,6 +1,5 @@
 TEMPLATE = app
 win32 {
-    #TEMPLATE = vcapp
     RC_FILE = Proteomatic.rc
     CONFIG += embed_manifest_exe
 }
