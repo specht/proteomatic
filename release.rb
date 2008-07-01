@@ -139,8 +139,8 @@ Section "Proteomatic" SecMain
   File /r "#{DESTPATH}\*.*"
   
   CreateDirectory "$SMPROGRAMS\Proteomatic"
-  SetOutPath "$INSTDIR\Proteomatic"
-  createShortCut "$SMPROGRAMS\Proteomatic\Proteomatic.lnk" "$INSTDIR\Proteomatic\Proteomatic.exe"
+  SetOutPath "$INSTDIR"
+  createShortCut "$SMPROGRAMS\Proteomatic\Proteomatic.lnk" "$INSTDIR\Proteomatic.exe"
   SetOutPath "$INSTDIR"
   createShortCut "$SMPROGRAMS\Proteomatic\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   
@@ -158,7 +158,7 @@ SectionEnd
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecMain} "The Script Helper facilitates configuring and starting scripts."
+    !insertmacro MUI_DESCRIPTION_TEXT ${SecMain} "Proteomatic"
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
@@ -170,7 +170,7 @@ Section "Uninstall"
 
   Delete "$INSTDIR\Uninstall.exe"
   RMDir /r "$INSTDIR"
-  RMDir /r "$SMPROGRAMS\Proteomatic"
+  ;RMDir /r "$SMPROGRAMS\Proteomatic"
 
   ;DeleteRegKey /ifempty HKCU "Software\Proteomics Pipeline"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Proteomatic"
