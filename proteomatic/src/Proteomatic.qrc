@@ -1,0 +1,28 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+  <file>icons/applications-internet.png</file>
+  <file>icons/applications-system.png</file>
+  <file>icons/appointment.png</file>
+  <file>icons/dialog-cancel.png</file>
+  <file>icons/dialog-ok.png</file>
+  <file>icons/dialog-warning.png</file>
+  <file>icons/edit-clear.png</file>
+  <file>icons/face-monkey.png</file>
+  <file>icons/folded-0.png</file>
+  <file>icons/folded-1.png</file>
+  <file>icons/folded-2.png</file>
+  <file>icons/folded-3.png</file>
+  <file>icons/folded-4.png</file>
+  <file>icons/folded-5.png</file>
+  <file>icons/folded-6.png</file>
+  <file>icons/folder.png</file>
+  <file>icons/list-add.png</file>
+  <file>icons/list-remove.png</file>
+  <file>icons/package-x-generic.png</file>
+  <file>icons/proteomatic.png</file>
+  <file>icons/ticket.png</file>
+  <file>icons/arrow.png</file>
+  <file>icons/cursor.png</file>
+  <file>icons/document-save.png</file>
+</qresource>
+</RCC>

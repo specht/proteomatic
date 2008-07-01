@@ -1,0 +1,38 @@
+group: PEAKS
+
+title: Run PEAKS
+
+type: processor
+
+input:
+  - key: spectra
+    label: spectra
+    formats: [dta, xml-mzdata, xml-mzxml]
+    min: 1
+
+defaultOutputDirectory: spectra
+
+output:
+  - key: resultFile
+    label: PEAKS result file
+    format: fasta-proteins
+    filename: peaks-results.fasta
+    default: yes
+    force: yes
+
+parameters:
+  - key: precursorIonTolerance
+    label: Precursor ion mass tolerance
+    type: float
+    default: 1.5
+    suffix: Da
+    min: 0.0
+  - key: productIonTolerance
+    label: Procuct ion mass tolerance
+    type: float
+    default: 1.0
+    suffix: Da
+    min: 0.0
+
+needs:
+  - config

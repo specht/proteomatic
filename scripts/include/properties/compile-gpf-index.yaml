@@ -1,0 +1,23 @@
+group: GPF
+
+title: Compile GPF index
+
+type: converter
+
+input:
+  - key: genome
+    label: genome
+    formats: [fasta-nucleotides]
+    min: 1
+
+defaultOutputDirectory: genome
+
+output:
+  - key: genome
+    label: GPF index
+    format: gpfindex
+    filename: '#{basename}.trypsin-monoisotopic.gpfindex'
+
+needs:
+  - ext.gpf
+  

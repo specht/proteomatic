@@ -1,0 +1,36 @@
+group: OMSSA
+
+title: Evaluate OMSSA results
+
+type: processor
+
+input:
+  - key: omssaResults
+    label: OMSSA results
+    formats: [csv]
+    min: 1
+
+defaultOutputDirectory: omssaResults
+
+output:
+  - key: htmlReport
+    label: HTML report
+    format: html
+    filename: omssa-report.html
+    default: yes
+  - key: identifiedPeptides
+    label: identified peptides
+    format: fasta-proteins
+    filename: identified-peptides.fasta
+    default: no
+
+parameters:
+  - key: targetFpr
+    group: Script options
+    label: Target FPR
+    type: float
+    default: 0.1
+    suffix: '%'
+    min: 0.0
+    max: 100.0
+    step: 0.1
