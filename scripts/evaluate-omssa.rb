@@ -81,7 +81,7 @@ class EvaluateOmssa < ProteomaticScript
 			end
 			
 			lk_GoodScans += lk_ScansByE[0, li_CropCount]
-			lk_EThresholds[ls_Spot] = lk_ScanHash[ls_Spot][lk_ScansByE[li_CropCount - 1]]['e'] 
+			lk_EThresholds[ls_Spot] = lk_ScanHash[ls_Spot][lk_ScansByE[li_CropCount - 1]]['e'] if li_CropCount > 0
 		end
 		
 		# chuck spots out of lk_ScanHash
