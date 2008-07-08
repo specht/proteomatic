@@ -243,7 +243,6 @@ class EvaluateOmssa < ProteomaticScript
 							lk_SpotProteins[ls_Protein]['count'] += li_PeptideCount
 						end
 					end
-					next if lk_SpotProteins.empty?
 					#lk_Out.puts "<h3 id='subheader-spot-#{ls_Spot}'>#{ls_Spot}</h3>"
 					lk_Out.puts "<tr id='subheader-spot-#{ls_Spot}'><td style='border-style: none; background-color: #fff; padding-top: 2em; padding-bottom: 1em;' colspan='4'><span style='font-weight: bold;'>#{ls_Spot}</span></td></tr>"
 					lk_Out.puts '<tr><th>Protein</th><th>Protein spectra count</th><th>Peptides</th><th>Peptide spectra count</th></tr>'
