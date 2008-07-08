@@ -28,14 +28,12 @@ def handleFile(ak_Files, ak_Out = $stdout)
 		lk_NrHits.each do |lk_Assembly|
 			li_AssemblyId += 1
 			lk_Positions = Array.new
-			lk_LastPair = Array.new
 			lk_Assembly['parts'].each do |lk_Part|
 				lk_Pair = [lk_Part['position'] + 1, lk_Part['position'] + lk_Part['length']].sort
 				lk_Positions.push(lk_Pair[0] - 1) unless lk_Part == lk_Assembly['parts'].first
 				lk_Positions.push(lk_Pair[0])
 				lk_Positions.push(lk_Pair[1])
-				lk_Positions.push(lk_LastPair[1] + 1) unless lk_Part == lk_Assembly['parts'].last
-				lk_LastPair = lk_Pair
+				lk_Positions.push(lk_Pair[1] + 1) unless lk_Part == lk_Assembly['parts'].last
 			end
 			
 			ls_Scaffold = lk_Assembly['parts'].first['scaffold']
