@@ -30,11 +30,10 @@ def handleFile(ak_Files, ak_Out = $stdout)
 			lk_Positions = Array.new
 			lk_Assembly['parts'].each do |lk_Part|
 				lk_Pair = [lk_Part['position'] + 1, lk_Part['position'] + lk_Part['length']].sort
-				lk_Positions.push(lk_Pair[0] - 1) unless lk_Part == lk_Assembly['parts'].first
 				lk_Positions.push(lk_Pair[0])
 				lk_Positions.push(lk_Pair[1])
-				lk_Positions.push(lk_Pair[1] + 1) unless lk_Part == lk_Assembly['parts'].last
 			end
+			lk_Positions.sort!
 			
 			ls_Scaffold = lk_Assembly['parts'].first['scaffold']
 			ak_Out.puts "#{ls_Scaffold}\tGPF\tassembly\t#{lk_Positions.first}\t#{lk_Positions.last}\t1.0\t#{lk_Assembly['forward'] ? '+' : '-'}\t0\tpept=#{lk_Assembly['peptide']};mult=#{li_AssemblyCount};grp=#{lk_Assembly['peptide']}-#{li_AssemblyId};"
@@ -43,14 +42,13 @@ def handleFile(ak_Files, ak_Out = $stdout)
 			while (li_PositionIndex < lk_Positions.size - 1)
 				li_Start = lk_Positions[li_PositionIndex]
 				li_End = lk_Positions[li_PositionIndex + 1]
-				if (li_PositionIndex % 4 == 0)
-					# cds
-					li_Frame = (3 - (li_NucleotideCount % 3)) % 3
-					ak_Out.puts "#{ls_Scaffold}\tGPF\tCDS\t#{li_Start}\t#{li_End}\t1.0\t#{lk_Assembly['forward'] ? '+' : '-'}\t#{li_Frame}\tpept=#{lk_Assembly['peptide']};mult=#{li_AssemblyCount};grp=#{lk_Assembly['peptide']}-#{li_AssemblyId};"
-					li_NucleotideCount += li_End - li_Start + 1
-				else
+				# cds
+				li_Frame = (3 - (li_NucleotideCount % 3)) % 3
+				ak_Out.puts "#{ls_Scaffold}\tGPF\tCDS\t#{li_Start}\t#{li_End}\t1.0\t#{lk_Assembly['forward'] ? '+' : '-'}\t#{li_Frame}\tpept=#{lk_Assembly['peptide']};mult=#{li_AssemblyCount};grp=#{lk_Assembly['peptide']}-#{li_AssemblyId};"
+				li_NucleotideCount += li_End - li_Start + 1
+				if (li_PositionIndex < lk_Positions.size - 2)
 					# intron
-					ak_Out.puts "#{ls_Scaffold}\tGPF\tintron\t#{li_Start}\t#{li_End}\t1.0\t#{lk_Assembly['forward'] ? '+' : '-'}\t.\tpept=#{lk_Assembly['peptide']};mult=#{li_AssemblyCount};grp=#{lk_Assembly['peptide']}-#{li_AssemblyId};"
+					ak_Out.puts "#{ls_Scaffold}\tGPF\tintron\t#{li_End + 1}\t#{lk_Positions[li_PositionIndex + 2] - 1}\t1.0\t#{lk_Assembly['forward'] ? '+' : '-'}\t.\tpept=#{lk_Assembly['peptide']};mult=#{li_AssemblyCount};grp=#{lk_Assembly['peptide']}-#{li_AssemblyId};"
 				end
 				li_PositionIndex += 2
 			end
@@ -60,6 +58,6 @@ end
 
 #handleFile(['/home/michael/Augustus/omssa/MT_HydACPAN-augustus-gpf-results.yaml', '/home/michael/Augustus/omssa/MT_HydACPAR-augustus-gpf-results.yaml'])
 
-File::open('/home/michael/augustus/gpf-alignments.gff', 'w') { |f| handleFile(['/home/michael/augustus/omssa/MT_HydACPAN-augustus-peptides.yaml', 
-'/home/michael/augustus/omssa/MT_HydACPAR-augustus-peptides.yaml'], f) }
+File::open('/home/michael/Augustus/gpf-alignments.gff', 'w') { |f| handleFile(['/home/michael/Augustus/omssa/MT_HydACPAN-augustus-peptides.yaml', 
+'/home/michael/Augustus/omssa/MT_HydACPAR-augustus-peptides.yaml'], f) }
 
