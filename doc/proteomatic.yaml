@@ -1,0 +1,127 @@
+chapters:
+  - Introduction:
+    - Proteomatic: >
+        Proteomatic is the Proteomics researcher's swiss army knife. 
+        It provides a user interface for both open source and commercial Proteomics software. 
+        Tools can be chained together in a pipeline, and it's availble for Linux, Mac and Windows.
+        
+        
+        !<images/proteomatic.jpg[0.5](The Proteomatic main window.)!
+        
+        
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+        This is just some text. It flows!
+      
+      
+  - Development:
+    - Adding scripts: >
+        A Proteomatic script consists of two parts:
+        
+        
+        # *The script description.* <p>This YAML file contains the title, description and options of 
+        the script.</p>
+        
+        # *The script.* <p>This file contains the Ruby script itself.</p>
+        
+        
+        h3. The script description file
+        
+        
+        The filename of the script description file is @scripts/include/properties/example.yaml@.
+        
+        
+        h3. The script file
+        
+        
+        The filename of the script file is @scripts/example.rb@. The skeleton of a Proteomatic script 
+        looks like this:
+        
+        
+        <pre>
+         require 'include/proteomatic'
+         
+         class Example < ProteomaticScript
+             def run()
+             end
+         end
+         
+         lk_Object = Example.new
+        </pre>
+        
+        
+        The @require 'include/proteomatic'@ must be the first line. Then, a subclass of 
+        @ProteomaticScript@ is defined which is instanciated as @lk_Object@ after that. Within the
+        @run@ method, several member variables can be accessed:
+        
+        
+        # *Input files.* 
+        <p>
+        For processor scripts, all input files are stored in the @@input@ hash, which has an array
+        of absolute input file paths for each input group key.
+        </p>
+        
+        # *Output files.* 
+        <p>
+        For processor scripts, ... yar de yar yar.
+        </p>
+        
+        
+        And there's even more!
+        
+        
+    - Adding external tools: >
+        Tools can be added, too! "*Wow*", you say.
