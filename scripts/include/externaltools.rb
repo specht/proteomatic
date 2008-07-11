@@ -33,6 +33,10 @@ class ExternalTools
 	def self.install(as_Package, ak_Description = nil, as_ResultFilePath = nil, ak_PackageDescription = nil)
 		ls_Package = as_Package.sub('ext.', '')
 		ak_PackageDescription = YAML::load_file("include/properties/ext.#{ls_Package}.yaml") unless ak_PackageDescription
+		unless ak_PackageDescription['path'][@@ms_Platform] && !ak_PackageDescription['path'][@@ms_Platform].empty?
+			puts "Error: This package is not available for this platform (#{@@ms_Platform})."
+			return
+		end
 		as_ResultFilePath = File::join('ext', ls_Package, ak_PackageDescription['path'][@@ms_Platform]) unless as_ResultFilePath
 		puts "Installing #{ak_PackageDescription['title']}..."
 		ls_Uri = ak_PackageDescription['download'][@@ms_Platform]
@@ -87,7 +91,11 @@ class ExternalTools
 		lb_Ok = true
 		lk_PackageDescription = YAML::load_file("include/properties/#{as_Package}.yaml")
 		ls_Package = as_Package.sub('ext.', '')
-		return File::directory?(File::join('ext', ls_Package, lk_PackageDescription['path'][@@ms_Platform]))
+		begin
+			return File::directory?(File::join('ext', ls_Package, lk_PackageDescription['path'][@@ms_Platform]))
+		rescue 
+			return false
+		end
 	end
 	
 	def self.packageTitle(as_Package)

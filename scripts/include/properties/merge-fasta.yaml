@@ -1,0 +1,21 @@
+group: FASTA
+
+title: Merge FASTA databases
+
+type: processor
+
+input:
+  - key: databases
+    label: FASTA databases
+    formats: [fasta-proteins, fasta-nucleotides]
+    min: 2
+
+defaultOutputDirectory: databases
+
+output:
+  - key: merged
+    label: merged database
+    format: fasta-proteins
+    filename: out.fasta
+    default: yes
+    force: yes

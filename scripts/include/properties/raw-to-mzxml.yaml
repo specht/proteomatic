@@ -1,0 +1,22 @@
+group: Converters
+
+title: RAW to mzXML
+
+type: converter
+
+input:
+  - key: rawFiles
+    label: RAW files
+    formats: [raw-thermo]
+    min: 1
+
+defaultOutputDirectory: rawFiles
+
+output:
+  - key: rawFiles
+    label: mzXML files
+    format: xml-mzxml
+    filename: '#{basename}.mzxml'
+
+needs:
+  - ext.readw
