@@ -20,12 +20,12 @@
 \usepackage{picins}
 
 \usepackage{listings} 
-%\lstset{numbers=left, numberstyle=\scriptsize\ttfamily, numbersep=10pt, captionpos=b} 
-\lstset{backgroundcolor=\color{white}}
+%\lstset{numbers=left, numberstyle=\scriptsize\ttfamily, numbersep=8pt, captionpos=b} 
+\lstset{backgroundcolor=\color{gray-5}}
 \lstset{basicstyle=\small\ttfamily}
-\lstset{framesep=4pt}
+\lstset{framesep=4pt, frame=single, framerule=0pt, tabsize=4}
 \lstset{language={}}
-\newcommand{\inlineCode}{\lstinline[basicstyle=\normalsize\ttfamily]}
+\newcommand{\inlineCode}{\lstinline[basicstyle=\small\ttfamily, backgroundcolor=\color{white}, breaklines=true]}
 
 \usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black,filecolor=black,bookmarks=true]{hyperref}
 \hypersetup{
@@ -35,6 +35,7 @@ pdfsubject = {},
 pdfkeywords = {},
 pdfcreator = {LaTeX},
 pdfproducer = {pdflatex}}
+\renewcommand{\figurename}{Fig.}
 
 %\include{styles/draft}
 \include{chapterleft}
@@ -44,6 +45,7 @@ pdfproducer = {pdflatex}}
 \setlength{\parindent}{0mm}
 \renewcommand{\baselinestretch}{1.2} 
 \renewcommand{\arraystretch}{1.2} 
+\tolerance=2000
 
 \renewcommand{\headrulewidth}{0.25pt}
 
@@ -77,15 +79,15 @@ pdfproducer = {pdflatex}}
 %\normalfont\noindent\bf\Huge{Interactive Glyph-based 3D Visualization \linebreak of
 %Dynamic PET Datasets}
 \vspace*{2cm}
-\normalfont\noindent\bf\Huge{Proteomatic}
+\normalfont\noindent\bf\Huge{Proteomatic}  \\
+\vspace*{0.5cm}
+\normalfont
+\Large{User's Guide and} \\
+\Large{Developer's Reference Manual}
 
 \vfill
 
-\normalfont\noindent\large{a documentation written by}
-
-\vspace*{-0.2cm}
-
-\normalfont\noindent\large{\em Michael Specht}
+\normalfont\noindent\large{}
 \end{center}
 \end{titlepage}
 

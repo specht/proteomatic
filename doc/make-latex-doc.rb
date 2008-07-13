@@ -1,203 +1,19 @@
 require 'yaml'
 require 'fileutils'
-#require 'RedCloth'
-#require 'RMagick'
 
-ls_Guide = File::read('proteomatic.yaml')
-lk_Guide = YAML::load(ls_Guide)
-
-FileUtils::cp('doc-head.tex', 'Proteomatic.tex')
-
-$gi_ImageCount = 0
-
-def handleString(as_Text, ak_Out)
-	ls_Text = as_Text.rstrip
-	if ls_Text.include?("\n")
-		handleSection(ls_Text, ak_Out, ai_Level + 1)
-		next
-	end
-	puts ls_Text
-	if (ls_Text[0, 3] == 'h3.')
-		ls_Text.sub!('h3.', '')
-		ls_Text.strip!
-		ak_Out << "\n\n\\subsection{#{ls_Text}}\n"
-	elsif ls_Text =~ /\A![<>]?.+/
-		puts 'image!'
-		puts ls_Text
-		ls_Name = ls_Text
-		ls_Direction = ls_Text[1, 1]
-		ls_Direction = '' if ls_Direction !~ /[<>]/
-		ls_Name.gsub!(/\A![<>]?/, '')
-		ls_Name.gsub!(/\(.*\)/, '')
-		ls_Name.gsub!('!', '')
-		ls_Name.strip!
-		lf_Width = 1.0
-		if (ls_Direction.empty?)
-			ak_Out << "	\\includegraphics[width=#{lf_Width}\\textwidth]{#{ls_Name}} \n"
-		else
-			ak_Out << "\\begin{wrapfigure}{#{ls_Direction == '<' ? 'l' : 'r'}}[0cm]{#{lf_Width}\\textwidth}\n"
-			ak_Out << "  \\begin{center}\n"
-			ak_Out << "	    \\includegraphics[width=#{lf_Width * 0.95}\\textwidth, height=#{lf_Height * 0.95}\\textwidth]{#{ls_Name}}\n"
-			ak_Out << "  \\end{center}\n"
-			ak_Out << "\\end{wrapfigure}\n"
-		end
-	elsif ls_Text[0, 4] == '<pre'
-		ak_Out << "\\begin{lstlisting}\n"
-		lb_InPre = true
-	elsif ls_Text[0, 5] == '</pre'
-		ak_Out << "\\end{lstlisting}\n"
-		lb_InPre = false
-	elsif !ls_Text.include?('#') && !ls_Text.include?('&') && !ls_Text.include?('|') && !ls_Text.include?('$')
-		unless lb_InPre
-			li_StartIndex = 0
-			while ls_Text.index(/(\s|\A|\W)@(\S)/, li_StartIndex) != nil
-				li_Index = ls_Text.index(/(\s|\A|\W)@(\S)/, li_StartIndex)
-				while ls_Text[li_Index + 2, 1] == '@'
-					li_Index += 1
-				end
-				ls_Text[ls_Text.index(/(\s|\A|\W)@(\S)/, li_StartIndex) + 1, 1] = 'CODE-START'
-				li_EndIndex = ls_Text.index('@', li_Index + 11)
-				ls_Text[li_EndIndex, 1] = 'CODE-END'
-				ls_Text[li_Index..li_EndIndex] = ls_Text[li_Index..li_EndIndex].gsub('*', '[MICHA:STAR]')
-				ls_Text[li_Index..li_EndIndex] = ls_Text[li_Index..li_EndIndex].gsub('_', '[MICHA:UNDERSCORE]')
-				ls_Text[li_Index..li_EndIndex] = ls_Text[li_Index..li_EndIndex].gsub('"', '[MICHA:QUOTE]')
-				li_StartIndex = li_EndIndex
-			end
-			lk_Items = ls_Text.split('CODE-START')
-			lk_Items.each_index do |i|
-				ls_Item = lk_Items[i]
-				li_Index = ls_Item.index('CODE-END')
-				ls_CodeText = ''
-				ls_PlainText = ls_Item
-				if (li_Index != nil)
-					ls_CodeText = ls_Item[0, li_Index]
-					ls_PlainText = ls_Item[li_Index, ls_Item.size - li_Index]
-				end
-				while (ls_PlainText =~ /(\s|\A|\W)_(\S)/)
-					ls_PlainText.sub!(/(\s|\A|\W)_(\S)/, '\\1{\em \\2')
-					ls_PlainText.sub!(/(\S)_(\s|\z|\W)/, '\\1}\\2')
-				end
-				ls_PlainText.gsub!('_', '\_')
-				while (ls_PlainText =~ /(\s|\A|\W)\*(\S)/)
-					ls_PlainText.sub!(/(\s|\A|\W)\*(\S)/, '\\1{\bf \\2')
-					ls_PlainText.sub!(/(\S)\*(\s|\z|\W)/, '\\1}\\2')
-				end
-				while (ls_PlainText =~ /(\s|\A|\W)"(\S)/)
-					ls_PlainText.sub!(/(\s|\A|\W)"(\S)/, '\\1``\\2')
-					ls_PlainText.sub!(/(\S)"(\s|\z|\W)/, '\\1\'\'\\2')
-				end
-				lk_Items[i] = ''
-				lk_Items[i] += 'CODE-START' + ls_CodeText unless ls_CodeText.empty?
-				lk_Items[i] += ls_PlainText
-			end
-			ls_Text = lk_Items.join('')
-			while (ls_Text.include?('CODE-START'))
-				ls_Code = ls_Text[ls_Text.index('CODE-START')..ls_Text.index('CODE-END')]
-				lc_Char = '^'
-				lc_Char = '$' if (ls_Code.include?(lc_Char))
-				ls_Text.sub!('CODE-START', '\lstinline' + lc_Char)
-				ls_Text.sub!('CODE-END', lc_Char)
-			end
-		end
-		lb_BlockQuote = ls_Text[0, 3] == 'bq.'
-		if lb_BlockQuote
-			ak_Out << "\\begin{quote}\n"
-			ls_Text.sub!('bq.', '')
-			ls_Text.strip!
-		end
-		ls_Text.gsub!('[MICHA:STAR]', '*')
-		ls_Text.gsub!('[MICHA:UNDERSCORE]', '_')
-		ls_Text.gsub!('[MICHA:QUOTE]', '"')
-		ak_Out << ls_Text << "\n"
-		ak_Out << "\\end{quote}\n" if lb_BlockQuote
-	else
-		#puts ls_Text
-	end
-=begin			
-	while (ls_Text.include?(' @'))
-		li_Start = ls_Text.index(' @')
-		li_Start += 1
-		li_First = li_Start
-		while (ls_Text[li_Start, 1] == '@')
-			li_Start += 1
-		end
-		li_End = ls_Text.index('@', li_Start)
-		lc_Char = '^'
-		lc_Char = '$' if (ls_Text[li_First..li_End].include?(lc_Char))
-		ls_Text[li_End, 1] = lc_Char
-		ls_Text[li_First, 1] = '\lstinline' + lc_Char
-		ls_Text[li_First...(li_End + 10)] = ls_Text[li_First...(li_End + 10)].gsub('\_', '_')
-	end
-	while (ls_Text.include?(' *'))
-		ls_Text.sub!(' *', ' {\bf ')
-		ls_Text.sub!('*', '}')
-	end
-	if (ls_Text[0, 2] == '# ')
-		ls_Text.sub!('# ', "\\item")
-		ls_Text = "\\begin{enumerate}\n " + ls_Text if (!lb_InEnumeration)
-		lb_InEnumeration = true
-	elsif (lb_InEnumeration && ls_Text[0, 2] != '# ')
-		lb_InEnumeration = false
-		ls_Text = "\\end{enumerate}" + ls_Text
-	end
-	
-	if (ls_Text[0, 4] == 'bq. ')
-		ls_Text.sub!('bq. ', "\\begin{quote}\n")
-		ls_Text << "\\end{quote}\n"
-	end
-
-	if (ls_Text[0, 4] == 'h3. ')
-		ls_Text.sub!('h3. ', "\\subsection{")
-		ls_Text << "}\n"
-	end
-
-	ls_Text.gsub!(/<pre.*>/, '\begin{lstlisting}')
-	ls_Text.gsub!('</pre>', '\end{lstlisting}')
-	ls_Text.gsub!('<p>', "\n\n")
-	ls_Text.gsub!('</p>', "\n\n")
-=end			
-=begin			
-	while (ls_Text.include?('!i/'))
-		li_Start = ls_Text.index('!i/')
-		li_End = ls_Text.length
-		ls_Name = ls_Text[li_Start..li_End]
-		ls_Name.gsub!(/\(.*\)/, '')
-		ls_Name.gsub!('!', '')
-		ls_Name.strip!
-		ls_Name = 'wpgtr/' + ls_Name + '.png'
-		FileUtils::cp(ls_Name, File::dirname(ls_Name) + $gi_ImageCount.to_s + '.png')
-		ls_Name = File::dirname(ls_Name) + $gi_ImageCount.to_s + '.png'
-		$gi_ImageCount += 1
-		ls_Text[li_Start..li_End] = 
-"\\begin{figure}[h] \
-\\centering \
-\\begin{minipage}[c]{1.0\\textwidth} \
-\\includegraphics[width=\\textwidth]{#{ls_Name}} \
-\\end{minipage} \
-\\end{figure}"
-	end
-=end			
-	
-=begin			
-	while (ls_Text.include?('bq.'))
-		ls_Text.sub!(/bq.*$/, '')
-	end
-	ak_Out << ls_Text << "\n"
-=end
+ls_Lines = File::read('proteomatic.txt')
+lk_Lines = Array.new
+ls_Lines.each do |ls_Line|
+	lk_Lines << ls_Line
 end
 
-=begin
-scope stack
-- try to close current scope
-- no multi scopes
-
-=end
+FileUtils::cp('doc-head.tex', 'Proteomatic.tex')
 
 $gk_Rules = Hash.new
 $gk_Rules['italic'] = {:char => '_', :start => '{\em ', :end => '}'}
 $gk_Rules['bold'] = {:char => '*', :start => '{\bf ', :end => '}'}
 $gk_Rules['quote'] = {:char => '"', :start => '``', :end => "''"}
-$gk_Rules['code'] = {:char => '@', :start => '\lstinline[breaklines=true]§', :end => '§'}
+$gk_Rules['code'] = {:char => '@', :start => '\inlineCode§', :end => '§'}
 
 $gk_Substitution = Array.new
 $gk_Substitution.push({:char => '<p>', :replace => "\n\n"})
@@ -210,7 +26,10 @@ $gk_Substitution.push({:char => " '", :replace => ' `'})
 
 $gk_BlockScopes = Hash.new
 $gk_BlockScopes['bq'] = {:char => 'bq. ', :start => "\\begin{quote}\n", :end => "\\end{quote}\n"}
+$gk_BlockScopes['h1'] = {:char => 'h1. ', :start => "\\cleartoevenpage\n\n\\chapter{", :end => "}\n\\newpage\n"}
+$gk_BlockScopes['h2'] = {:char => 'h2. ', :start => "\n\n\\section{", :end => "}\n\n"}
 $gk_BlockScopes['h3'] = {:char => 'h3. ', :start => "\n\n\\subsection{", :end => "}\n\n"}
+$gk_BlockScopes['h4'] = {:char => 'h4. ', :start => "\n\n\\subsubsection{", :end => "}\n\n"}
 
 $gb_List = false
 $gb_Table = false
@@ -218,12 +37,6 @@ $gb_Code = false
 
 def handleString(as_Text, ak_Out)
 	as_Text.rstrip!
-	if (as_Text.include?("\n"))
-		as_Text.each do |s|
-			handleString(s, ak_Out)
-		end
-		return
-	end
 	
 	# handle images
 	if as_Text =~ /\A![<>_\*]?.+/
@@ -232,6 +45,9 @@ def handleString(as_Text, ak_Out)
 		ls_Direction = '' if ls_Direction !~ /[<>_\*]/
 		ls_Name.gsub!(/\A![<>_\*]?/, '')
 		ls_Name.gsub!(/\(.*\)/, '')
+		ls_Description = $~.to_s
+		ls_Description.slice!(0, 1)
+		ls_Description.slice!(ls_Description.length - 1, 1)
 		ls_Name.gsub!('!', '')
 		ls_Name.strip!
 		lf_Width = 1.0
@@ -251,17 +67,21 @@ def handleString(as_Text, ak_Out)
 			li_Height = lk_Size[1].to_i
 			lf_Height = lf_Width / li_Width * li_Height
 		end
+		ls_Caption = ''
+		ls_Caption = "\n\\caption{#{ls_Description}}" unless !ls_Description || ls_Description.empty?
 		if (ls_Direction.empty?)
-			ak_Out << "	\\image{label}{#{ls_Destination}}{#{lf_Width}}{}{}\n"
+			ak_Out << " \\begin{figure}[htbp]\n\\centering\n\\includegraphics[width=#{lf_Width}\\textwidth]{#{ls_Destination}}#{ls_Caption}\n\\end{figure}"
 		else
 			if (ls_Direction == '_')
 				ak_Out << "\\vfill\n\n"
-				ak_Out << "\\includegraphics[width=#{lf_Width}\\textwidth]{#{ls_Destination}} \n\n"
+				ak_Out << "\\includegraphics[width=#{lf_Width}\\textwidth]{#{ls_Destination}}#{ls_Caption} \n\n"
 				ak_Out << "\\clearpage\n\n"
 			elsif ls_Direction == '*'
 				ak_Out << "\\vspace*{0.6cm}\n\\includegraphics[width=#{lf_Width}\\textwidth]{#{ls_Destination}} \n\\newpage\n"
 			else
-				ak_Out << "	\\parpic[#{ls_Direction == '<' ? 'l' : 'r'}]{\\includegraphics[width=#{lf_Width}\\textwidth]{#{ls_Destination}}} \n"
+				ls_Caption = ''
+				ls_Caption = "\\piccaption{#{ls_Description}}" unless !ls_Description || ls_Description.empty?
+				ak_Out << "	#{ls_Caption}\\parpic[#{ls_Direction == '<' ? 'l' : 'r'}]{\\includegraphics[width=#{lf_Width}\\textwidth]{#{ls_Destination}}} \n"
 			end
 		end
 		return
@@ -364,13 +184,13 @@ def handleString(as_Text, ak_Out)
 		end
 		if (as_Text[0, 5] == '<pre>')
 			i += 4
-			ak_Out << "\n\\begin{lstlisting}\n"
+			ak_Out << "\n\\begin{lstlisting}"
 			$gb_Code = true
 			next
 		end
 		if (as_Text[0, 6] == '</pre>')
 			i += 5
-			ak_Out << "\n\\end{lstlisting}\n"
+			ak_Out << "\\end{lstlisting}\n"
 			$gb_Code = false
 			next
 		end	
@@ -399,52 +219,17 @@ def handleString(as_Text, ak_Out)
 	end
 end
 
-def handleSection(ak_Section, ak_Out, ai_Level = 0)
-	lb_InEnumeration = false
-	lb_InPre = false
-	ak_Section.each do |lk_Section|
-		if lk_Section.class == Hash
-			#p lk_Section
-			ak_Out << "\n\n\\section{#{lk_Section.keys.first}}\n\n" 
-			handleSection(lk_Section.values.first, ak_Out, ai_Level + 1)
-		elsif lk_Section.class == String
-			ls_Text = lk_Section
-			handleString(ls_Text, ak_Out)
-		end
-	end
-end
-
 lk_Out = ''
 
-li_ChapterCounter = 0
-lk_Guide['chapters'].each do |lk_Chapter|
-	lk_Out << "\\cleartoevenpage\n"
-	ls_Chapter = lk_Chapter.keys.first
-	lk_Out << "\n\n\\chapter{#{ls_Chapter}}\n\n"
-	lk_Out << "\\clearpage\n" unless ls_Chapter == 'When You Wish Upon a Beard'
-	handleSection(lk_Chapter.values.first, lk_Out)
-	li_ChapterCounter += 1
-	#break if (li_ChapterCounter >= 4)
+lk_Lines.each do |ls_Line|
+	handleString(ls_Line, lk_Out)
 end
 
 lk_Out << "\\end{document}\n"
 
-# do some manual cleanup...
-lk_Out.sub!('(with Cartoon Foxes)', '\mbox{(with Cartoon Foxes)}')
-lk_Out.gsub!("``'", "```")
-lk_Out.gsub!("`em.", "'em.")
-lk_Out.gsub!("`em ", "'em ")
-lk_Out.gsub!("`Cause ", "'Cause ")
-lk_Out.sub!("\\section{The Continued Story of My Daughter's Organ Instructor}",
-	"\\section{The Continued Story of My Daughter's Organ \\mbox{Instructor}}")
-lk_Out.sub!("\\begin{tabular}{p{0.075\\textwidth}p{0.4\\textwidth}p{0.44\\textwidth}}\n\\multicolumn{3}{l}{\\bf  Quantifiers }", "\\begin{tabular}{p{0.075\\textwidth}p{0.3\\textwidth}p{0.54\\textwidth}}\n\\multicolumn{3}{l}{\\bf  Quantifiers }")
-
-
 lk_OutFile = File.open('Proteomatic.tex', 'a')
 lk_OutFile.print(lk_Out)
 lk_OutFile.close
-
-exit
 
 system('pdflatex Proteomatic')
 system('pdflatex Proteomatic')

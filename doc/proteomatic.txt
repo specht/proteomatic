@@ -1,0 +1,105 @@
+h1. User's Guide
+
+h2. Introduction
+
+!>images/proteomatic.jpg[0.5](The Proteomatic main window.)!
+
+Proteomatic is the Proteomics researcher's swiss army knife. It enables a user to try out freely available open source tools by automatically downloading and installing these tools and providing a uniform user interface to configure and run them (commercial tools can be used as well but require manual configuration). 
+
+Furthermore, tools can be chained together to form a pipeline. Proteomatic is availble on various platforms including Linux, Mac OS and Windows.
+
+Proteomatic originated from the following observations:
+
+# *Increasing availability of open source tools.* More and more proteomics open source software tools are becoming available. In many cases, these programs are implemented as command line tools, which scares off biologists who are not used to working with the command line. Also, these tools often have lots of parameters, which must be manually adjusted and tried out in order to achieve good results.
+# *Increased automation and high-throughput proteomics.* ...
+
+!>images/scripts-and-descriptions.jpg[0.5](Information flow for the OMSSA wrapper script.)!
+
+The Proteomatic answer to the points stated above is a collection of scripts which encapsulate both open source and commercial software or implement miscellaneous functionality. Each script has a formal description which contains the title, description, and the parameters, along with their descriptions and default values, of the script. If a script acts as a wrapper for an external program, it will include the parameters for this program which are taken from its description.
+
+In addition to scripts and external programs, file types are described as well, which makes it possible to chain scripts together to form a processing pipeline.
+
+On top of this (command line) script layer, a user friendly GUI can be used to load, configure and run these scripts.
+
+h1. Developer's Reference Manual
+
+h2. Scripts
+
+Proteomatic scripts come in two flavors: _processors_ and _converters_. A processor script takes a number of input files and parameters and then writes a number of output files that result from _processing_ the given input files. A converter script, on the other hand, takes each input files and _converts_ it to a corresponding output file, regardless of the other input files, but also taking parameters into account.
+
+Reagrdless of its type, a Proteomatic script consists of two parts:
+
+# *The script description.* This YAML file contains the title, description and options of the script.
+
+# *The script.* This file contains Ruby code.
+
+h3. Processor scripts
+
+The filename of the script description file is @scripts/include/properties/example.yaml@. It contains a YAML formatted description.
+
+<pre>
+title: Example script
+
+type: processor
+
+group: Some sub menu/Another sub menu  # this will appear in the GUI script menu
+
+input:
+  - key: peptides                      # all files from this group can be 
+                                       # accessed with @input[:peptides]
+    label: Peptides                    # this will be useful for the GUI
+    formats: [txt]                     # a list of valid formats for this group
+                                       # (file formats must be defined, too)
+    min: 1                             # min and max file counts can be specified
+
+defaultOutputDirectory: peptides       # by default, the output files go to the 
+                                       # directory of the first file of the group
+                                       # specified here                                       
+                                       
+output:                                # each entry described an output file that
+  - key: peptideMasses                 # can be enabled or disabled by the user
+    label: Peptide and fragment masses # (some result files may be uninteresting
+    format: html                       # in some cases)
+    filename: peptide-masses.html
+    default: yes
+  - key: msPeptideMasses               # if the users wants this file, then
+                                       # @output[:msPeptideMasses] will contain
+                                       # the full path to the output file
+    label: MS peptide masses           # this will be useful for the GUI
+    format: txt                        # the format of this output file, important
+                                       # for pipeline construction
+    filename: ms-peptide-masses.txt    # the filename of this output file, can be
+                                       # prefixed by the user
+    default: yes                       # whether the file should be written by default
+</pre>
+
+The filename of the script file is @scripts/example.rb@. The skeleton of a Proteomatic script looks like this:
+
+<pre>
+require 'include/proteomatic'
+
+class Example < ProteomaticScript
+	def run()
+	end
+end
+
+lk_Object = Example.new
+</pre>
+	
+The @require 'include/proteomatic'@ must be the first line. Then, a subclass of @ProteomaticScript@ is defined which is instanciated as @lk_Object@ after that. Within the @run@ method, several member variables can be accessed:
+
+# *Input files.* 
+<p>
+For processor scripts, all input files are stored in the @@input@ hash, which has an array of absolute input file paths for each input group key.
+</p>
+
+# *Output files.* 
+<p>
+For processor scripts, ... yar de yar yar.
+</p>
+
+And there's even more!
+	
+h2. External tools
+
+Tools can be added, too! "*Wow*", you say.
