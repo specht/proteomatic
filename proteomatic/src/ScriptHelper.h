@@ -66,6 +66,7 @@ protected:
 	QVBoxLayout mk_MainLayout;
 	QVBoxLayout* mk_UpperLayout_;
 	QVBoxLayout* mk_LowerLayout_;
+	QHBoxLayout* mk_TopLevelLayout_;
 	QMenu* mk_ScriptMenu_;
 	
 	// should be a RefPtr, but not possible with VC on win32... (sigh!)

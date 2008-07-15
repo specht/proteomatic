@@ -308,7 +308,7 @@ class EvaluateOmssa < ProteomaticScript
 				lk_Out.puts '<table>'
 				lk_Out.puts '<tr><th>Spot</th><th>E-value threshold</th></tr>'
 				lk_ShortScanKeys.each do |ls_Spot|
-					lk_Out.puts "<tr><td>#{ls_Spot}</td><td>#{sprintf('%e', lk_EThresholds[ls_Spot])}</td></tr>"
+					lk_Out.puts "<tr><td>#{ls_Spot}</td><td>#{lk_EThresholds[ls_Spot] ? sprintf('%e', lk_EThresholds[ls_Spot]) : 'n/a'}</td></tr>"
 				end
 				lk_Out.puts '</table>'
 				

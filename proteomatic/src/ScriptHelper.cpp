@@ -20,6 +20,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mk_Script_(NULL)
 	, ms_WindowTitle("Proteomatic")
 	, mk_ProgressDialog_(NULL)
+	, mk_TopLevelLayout_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	connect(&mk_Proteomatic, SIGNAL(remoteHubLineBatch(QStringList)), this, SLOT(remoteHubLineBatch(QStringList)));
@@ -39,6 +40,9 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_Splitter_->setStyle(new QPlastiqueStyle());
 	lk_Splitter_->setHandleWidth(4);
 
+	QSplitter* lk_HSplitter_ = new QSplitter(this);
+	lk_HSplitter_->setStyle(new QPlastiqueStyle());
+	lk_HSplitter_->setHandleWidth(4);
 /*
 	QFrame* lk_Frame_ = new QFrame(this);
 	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
@@ -83,12 +87,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_AbortAction_ = lk_ToolBar_->addAction(QIcon(":/icons/dialog-cancel.png"), "Abort", this, SLOT(abortScript()));
 	
 	// TODO: revive remote stuff
-	mk_CheckTicketAction_ = new QAction(this);
-	/*
+	//mk_CheckTicketAction_ = new QAction(this);
 	mk_CheckTicketAction_ = lk_ToolBar_->addAction(QIcon(":/icons/ticket.png"), "Check ticket");
 	connect(mk_CheckTicketAction_, SIGNAL(triggered()), this, SLOT(checkTicket()));
 	mk_CheckTicketAction_->setEnabled(false);
-	*/
 	
 	addToolBar(Qt::TopToolBarArea, lk_ToolBar_);
 
@@ -163,9 +165,13 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_Splitter_->setStretchFactor(1, 6);
 
 	lk_Splitter_->setOrientation(Qt::Vertical);
+	lk_HSplitter_->setOrientation(Qt::Horizontal);
+	
 	mk_MainLayout.addWidget(lk_Splitter_);
 	QWidget *lk_MainWidget_ = new QWidget(this);
-	lk_MainWidget_->setLayout(&mk_MainLayout);
+	mk_TopLevelLayout_ = new QHBoxLayout(this);
+	mk_TopLevelLayout_->addLayout(&mk_MainLayout);
+	lk_MainWidget_->setLayout(mk_TopLevelLayout_);
 	setCentralWidget(lk_MainWidget_);
 
 	mk_Output.setReadOnly(true);
@@ -217,7 +223,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 
 
 	mk_MainLayout.addLayout(lk_HLayout_);
-	resize(550, 640);
+	resize(800, 640);
 	
 	toggleUi();
 }
@@ -293,7 +299,8 @@ void k_ScriptHelper::activateScript()
 		if (mk_Script_->description().length() > 0)
 			ls_Text += "<br /><br />" + mk_Script_->description();
 		mk_Script_->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
-		mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
+		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
+		mk_TopLevelLayout_->insertWidget(0, mk_Script_->parameterWidget());
 	
 		if (mk_Script_->type() == r_ScriptType::Local)
 		{

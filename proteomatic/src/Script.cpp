@@ -488,7 +488,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			}
 		}
 		lk_GridLayouts[ls_Group]->addLayout(lk_Layout_, lk_GroupBoxY[ls_Group], lk_GroupBoxX[ls_Group], 1, li_ColSpan);
-		if (li_ColSpan > 1)
+		if (true || li_ColSpan > 1)
 		{
 			lk_GroupBoxX[ls_Group] = 0;
 			lk_GroupBoxY[ls_Group] += 1;

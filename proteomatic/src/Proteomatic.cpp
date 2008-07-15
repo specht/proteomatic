@@ -288,10 +288,8 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 		connect(lk_Action_, SIGNAL(triggered()), this, SLOT(scriptMenuScriptClickedInternal()));
 	}
 	/* TODO: revive remote stuff */
-	/*
     lk_Menu_->addSeparator();
    	lk_Menu_->addMenu(mk_RemoteMenu_);
-   	*/
 
 	mk_pProteomaticScriptsMenu = RefPtr<QMenu>(lk_Menu_);
 }
