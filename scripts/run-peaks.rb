@@ -38,11 +38,11 @@ class RunPeaks < ProteomaticScript
 		ls_Parameters = "-xfi #{ls_TempInDir} #{File::join(ls_TempInDir, 'out')} \"Trypsin without PTMs\" #{lf_PrecursorTolerance} #{lf_ProductTolerance} 10 1"
         ls_Command = "java -Xmx512M -jar #{getConfigValue('peaksBatchJar')} " + ls_Parameters
         puts ls_Command
-        #system(ls_Command)
-        #File::rename('d:/Micha/Augustus/peaks-results/in.fas', "d:/Micha/Augustus/peaks-results/#{File::basename(lk_SpectrumFiles.first)}.fas")
-        #File::rename('d:/Micha/Augustus/peaks-results/in.ann', "d:/Micha/Augustus/peaks-results/#{File::basename(lk_SpectrumFiles.first)}.ann")
-        #FileUtils::rm_rf(ls_TempInDir)
-        #FileUtils::rm(ls_ParamFile) 
+        system(ls_Command)
+        File::rename(File::join(ls_TempInDir, 'out', 'in.fas'), @output[:fasFile]) if @output[:fasFile]
+        File::rename(File::join(ls_TempInDir, 'out', 'in.ann'), @output[:annFile]) if @output[:annFile]
+        FileUtils::rm_rf(ls_TempInDir)
+        FileUtils::rm(ls_ParamFile) 
 	end
 end
 

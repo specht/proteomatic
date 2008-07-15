@@ -13,12 +13,16 @@ input:
 defaultOutputDirectory: spectra
 
 output:
-  - key: resultFile
-    label: PEAKS result file
+  - key: fasFile
+    label: PEAKS peptides
     format: fasta-proteins
-    filename: peaks-results.fasta
+    filename: peaks-results.fas
     default: yes
-    force: yes
+  - key: annFile
+    label: PEAKS annotation
+    format: xml-peaks-ann
+    filename: peaks-results.ann
+    default: no
 
 parameters:
   - key: precursorIonTolerance
