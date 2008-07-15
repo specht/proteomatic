@@ -68,6 +68,9 @@ protected:
 	QVBoxLayout* mk_LowerLayout_;
 	QHBoxLayout* mk_TopLevelLayout_;
 	QMenu* mk_ScriptMenu_;
+	QSplitter* mk_VSplitter_;
+	QSplitter* mk_HSplitter_;
+	QScrollArea* mk_ScrollArea_;
 	
 	// should be a RefPtr, but not possible with VC on win32... (sigh!)
 	k_Script* mk_Script_;

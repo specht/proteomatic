@@ -2,6 +2,9 @@ group: PEAKS
 
 title: Run PEAKS
 
+description: >
+  Run PEAKS on a set of MS/MS spectra.
+
 type: processor
 
 input:

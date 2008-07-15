@@ -2,6 +2,9 @@ group: AUGUSTUS
 
 title: Prepare AUGUSTUS
 
+description: >
+  Prepare OMSSA results for use in the AUGUSTUS ab initio gene prediction program.
+
 type: processor
 
 input:

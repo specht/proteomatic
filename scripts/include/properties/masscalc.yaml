@@ -2,6 +2,9 @@ group: AK Hippler
 
 title: Y ions mass calculator
 
+description: >
+  Calculate y fragment ion masses plus doubly and triply charged peptide masses.
+
 type: processor
 
 input:

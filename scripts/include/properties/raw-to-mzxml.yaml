@@ -2,6 +2,9 @@ group: Converters
 
 title: RAW to mzXML
 
+description: >
+  Convert Thermo Finnigan RAW files to the open mzXML format.
+
 type: converter
 
 input:

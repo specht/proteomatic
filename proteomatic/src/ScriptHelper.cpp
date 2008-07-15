@@ -36,13 +36,16 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_UpperLayout_->setContentsMargins(0, 0, 0, 8);
 	mk_LowerLayout_->setContentsMargins(0, 0, 0, 0);
 
-	QSplitter* lk_Splitter_ = new QSplitter(this);
-	lk_Splitter_->setStyle(new QPlastiqueStyle());
-	lk_Splitter_->setHandleWidth(4);
+	mk_HSplitter_ = new QSplitter(this);
+	mk_HSplitter_->setStyle(new QPlastiqueStyle());
+	mk_HSplitter_->setOrientation(Qt::Horizontal);
+	mk_HSplitter_->setHandleWidth(4);
+	
+	mk_VSplitter_ = new QSplitter(this);
+	mk_VSplitter_->setStyle(new QPlastiqueStyle());
+	mk_VSplitter_->setOrientation(Qt::Vertical);
+	mk_VSplitter_->setHandleWidth(4);
 
-	QSplitter* lk_HSplitter_ = new QSplitter(this);
-	lk_HSplitter_->setStyle(new QPlastiqueStyle());
-	lk_HSplitter_->setHandleWidth(4);
 /*
 	QFrame* lk_Frame_ = new QFrame(this);
 	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
@@ -141,7 +144,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_UpperLayout_->addWidget(lk_Frame_);
 
 	lk_UpperLayoutWidget_->setLayout(mk_UpperLayout_);
-	lk_Splitter_->addWidget(lk_UpperLayoutWidget_);
+	mk_VSplitter_->addWidget(lk_UpperLayoutWidget_);
 	
 	lk_Label_ = new QLabel("<b>Output</b>", this);
 	mk_LowerLayout_->addWidget(lk_Label_);
@@ -157,20 +160,26 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 
 
 	lk_LowerLayoutWidget_->setLayout(mk_LowerLayout_);
-	lk_Splitter_->addWidget(lk_LowerLayoutWidget_);
+	mk_VSplitter_->addWidget(lk_LowerLayoutWidget_);
 
-	lk_Splitter_->setCollapsible(0, false);
-	lk_Splitter_->setCollapsible(1, false);
-	lk_Splitter_->setStretchFactor(0, 2);
-	lk_Splitter_->setStretchFactor(1, 6);
+	mk_HSplitter_->setChildrenCollapsible(false);
+	mk_VSplitter_->setChildrenCollapsible(false);
+	mk_VSplitter_->setStretchFactor(0, 2);
+	mk_VSplitter_->setStretchFactor(1, 6);
 
-	lk_Splitter_->setOrientation(Qt::Vertical);
-	lk_HSplitter_->setOrientation(Qt::Horizontal);
-	
-	mk_MainLayout.addWidget(lk_Splitter_);
+	mk_MainLayout.addWidget(mk_VSplitter_);
 	QWidget *lk_MainWidget_ = new QWidget(this);
 	mk_TopLevelLayout_ = new QHBoxLayout(this);
-	mk_TopLevelLayout_->addLayout(&mk_MainLayout);
+	//mk_TopLevelLayout_->addLayout(&mk_MainLayout);
+	mk_TopLevelLayout_->addWidget(mk_HSplitter_);
+	QWidget* lk_RightLayoutWidget_ = new QWidget(mk_HSplitter_);
+	lk_RightLayoutWidget_->setLayout(&mk_MainLayout);
+	mk_ScrollArea_ = new QScrollArea(this);
+	mk_ScrollArea_->setWidgetResizable(true);
+	mk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
+	//mk_ScrollArea_->layout()->setContentsMargins(0, 0, 8, 0);
+	mk_HSplitter_->addWidget(mk_ScrollArea_);
+	mk_HSplitter_->addWidget(lk_RightLayoutWidget_);
 	lk_MainWidget_->setLayout(mk_TopLevelLayout_);
 	setCentralWidget(lk_MainWidget_);
 
@@ -300,7 +309,8 @@ void k_ScriptHelper::activateScript()
 			ls_Text += "<br /><br />" + mk_Script_->description();
 		mk_Script_->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
 		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
-		mk_TopLevelLayout_->insertWidget(0, mk_Script_->parameterWidget());
+		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
+		mk_ScrollArea_->setWidget(mk_Script_->parameterWidget());
 	
 		if (mk_Script_->type() == r_ScriptType::Local)
 		{

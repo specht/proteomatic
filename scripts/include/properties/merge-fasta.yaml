@@ -2,6 +2,9 @@ group: FASTA
 
 title: Merge FASTA databases
 
+description: >
+  Merge multiple FASTA databases into one. Redundancy is not being checked for.
+
 type: processor
 
 input:

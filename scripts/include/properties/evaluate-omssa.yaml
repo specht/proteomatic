@@ -2,6 +2,9 @@ group: OMSSA
 
 title: Evaluate OMSSA results
 
+description: >
+  Evaluate an OMSSA search at a certain target false positive ratio and create a HTML report.
+
 type: processor
 
 input:

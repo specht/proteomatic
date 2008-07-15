@@ -5,6 +5,9 @@ group: GPF
 
 title: Run GPF
 
+description: >
+  Run GPF on de novo predicted peptides.  
+
 type: processor
 
 input:

@@ -288,12 +288,14 @@ void k_Script::toggleGroup()
 	{
 		if (!lk_Header_->buddyVisible())
 		{
+			/*
 			// hide all other folded headers
 			foreach (k_FoldedHeader* lk_Other_, mk_FoldedHeaders)
 			{
 				if (lk_Other_ != lk_Header_)
 					lk_Other_->hideBuddy();
 			}
+			*/
 		}
 		lk_Header_->toggleBuddy();
 	}
@@ -417,6 +419,15 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 	lk_InternalWidget_->setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	lk_InternalWidget_->setWindowTitle(ms_Title);
 	lk_InternalWidget_->setWindowFlags(Qt::WindowStaysOnTopHint);
+	QLabel* lk_Label_ = new QLabel("<b>" + title() + "</b>", lk_InternalWidget_);
+	lk_ParameterLayout_->addWidget(lk_Label_);
+	lk_Label_ = new QLabel("<i></i>" + description(), lk_InternalWidget_);
+	lk_Label_->setWordWrap(true);
+	lk_ParameterLayout_->addWidget(lk_Label_);
+	QFrame* lk_Frame_ = new QFrame(lk_InternalWidget_);
+	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+	lk_ParameterLayout_->addWidget(lk_Frame_);
+	
 	//lk_ParameterLayout_->setContentsMargins(0, 0, 0, 0);
 	//mk_UpperLayout_->insertWidget(3, lk_InternalWidget_);
 
