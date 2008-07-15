@@ -720,4 +720,9 @@ class ProteomaticScript
 		raise 'Internal error: run() must be overridden!'
 		exit 1
 	end
+	
+	def getConfigValue(as_Key)
+		lk_Config = YAML::load_file(File::join('config', "#{@ms_ScriptName}.config.yaml"))
+		return lk_Config[as_Key]
+	end
 end

@@ -16,7 +16,7 @@ output:
   - key: genome
     label: GPF index
     format: gpfindex
-    filename: '#{basename}.trypsin-monoisotopic.gpfindex'
+    filename: '#{basename}#{extension}.trypsin-monoisotopic.gpfindex'
 
 needs:
   - ext.gpf

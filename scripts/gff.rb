@@ -12,7 +12,7 @@ def handleFile(ak_Files, ak_Out = $stdout)
 			lk_Assembly = lk_Hits[li_AssemblyIndex]
 			
 			# adjust positions if reverse (from GPF to GFF)
-			lk_Assembly['details']['parts'].each { |lk_Part| lk_Part['position'] -= lk_Part['length'] - 2 } unless lk_Assembly['details']['forward']
+			lk_Assembly['details']['parts'].each { |lk_Part| lk_Part['position'] -= lk_Part['length'] - 3 } unless lk_Assembly['details']['forward']
 			
 			# chuck out all CDS that are shorter than 4 nucleotides
 			# ATTENTION: this only works as long as we allow at most one intron!
