@@ -6,7 +6,7 @@ win32 {
 
 macx {
 	CONFIG -= app_bundle
-	CONFIG += x86 ppc
+	CONFIG += ppc
 	ICON = ../../src/icons/proteomatic.icns
 }
 
