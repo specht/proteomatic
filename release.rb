@@ -26,9 +26,9 @@ FileUtils.rm_rf(ls_DestDir + '.zip')
 
 puts 'Building Proteomatic executables...'
 
-FileUtils.rmtree(File::join('proteomatic', 'obj'))
+FileUtils.rmtree(File::join('src', 'obj'))
 lk_Projects = ['Proteomatic']
-lk_Projects.each { |ls_Project| system("cd proteomatic-src/projects/#{ls_Project} && #{ls_QMake[ls_Platform]} && #{ls_Make[ls_Platform]} release && cd ../../../") }
+lk_Projects.each { |ls_Project| system("cd src/projects/#{ls_Project} && #{ls_QMake[ls_Platform]} && #{ls_Make[ls_Platform]} release && cd ../../../") }
 
 puts 'Collecting Proteomatic executables...'
 
@@ -79,7 +79,7 @@ else
 end
 
 FileUtils.rmtree(ls_DestDir)
-FileUtils.rmtree(File::join('proteomatic', 'obj'))
+FileUtils.rmtree(File::join('src', 'obj'))
 lk_Projects.each { |ls_Project| FileUtils::rm_rf(ls_Project + ls_BinaryExtension[ls_Platform]) }
 lk_Projects.each { |ls_Project| FileUtils.rm_rf(ls_Project + '.exe.manifest') } if (ls_Platform == 'windows')
 
