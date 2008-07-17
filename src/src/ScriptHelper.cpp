@@ -96,8 +96,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 
 	QLabel* lk_Label_ = new QLabel("<b>Input files</b>", this);
 	mk_UpperLayout_->addWidget(lk_Label_);
-	lk_Frame_ = new QFrame(this);
-	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 
 	lk_Container_ = new QWidget(this);
 	lk_Label_->setBuddy(lk_Container_);
@@ -117,12 +115,9 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_GroupBoxLayout_->addLayout(lk_SubLayout_);
 	lk_Container_->setLayout(lk_GroupBoxLayout_);
 	mk_UpperLayout_->addWidget(lk_Container_);
-	mk_UpperLayout_->addWidget(lk_Frame_);
 
 	lk_Label_ = new QLabel("<b>Output directory</b>", this);
 	mk_UpperLayout_->addWidget(lk_Label_);
-	lk_Frame_ = new QFrame(this);
-	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 
 	lk_Container_ = new QWidget(this);
 	lk_Label_->setBuddy(lk_Container_);
@@ -136,7 +131,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_Container_->setLayout(lk_GroupBoxLayout_);
 	mk_OutputDirectory.setReadOnly(true);
 	mk_UpperLayout_->addWidget(lk_Container_);
-	mk_UpperLayout_->addWidget(lk_Frame_);
 
 	lk_UpperLayoutWidget_->setLayout(mk_UpperLayout_);
 	mk_VSplitter_->addWidget(lk_UpperLayoutWidget_);
@@ -152,7 +146,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_GroupBoxLayout_->addWidget(&mk_Output);
 	lk_Container_->setLayout(lk_GroupBoxLayout_);
 	mk_LowerLayout_->addWidget(lk_Container_);
-
 
 	lk_LowerLayoutWidget_->setLayout(mk_LowerLayout_);
 	mk_VSplitter_->addWidget(lk_LowerLayoutWidget_);

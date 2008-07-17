@@ -50,6 +50,7 @@ class ExternalTools
 
 		li_BlockSize = 16384;
 		Net::FTP.open(lk_Uri.host) do |lk_Ftp|
+			lk_Ftp.passive = true 
 			lk_Ftp.login
 			li_Size = lk_Ftp.size(lk_Uri.path)
 			li_Received = 0
