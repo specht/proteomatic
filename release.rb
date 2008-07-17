@@ -28,7 +28,7 @@ puts 'Building Proteomatic executables...'
 
 FileUtils.rmtree(File::join('proteomatic', 'obj'))
 lk_Projects = ['Proteomatic']
-lk_Projects.each { |ls_Project| system("cd proteomatic/projects/#{ls_Project} && #{ls_QMake[ls_Platform]} && #{ls_Make[ls_Platform]} release && cd ../../../") }
+lk_Projects.each { |ls_Project| system("cd proteomatic-src/projects/#{ls_Project} && #{ls_QMake[ls_Platform]} && #{ls_Make[ls_Platform]} release && cd ../../../") }
 
 puts 'Collecting Proteomatic executables...'
 

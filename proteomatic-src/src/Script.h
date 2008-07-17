@@ -4,6 +4,7 @@
 #include "RefPtr.h"
 #include "FoldedHeader.h"
 #include "Proteomatic.h"
+#include "SizeWatchWidget.h"
 
 
 struct r_ScriptType
@@ -26,7 +27,7 @@ public:
 	bool isGood();
 	
 	r_ScriptType::Enumeration type() const;
-	QWidget* parameterWidget();
+	k_SizeWatchWidget* parameterWidget();
 	QString uri();
 	virtual QString title();
 	virtual QString description();
@@ -65,7 +66,7 @@ protected:
 	QString ms_ScriptUri;
 	QString ms_Title;
 	QString ms_Description;
-	RefPtr<QWidget> mk_pParameterWidget;
+	RefPtr<k_SizeWatchWidget> mk_pParameterWidget;
 	QHash<QString, QWidget* > mk_ParameterValueWidgets;
 	QHash<QString, QList<QWidget*> > mk_ParameterMultiChoiceWidgets;
 	QHash<QString, QDialog* > mk_ParameterMultiChoiceDialogs;

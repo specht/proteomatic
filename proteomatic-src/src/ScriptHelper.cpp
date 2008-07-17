@@ -36,11 +36,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_UpperLayout_->setContentsMargins(0, 0, 0, 8);
 	mk_LowerLayout_->setContentsMargins(0, 0, 0, 0);
 
-	mk_HSplitter_ = new QSplitter(this);
-	mk_HSplitter_->setStyle(new QPlastiqueStyle());
-	mk_HSplitter_->setOrientation(Qt::Horizontal);
-	mk_HSplitter_->setHandleWidth(4);
-	
 	mk_VSplitter_ = new QSplitter(this);
 	mk_VSplitter_->setStyle(new QPlastiqueStyle());
 	mk_VSplitter_->setOrientation(Qt::Vertical);
@@ -162,7 +157,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_LowerLayoutWidget_->setLayout(mk_LowerLayout_);
 	mk_VSplitter_->addWidget(lk_LowerLayoutWidget_);
 
-	mk_HSplitter_->setChildrenCollapsible(false);
 	mk_VSplitter_->setChildrenCollapsible(false);
 	mk_VSplitter_->setStretchFactor(0, 2);
 	mk_VSplitter_->setStretchFactor(1, 6);
@@ -171,15 +165,14 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	QWidget *lk_MainWidget_ = new QWidget(this);
 	mk_TopLevelLayout_ = new QHBoxLayout(this);
 	//mk_TopLevelLayout_->addLayout(&mk_MainLayout);
-	mk_TopLevelLayout_->addWidget(mk_HSplitter_);
-	QWidget* lk_RightLayoutWidget_ = new QWidget(mk_HSplitter_);
+	QWidget* lk_RightLayoutWidget_ = new QWidget(this);
 	lk_RightLayoutWidget_->setLayout(&mk_MainLayout);
 	mk_ScrollArea_ = new QScrollArea(this);
 	mk_ScrollArea_->setWidgetResizable(true);
 	mk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
 	//mk_ScrollArea_->layout()->setContentsMargins(0, 0, 8, 0);
-	mk_HSplitter_->addWidget(mk_ScrollArea_);
-	mk_HSplitter_->addWidget(lk_RightLayoutWidget_);
+	mk_TopLevelLayout_->addWidget(mk_ScrollArea_);
+	mk_TopLevelLayout_->addWidget(lk_RightLayoutWidget_);
 	lk_MainWidget_->setLayout(mk_TopLevelLayout_);
 	setCentralWidget(lk_MainWidget_);
 
@@ -308,6 +301,7 @@ void k_ScriptHelper::activateScript()
 		if (mk_Script_->description().length() > 0)
 			ls_Text += "<br /><br />" + mk_Script_->description();
 		mk_Script_->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
+		connect(mk_Script_->parameterWidget(), SIGNAL(widgetResized()), this, SLOT(parameterWidgetResized()));
 		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
 		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
 		mk_ScrollArea_->setWidget(mk_Script_->parameterWidget());
@@ -742,4 +736,33 @@ bool k_ScriptHelper::checkVersionChanged()
 		toggleUi();
 	}
 	return mb_VersionChanged;
+}
+
+
+void k_ScriptHelper::parameterWidgetResized()
+{
+	/*
+	int li_Width = mk_Script_->parameterWidget()->width();
+	int li_Difference = mk_ScrollArea_->width() - li_Width;
+	if (mk_ScrollArea_->verticalScrollBar())
+		li_Difference -= mk_ScrollArea_->verticalScrollBar()->width();
+	if (li_Difference < 0)
+		mk_ScrollArea_->resize(mk_ScrollArea_->width() - li_Difference, mk_ScrollArea_->height());
+		*/
+		/*
+	mk_Proteomatic.showMessageBox("Info", QString("width: %1, size hint: %2x%3")
+		.arg(mk_Script_->parameterWidget()->width())
+		.arg(mk_ScrollArea_->sizeHint().width())
+		.arg(mk_ScrollArea_->sizeHint().height()));
+		*/
+	/*
+	int li_Width = mk_Script_->parameterWidget()->width() + mk_ScrollArea_->verticalScrollBar()->width();
+	if (mk_ScrollArea_->width() < li_Width)
+		mk_ScrollArea_->setMinimumWidth(li_Width);
+	*/
+	if (mk_ScrollArea_->horizontalScrollBar()->isVisible())
+	{
+		int li_Width = mk_Script_->parameterWidget()->width() + mk_ScrollArea_->verticalScrollBar()->width();
+		mk_ScrollArea_->setMinimumWidth(li_Width + 10);
+	}
 }

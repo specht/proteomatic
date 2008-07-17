@@ -41,6 +41,7 @@ protected slots:
 	void checkTicket();
 	void checkTicket(QString as_Ticket);
 	void ticketWindowClosed();
+	void parameterWidgetResized();
 
 protected:
 	void setScript(QString as_Filename);
@@ -69,7 +70,6 @@ protected:
 	QHBoxLayout* mk_TopLevelLayout_;
 	QMenu* mk_ScriptMenu_;
 	QSplitter* mk_VSplitter_;
-	QSplitter* mk_HSplitter_;
 	QScrollArea* mk_ScrollArea_;
 	
 	// should be a RefPtr, but not possible with VC on win32... (sigh!)

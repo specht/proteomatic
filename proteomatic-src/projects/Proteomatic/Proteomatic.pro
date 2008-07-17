@@ -36,6 +36,7 @@ HEADERS += \
 	../../src/Script.h \
 	../../src/ScriptHelper.h \
 	../../src/ScriptFactory.h \
+	../../src/SizeWatchWidget.h \
 	../../src/TicketWindow.h \
 	
 SOURCES += \
