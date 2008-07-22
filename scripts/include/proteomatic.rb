@@ -334,8 +334,8 @@ class ProteomaticScript
 						ls_FileLabel = 'files '
 					end
 				end
+				ls_Result += 'optional: ' if (ls_Range == '')
 				ls_Result += "#{@mk_Input['groups'][ls_Group]['label']} #{ls_FileLabel}"
-				ls_Result += ' (optional)' if (ls_Range == '')
 				ls_Result += "\n"
 				ls_Result += "  format: #{@mk_Input['groups'][ls_Group]['formats'].collect { |x| info = formatInfo(x); "#{info['description']} (#{info['extensions'].join('|')})" }.join(', ')}\n"
 				ls_Result += "\n"
@@ -349,10 +349,33 @@ class ProteomaticScript
 		ls_Result = ''
 		ls_Result << "---getParameters\n"
 		ls_Result << @mk_Parameters.parametersString()
-		unless @mk_Input['groups'].empty?
+		if @mk_Input
 			ls_Result << "!!!begin input\n"
-			@mk_Input['groups'].keys.each do |ls_Group|
-				ls_Result << "#{ls_Group}: #{@mk_Input['groups'][ls_Group]['label']}\n"
+			@mk_Input['groupOrder'].each do |ls_Group|
+				ls_Format = "#{@mk_Input['groups'][ls_Group]['formats'].collect { |x| formatInfo(x)['extensions'] }.flatten.uniq.sort.join('|')}"
+				ls_Range = ''
+				ls_Range += 'min' if @mk_Input['groups'][ls_Group]['min']
+				ls_Range += 'max' if @mk_Input['groups'][ls_Group]['max']
+				ls_FileLabel = ''
+				if (ls_Range == 'min')
+					ls_Result += "at least #{@mk_Input['groups'][ls_Group]['min']} "
+					ls_FileLabel = "file#{@mk_Input['groups'][ls_Group]['min'] != 1 ? 's' : ''} "
+				elsif (ls_Range == 'max')
+					ls_Result += "at most #{@mk_Input['groups'][ls_Group]['max']} "
+					ls_FileLabel = "file#{@mk_Input['groups'][ls_Group]['max'] != 1 ? 's' : ''} "
+				elsif (ls_Range == 'minmax')
+					if (@mk_Input['groups'][ls_Group]['min'] == @mk_Input['groups'][ls_Group]['max'])
+						ls_Result += "exactly #{@mk_Input['groups'][ls_Group]['min']} "
+						ls_FileLabel = "file#{@mk_Input['groups'][ls_Group]['min'] != 1 ? 's' : ''} "
+					else
+						ls_Result += "at least #{@mk_Input['groups'][ls_Group]['min']}, but no more than #{@mk_Input['groups'][ls_Group]['max']} "
+						ls_FileLabel = 'files '
+					end
+				end
+				ls_Result += 'optional: ' if (ls_Range == '')
+				ls_Result += "#{@mk_Input['groups'][ls_Group]['label']} #{ls_FileLabel}"
+				ls_Result += "(#{ls_Format})"
+				ls_Result += "\n"
 			end
 			ls_Result << "!!!end input\n"
 		end
@@ -504,6 +527,9 @@ class ProteomaticScript
 
 		# handle output files
 		if @mk_ScriptProperties.has_key?('output')
+			lk_Directory = {'group' => 'Output files', 'key' => '[output]directory', 
+				'label' => 'Output directory', 'type' => 'string', 'default' => '', 'colspan' => 2}
+			@mk_Parameters.addParameter(lk_Directory)
 			lk_Prefix = {'group' => 'Output files', 'key' => '[output]prefix', 
 				'label' => 'Output file prefix', 'type' => 'string', 'default' => '', 'colspan' => 2}
 			@mk_Parameters.addParameter(lk_Prefix)
@@ -565,8 +591,8 @@ class ProteomaticScript
 
 		lk_Files = lk_Arguments.select { |ls_Path| File::file?(ls_Path) }
 		lk_Arguments -= lk_Files
-		lk_Directories = lk_Arguments.select { |ls_Path| File::directory?(ls_Path) }
-		lk_Arguments -= lk_Directories
+		lk_Directories = [@param['[output]directory'.intern]]
+		lk_Directories = Array.new if @param['[output]directory'.intern].empty?
 
 		lk_Errors = Array.new
 		

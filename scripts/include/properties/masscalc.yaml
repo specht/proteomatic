@@ -9,7 +9,7 @@ type: processor
 
 input:
   - key: peptides
-    label: Peptides
+    label: peptides
     formats: [txt]
     min: 1
 

@@ -56,7 +56,10 @@ protected slots:
 	void toggleGroup();
 	void addChoiceItems();
 	void removeChoiceItems(QList<QListWidgetItem *> ak_Items);
+	void setOutputDirectoryButtonClicked();
+	void clearOutputDirectoryButtonClicked();
 	void resetDialog();
+	void toggleUi();
 
 protected:
 	void addChoiceItems(QString as_Key, QStringList ak_Choices);
@@ -76,4 +79,7 @@ protected:
 	QString ms_DefaultConfiguration;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_IsGood;
+	QLineEdit* mk_OutputDirectory_;
+	QToolButton* mk_ClearOutputDirectory_;
+	QStringList mk_InputFileDescriptionList;
 };

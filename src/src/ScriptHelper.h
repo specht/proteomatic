@@ -28,7 +28,6 @@ protected slots:
 	void parameterLabelClicked(const QString& as_Id);
 	void loadFilesButtonClicked();
 	void resetParameters();
-	void setOutputDirectoryButtonClicked();
 	void abortScript();
 	void saveParameters();
 	void loadParameters();
@@ -51,7 +50,6 @@ protected:
 	bool checkVersionChanged();
 
 	QString ms_WindowTitle;
-	QLineEdit mk_OutputDirectory;
 	k_FileList mk_FileList;
 	QToolButton mk_RemoveInputFileButton;
 	QPushButton mk_ResetButton;
@@ -59,7 +57,6 @@ protected:
 	QPushButton mk_LoadParametersButton;
 	QPushButton mk_SaveParametersButton;
 	QToolButton mk_AddFilesButton;
-	QToolButton mk_SetOutputDirectoryButton;
 	QTextEdit mk_Output;
 	k_ConsoleString ms_Output;
 	bool mb_VersionChanged;
@@ -67,9 +64,11 @@ protected:
 	QVBoxLayout mk_MainLayout;
 	QVBoxLayout* mk_UpperLayout_;
 	QVBoxLayout* mk_LowerLayout_;
-	QHBoxLayout* mk_TopLevelLayout_;
 	QMenu* mk_ScriptMenu_;
 	QSplitter* mk_VSplitter_;
+	QSplitter* mk_HSplitter_;
+	QBoxLayout* mk_ParameterLayout_;
+	QWidget* mk_ParameterLayoutWidget_;
 	QScrollArea* mk_ScrollArea_;
 	
 	// should be a RefPtr, but not possible with VC on win32... (sigh!)

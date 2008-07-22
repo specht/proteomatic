@@ -20,7 +20,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mk_Script_(NULL)
 	, ms_WindowTitle("Proteomatic")
 	, mk_ProgressDialog_(NULL)
-	, mk_TopLevelLayout_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	connect(&mk_Proteomatic, SIGNAL(remoteHubLineBatch(QStringList)), this, SLOT(remoteHubLineBatch(QStringList)));
@@ -40,6 +39,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_VSplitter_->setStyle(new QPlastiqueStyle());
 	mk_VSplitter_->setOrientation(Qt::Vertical);
 	mk_VSplitter_->setHandleWidth(4);
+	mk_HSplitter_ = new QSplitter(this);
+	mk_HSplitter_->setStyle(new QPlastiqueStyle());
+	mk_HSplitter_->setOrientation(Qt::Horizontal);
+	mk_HSplitter_->setHandleWidth(4);
 
 /*
 	QFrame* lk_Frame_ = new QFrame(this);
@@ -116,22 +119,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_Container_->setLayout(lk_GroupBoxLayout_);
 	mk_UpperLayout_->addWidget(lk_Container_);
 
-	lk_Label_ = new QLabel("<b>Output directory</b>", this);
-	mk_UpperLayout_->addWidget(lk_Label_);
-
-	lk_Container_ = new QWidget(this);
-	lk_Label_->setBuddy(lk_Container_);
-	lk_Container_->setContentsMargins(0, 0, 0, 0);
-	lk_GroupBoxLayout_ = new QHBoxLayout(lk_Container_);
-	lk_GroupBoxLayout_->setMargin(0);
-	lk_GroupBoxLayout_->addWidget(&mk_OutputDirectory);
-	mk_SetOutputDirectoryButton.setIcon(QIcon(":/icons/folder.png"));
-	connect(&mk_SetOutputDirectoryButton, SIGNAL(clicked()), this, SLOT(setOutputDirectoryButtonClicked()));
-	((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(&mk_SetOutputDirectoryButton, 0, Qt::AlignTop);
-	lk_Container_->setLayout(lk_GroupBoxLayout_);
-	mk_OutputDirectory.setReadOnly(true);
-	mk_UpperLayout_->addWidget(lk_Container_);
-
 	lk_UpperLayoutWidget_->setLayout(mk_UpperLayout_);
 	mk_VSplitter_->addWidget(lk_UpperLayoutWidget_);
 	
@@ -151,23 +138,28 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_VSplitter_->addWidget(lk_LowerLayoutWidget_);
 
 	mk_VSplitter_->setChildrenCollapsible(false);
-	mk_VSplitter_->setStretchFactor(0, 2);
-	mk_VSplitter_->setStretchFactor(1, 6);
+	mk_VSplitter_->setStretchFactor(0, 1);
+	mk_VSplitter_->setStretchFactor(1, 3);
+	mk_HSplitter_->setChildrenCollapsible(false);
+	mk_HSplitter_->setStretchFactor(0, 1);
+	mk_HSplitter_->setStretchFactor(1, 1);
 
 	mk_MainLayout.addWidget(mk_VSplitter_);
-	QWidget *lk_MainWidget_ = new QWidget(this);
-	mk_TopLevelLayout_ = new QHBoxLayout(this);
 	//mk_TopLevelLayout_->addLayout(&mk_MainLayout);
 	QWidget* lk_RightLayoutWidget_ = new QWidget(this);
 	lk_RightLayoutWidget_->setLayout(&mk_MainLayout);
 	mk_ScrollArea_ = new QScrollArea(this);
 	mk_ScrollArea_->setWidgetResizable(true);
 	mk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
-	//mk_ScrollArea_->layout()->setContentsMargins(0, 0, 8, 0);
-	mk_TopLevelLayout_->addWidget(mk_ScrollArea_);
-	mk_TopLevelLayout_->addWidget(lk_RightLayoutWidget_);
-	lk_MainWidget_->setLayout(mk_TopLevelLayout_);
-	setCentralWidget(lk_MainWidget_);
+	mk_HSplitter_->addWidget(mk_ScrollArea_);
+	mk_HSplitter_->addWidget(lk_RightLayoutWidget_);
+	mk_ParameterLayout_ = new QVBoxLayout(this);
+	mk_ParameterLayoutWidget_ = new QWidget(this);
+	mk_ParameterLayoutWidget_->setLayout(mk_ParameterLayout_);
+	mk_ParameterLayout_->setContentsMargins(8, 8, 8, 8);
+	mk_ScrollArea_->setWidget(mk_ParameterLayoutWidget_);
+	setCentralWidget(mk_HSplitter_);
+	mk_ScrollArea_->setVisible(false);
 
 	mk_Output.setReadOnly(true);
 	mk_Output.setFont(mk_Proteomatic.consoleFont());
@@ -247,9 +239,7 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 		if (ls_Path != "" && mk_Script_)
 		{
 			QFileInfo lk_FileInfo(ls_Path);
-			if (lk_FileInfo.isDir())
-				mk_OutputDirectory.setText(ls_Path);
-			else
+			if (!lk_FileInfo.isDir())
 			{
 				if (ls_Path.right(4) == ".pmp" && mk_Script_)
 				{
@@ -297,7 +287,10 @@ void k_ScriptHelper::activateScript()
 		connect(mk_Script_->parameterWidget(), SIGNAL(widgetResized()), this, SLOT(parameterWidgetResized()));
 		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
 		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
-		mk_ScrollArea_->setWidget(mk_Script_->parameterWidget());
+		mk_ParameterLayout_->addWidget(mk_Script_->parameterWidget());
+		mk_ScrollArea_->setVisible(true);
+		mk_HSplitter_->setStretchFactor(0, 1);
+		mk_HSplitter_->setStretchFactor(1, 1);
 	
 		if (mk_Script_->type() == r_ScriptType::Local)
 		{
@@ -338,9 +331,6 @@ void k_ScriptHelper::start()
 
 	for (int i = 0; i < mk_FileList.count(); ++i)
 		lk_Arguments.push_back(mk_FileList.item(i)->text());
-
-	if (mk_OutputDirectory.text().length() != 0)
-		lk_Arguments.push_back(mk_OutputDirectory.text());
 
 	if (mk_Script_->type() == r_ScriptType::Local)
 		mk_Script_->start(lk_Arguments);
@@ -391,7 +381,6 @@ void k_ScriptHelper::reset()
 		delete mk_Script_;
 	mk_Script_ = NULL;
 	//mk_Program.setText("(no script loaded)");
-	mk_OutputDirectory.clear();
 	mk_FileList.clear();
 	ms_Output.clear();
 	mk_Output.clear();
@@ -413,20 +402,11 @@ void k_ScriptHelper::loadFilesButtonClicked()
 }
 
 
-void k_ScriptHelper::setOutputDirectoryButtonClicked()
-{
-	QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), QDir::homePath());
-	if (ls_Path.length() > 0)
-		mk_OutputDirectory.setText(ls_Path);
-}
-
-
 void k_ScriptHelper::resetParameters()
 {
 	if (mk_Script_)
 		mk_Script_->reset();
 
-	mk_OutputDirectory.clear();
 	mk_FileList.clear();
 	ms_Output.clear();
 	mk_Output.clear();
@@ -436,6 +416,7 @@ void k_ScriptHelper::resetParameters()
 
 void k_ScriptHelper::toggleUi()
 {
+	mk_ScrollArea_->setVisible(mk_Script_);
 	this->setEnabled(mk_RemoteRequests.empty());
 		
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
@@ -462,7 +443,6 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(false);
 		mk_AddFilesButton.setEnabled(false);
-		mk_SetOutputDirectoryButton.setEnabled(false);
 	}
 	else
 	{
@@ -474,7 +454,6 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(mk_Script_);
 		mk_SaveParametersAction_->setEnabled(mk_Script_);
 		mk_AddFilesButton.setEnabled(mk_Script_);
-		mk_SetOutputDirectoryButton.setEnabled(mk_Script_);
 	}
 
 	if (mb_VersionChanged)
@@ -489,7 +468,6 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(mk_Script_);
 		mk_AddFilesButton.setEnabled(false);
-		mk_SetOutputDirectoryButton.setEnabled(false);
 	}
 }
 
@@ -753,9 +731,11 @@ void k_ScriptHelper::parameterWidgetResized()
 	if (mk_ScrollArea_->width() < li_Width)
 		mk_ScrollArea_->setMinimumWidth(li_Width);
 	*/
+	/*
 	if (mk_ScrollArea_->horizontalScrollBar()->isVisible())
 	{
 		int li_Width = mk_Script_->parameterWidget()->width() + mk_ScrollArea_->verticalScrollBar()->width();
 		mk_ScrollArea_->setMinimumWidth(li_Width + 10);
 	}
+	*/
 }

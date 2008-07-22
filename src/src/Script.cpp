@@ -17,6 +17,8 @@ k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Pr
 	, mb_IsGood(false)
 	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
 	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
+	, mk_OutputDirectory_(NULL)
+	, mk_ClearOutputDirectory_(NULL)
 {
 }
 
@@ -346,6 +348,33 @@ void k_Script::removeChoiceItems(QList<QListWidgetItem *> ak_Items)
 }
 
 
+void k_Script::clearOutputDirectoryButtonClicked()
+{
+	if (mk_OutputDirectory_ == NULL)
+		return;
+	
+	mk_OutputDirectory_->clear();
+}
+
+
+void k_Script::setOutputDirectoryButtonClicked()
+{
+	if (mk_OutputDirectory_ == NULL)
+		return;
+	
+	QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), QDir::homePath());
+	if (ls_Path.length() > 0)
+		mk_OutputDirectory_->setText(ls_Path);
+}
+
+
+void k_Script::toggleUi()
+{
+	if (mk_ClearOutputDirectory_ != NULL)
+		mk_ClearOutputDirectory_->setEnabled(!mk_OutputDirectory_->text().isEmpty());
+}
+
+
 void k_Script::resetDialog()
 {
 	QDialog* lk_Dialog_ = dynamic_cast<QDialog*>(sender());
@@ -363,6 +392,9 @@ void k_Script::resetDialog()
 
 void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeOutputFiles)
 {
+	mk_InputFileDescriptionList.clear();
+	mk_OutputDirectory_ = NULL;
+	mk_ClearOutputDirectory_ = NULL;
 	mk_pParameterWidget = RefPtr<k_SizeWatchWidget>(new k_SizeWatchWidget());
 
 	QList<QString> lk_ParametersOrder;
@@ -378,14 +410,14 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 		if (ls_Parameter == "!!!begin parameter")
 		{
 			// collect key/value pairs
-			forever
+			while (true)
 			{
 				QString ls_Key = ak_Definition.takeFirst().trimmed();
 				if (ls_Key == "!!!end parameter")
 					break;
 				if (ls_Key == "!!!begin values")
 				{
-					forever
+					while (true)
 					{
 						QString ls_Value = ak_Definition.takeFirst().trimmed();
 						if (ls_Value == "!!!end values")
@@ -398,6 +430,16 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 					QString ls_Value = ak_Definition.takeFirst().trimmed();
 					lk_Parameter[ls_Key] = ls_Value;
 				}
+			}
+		}
+		if (ls_Parameter == "!!!begin input")
+		{
+			while (true)
+			{
+				QString ls_Key = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "!!!end input")
+					break;
+				mk_InputFileDescriptionList.push_back(ls_Key);
 			}
 		}
 		if (lk_Parameter["key"].length() > 0)
@@ -421,9 +463,21 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 	lk_InternalWidget_->setWindowFlags(Qt::WindowStaysOnTopHint);
 	QLabel* lk_Label_ = new QLabel("<b>" + title() + "</b>", lk_InternalWidget_);
 	lk_ParameterLayout_->addWidget(lk_Label_);
-	lk_Label_ = new QLabel("<i></i>" + description(), lk_InternalWidget_);
-	lk_Label_->setWordWrap(true);
-	lk_ParameterLayout_->addWidget(lk_Label_);
+	if (!description().isEmpty())
+	{
+		lk_Label_ = new QLabel("<i></i>" + description(), lk_InternalWidget_);
+		lk_Label_->setWordWrap(true);
+		lk_ParameterLayout_->addWidget(lk_Label_);
+	}
+	if (!mk_InputFileDescriptionList.empty())
+	{
+		QString ls_List;
+		foreach (QString ls_Item, mk_InputFileDescriptionList)
+			ls_List += "<li>" + ls_Item + "</li>";
+		lk_Label_ = new QLabel("<i></i>Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
+		lk_Label_->setWordWrap(true);
+		lk_ParameterLayout_->addWidget(lk_Label_);
+	}
 	QFrame* lk_Frame_ = new QFrame(lk_InternalWidget_);
 	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 	lk_ParameterLayout_->addWidget(lk_Frame_);
@@ -435,7 +489,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 
 	foreach (QString ls_Key, lk_ParametersOrder)
 	{
-		if (ls_Key.startsWith("[output]") && ls_Key != "[output]prefix")
+		if (ls_Key.startsWith("[output]") && ls_Key != "[output]prefix" && ls_Key != "[output]directory")
 			mk_OutFileDetails[ls_Key] = lk_Parameters[ls_Key];
 
 		if (!ab_IncludeOutputFiles && ls_Key.startsWith("[output]"))
@@ -518,7 +572,11 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 
 		bool lb_Ok;
 
+		// use lk_Widget_ for insertion into layout and as value unless
+		// lk_ValueWidget_ != NULL, then use this as the value!!
 		QWidget* lk_Widget_ = NULL;
+		QWidget* lk_ValueWidget_ = NULL;
+		
 		QString ls_Type = lk_Parameter["type"];
 		if (ls_Type == "float")
 		{
@@ -567,6 +625,29 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			QLineEdit* lk_LineEdit_ = new QLineEdit(lk_Container_);
 			lk_Widget_ = lk_LineEdit_;
 			lk_LineEdit_->setText(lk_Parameter["default"]);
+			if (lk_Parameter["key"] == "[output]directory")
+			{
+				mk_OutputDirectory_ = lk_LineEdit_;
+				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
+				lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
+				QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
+				lk_GroupBoxLayout_->setMargin(0);
+				lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
+				QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
+				lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
+				mk_ClearOutputDirectory_ = lk_ClearOutputDirectoryButton_;
+				connect(lk_ClearOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(clearOutputDirectoryButtonClicked()));
+				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ClearOutputDirectoryButton_, 0, Qt::AlignTop);
+				QToolButton* lk_SetOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
+				lk_SetOutputDirectoryButton_->setIcon(QIcon(":/icons/folder.png"));
+				connect(lk_SetOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(setOutputDirectoryButtonClicked()));
+				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_SetOutputDirectoryButton_, 0, Qt::AlignTop);
+				lk_Container_->setLayout(lk_GroupBoxLayout_);
+				lk_LineEdit_->setReadOnly(true);
+				connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(toggleUi()));
+				lk_Widget_ = lk_SubContainer_;
+				lk_ValueWidget_ = lk_LineEdit_;
+			}
 		}
 		else if (ls_Type == "flag")
 		{
@@ -719,8 +800,11 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			if (lk_Parameter.contains("description"))
 				lk_Widget_->setToolTip(lk_Parameter["description"]);
 			lk_Layout_->addWidget(lk_Widget_);
-			mk_ParameterValueWidgets[ls_Key] = lk_Widget_;
+			if (lk_ValueWidget_ == NULL)
+				lk_ValueWidget_ = lk_Widget_;
+			mk_ParameterValueWidgets[ls_Key] = lk_ValueWidget_;
 		}
 	}
 	lk_ParameterLayout_->addStretch();
+	toggleUi();
 }

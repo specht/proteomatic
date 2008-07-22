@@ -36,15 +36,17 @@ class EvaluateOmssa < ProteomaticScript
 				ls_Peptide = lk_Line[2]
 				lf_E = lk_Line[3]
 				ls_DefLine = lk_Line[9]
+				lf_Mass = lk_Line[4]
+				
 				
 				lk_ScanHash[ls_Spot][ls_Scan] = Hash.new if !lk_ScanHash[ls_Spot].has_key?(ls_Scan)
 				if (!lk_ScanHash[ls_Spot][ls_Scan].has_key?('e') || lf_E < lk_ScanHash[ls_Spot][ls_Scan]['e'])
 					# clear scan hash
-					lk_ScanHash[ls_Spot][ls_Scan]['peptides'] = {ls_Peptide => true}
+					lk_ScanHash[ls_Spot][ls_Scan]['peptides'] = {ls_Peptide => lf_Mass}
 					lk_ScanHash[ls_Spot][ls_Scan]['deflines'] = [ls_DefLine]
 					lk_ScanHash[ls_Spot][ls_Scan]['e'] = lf_E;
 				elsif (lf_E == lk_ScanHash[ls_Spot][ls_Scan]['e'])
-					lk_ScanHash[ls_Spot][ls_Scan]['peptides'][ls_Peptide] = true
+					lk_ScanHash[ls_Spot][ls_Scan]['peptides'][ls_Peptide] = lf_Mass
 					lk_ScanHash[ls_Spot][ls_Scan]['deflines'].push(ls_DefLine)
 				end
 			end
@@ -327,39 +329,33 @@ class EvaluateOmssa < ProteomaticScript
 				end
 			end
 		end
-=begin
-		if writeOutFile?('gpfOnlyPeptides')
-			lk_GpfPeptides = (lk_GpfPeptides - lk_ModelPeptides).to_a
-			lk_GpfPeptides.sort! { |a, b| lk_ScanHash[lk_PeptideHash[a]['scans'].first]['e'] <=> lk_ScanHash[lk_PeptideHash[b]['scans'].first]['e']}
 		
-			lk_Out = File.open(outFilename('gpfOnlyPeptides'), 'w')
-			lk_Out.puts('E-value, Peptide')
-			lk_GpfPeptides.each { |ls_Peptide| lk_Out.puts "#{lk_ScanHash[lk_PeptideHash[ls_Peptide]['scans'].first]['e']},#{ls_Peptide}" }
-			lk_Out.close()
-		end
-		
-		if writeOutFile?('proteinDetails')
-			lk_Out = File.open(outFilename('proteinDetails'), 'w')
-			lk_ProteinsBySpectraCount.each do |ls_Protein|
-				lk_Protein = lk_Proteins[ls_Protein]
-				lk_Out.puts("#{ls_Protein}:")
-				lk_Protein['peptides'].keys.each do |ls_Peptide|
-					lk_Out.puts("  - #{ls_Peptide}")
-					lk_Scans = Hash.new
-					
-					lk_PeptideHash[ls_Peptide]['scans'].each do |ls_Scan|
-						ls_ShortScan = ls_Scan[0, ls_Scan.index('.')]
-						lk_Scans[ls_ShortScan] = 0 if !lk_Scans.has_key?(ls_ShortScan)
-						lk_Scans[ls_ShortScan] += 1
-					end
-					lk_Scans.keys.each do |ls_Scan|
-						lk_Out.puts "      - #{ls_Scan}: #{lk_Scans[ls_Scan]}"
+		if (@output[:amsFile])
+			File.open(@output[:amsFile], 'w') do |lk_Out|
+				lk_FoundToSoftware = {'models' => 'OMSSA', 'gpf' => 'GPF-OMSSA'}
+				lk_SpotToSpectraFile = Hash.new
+				@input[:spectra].each { |ls_Path| lk_SpotToSpectraFile[File::basename(ls_Path).split('.').first] = ls_Path }
+				lk_PeptideHash.each do |ls_Peptide, lk_Peptide|
+					lk_Peptide['scans'].each do |ls_Scan|
+						lk_Peptide['found'].keys.each do |ls_Found|
+							ls_Software = lk_FoundToSoftware[ls_Found]
+							lk_ScanNameParts = ls_Scan.split('.')
+							li_Charge = lk_ScanNameParts[lk_ScanNameParts.size - 2].to_i
+							ls_Spot = lk_ScanNameParts.first
+							ls_SpotFilename = lk_SpotToSpectraFile[ls_Spot]
+							lf_CalculatedMass = lk_ScanHash[ls_Scan]['peptides'][ls_Peptide].to_f
+							lf_MeasuredMass = lf_CalculatedMass
+							lf_EValue = lk_ScanHash[ls_Scan]['e']
+							if (ls_SpotFilename)
+								# if spectrum data available: update measured mass and include spectrum!
+							end
+							puts "#{ls_Scan}!#{ls_Software}!#{li_Charge}!#{lf_MeasuredMass}!#{lf_CalculatedMass}!#{lf_MeasuredMass - lf_CalculatedMass}!fpr:#{@param[:targetFpr] / 100.0},evalue:#{lf_EValue}!#{ls_Peptide}!#{ls_Peptide}!!!!!!!!!spectrum!!"
+						end
 					end
 				end
+				exit
 			end
-			lk_Out.close
 		end
-=end
 	end
 end
 

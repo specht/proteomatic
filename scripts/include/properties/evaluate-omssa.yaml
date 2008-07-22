@@ -12,6 +12,9 @@ input:
     label: OMSSA results
     formats: [csv]
     min: 1
+  - key: spectra
+    label: spectra
+    formats: [dta, xml-mzdata, xml-mzxml]
 
 defaultOutputDirectory: omssaResults
 
@@ -26,6 +29,11 @@ output:
     format: fasta-proteins
     filename: identified-peptides.fasta
     default: no
+  - key: amsFile
+    label: 2DB import file
+    format: ams
+    filename: 2db-import.ams
+    default: yes
 
 parameters:
   - key: targetFpr

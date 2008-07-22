@@ -9,7 +9,7 @@ type: processor
 
 input:
   - key: databases
-    label: FASTA databases
+    label: FASTA database
     formats: [fasta-proteins, fasta-nucleotides]
     min: 2
 
