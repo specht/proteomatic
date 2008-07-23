@@ -289,6 +289,7 @@ void k_ScriptHelper::activateScript()
 		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
 		mk_ParameterLayout_->addWidget(mk_Script_->parameterWidget());
 		mk_ScrollArea_->setVisible(true);
+		mk_ScrollArea_->resize(300, 10);
 		mk_HSplitter_->setStretchFactor(0, 1);
 		mk_HSplitter_->setStretchFactor(1, 1);
 	
