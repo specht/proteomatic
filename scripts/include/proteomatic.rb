@@ -35,7 +35,7 @@ class ProteomaticScriptDaemon
 			ls_State = :finished if File::exists?(File.join(@ms_TempPath, ls_Ticket, 'finished'))
 			if File::exists?(File.join(@ms_TempPath, ls_Ticket, 'running'))
 				# revert job if it was running while the daemon was shut down
-				File::rename(File.join(@ms_TempPath, ls_Ticket, 'running'), File.join(@ms_TempPath, ls_Ticket, 'waiting'))
+				FileUtils::mv(File.join(@ms_TempPath, ls_Ticket, 'running'), File.join(@ms_TempPath, ls_Ticket, 'waiting'))
 				ls_State = :waiting
 			end
 			@mk_Tickets[ls_Ticket] = ls_State if ls_State
@@ -59,7 +59,7 @@ class ProteomaticScriptDaemon
 					
 					# switch to running state
 					@mk_TicketsMutex.synchronize { @mk_Tickets[ls_NextTicket] = :running }
-					File::rename(File.join(@ms_TempPath, ls_NextTicket, 'waiting'), File.join(@ms_TempPath, ls_NextTicket, 'running'))
+					FileUtils::mv(File.join(@ms_TempPath, ls_NextTicket, 'waiting'), File.join(@ms_TempPath, ls_NextTicket, 'running'))
 					
 					# remove out files, if any (in case the job was once running and then aborted)
 					lk_OutFiles = Dir::glob(File::join(@ms_TempPath, ls_NextTicket, 'out', '*'))
@@ -108,7 +108,7 @@ class ProteomaticScriptDaemon
 						@mk_Tickets[ls_NextTicket] = :finished
 						@mk_TicketOrder.slice!(0)
 					end
-					File::rename(File.join(@ms_TempPath, ls_NextTicket, 'running'), File.join(@ms_TempPath, ls_NextTicket, 'finished'))
+					FileUtils::mv(File.join(@ms_TempPath, ls_NextTicket, 'running'), File.join(@ms_TempPath, ls_NextTicket, 'finished'))
 				end
 			end
 		end
