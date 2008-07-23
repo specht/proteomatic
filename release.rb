@@ -69,7 +69,7 @@ if (ls_Platform == 'windows')
 	lk_File.write(ls_Script)
 	lk_File.close()
 	
-	system("\"c:/Programme/NSIS/makensis.exe\" temp.nsi")
+	system("\"c:/Program Files/NSIS/makensis.exe\" temp.nsi")
 	
 	FileUtils.rm_f(['temp.nsi'])
 else
