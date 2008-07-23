@@ -3,7 +3,9 @@ group: Converters
 title: RAW to mzXML
 
 description: >
-  Convert Thermo Finnigan RAW files to the open mzXML format.
+  Convert Thermo Finnigan RAW files to the open mzXML format. 
+  This script only runs on computers that have the Thermo Finnigan
+  XDK installed.
 
 type: converter
 
@@ -23,3 +25,6 @@ output:
 
 needs:
   - ext.readw
+
+externalParameters: 
+  - readw.readw

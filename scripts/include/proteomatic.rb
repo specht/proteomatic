@@ -689,7 +689,7 @@ class ProteomaticScript
 		@output.each_key do |ls_Key| 
 			ls_RealName = @output[ls_Key].sub('.proteomatic.part', '')
 			if File::exists?(@output[ls_Key])
-				File::rename(@output[ls_Key], ls_RealName)
+				FileUtils::mv(@output[ls_Key], ls_RealName)
 				lk_Files.push(File::basename(ls_RealName))
 			end
 		end

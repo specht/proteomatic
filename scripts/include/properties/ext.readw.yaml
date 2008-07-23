@@ -8,4 +8,4 @@ download:
   windows: http://garr.dl.sourceforge.net/sourceforge/sashimi/ReAdW-4.0.2.zip
 
 path:
-  windows: bin
+  windows: ReAdW-4.0.2

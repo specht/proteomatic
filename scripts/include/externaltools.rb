@@ -43,24 +43,34 @@ class ExternalTools
 		lk_Uri = URI::parse(ls_Uri)
 		ls_OutFile = File::basename(lk_Uri.path)
 		
+		FileUtils::rm_rf(File.join('ext', ls_Package))
 		FileUtils::mkpath(File.join('ext', ls_Package))
 		ls_OutPath = File.join('ext', ls_Package, ls_OutFile)
 		
 		puts "Downloading #{ls_OutFile}..."
 
-		li_BlockSize = 16384;
-		Net::FTP.open(lk_Uri.host) do |lk_Ftp|
-			lk_Ftp.passive = true 
-			lk_Ftp.login
-			li_Size = lk_Ftp.size(lk_Uri.path)
-			li_Received = 0
-			lk_Ftp.getbinaryfile(lk_Uri.path, ls_OutPath + '.proteomatic.part', li_BlockSize) do |lk_Data|
-				li_Received += lk_Data.size
-				print "\rDownloaded #{bytesToString(li_Received)} of #{bytesToString(li_Size)}    "
+		li_BlockSize = 16384
+		if (ls_Uri[0, 6] == 'ftp://')
+			Net::FTP.open(lk_Uri.host) do |lk_Ftp|
+				lk_Ftp.passive = true 
+				lk_Ftp.login
+				li_Size = lk_Ftp.size(lk_Uri.path)
+				li_Received = 0
+				lk_Ftp.getbinaryfile(lk_Uri.path, ls_OutPath + '.proteomatic.part', li_BlockSize) do |lk_Data|
+					li_Received += lk_Data.size
+					print "\rDownloaded #{bytesToString(li_Received)} of #{bytesToString(li_Size)}    "
+				end
+			end
+		else
+			li_Size = 0
+			open(ls_Uri, 
+			  :content_length_proc => lambda { |t| li_Size = t }, 
+			  :progress_proc => lambda { |t| print "\rDownloaded #{bytesToString(t)} of #{bytesToString(li_Size)}    " }) do |lk_RemoteFile|
+				File::open(ls_OutPath + '.proteomatic.part', 'wb') { |lk_Out| lk_Out.write(lk_RemoteFile.read) }
 			end
 		end
 		
-		File::rename(ls_OutPath + '.proteomatic.part', ls_OutPath)
+		FileUtils::mv(ls_OutPath + '.proteomatic.part', ls_OutPath)
 		puts 
 		
 		puts "Unpacking..."
@@ -84,7 +94,7 @@ class ExternalTools
 		ls_Package = as_Tool.split('.').first
 		lk_PackageDescription = YAML::load_file("include/properties/ext.#{ls_Package}.yaml")
 		ls_Path = File::join('ext', ls_Package, lk_PackageDescription['path'][@@ms_Platform], lk_ToolDescription['binary'][@@ms_Platform])
-		install(as_Tool, lk_ToolDescription, ls_Path, lk_PackageDescription) unless File::exists?(ls_Path)
+		install(ls_Package, lk_ToolDescription, ls_Path, lk_PackageDescription) unless File::exists?(ls_Path)
 		return ls_Path
 	end
 	

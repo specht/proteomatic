@@ -1,4 +1,4 @@
-extensions: ['.mzXML', '.xml']
+extensions: ['.mzXML', '.mzxml', '.xml']
 detection: |
   lk_File = File.open(as_Filename, 'r')
   ls_Line = '<?'
