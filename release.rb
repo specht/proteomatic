@@ -39,8 +39,8 @@ if (ls_Platform == 'windows')
 	FileUtils.cp('C:/Qt/4.3.0/bin/QtCore4.dll', ls_DestDir)
 	FileUtils.cp('C:/Qt/4.3.0/bin/QtGui4.dll', ls_DestDir)
 	FileUtils.cp('C:/Qt/4.3.0/bin/QtNetwork4.dll', ls_DestDir)
-	FileUtils.cp('C:/Programme/Microsoft Visual Studio 8/VC/redist/x86/Microsoft.VC80.CRT/msvcp80.dll', ls_DestDir)
-	FileUtils.cp('C:/Programme/Microsoft Visual Studio 8/VC/redist/x86/Microsoft.VC80.CRT/msvcr80.dll', ls_DestDir)
+	FileUtils.cp('C:/Program Files/Microsoft Visual Studio 8/VC/redist/x86/Microsoft.VC80.CRT/msvcp80.dll', ls_DestDir)
+	FileUtils.cp('C:/Program Files/Microsoft Visual Studio 8/VC/redist/x86/Microsoft.VC80.CRT/msvcr80.dll', ls_DestDir)
 end
 
 puts 'Collecting scripts...'
