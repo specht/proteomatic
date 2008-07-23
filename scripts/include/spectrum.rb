@@ -189,21 +189,22 @@ end
 
 
 class DtaIterator < SpectrumIterator
-	def initialize(as_Filename, ak_Proc)
+	def initialize(as_Filename, ak_Proc, ab_IterateAllCharges = true)
+		@mb_IterateAllCharges = ab_IterateAllCharges
 		@mk_ChildProc = ak_Proc
 		@mk_SpectrumProc = Proc.new do |ak_Spectrum|
-			# use only one charge because OMSSA does not seem to mind
-			if (!ak_Spectrum['charge'].empty?)
-				li_Charge = ak_Spectrum['charge'].first
-			#ak_Spectrum['charge'].each do |li_Charge|
+			unless @mb_IterateAllCharges
+				# strip all but first charge from charge array if desired
+				ak_Spectrum['charge'] = [ak_Spectrum['charge'].first] unless ak_Spectrum['charge'].empty?
+			end
+			ak_Spectrum['charge'].each do |li_Charge|
 				ls_DtaFilename = "#{ak_Spectrum['experimentName']}.#{ak_Spectrum['id']}.#{ak_Spectrum['id']}.#{li_Charge}.dta"
 				ls_Result = ''
 				lf_PrecursorMH = (ak_Spectrum['mz'] * li_Charge) - 1.007825 * (li_Charge - 1)
-				ls_Result += sprintf "%0.6f %d\n", lf_PrecursorMH, li_Charge
-				(0...ak_Spectrum['mzList'].size).each { |i| ls_Result += sprintf "%0.6f %0.6f\n", ak_Spectrum['mzList'][i], ak_Spectrum['intensityList'][i] }
+				ls_Result += sprintf("%0.6f %d\n", lf_PrecursorMH, li_Charge)
+				(0...ak_Spectrum['mzList'].size).each { |i| ls_Result += sprintf("%0.6f %0.6f\n", ak_Spectrum['mzList'][i], ak_Spectrum['intensityList'][i]) }
 				@mk_ChildProc.call(ls_DtaFilename, ls_Result)
 			end
-			exit
 		end
 		super(as_Filename, @mk_SpectrumProc)
 	end
@@ -211,22 +212,26 @@ end
 
 
 class MgfIterator < SpectrumIterator
-	def initialize(as_Filename, ak_Proc)
+	def initialize(as_Filename, ak_Proc, ab_IterateAllCharges = true)
+		@mb_IterateAllCharges = ab_IterateAllCharges
 		@mk_ChildProc = ak_Proc
 		@mk_SpectrumProc = Proc.new do |ak_Spectrum|
-			# use only one charge because OMSSA does not seem to mind
 			if (ak_Spectrum.has_key?('charge') && !ak_Spectrum['charge'].empty?)
-				li_Charge = ak_Spectrum['charge'].first
-				#ak_Spectrum['charge'].each do |li_Charge|
-				ls_DtaFilename = "#{ak_Spectrum['experimentName']}.#{ak_Spectrum['id']}.#{ak_Spectrum['id']}.#{li_Charge}.dta"
-				ls_Result = ''
-				ls_Result += "BEGIN IONS\n"
-				ls_Result += sprintf "TITLE=#{ls_DtaFilename}\n"
-				ls_Result += sprintf "PEPMASS=%0.6f\n", ak_Spectrum['mz']
-				ls_Result += sprintf "CHARGE=#{li_Charge}+\n"
-				(0...ak_Spectrum['mzList'].size).each { |i| ls_Result += sprintf "%0.6f %0.6f\n", ak_Spectrum['mzList'][i], ak_Spectrum['intensityList'][i] }
-				ls_Result += "END IONS\n\n"
-				@mk_ChildProc.call(ls_Result)
+				unless @mb_IterateAllCharges
+					# strip all but first charge from charge array if desired
+					ak_Spectrum['charge'] = [ak_Spectrum['charge'].first] unless ak_Spectrum['charge'].empty?
+				end
+				ak_Spectrum['charge'].each do |li_Charge|
+					ls_DtaFilename = "#{ak_Spectrum['experimentName']}.#{ak_Spectrum['id']}.#{ak_Spectrum['id']}.#{li_Charge}.dta"
+					ls_Result = ''
+					ls_Result += "BEGIN IONS\n"
+					ls_Result += sprintf "TITLE=#{ls_DtaFilename}\n"
+					ls_Result += sprintf "PEPMASS=%0.6f\n", ak_Spectrum['mz']
+					ls_Result += sprintf "CHARGE=#{li_Charge}+\n"
+					(0...ak_Spectrum['mzList'].size).each { |i| ls_Result += sprintf "%0.6f %0.6f\n", ak_Spectrum['mzList'][i], ak_Spectrum['intensityList'][i] }
+					ls_Result += "END IONS\n\n"
+					@mk_ChildProc.call(ls_Result)
+				end
 			else
 				ls_DtaFilename = "#{ak_Spectrum['experimentName']}.#{ak_Spectrum['id']}.#{ak_Spectrum['id']}.dta"
 				ls_Result = ''

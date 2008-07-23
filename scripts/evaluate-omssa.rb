@@ -1,6 +1,7 @@
 require 'include/proteomatic'
 require 'include/fastercsv'
 require 'include/misc'
+require 'include/spectrum'
 require 'set'
 require 'yaml'
 
@@ -37,7 +38,15 @@ class EvaluateOmssa < ProteomaticScript
 				lf_E = lk_Line[3]
 				ls_DefLine = lk_Line[9]
 				lf_Mass = lk_Line[4]
+				li_Charge = lk_Line[11].to_i
 				
+				# correct charge in scan name (because when there are multiple charges,
+				# only one version of the spectrum may have been sent to OMSSA, because
+				# it obviously doens't have to believe the input file, and in that case
+				# the charge in the dta filename must be corrected)
+				lk_ScanParts = ls_Scan.split('.')
+				lk_ScanParts[3] = li_Charge.to_s
+				ls_Scan = lk_ScanParts.join('.')
 				
 				lk_ScanHash[ls_Spot][ls_Scan] = Hash.new if !lk_ScanHash[ls_Spot].has_key?(ls_Scan)
 				if (!lk_ScanHash[ls_Spot][ls_Scan].has_key?('e') || lf_E < lk_ScanHash[ls_Spot][ls_Scan]['e'])
@@ -163,6 +172,7 @@ class EvaluateOmssa < ProteomaticScript
 		lk_ProteinsBySpectraCount = lk_Proteins.keys.sort { |a, b| lk_Proteins[b]['spectraCount'] <=> lk_Proteins[a]['spectraCount']}
 		
 		puts "Proteins identified: #{lk_Proteins.size}."
+		puts
 		
 		if @output[:identifiedProteins]
 			File.open(@output[:identifiedProteins], 'w') do |lk_Out|
@@ -332,9 +342,50 @@ class EvaluateOmssa < ProteomaticScript
 		
 		if (@output[:amsFile])
 			File.open(@output[:amsFile], 'w') do |lk_Out|
+				lk_NeededSpots = Set.new
+				lk_NeededScans = Set.new
 				lk_FoundToSoftware = {'models' => 'OMSSA', 'gpf' => 'GPF-OMSSA'}
 				lk_SpotToSpectraFile = Hash.new
-				@input[:spectra].each { |ls_Path| lk_SpotToSpectraFile[File::basename(ls_Path).split('.').first] = ls_Path }
+				@input[:spectra].each { |ls_Path| lk_SpotToSpectraFile[File::basename(ls_Path).split('.').first] = ls_Path } if @input[:spectra]
+				
+				# see which scans have to be read from the spectrum files
+				lk_PeptideHash.each do |ls_Peptide, lk_Peptide|
+					lk_Peptide['scans'].each do |ls_Scan|
+						lk_NeededScans.add(ls_Scan)
+						ls_Spot = ls_Scan.split('.').first
+						lk_NeededSpots.add(ls_Spot)
+					end
+				end
+				
+				lk_MissingSpots = Array.new
+				lk_NeededSpots.each { |ls_Spot|	lk_MissingSpots.push(ls_Spot) unless lk_SpotToSpectraFile[ls_Spot] }
+				lk_ScanData = Hash.new
+				lk_MeasuredMasses = Hash.new
+				
+				unless lk_MissingSpots.empty?
+					puts "ATTENTION: The measures masses and spectral data for the following spots can not be included into the 2DB upload file because the following spots have not been specified as input files: #{lk_MissingSpots.join(', ')}."
+				end
+				
+				#fetch measures masses and spectral data
+				print 'Extracting spectral data...' unless lk_NeededSpots.to_a == lk_MissingSpots
+				lk_NeededSpots.each do |ls_Spot|
+					ls_Filename = lk_SpotToSpectraFile[ls_Spot]
+					next unless ls_Filename
+					
+					lk_SpectrumProc = Proc.new do |ls_Filename, ls_Contents|
+						if (lk_NeededScans.include?(ls_Filename))
+							ls_Contents.gsub!("\n", ';')
+							ls_Contents.gsub!(' ', ',')
+							lk_ScanData[ls_Filename] = ls_Contents 
+						end
+						lk_MeasuredMasses[ls_Filename] = ls_Contents.split("\n").first.split(' ').first.to_f - 1.007825
+					end
+					
+					DtaIterator.new(ls_Filename, lk_SpectrumProc).run
+				end
+				puts 'done.' unless lk_NeededSpots.to_a == lk_MissingSpots
+				
+				# iterate OMSSA results
 				lk_PeptideHash.each do |ls_Peptide, lk_Peptide|
 					lk_Peptide['scans'].each do |ls_Scan|
 						lk_Peptide['found'].keys.each do |ls_Found|
@@ -344,16 +395,15 @@ class EvaluateOmssa < ProteomaticScript
 							ls_Spot = lk_ScanNameParts.first
 							ls_SpotFilename = lk_SpotToSpectraFile[ls_Spot]
 							lf_CalculatedMass = lk_ScanHash[ls_Scan]['peptides'][ls_Peptide].to_f
-							lf_MeasuredMass = lf_CalculatedMass
+							lf_MeasuredMass = lk_MeasuredMasses[ls_Scan]
+							lf_MeasuredMass = lf_CalculatedMass unless lf_MeasuredMass
 							lf_EValue = lk_ScanHash[ls_Scan]['e']
-							if (ls_SpotFilename)
-								# if spectrum data available: update measured mass and include spectrum!
-							end
-							puts "#{ls_Scan}!#{ls_Software}!#{li_Charge}!#{lf_MeasuredMass}!#{lf_CalculatedMass}!#{lf_MeasuredMass - lf_CalculatedMass}!fpr:#{@param[:targetFpr] / 100.0},evalue:#{lf_EValue}!#{ls_Peptide}!#{ls_Peptide}!!!!!!!!!spectrum!!"
+							ls_SpectrumData = lk_ScanData[ls_Scan]
+							ls_SpectrumData = '' unless ls_SpectrumData
+							lk_Out.puts "#{ls_Scan}!#{ls_Software}!#{li_Charge}!#{lf_MeasuredMass}!#{lf_CalculatedMass}!#{lf_MeasuredMass - lf_CalculatedMass}!fpr:#{@param[:targetFpr] / 100.0},evalue:#{lf_EValue}!#{ls_Peptide}!#{ls_Peptide}!!!!!!!!!#{ls_SpectrumData}!!"
 						end
 					end
 				end
-				exit
 			end
 		end
 	end

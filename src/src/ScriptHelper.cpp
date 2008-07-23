@@ -89,7 +89,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	
 	// TODO: revive remote stuff
 	//mk_CheckTicketAction_ = new QAction(this);
-	mk_CheckTicketAction_ = lk_ToolBar_->addAction(QIcon(":/icons/ticket.png"), "Check ticket");
+	mk_CheckTicketAction_ = lk_ToolBar_->addAction(QIcon(":/icons/ticket.png"), "&Check ticket");
 	connect(mk_CheckTicketAction_, SIGNAL(triggered()), this, SLOT(checkTicket()));
 	mk_CheckTicketAction_->setEnabled(false);
 	
