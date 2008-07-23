@@ -102,7 +102,7 @@ class SpectrumXmlParserMzXml
 			@mk_CurrentSpectrum['experimentName'] = @ms_ExperimentName
 		end
 		if (tag(0) == 'parentFile' && tag(1) == 'msRun')
-			@ms_ExperimentName = ak_Attributes['fileName'].gsub('.RAW', '').gsub('file://', '')
+			@ms_ExperimentName = File::basename(ak_Attributes['fileName'].gsub('.RAW', '').gsub('file://', ''))
 		end
 	end
 	
