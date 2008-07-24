@@ -37,12 +37,13 @@ class RunPeaks < ProteomaticScript
 		lf_ProductTolerance = @param[:productIonTolerance]
 		ls_Parameters = "-xfi #{ls_TempInDir} #{File::join(ls_TempInDir, 'out')} \"Trypsin without PTMs\" #{lf_PrecursorTolerance} #{lf_ProductTolerance} 10 1"
         ls_Command = "java -Xmx512M -jar #{getConfigValue('peaksBatchJar')} " + ls_Parameters
-        puts ls_Command
+        print 'Running PEAKS...'
         system(ls_Command)
         File::rename(File::join(ls_TempInDir, 'out', 'in.fas'), @output[:fasFile]) if @output[:fasFile]
         File::rename(File::join(ls_TempInDir, 'out', 'in.ann'), @output[:annFile]) if @output[:annFile]
         FileUtils::rm_rf(ls_TempInDir)
         FileUtils::rm(ls_ParamFile) 
+        puts 'done.'
 	end
 end
 
