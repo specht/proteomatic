@@ -83,6 +83,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_ProfilesMenu_->addAction(QIcon(":/icons/list-add.png"), "Create profile...", this, SLOT(createProfile()));
 	
 	mk_ProfileButton_ = new QToolButton(lk_ToolBar_);
+	mk_ProfileButton_->setVisible(false);
 	mk_ProfileButton_->setIcon(QIcon(":/icons/preferences-system.png"));
 	mk_ProfileButton_->setText("Profile");
 	mk_ProfileButton_->setMenu(mk_ProfilesMenu_);
