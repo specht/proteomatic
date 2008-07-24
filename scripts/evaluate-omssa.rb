@@ -35,7 +35,7 @@ class EvaluateOmssa < ProteomaticScript
 				lk_Line = ls_Line.parse_csv()
 				ls_Scan = lk_Line[1]
 				ls_Peptide = lk_Line[2]
-				lf_E = lk_Line[3]
+				lf_E = lk_Line[3].to_f
 				ls_DefLine = lk_Line[9]
 				lf_Mass = lk_Line[4]
 				li_Charge = lk_Line[11].to_i
