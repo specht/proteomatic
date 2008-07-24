@@ -9,7 +9,7 @@
 #include <float.h>
 
 
-k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles)
+k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
 	: me_Type(ae_Type)
 	, ms_ScriptUri(as_ScriptUri)
 	, ms_Prefix("")
@@ -19,6 +19,7 @@ k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Pr
 	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
 	, mk_OutputDirectory_(NULL)
 	, mk_ClearOutputDirectory_(NULL)
+	, mb_HasParameters(false)
 {
 }
 
@@ -31,6 +32,12 @@ k_Script::~k_Script()
 bool k_Script::isGood()
 {
 	return mb_IsGood;
+}
+
+
+bool k_Script::hasParameters()
+{
+	return mb_HasParameters;
 }
 
 
@@ -390,7 +397,7 @@ void k_Script::resetDialog()
 }
 
 
-void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeOutputFiles)
+void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
 {
 	mk_InputFileDescriptionList.clear();
 	mk_OutputDirectory_ = NULL;
@@ -461,22 +468,25 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 	lk_InternalWidget_->setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	lk_InternalWidget_->setWindowTitle(ms_Title);
 	lk_InternalWidget_->setWindowFlags(Qt::WindowStaysOnTopHint);
-	QLabel* lk_Label_ = new QLabel("<b>" + title() + "</b>", lk_InternalWidget_);
-	lk_ParameterLayout_->addWidget(lk_Label_);
-	if (!description().isEmpty())
+	if (!ab_ProfileMode)
 	{
-		lk_Label_ = new QLabel("<i></i>" + description(), lk_InternalWidget_);
-		lk_Label_->setWordWrap(true);
+		QLabel* lk_Label_ = new QLabel("<b>" + title() + "</b>", lk_InternalWidget_);
 		lk_ParameterLayout_->addWidget(lk_Label_);
-	}
-	if (!mk_InputFileDescriptionList.empty())
-	{
-		QString ls_List;
-		foreach (QString ls_Item, mk_InputFileDescriptionList)
-			ls_List += "<li>" + ls_Item + "</li>";
-		lk_Label_ = new QLabel("<i></i>Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
-		lk_Label_->setWordWrap(true);
-		lk_ParameterLayout_->addWidget(lk_Label_);
+		if (!description().isEmpty())
+		{
+			lk_Label_ = new QLabel("<i></i>" + description(), lk_InternalWidget_);
+			lk_Label_->setWordWrap(true);
+			lk_ParameterLayout_->addWidget(lk_Label_);
+		}
+		if (!mk_InputFileDescriptionList.empty())
+		{
+			QString ls_List;
+			foreach (QString ls_Item, mk_InputFileDescriptionList)
+				ls_List += "<li>" + ls_Item + "</li>";
+			lk_Label_ = new QLabel("<i></i>Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
+			lk_Label_->setWordWrap(true);
+			lk_ParameterLayout_->addWidget(lk_Label_);
+		}
 	}
 	QFrame* lk_Frame_ = new QFrame(lk_InternalWidget_);
 	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
@@ -790,7 +800,19 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 		}
 		if (lb_AddLabel)
 		{
-			QLabel* lk_Label_ = new QLabel(lk_Parameter["label"] + ":", lk_Container_);
+			QWidget* lk_Label_;
+			if (ab_ProfileMode)
+			{
+				lk_Label_ = new QCheckBox(lk_Parameter["label"] + ":", lk_Container_);
+				lk_Widget_->setEnabled(false);
+				dynamic_cast<QCheckBox*>(lk_Label_)->setCheckState(Qt::Unchecked);
+				connect(lk_Label_, SIGNAL(stateChanged(int)), this, SLOT(toggleParameter(int)));
+				lk_Label_->setProperty("key", QVariant(ls_Key));
+			}
+			else
+				lk_Label_ = new QLabel(lk_Parameter["label"] + ":", lk_Container_);
+				
+			//QCheckBox* 
 			if (lk_Parameter.contains("description"))
 				lk_Label_->setToolTip(lk_Parameter["description"]);
 			lk_Layout_->addWidget(lk_Label_);
@@ -800,11 +822,22 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			if (lk_Parameter.contains("description"))
 				lk_Widget_->setToolTip(lk_Parameter["description"]);
 			lk_Layout_->addWidget(lk_Widget_);
+			mk_ParameterDisplayWidgets[ls_Key] = lk_Widget_;
 			if (lk_ValueWidget_ == NULL)
 				lk_ValueWidget_ = lk_Widget_;
 			mk_ParameterValueWidgets[ls_Key] = lk_ValueWidget_;
+			if (!ls_Key.startsWith("[output]"))
+				mb_HasParameters = true;
 		}
 	}
 	lk_ParameterLayout_->addStretch();
 	toggleUi();
+}
+
+
+void k_Script::toggleParameter(int ai_State)
+{
+	QObject* lk_CheckBox_ = sender();
+	QString ls_Key = lk_CheckBox_->property("key").toString();
+	mk_ParameterDisplayWidgets[ls_Key]->setEnabled(ai_State == Qt::Checked);
 }

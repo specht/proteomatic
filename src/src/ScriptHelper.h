@@ -41,6 +41,7 @@ protected slots:
 	void checkTicket(QString as_Ticket);
 	void ticketWindowClosed();
 	void parameterWidgetResized();
+	void createProfile();
 
 protected:
 	void setScript(QString as_Filename);
@@ -81,10 +82,12 @@ protected:
 	QAction* mk_LoadParametersAction_;
 	QAction* mk_SaveParametersAction_;
 	QAction* mk_ResetAction_;
-	QAction* mk_ReloadScriptAction_;
+	//QAction* mk_ReloadScriptAction_;
 	QAction* mk_CheckTicketAction_;
 	QToolButton* mk_LoadScriptButton_;
+	QToolButton* mk_ProfileButton_;
 	QHash<int, r_RemoteRequest> mk_RemoteRequests;
 	QHash<k_TicketWindow*, RefPtr<k_TicketWindow> > mk_TicketWindows;
 	QProgressDialog* mk_ProgressDialog_;
+	QMenu* mk_ProfilesMenu_;
 };

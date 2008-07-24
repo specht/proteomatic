@@ -2,8 +2,8 @@
 #include "RubyWindow.h"
 
 
-k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles)
-	: k_Script(r_ScriptType::Local, as_ScriptPath, ak_Proteomatic, ab_IncludeOutputFiles)
+k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
+	: k_Script(r_ScriptType::Local, as_ScriptPath, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
 {
 	mk_Process.setProcessChannelMode(QProcess::MergedChannels);
 	connect(&mk_Process, SIGNAL(started()), this, SIGNAL(started()));
@@ -53,7 +53,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 			
 			if (ls_FirstLine == "---getParameters")
 			{
-				createParameterWidget(lk_Response, ab_IncludeOutputFiles);
+				createParameterWidget(lk_Response, ab_IncludeOutputFiles, ab_ProfileMode);
 				ms_DefaultConfiguration = getConfiguration();
 				mb_IsGood = true;
 			}

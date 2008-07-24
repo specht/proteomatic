@@ -22,9 +22,10 @@ class k_Script: public QObject
 	Q_OBJECT
 
 public:
-	k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true);
+	k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_Script();
 	bool isGood();
+	bool hasParameters();
 	
 	r_ScriptType::Enumeration type() const;
 	k_SizeWatchWidget* parameterWidget();
@@ -60,10 +61,11 @@ protected slots:
 	void clearOutputDirectoryButtonClicked();
 	void resetDialog();
 	void toggleUi();
+	void toggleParameter(int ai_State);
 
 protected:
 	void addChoiceItems(QString as_Key, QStringList ak_Choices);
-	void createParameterWidget(QStringList ak_Definition, bool ab_IncludeOutputFiles = true);
+	void createParameterWidget(QStringList ak_Definition, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 
 	r_ScriptType::Enumeration me_Type;
 	QString ms_ScriptUri;
@@ -71,6 +73,7 @@ protected:
 	QString ms_Description;
 	RefPtr<k_SizeWatchWidget> mk_pParameterWidget;
 	QHash<QString, QWidget* > mk_ParameterValueWidgets;
+	QHash<QString, QWidget* > mk_ParameterDisplayWidgets;
 	QHash<QString, QList<QWidget*> > mk_ParameterMultiChoiceWidgets;
 	QHash<QString, QDialog* > mk_ParameterMultiChoiceDialogs;
 	QList<k_FoldedHeader*> mk_FoldedHeaders;
@@ -79,6 +82,7 @@ protected:
 	QString ms_DefaultConfiguration;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_IsGood;
+	bool mb_HasParameters;
 	QLineEdit* mk_OutputDirectory_;
 	QToolButton* mk_ClearOutputDirectory_;
 	QStringList mk_InputFileDescriptionList;

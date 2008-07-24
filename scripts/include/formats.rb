@@ -13,6 +13,7 @@ def formatInfo(as_Format)
 		lk_Format = $gk_FormatCache[as_Format]
 	else
 		lk_Format = YAML::load_file(ls_FormatFile)
+		lk_Format['extensions'].collect! { |x| x.downcase }
 		$gk_FormatCache[as_Format] = lk_Format
 	end
 	return lk_Format

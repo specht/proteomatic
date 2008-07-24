@@ -9,7 +9,7 @@ class k_LocalScript: public k_Script
 	Q_OBJECT
 	
 public:
-	k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true);
+	k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_LocalScript();
 	
 	virtual void start(QStringList ak_Parameters = QStringList());

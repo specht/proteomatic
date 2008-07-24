@@ -20,6 +20,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mk_Script_(NULL)
 	, ms_WindowTitle("Proteomatic")
 	, mk_ProgressDialog_(NULL)
+	, mk_ProfilesMenu_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	connect(&mk_Proteomatic, SIGNAL(remoteHubLineBatch(QStringList)), this, SLOT(remoteHubLineBatch(QStringList)));
@@ -76,10 +77,23 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_LoadScriptButton_->setPopupMode(QToolButton::InstantPopup);
 	mk_LoadScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
+	
+	mk_ProfilesMenu_ = new QMenu(this);
+	mk_ProfilesMenu_->addSeparator();
+	mk_ProfilesMenu_->addAction(QIcon(":/icons/list-add.png"), "Create profile...", this, SLOT(createProfile()));
+	
+	mk_ProfileButton_ = new QToolButton(lk_ToolBar_);
+	mk_ProfileButton_->setIcon(QIcon(":/icons/preferences-system.png"));
+	mk_ProfileButton_->setText("Profile");
+	mk_ProfileButton_->setMenu(mk_ProfilesMenu_);
+	mk_ProfileButton_->setPopupMode(QToolButton::InstantPopup);
+	mk_ProfileButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	lk_ToolBar_->addWidget(mk_ProfileButton_);
+	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
-	mk_ReloadScriptAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
-	mk_ReloadScriptAction_->setToolTip("Reset all parameters to their default values.");
+	//mk_ReloadScriptAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
+	//mk_ReloadScriptAction_->setToolTip("Reset all parameters to their default values.");
 
 	
 	lk_ToolBar_->addSeparator();
@@ -438,7 +452,8 @@ void k_ScriptHelper::toggleUi()
 	{
 		mk_RemoveInputFileButton.setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
-		mk_ReloadScriptAction_->setEnabled(false);
+		mk_ProfileButton_->setEnabled(false);
+		//mk_ReloadScriptAction_->setEnabled(false);
 		mk_StartAction_->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
@@ -448,8 +463,9 @@ void k_ScriptHelper::toggleUi()
 	else
 	{
 		mk_RemoveInputFileButton.setEnabled(mk_FileList.selectedItems().count() != 0);
+		mk_ProfileButton_->setEnabled(mk_Script_ && mk_Script_->hasParameters());
 		mk_ResetAction_->setEnabled(mk_Script_);
-		mk_ReloadScriptAction_->setEnabled(mk_Script_);
+		//mk_ReloadScriptAction_->setEnabled(mk_Script_);
 		mk_StartAction_->setEnabled(mk_Script_);
 		mk_CheckTicketAction_->setEnabled(lb_RemoteScriptLoaded);
 		mk_LoadParametersAction_->setEnabled(mk_Script_);
@@ -462,8 +478,9 @@ void k_ScriptHelper::toggleUi()
 		mk_RemoveInputFileButton.setEnabled(false);
 		mk_AbortAction_->setEnabled(false);
 		mk_LoadScriptButton_->setEnabled(false);
+		mk_ProfileButton_->setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
-		mk_ReloadScriptAction_->setEnabled(false);
+		//mk_ReloadScriptAction_->setEnabled(false);
 		mk_StartAction_->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
@@ -739,4 +756,21 @@ void k_ScriptHelper::parameterWidgetResized()
 		mk_ScrollArea_->setMinimumWidth(li_Width + 10);
 	}
 	*/
+}
+
+
+void k_ScriptHelper::createProfile()
+{
+	k_Script* lk_Script_ = k_ScriptFactory::makeScript(mk_Script_->uri(), mk_Proteomatic, false, true);
+	QDialog lk_Dialog(this);
+	lk_Dialog.setModal(true);
+	QBoxLayout* lk_Layout_ = new QVBoxLayout(&lk_Dialog);
+	QScrollArea* lk_ScrollArea_ = new QScrollArea(&lk_Dialog);
+	lk_ScrollArea_->setWidgetResizable(true);
+	lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
+	lk_ScrollArea_->setWidget(lk_Script_->parameterWidget());
+	lk_Script_->parameterWidget()->resize(300, 10);
+	lk_Layout_->addWidget(lk_ScrollArea_);
+	lk_Dialog.setLayout(lk_Layout_);
+	lk_Dialog.exec();
 }

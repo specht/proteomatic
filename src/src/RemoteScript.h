@@ -11,7 +11,7 @@ class k_RemoteScript: public k_Script
 	Q_OBJECT
 	
 public:
-	k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true);
+	k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_RemoteScript();
 	
 	virtual void start(QStringList ak_Parameters);
