@@ -53,13 +53,13 @@ class ProteomaticScriptDaemon
 				
 				# go to sleep if no more tickets
 				Thread.stop unless ls_NextTicket
-
+				
 				if ls_NextTicket
 					# fetch and handle next job
 					
 					# switch to running state
 					@mk_TicketsMutex.synchronize { @mk_Tickets[ls_NextTicket] = :running }
-					FileUtils::mv(File.join(@ms_TempPath, ls_NextTicket, 'waiting'), File.join(@ms_TempPath, ls_NextTicket, 'running'))
+					FileUtils::mv(File::join(@ms_TempPath, ls_NextTicket, 'waiting'), File::join(@ms_TempPath, ls_NextTicket, 'running'))
 					
 					# remove out files, if any (in case the job was once running and then aborted)
 					lk_OutFiles = Dir::glob(File::join(@ms_TempPath, ls_NextTicket, 'out', '*'))
@@ -179,7 +179,7 @@ class ProteomaticScriptDaemon
 		lk_OutputFileInfo['directory'] = as_OutputDirectory if as_OutputDirectory
 		File.open(File.join(@ms_TempPath, ls_Ticket, 'output-files.yaml'), 'w') { |lk_File| lk_File.puts lk_OutputFileInfo.to_yaml }
 		unless lb_FilesMissing
-			File.open(File.join(@ms_TempPath, ls_Ticket, 'waiting'), 'w') 
+			File.open(File.join(@ms_TempPath, ls_Ticket, 'waiting'), 'w') { |lk_File| }
 			@mk_TicketsMutex.synchronize { @mk_TicketOrder.push(ls_Ticket) }
 			@mk_WorkerThread.wakeup
 		end
@@ -194,7 +194,7 @@ class ProteomaticScriptDaemon
 	end
 	
 	def submitInputFilesFinished(as_Ticket)
-		File.open(File.join(@ms_TempPath, as_Ticket, 'waiting'), 'w') 
+		File.open(File.join(@ms_TempPath, as_Ticket, 'waiting'), 'w') { |lk_File| }
 		@mk_TicketsMutex.synchronize { @mk_TicketOrder.push(as_Ticket) }
 		@mk_WorkerThread.wakeup
 	end
