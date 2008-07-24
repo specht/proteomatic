@@ -63,11 +63,14 @@ class ProteomaticScriptDaemon
 					
 					# remove out files, if any (in case the job was once running and then aborted)
 					lk_OutFiles = Dir::glob(File::join(@ms_TempPath, ls_NextTicket, 'out', '*'))
+					lk_OutFiles.push(File::join(@ms_TempPath, ls_NextTicket, 'stderr.txt'))
+					lk_OutFiles.push(File::join(@ms_TempPath, ls_NextTicket, 'stdout.txt'))
 					FileUtils::rm_f(lk_OutFiles)
 					
 					# load and apply arguments
 					lk_Arguments = YAML::load_file(File::join(@ms_TempPath, ls_NextTicket, 'arguments.yaml'))
 					lk_Arguments = lk_Arguments.select { |x| x[0, 14] != '----ignore----' }
+					lk_Arguments.push('-[output]directory')
 					lk_Arguments.push(File::join(@ms_TempPath, ls_NextTicket, 'out'))
 					lb_Exception = false
 					$stdout = File.new(File::join(@ms_TempPath, ls_NextTicket, 'stdout.txt'), 'w')

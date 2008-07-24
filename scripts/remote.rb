@@ -124,6 +124,8 @@ def handleArguments(ak_Script, ak_Arguments)
 		elsif File::directory?(ls_Argument)
 			lk_Directories.push(ls_Argument) 
 			ls_Result = '----ignore----' + ls_Result
+		elsif ls_Argument == '-[output]directory'
+			ls_Result = '----ignore----' + ls_Result
 		end
 		ls_Result
 	end
