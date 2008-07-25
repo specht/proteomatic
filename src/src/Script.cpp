@@ -73,7 +73,7 @@ QString k_Script::description()
 
 void k_Script::reset()
 {
-	setConfiguration(ms_DefaultConfiguration);
+	setConfiguration(mk_DefaultConfiguration);
 }
 
 
@@ -184,6 +184,7 @@ void k_Script::setParameterValue(QString as_Key, QString as_Value)
 				addChoiceItems(as_Key, lk_Choices);
 			}
 		}
+		parameterChangedWithKey(as_Key);
 	}
 	else
 	{
@@ -201,65 +202,25 @@ void k_Script::setParameterValue(QString as_Key, QString as_Value)
 }
 
 
-QString k_Script::getConfiguration()
+QHash<QString, QString> k_Script::getConfiguration()
 {
-	QString ls_Result;
-	QTextStream lk_Stream(&ls_Result);
-
-	lk_Stream << QString("Proteomatic Parameters, version %1\n").arg(mk_Proteomatic.version());
-	lk_Stream << ms_Title << "\n";
+	QHash<QString, QString> lk_Result;
 
 	foreach (QString ls_Key, mk_ParameterValueWidgets.keys())
-		lk_Stream << ls_Key << ": " << getParameterValue(ls_Key) << "\n";
+		lk_Result[ls_Key] = getParameterValue(ls_Key);
 
-	lk_Stream.flush();
-	return ls_Result;
+	return lk_Result;
 }
 
 
-void k_Script::setConfiguration(QString as_Configuration)
+void k_Script::setConfiguration(QHash<QString, QString> ak_Configuration)
 {
-	QTextStream lk_Stream(&as_Configuration);
-
-	QString ls_Line = lk_Stream.readLine();
-	if (!ls_Line.startsWith("Proteomatic Parameters, version"))
+	// for files, include version number and script URI basename!!
+	QHash<QString, QString>::const_iterator lk_Iter = ak_Configuration.constBegin();
+	while (lk_Iter != ak_Configuration.constEnd()) 
 	{
-		mk_Proteomatic.showMessageBox("Error loading parameters", "The file you specified is not a valid Proteomatic parameters file.",
-			":/icons/stop.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
-		return;
-	}
-	ls_Line = lk_Stream.readLine();
-	if (ls_Line != ms_Title)
-	{
-		mk_Proteomatic.showMessageBox("Error loading parameters", "The parameter file you specified is not meant for the currently loaded script.",
-			":/icons/stop.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
-		return;
-	}
-
-	int li_LineCount = 2;
-	QString ls_Error = "";
-	QString ls_Warnings = "";
-	while (!lk_Stream.atEnd())
-	{
-		QString ls_Line = lk_Stream.readLine();
-		li_LineCount += 1;
-		if (!ls_Line.contains(QChar(':')))
-		{
-			ls_Error = QString("There is an error on line %1.").arg(li_LineCount);
-			break;
-		}
-
-		QString ls_Key = ls_Line.left(ls_Line.indexOf(QChar(':'))).trimmed();
-		QString ls_Value = ls_Line.right(ls_Line.length() - ls_Key.length() - 1).trimmed();
-
-		setParameterValue(ls_Key, ls_Value);
-	}
-
-	if (ls_Error != "")
-	{
-		mk_Proteomatic.showMessageBox("Error loading parameters", ls_Error,
-			":/icons/stop.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
-		return;
+		setParameterValue(lk_Iter.key(), lk_Iter.value());
+		++lk_Iter;
 	}
 }
 
@@ -499,6 +460,8 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 
 	foreach (QString ls_Key, lk_ParametersOrder)
 	{
+		mk_ParametersAtDefault[ls_Key] = true;
+		mk_ParameterDefs[ls_Key] = lk_Parameters[ls_Key];
 		if (ls_Key.startsWith("[output]") && ls_Key != "[output]prefix" && ls_Key != "[output]directory")
 			mk_OutFileDetails[ls_Key] = lk_Parameters[ls_Key];
 
@@ -506,11 +469,15 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			continue;
 
 		QString ls_Group = lk_Parameters[ls_Key]["group"];
+		if (!mk_GroupParameters.contains(ls_Group))
+			mk_GroupParameters[ls_Group] = QStringList();
+		mk_GroupParameters[ls_Group].push_back(ls_Key);
+		
 		if (lk_Containers[ls_Group] == NULL)
 		{
 			QWidget* lk_Container_ = new QWidget(lk_InternalWidget_);
 			k_FoldedHeader* lk_Header_ = new k_FoldedHeader("<b>" + ls_Group + "</b>", lk_Container_, lk_InternalWidget_);
-			mk_FoldedHeaders.append(lk_Header_);
+			mk_FoldedHeaders[ls_Group] = lk_Header_;
 			connect(lk_Header_, SIGNAL(clicked()), this, SLOT(toggleGroup()));
 			QFrame* lk_Frame_ = new QFrame(lk_InternalWidget_);
 			lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
@@ -588,6 +555,13 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 		QWidget* lk_ValueWidget_ = NULL;
 		
 		QString ls_Type = lk_Parameter["type"];
+		QString ls_Key = lk_Parameter["key"];
+		
+		QString ls_Description = "";
+		if (lk_Parameter.contains("description"))
+			ls_Description = lk_Parameter["description"];
+		//ls_Description += QString("(default: %1)").arg(mk_DefaultConfiguration[ls_Key]);
+		
 		if (ls_Type == "float")
 		{
 			QDoubleSpinBox* lk_SpinBox_ = new QDoubleSpinBox(lk_Container_);
@@ -609,6 +583,9 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			if (lk_Parameter.contains("step"))
 				lk_SpinBox_->setSingleStep(QVariant(lk_Parameter["step"]).toDouble(&lb_Ok));
 			lk_SpinBox_->setValue(QVariant(lk_Parameter["default"]).toDouble(&lb_Ok));
+			
+			lk_SpinBox_->setProperty("key", QVariant(ls_Key));
+			connect(lk_SpinBox_, SIGNAL(valueChanged(double)), this, SLOT(parameterChanged()));
 		} 
 		else if (ls_Type == "int")
 		{
@@ -629,13 +606,22 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			if (lk_Parameter.contains("step"))
 				lk_SpinBox_->setSingleStep(QVariant(lk_Parameter["step"]).toInt(&lb_Ok));
 			lk_SpinBox_->setValue(QVariant(lk_Parameter["default"]).toInt(&lb_Ok));
+		
+			lk_SpinBox_->setProperty("key", QVariant(ls_Key));
+			connect(lk_SpinBox_, SIGNAL(valueChanged(int)), this, SLOT(parameterChanged()));
 		} 
 		else if (ls_Type == "string")
 		{
 			QLineEdit* lk_LineEdit_ = new QLineEdit(lk_Container_);
 			lk_Widget_ = lk_LineEdit_;
 			lk_LineEdit_->setText(lk_Parameter["default"]);
-			if (lk_Parameter["key"] == "[output]directory")
+			if (!ls_Key.startsWith("[output]"))
+			{
+				lk_LineEdit_->setProperty("key", QVariant(ls_Key));
+				connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(parameterChanged()));
+			}
+			
+			if (ls_Key == "[output]directory")
 			{
 				mk_OutputDirectory_ = lk_LineEdit_;
 				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
@@ -669,7 +655,13 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			lk_CheckBox_->setChecked((lk_Parameter["default"] == "true") || (lk_Parameter["default"] == "yes"));
 			if (lk_Parameter.contains("force"))
 				lk_CheckBox_->setEnabled(false);
+			if (!ls_Description.isEmpty())
+				lk_CheckBox_->setToolTip(ls_Description);
 			lb_AddLabel = false;
+			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_CheckBox_;
+				
+			lk_CheckBox_->setProperty("key", QVariant(ls_Key));
+			connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
 		}
 		else if (ls_Type == "enum")
 		{
@@ -693,6 +685,9 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 				li_Index += 1;
 			}
 			lk_ComboBox_->setCurrentIndex(li_DefaultIndex);
+			
+			lk_ComboBox_->setProperty("key", QVariant(ls_Key));
+			connect(lk_ComboBox_, SIGNAL(currentIndexChanged(int)), this, SLOT(parameterChanged()));
 		}
 		else if (ls_Type == "csvString")
 		{
@@ -708,19 +703,22 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 				foreach (QString ls_Item, lk_ParametersValues[ls_Key])
 				{
 					QCheckBox* lk_CheckBox_ = new QCheckBox(lk_Widget_);
-					QString ls_Key = ls_Item;
+					QString ls_ValueKey = ls_Item;
 					QString ls_Label = ls_Item;
 					if (ls_Item.contains(QChar(':')))
 					{
 						QStringList lk_Item = ls_Item.split(":");
-						ls_Key = lk_Item[0].trimmed();
+						ls_ValueKey = lk_Item[0].trimmed();
 						ls_Label = lk_Item[1].trimmed();
 					}
 					lk_CheckBox_->setText(ls_Label);
 					lk_WidgetLayout_->addWidget(lk_CheckBox_);
-					lk_CheckBox_->setChecked(lk_DefaultChecks.contains(ls_Key));
+					lk_CheckBox_->setChecked(lk_DefaultChecks.contains(ls_ValueKey));
 					lk_CheckWidgets.append(lk_CheckBox_);
-					lk_CheckBox_->setProperty("ProteomaticValue", QVariant(ls_Key));
+					lk_CheckBox_->setProperty("ProteomaticValue", QVariant(ls_ValueKey));
+			
+					lk_CheckBox_->setProperty("key", QVariant(ls_Key));
+					connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
 				}
 				lk_WidgetLayout_->addStretch();
 				lk_WidgetLayout_->setMargin(0);
@@ -742,6 +740,10 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 				lk_RemoveButton_->setEnabled(false);
 				lk_RemoveButton_->setIcon(QIcon(":/icons/list-remove.png"));
 				connect(lk_RemoveButton_, SIGNAL(clicked()), lk_ListWidget_, SLOT(removeSelection()));
+				
+				lk_RemoveButton_->setProperty("key", QVariant(ls_Key));
+				connect(lk_RemoveButton_, SIGNAL(clicked()), this, SLOT(parameterChanged()));
+				
 				connect(lk_ListWidget_, SIGNAL(selectionChanged(bool)), lk_RemoveButton_, SLOT(setEnabled(bool)));
 				lk_ButtonLayout_->addWidget(lk_RemoveButton_);
 				lk_ButtonLayout_->addStretch();
@@ -778,6 +780,10 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 				connect(lk_ChoicesWidget_, SIGNAL(selectionChanged(bool)), lk_DialogAddButton_, SLOT(setEnabled(bool)));
 				connect(lk_Dialog_, SIGNAL(accepted()), this, SLOT(addChoiceItems()));
 				connect(lk_Dialog_, SIGNAL(accepted()), this, SLOT(resetDialog()));
+				
+				lk_Dialog_->setProperty("key", QVariant(ls_Key));
+				connect(lk_Dialog_, SIGNAL(accepted()), this, SLOT(parameterChanged()));
+
 				connect(lk_Dialog_, SIGNAL(rejected()), this, SLOT(resetDialog()));
 				connect(lk_ListWidget_, SIGNAL(remove(QList<QListWidgetItem *>)), this, SLOT(removeChoiceItems(QList<QListWidgetItem *>)));
 				connect(lk_ChoicesWidget_, SIGNAL(doubleClick()), lk_Dialog_, SLOT(accept()));
@@ -794,7 +800,6 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 					k_CiListWidgetItem * lk_Item_ = new k_CiListWidgetItem(ls_Label, lk_ChoicesWidget_);
 					lk_Item_->setData(Qt::UserRole, QVariant(ls_Key));
 				}
-
 			}
 			mk_ParameterMultiChoiceWidgets[ls_Key] = lk_CheckWidgets;
 		}
@@ -812,15 +817,18 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			else
 				lk_Label_ = new QLabel(lk_Parameter["label"] + ":", lk_Container_);
 				
-			//QCheckBox* 
-			if (lk_Parameter.contains("description"))
-				lk_Label_->setToolTip(lk_Parameter["description"]);
+			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_Label_;
+				
+			if (!ls_Description.isEmpty())
+				lk_Label_->setToolTip(ls_Description);
+			
 			lk_Layout_->addWidget(lk_Label_);
 		}
 		if (lk_Widget_ != NULL)
 		{
-			if (lk_Parameter.contains("description"))
-				lk_Widget_->setToolTip(lk_Parameter["description"]);
+			if (!ls_Description.isEmpty())
+				lk_Widget_->setToolTip(ls_Description);
+			
 			lk_Layout_->addWidget(lk_Widget_);
 			mk_ParameterDisplayWidgets[ls_Key] = lk_Widget_;
 			if (lk_ValueWidget_ == NULL)
@@ -837,7 +845,60 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 
 void k_Script::toggleParameter(int ai_State)
 {
-	QObject* lk_CheckBox_ = sender();
-	QString ls_Key = lk_CheckBox_->property("key").toString();
+	QObject* lk_Sender_ = sender();
+	QString ls_Key = lk_Sender_->property("key").toString();
 	mk_ParameterDisplayWidgets[ls_Key]->setEnabled(ai_State == Qt::Checked);
 }
+
+
+void k_Script::parameterChanged()
+{
+	QObject* lk_Sender_ = sender();
+	QString ls_Key = lk_Sender_->property("key").toString();
+	parameterChangedWithKey(ls_Key);
+}
+
+
+void k_Script::parameterChangedWithKey(QString as_Key)
+{
+	bool lb_Default = mk_DefaultConfiguration[as_Key] == getParameterValue(as_Key);
+	mk_ParametersAtDefault[as_Key] = lb_Default;
+	QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[as_Key];
+	QLabel* lk_Label_ = dynamic_cast<QLabel*>(lk_Widget_);
+	QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
+	QString ls_String;
+	
+	if (lk_Label_)
+		ls_String = lk_Label_->text();
+	else if (lk_CheckBox_)
+		ls_String = lk_CheckBox_->text();
+		
+	if (ls_String.startsWith("<u>"))
+	{
+		ls_String.replace("<u>", "");
+		ls_String.replace("</u>", "");
+	}
+	if (!lb_Default)
+		ls_String = "<u>" + ls_String + "</u>";
+	
+	if (lk_Label_)
+		lk_Label_->setText(ls_String);
+	else if (lk_CheckBox_)
+		lk_CheckBox_->setText(ls_String);
+		
+	int li_ChangedCount = 0;
+	QString ls_Group = mk_ParameterDefs[as_Key]["group"];
+	foreach (QString ls_Key, mk_GroupParameters[ls_Group])
+	{
+		if (!mk_ParametersAtDefault[ls_Key])
+			li_ChangedCount += 1;
+	}
+	
+	if (li_ChangedCount == 0)
+		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix("");
+	else if (li_ChangedCount == 1)
+		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix(QString("(1 change)"));
+	else
+		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix(QString("(%1 changes)").arg(li_ChangedCount));
+}
+

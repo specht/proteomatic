@@ -18,6 +18,7 @@ public:
 	void showBuddy();
 	bool buddyVisible();
 	void toggleBuddy();
+	void setSuffix(QString as_Text);
 
 signals:
 	void clicked();
@@ -34,6 +35,7 @@ protected:
 	virtual void leaveEvent(QMouseEvent* event);
 	
 	QWidget* mk_Buddy_;
+	QString ms_Text;
 	k_ClickableLabel mk_Label;
 	k_ClickableLabel mk_Icon;
 	QList<RefPtr<QPixmap> > mk_FoldedIcons;

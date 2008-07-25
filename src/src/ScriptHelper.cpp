@@ -79,11 +79,20 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
 	
 	mk_ProfilesMenu_ = new QMenu(this);
+	QMenu* lk_SubMenu_ = new QMenu("Mass spectrometer", mk_ProfilesMenu_);
+	QAction* lk_Action1_ = lk_SubMenu_->addAction("Orbitrap");
+	QAction* lk_Action2_ = lk_SubMenu_->addAction("LTQ");
+	lk_Action1_->setCheckable(true);
+	lk_Action2_->setCheckable(true);
+	QActionGroup* lk_ActionGroup_ = new QActionGroup(lk_SubMenu_);
+	lk_Action1_->setActionGroup(lk_ActionGroup_);
+	lk_Action2_->setActionGroup(lk_ActionGroup_);
+	mk_ProfilesMenu_->addMenu(lk_SubMenu_);
 	mk_ProfilesMenu_->addSeparator();
 	mk_ProfilesMenu_->addAction(QIcon(":/icons/list-add.png"), "Create profile...", this, SLOT(createProfile()));
 	
 	mk_ProfileButton_ = new QToolButton(lk_ToolBar_);
-	mk_ProfileButton_->setVisible(false);
+	//mk_ProfileButton_->setVisible(false);
 	mk_ProfileButton_->setIcon(QIcon(":/icons/preferences-system.png"));
 	mk_ProfileButton_->setText("Profile");
 	mk_ProfileButton_->setMenu(mk_ProfilesMenu_);
@@ -93,8 +102,8 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
-	//mk_ReloadScriptAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
-	//mk_ReloadScriptAction_->setToolTip("Reset all parameters to their default values.");
+	mk_ReloadScriptAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
+	mk_ReloadScriptAction_->setToolTip("Reset all manual settings.");
 
 	
 	lk_ToolBar_->addSeparator();
@@ -255,18 +264,7 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 		{
 			QFileInfo lk_FileInfo(ls_Path);
 			if (!lk_FileInfo.isDir())
-			{
-				if (ls_Path.right(4) == ".pmp" && mk_Script_)
-				{
-					QFile lk_File(ls_Path);
-					lk_File.open(QIODevice::ReadOnly | QIODevice::Text);
-					QString ls_Configuration = QString(lk_File.readAll());
-					lk_File.close();
-					mk_Script_->setConfiguration(ls_Configuration);
-				}
-				else
-					addInputFile(ls_Path);
-			}
+				addInputFile(ls_Path);
 		}
 	}
 }
@@ -454,7 +452,7 @@ void k_ScriptHelper::toggleUi()
 		mk_RemoveInputFileButton.setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
 		mk_ProfileButton_->setEnabled(false);
-		//mk_ReloadScriptAction_->setEnabled(false);
+		mk_ReloadScriptAction_->setEnabled(false);
 		mk_StartAction_->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
@@ -466,7 +464,7 @@ void k_ScriptHelper::toggleUi()
 		mk_RemoveInputFileButton.setEnabled(mk_FileList.selectedItems().count() != 0);
 		mk_ProfileButton_->setEnabled(mk_Script_ && mk_Script_->hasParameters());
 		mk_ResetAction_->setEnabled(mk_Script_);
-		//mk_ReloadScriptAction_->setEnabled(mk_Script_);
+		mk_ReloadScriptAction_->setEnabled(mk_Script_);
 		mk_StartAction_->setEnabled(mk_Script_);
 		mk_CheckTicketAction_->setEnabled(lb_RemoteScriptLoaded);
 		mk_LoadParametersAction_->setEnabled(mk_Script_);
@@ -481,7 +479,7 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadScriptButton_->setEnabled(false);
 		mk_ProfileButton_->setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
-		//mk_ReloadScriptAction_->setEnabled(false);
+		mk_ReloadScriptAction_->setEnabled(false);
 		mk_StartAction_->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
@@ -619,35 +617,6 @@ void k_ScriptHelper::abortScript()
 	{
 		mk_Script_->kill();
 		addOutput("\nScript aborted by user.");
-	}
-}
-
-
-void k_ScriptHelper::saveParameters()
-{
-	QString ls_Path = QFileDialog::getSaveFileName(this, tr("Save parameters"), QDir::homePath(), tr("Proteomatic Parameters (*.pmp)"));
-	if (ls_Path.length() == 0)
-		return;
-
-	QFile lk_Out(ls_Path);
-	lk_Out.open(QIODevice::WriteOnly | QIODevice::Text);
-	QTextStream lk_OutStream(&lk_Out);
-	lk_OutStream << mk_Script_->getConfiguration();
-	lk_OutStream.flush();
-	lk_Out.close();
-}
-
-
-void k_ScriptHelper::loadParameters()
-{
-	QString ls_Path = QFileDialog::getOpenFileName(this, tr("Load parameters"), "", tr("Proteomatic Parameters (*.pmp)"));
-	if (ls_Path.length() > 0)
-	{
-		QFile lk_File(ls_Path);
-		lk_File.open(QIODevice::ReadOnly | QIODevice::Text);
-		QString ls_Configuration = QString(lk_File.readAll());
-		lk_File.close();
-		mk_Script_->setConfiguration(ls_Configuration);
 	}
 }
 

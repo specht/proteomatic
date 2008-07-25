@@ -43,8 +43,8 @@ public:
 	QString getParameterValue(QString as_Key);
 	void setParameterValue(QString as_Key, QString as_Value);
 
-	QString getConfiguration();
-	void setConfiguration(QString as_Configuration);
+	QHash<QString, QString> getConfiguration();
+	void setConfiguration(QHash<QString, QString> ak_Configuration);
 
 	QStringList commandLineArguments();
 	
@@ -62,6 +62,8 @@ protected slots:
 	void resetDialog();
 	void toggleUi();
 	void toggleParameter(int ai_State);
+	void parameterChanged();
+	void parameterChangedWithKey(QString as_Key);
 
 protected:
 	void addChoiceItems(QString as_Key, QStringList ak_Choices);
@@ -76,10 +78,14 @@ protected:
 	QHash<QString, QWidget* > mk_ParameterDisplayWidgets;
 	QHash<QString, QList<QWidget*> > mk_ParameterMultiChoiceWidgets;
 	QHash<QString, QDialog* > mk_ParameterMultiChoiceDialogs;
-	QList<k_FoldedHeader*> mk_FoldedHeaders;
+	QHash<QString, k_FoldedHeader*> mk_FoldedHeaders;
 	QHash<QString, QHash<QString, QString> > mk_OutFileDetails;
+	QHash<QString, QWidget*> mk_WidgetLabelsOrCheckBoxes;
+	QHash<QString, QHash<QString, QString> > mk_ParameterDefs;
+	QHash<QString, bool> mk_ParametersAtDefault;
+	QHash<QString, QStringList> mk_GroupParameters;
 	QString ms_Prefix;
-	QString ms_DefaultConfiguration;
+	QHash<QString, QString> mk_DefaultConfiguration;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_IsGood;
 	bool mb_HasParameters;

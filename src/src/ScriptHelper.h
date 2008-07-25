@@ -29,8 +29,6 @@ protected slots:
 	void loadFilesButtonClicked();
 	void resetParameters();
 	void abortScript();
-	void saveParameters();
-	void loadParameters();
 	void resetDialog();
 	void aboutDialog();
 	void scriptMenuScriptClicked(QAction* ak_Action_);
@@ -82,7 +80,7 @@ protected:
 	QAction* mk_LoadParametersAction_;
 	QAction* mk_SaveParametersAction_;
 	QAction* mk_ResetAction_;
-	//QAction* mk_ReloadScriptAction_;
+	QAction* mk_ReloadScriptAction_;
 	QAction* mk_CheckTicketAction_;
 	QToolButton* mk_LoadScriptButton_;
 	QToolButton* mk_ProfileButton_;

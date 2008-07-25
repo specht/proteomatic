@@ -12,7 +12,7 @@ k_RemoteScript::k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomat
 		if (ls_FirstLine == "---getParameters")
 		{
 			createParameterWidget(lk_Response, ab_IncludeOutputFiles);
-			ms_DefaultConfiguration = getConfiguration();
+			mk_DefaultConfiguration = getConfiguration();
 			mb_IsGood = true;
 		}
 	}

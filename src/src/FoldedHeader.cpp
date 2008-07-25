@@ -12,8 +12,9 @@ k_FoldedHeader::k_FoldedHeader(QWidget* ak_Buddy_, QWidget* parent, Qt::WindowFl
 k_FoldedHeader::k_FoldedHeader(const QString& text, QWidget* ak_Buddy_, QWidget* parent, Qt::WindowFlags f)
 	: QWidget(parent, f)
 	, mk_Buddy_(ak_Buddy_)
+	, ms_Text(text)
 {
-	mk_Label.setText(text);
+	mk_Label.setText(ms_Text);
 	init();
 }
 
@@ -62,6 +63,12 @@ void k_FoldedHeader::toggleBuddy()
 		hideBuddy();
 	else
 		showBuddy();
+}
+
+
+void k_FoldedHeader::setSuffix(QString as_Text)
+{
+	mk_Label.setText(ms_Text + " " + as_Text);
 }
 
 
