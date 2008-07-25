@@ -595,7 +595,7 @@ class ProteomaticScript
 		lk_Files = lk_Arguments.select { |ls_Path| File::file?(ls_Path) }
 		lk_Arguments -= lk_Files
 		lk_Directories = [@param['[output]directory'.intern]]
-		lk_Directories = Array.new if @param['[output]directory'.intern].empty?
+		lk_Directories = Array.new if !@param['[output]directory'.intern] || @param['[output]directory'.intern].empty?
 
 		lk_Errors = Array.new
 		
@@ -638,7 +638,7 @@ class ProteomaticScript
 			ls_OutputDirectory = File::dirname(@ms_FileDefiningOutputDirectory) if @ms_FileDefiningOutputDirectory
 		end
 		
-		if ls_OutputDirectory == nil
+		if ls_OutputDirectory == nil && !@mk_Output.empty?
 			lk_Errors.push("Unable to determine output directory.")
 		else
 			if (@ms_ScriptType == 'processor')
