@@ -22,6 +22,13 @@ output:
     label: mzXML files
     format: xml-mzxml
     filename: '#{basename}.mzxml'
+    
+parameters:
+  - key: stripMs1Spectra
+    group: Conversion parameters
+    label: Strip MS 1 spectra
+    type: flag
+    default: yes
 
 needs:
   - ext.readw
