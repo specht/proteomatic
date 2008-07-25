@@ -24,9 +24,9 @@ output:
     filename: '#{basename}.mzxml'
     
 parameters:
-  - key: stripMs1Spectra
+  - key: stripMs1Scans
     group: Conversion parameters
-    label: Strip MS 1 spectra
+    label: Strip MS 1 scans
     type: flag
     default: yes
 
