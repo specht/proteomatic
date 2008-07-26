@@ -6,6 +6,7 @@
 #include "RefPtr.h"
 #include "Script.h"
 #include "TicketWindow.h"
+#include "ProfileManager.h"
 
 
 class k_ScriptHelper: public QMainWindow
@@ -72,9 +73,11 @@ protected:
 	
 	// should be a RefPtr, but not possible with VC on win32... (sigh!)
 	k_Script* mk_Script_;
+	k_ProfileManager* mk_ProfileManager_;
 	
 	k_Proteomatic& mk_Proteomatic;
 	
+	QAction* mk_ProfilesAction_;
 	QAction* mk_StartAction_;
 	QAction* mk_AbortAction_;
 	QAction* mk_LoadParametersAction_;
@@ -83,9 +86,7 @@ protected:
 	QAction* mk_ReloadScriptAction_;
 	QAction* mk_CheckTicketAction_;
 	QToolButton* mk_LoadScriptButton_;
-	QToolButton* mk_ProfileButton_;
 	QHash<int, r_RemoteRequest> mk_RemoteRequests;
 	QHash<k_TicketWindow*, RefPtr<k_TicketWindow> > mk_TicketWindows;
 	QProgressDialog* mk_ProgressDialog_;
-	QMenu* mk_ProfilesMenu_;
 };

@@ -18,9 +18,9 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
 	, mk_Script_(NULL)
+	, mk_ProfileManager_(NULL)
 	, ms_WindowTitle("Proteomatic")
 	, mk_ProgressDialog_(NULL)
-	, mk_ProfilesMenu_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	connect(&mk_Proteomatic, SIGNAL(remoteHubLineBatch(QStringList)), this, SLOT(remoteHubLineBatch(QStringList)));
@@ -71,34 +71,14 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
 	mk_LoadScriptButton_ = new QToolButton(lk_ToolBar_);
-	mk_LoadScriptButton_->setIcon(QIcon(":/icons/folder.png"));
+	mk_LoadScriptButton_->setIcon(QIcon(":/icons/document-open.png"));
 	mk_LoadScriptButton_->setText("Load script");
 	mk_LoadScriptButton_->setMenu(mk_ScriptMenu_);
 	mk_LoadScriptButton_->setPopupMode(QToolButton::InstantPopup);
 	mk_LoadScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
 	
-	mk_ProfilesMenu_ = new QMenu(this);
-	QMenu* lk_SubMenu_ = new QMenu("Mass spectrometer", mk_ProfilesMenu_);
-	QAction* lk_Action1_ = lk_SubMenu_->addAction("Orbitrap");
-	QAction* lk_Action2_ = lk_SubMenu_->addAction("LTQ");
-	lk_Action1_->setCheckable(true);
-	lk_Action2_->setCheckable(true);
-	QActionGroup* lk_ActionGroup_ = new QActionGroup(lk_SubMenu_);
-	lk_Action1_->setActionGroup(lk_ActionGroup_);
-	lk_Action2_->setActionGroup(lk_ActionGroup_);
-	mk_ProfilesMenu_->addMenu(lk_SubMenu_);
-	mk_ProfilesMenu_->addSeparator();
-	mk_ProfilesMenu_->addAction(QIcon(":/icons/list-add.png"), "Create profile...", this, SLOT(createProfile()));
-	
-	mk_ProfileButton_ = new QToolButton(lk_ToolBar_);
-	//mk_ProfileButton_->setVisible(false);
-	mk_ProfileButton_->setIcon(QIcon(":/icons/preferences-system.png"));
-	mk_ProfileButton_->setText("Profile");
-	mk_ProfileButton_->setMenu(mk_ProfilesMenu_);
-	mk_ProfileButton_->setPopupMode(QToolButton::InstantPopup);
-	mk_ProfileButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	lk_ToolBar_->addWidget(mk_ProfileButton_);
+	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Profiles");
 	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
@@ -130,7 +110,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_GroupBoxLayout_ = new QHBoxLayout(lk_Container_);
 	lk_GroupBoxLayout_->setMargin(0);
 	lk_GroupBoxLayout_->addWidget(&mk_FileList);
-	mk_AddFilesButton.setIcon(QIcon(":/icons/folder.png"));
+	mk_AddFilesButton.setIcon(QIcon(":/icons/document-open.png"));
 	connect(&mk_AddFilesButton, SIGNAL(clicked()), this, SLOT(loadFilesButtonClicked()));
 	mk_RemoveInputFileButton.setIcon(QIcon(":/icons/list-remove.png"));
 	connect(&mk_RemoveInputFileButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
@@ -242,6 +222,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 
 k_ScriptHelper::~k_ScriptHelper()
 {
+	if (mk_ProfileManager_)
+		delete mk_ProfileManager_;
+	mk_ProfileManager_ = NULL;
+	
 	if (mk_Script_)
 		delete mk_Script_;
 	mk_Script_ = NULL;
@@ -277,11 +261,16 @@ void k_ScriptHelper::setScript(QString as_Filename)
 	if (checkVersionChanged())
 		return;
 
+	if (mk_ProfileManager_)
+		delete mk_ProfileManager_;
+	mk_ProfileManager_ = NULL;
+	
 	if (mk_Script_)
 		delete mk_Script_;
 	mk_Script_ = NULL;
 	
 	mk_Script_ = k_ScriptFactory::makeScript(as_Filename, mk_Proteomatic, true);
+	mk_ProfileManager_ = new k_ProfileManager(mk_Proteomatic.messageBoxParent());
 		
 	activateScript();
 	
@@ -298,6 +287,7 @@ void k_ScriptHelper::activateScript()
 			ls_Text += "<br /><br />" + mk_Script_->description();
 		mk_Script_->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
 		connect(mk_Script_->parameterWidget(), SIGNAL(widgetResized()), this, SLOT(parameterWidgetResized()));
+		connect(mk_ProfilesAction_, SIGNAL(triggered()), mk_ProfileManager_, SLOT(exec()));
 		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
 		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
 		mk_ParameterLayout_->addWidget(mk_Script_->parameterWidget());
@@ -451,7 +441,7 @@ void k_ScriptHelper::toggleUi()
 	{
 		mk_RemoveInputFileButton.setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
-		mk_ProfileButton_->setEnabled(false);
+		mk_ProfilesAction_->setEnabled(false);
 		mk_ReloadScriptAction_->setEnabled(false);
 		mk_StartAction_->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
@@ -462,7 +452,7 @@ void k_ScriptHelper::toggleUi()
 	else
 	{
 		mk_RemoveInputFileButton.setEnabled(mk_FileList.selectedItems().count() != 0);
-		mk_ProfileButton_->setEnabled(mk_Script_ && mk_Script_->hasParameters());
+		mk_ProfilesAction_->setEnabled(mk_Script_ && mk_Script_->hasParameters());
 		mk_ResetAction_->setEnabled(mk_Script_);
 		mk_ReloadScriptAction_->setEnabled(mk_Script_);
 		mk_StartAction_->setEnabled(mk_Script_);
@@ -477,7 +467,7 @@ void k_ScriptHelper::toggleUi()
 		mk_RemoveInputFileButton.setEnabled(false);
 		mk_AbortAction_->setEnabled(false);
 		mk_LoadScriptButton_->setEnabled(false);
-		mk_ProfileButton_->setEnabled(false);
+		mk_ProfilesAction_->setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
 		mk_ReloadScriptAction_->setEnabled(false);
 		mk_StartAction_->setEnabled(false);

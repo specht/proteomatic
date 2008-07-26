@@ -23,16 +23,18 @@ void k_FileList::forceRemove(QList<QListWidgetItem *> ak_List)
 
 void k_FileList::removeSelection()
 {
-	int li_Row = currentRow();
-
-	emit remove(selectedItems());
+	//int li_Row = currentRow();
 
 	if (mb_ReallyRemoveItems)
 		foreach (QListWidgetItem* lk_Item_, selectedItems())
 			delete lk_Item_;
 
+	emit remove(selectedItems());
+
+/*
 	if (li_Row < count())
 		setCurrentRow(li_Row);
+		*/
 }
 
 
@@ -43,23 +45,8 @@ void k_FileList::keyPressEvent(QKeyEvent* ak_Event_)
 		ak_Event_->accept();
 		removeSelection();
 	}
-	if (ak_Event_->key() == Qt::Key_Up)
-	{
-		ak_Event_->accept();
-		if (currentRow() > 0)
-			setCurrentRow(currentRow() - 1);
-	}
-	if (ak_Event_->key() == Qt::Key_Down)
-	{
-		ak_Event_->accept();
-		if (currentRow() < count() - 1)
-			setCurrentRow(currentRow() + 1);
-	}
-	if (ak_Event_->key() == Qt::Key_A && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
-	{
-		ak_Event_->accept();
-		selectAll();
-	}
+	else
+		QListWidget::keyPressEvent(ak_Event_);
 }
 
 

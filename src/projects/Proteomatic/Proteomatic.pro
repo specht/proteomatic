@@ -29,6 +29,7 @@ HEADERS += \
 	../../src/FileList.h \
 	../../src/FoldedHeader.h \
 	../../src/LocalScript.h \
+	../../src/ProfileManager.h \
 	../../src/Proteomatic.h \
 	../../src/RefPtr.h \
 	../../src/RemoteScript.h \
@@ -45,6 +46,7 @@ SOURCES += \
 	../../src/FileList.cpp \
 	../../src/FoldedHeader.cpp \
 	../../src/LocalScript.cpp \
+	../../src/ProfileManager.cpp \
 	../../src/Proteomatic.cpp \
 	../../src/ProteomaticMain.cpp \
 	../../src/RemoteScript.cpp \

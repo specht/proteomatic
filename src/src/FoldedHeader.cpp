@@ -28,9 +28,9 @@ void k_FoldedHeader::hideBuddy()
 {
 	if (mk_Buddy_ == NULL)
 		return;
-	mk_Buddy_->setVisible(false);
 	mb_Increasing = false;
 	mk_Timer.start();
+	mk_Buddy_->setVisible(false);
 	//mk_Label.setForegroundRole(QPalette::Text);
 	//mk_Icon.setPixmap(mk_FoldedIcon);
 	
@@ -41,9 +41,9 @@ void k_FoldedHeader::showBuddy()
 {
 	if (mk_Buddy_ == NULL)
 		return;
-	mk_Buddy_->setVisible(true);
 	mb_Increasing = true;
 	mk_Timer.start();
+	mk_Buddy_->setVisible(true);
 	//mk_Label.setForegroundRole(QPalette::Text);
 	//mk_Icon.setPixmap(mk_UnfoldedIcon);
 }

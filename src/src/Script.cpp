@@ -372,6 +372,8 @@ void k_Script::removeChoiceItems(QList<QListWidgetItem *> ak_Items)
 		lk_NewItem_->setData(Qt::UserRole, lk_Item_->data(Qt::UserRole));
 		delete lk_Item_;
 	}
+	
+	parameterChangedWithKey(lk_Source_->property("key").toString());
 }
 
 
@@ -745,7 +747,8 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_CheckBox_;
 				
 			lk_CheckBox_->setProperty("key", QVariant(ls_Key));
-			connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
+			if (!ls_Key.startsWith("[output]"))
+				connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
 		}
 		else if (ls_Type == "enum")
 		{
@@ -826,7 +829,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				connect(lk_RemoveButton_, SIGNAL(clicked()), lk_ListWidget_, SLOT(removeSelection()));
 				
 				lk_RemoveButton_->setProperty("key", QVariant(ls_Key));
-				connect(lk_RemoveButton_, SIGNAL(clicked()), this, SLOT(parameterChanged()));
+				lk_ListWidget_->setProperty("key", QVariant(ls_Key));
 				
 				connect(lk_ListWidget_, SIGNAL(selectionChanged(bool)), lk_RemoveButton_, SLOT(setEnabled(bool)));
 				lk_ButtonLayout_->addWidget(lk_RemoveButton_);

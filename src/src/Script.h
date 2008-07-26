@@ -5,6 +5,7 @@
 #include "FoldedHeader.h"
 #include "Proteomatic.h"
 #include "SizeWatchWidget.h"
+#include "ProfileManager.h"
 
 
 struct r_ScriptType
