@@ -739,8 +739,8 @@ void k_ScriptHelper::createProfile()
 	lk_ScrollArea_->setWidgetResizable(true);
 	lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
 	lk_ScrollArea_->setWidget(lk_Script_->parameterWidget());
-	lk_Script_->parameterWidget()->resize(300, 10);
 	lk_Layout_->addWidget(lk_ScrollArea_);
 	lk_Dialog.setLayout(lk_Layout_);
+	lk_Script_->parameterWidget()->resize(550, 10);
 	lk_Dialog.exec();
 }

@@ -53,7 +53,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 			
 			if (ls_FirstLine == "---getParameters")
 			{
-				createParameterWidget(lk_Response, ab_IncludeOutputFiles, ab_ProfileMode);
+				createParameterWidget(lk_Response);
 				mk_DefaultConfiguration = getConfiguration();
 				mb_IsGood = true;
 			}

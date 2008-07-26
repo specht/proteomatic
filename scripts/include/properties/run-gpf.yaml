@@ -36,11 +36,12 @@ parameters:
   - key: masses
     label: Masses
     type: enum
+    default: 'monoisotopic'
     choices: [monoisotopic]
   - key: searchSimilar
     label: Similarity search
     type: enum
-    default: yes
+    default: 'yes'
     choices: ['yes', 'no']
   - key: massError
     label: Mass tolerance
@@ -50,7 +51,7 @@ parameters:
     suffix: ppm
   - key: searchIntrons
     type: enum
-    default: yes
+    default: 'yes'
     choices: ['yes', 'no']
     label: Search introns
   - key: maxIntronLength
@@ -62,6 +63,7 @@ parameters:
   - key: protease
     label: Enzyme
     type: enum
+    default: 'trypsin'
     choices: [{trypsin: Trypsin}]
   - key: minChainLength
     type: int

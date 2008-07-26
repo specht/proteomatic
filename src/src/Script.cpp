@@ -20,6 +20,9 @@ k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Pr
 	, mk_OutputDirectory_(NULL)
 	, mk_ClearOutputDirectory_(NULL)
 	, mb_HasParameters(false)
+	, mb_IncludeOutputFiles(ab_IncludeOutputFiles)
+	, mb_ProfileMode(ab_ProfileMode)
+	, mk_ProfileDescriptionLabel_(NULL)
 {
 }
 
@@ -160,6 +163,62 @@ QString k_Script::getParameterValue(QString as_Key)
 	}
 	return "";
 }
+
+
+QString k_Script::getHumanReadableParameterValue(QString as_Key, QString as_Value)
+{
+	QString ls_Result;
+	QString ls_Type = mk_ParameterDefs[as_Key]["type"];
+	if (ls_Type == "csvString")
+	{
+		/*
+		QStringList lk_Choices = as_Value.split(",");
+		QList<QWidget*> lk_ChoiceWidgets = mk_ParameterMultiChoiceWidgets[as_Key];
+		foreach (QWidget* lk_ChoiceWidget_, lk_ChoiceWidgets)
+		{
+			QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_ChoiceWidget_);
+			if (lk_CheckBox_ != NULL)
+				lk_CheckBox_->setChecked(lk_Choices.contains(lk_CheckBox_->property("ProteomaticValue").toString()));
+
+			k_FileList* lk_ListWidget_ = dynamic_cast<k_FileList*>(lk_ChoiceWidget_);
+			if (lk_ListWidget_ != NULL)
+			{
+				lk_ListWidget_->selectAll();
+				lk_ListWidget_->forceRemove(lk_ListWidget_->selectedItems());
+				addChoiceItems(as_Key, lk_Choices);
+			}
+		}
+		parameterChangedWithKey(as_Key);
+		*/
+		QStringList lk_Values = as_Value.split(",");
+		for (int i = 0; i < lk_Values.size(); ++i)
+		{
+			QString ls_Value = lk_Values.at(i);
+			ls_Result += mk_ParameterValueLabels[as_Key][ls_Value];
+			if (i < lk_Values.size() - 1)
+				ls_Result += ", ";
+		}
+	}
+	else
+	{
+		if (ls_Type == "float" || ls_Type == "int" || ls_Type == "string")
+		{
+			if (mk_ParameterDefs[as_Key].contains("prefix"))
+				ls_Result += mk_ParameterDefs[as_Key]["prefix"] + " ";
+			ls_Result = as_Value;
+			if (mk_ParameterDefs[as_Key].contains("suffix"))
+				ls_Result += " " + mk_ParameterDefs[as_Key]["suffix"];
+		}
+		else if (ls_Type == "enum")
+			ls_Result = mk_ParameterValueLabels[as_Key][as_Value];
+		else if (ls_Type == "flag")
+			ls_Result = (as_Value == "true")? "yes": "no";
+	}
+	if (ls_Result == "")
+		ls_Result = "<i>empty</i>";
+	return ls_Result;
+}
+
 
 void k_Script::setParameterValue(QString as_Key, QString as_Value)
 {
@@ -358,7 +417,7 @@ void k_Script::resetDialog()
 }
 
 
-void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
+void k_Script::createParameterWidget(QStringList ak_Definition)
 {
 	mk_InputFileDescriptionList.clear();
 	mk_OutputDirectory_ = NULL;
@@ -416,7 +475,25 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			lk_ParametersValues[lk_Parameter["key"]] = lk_EnumValues;
 			lk_ParametersOrder.push_back(lk_Parameter["key"]);
 		}
+		
+		// remember labels for enum and csvString values
+		foreach (QString ls_Item, lk_ParametersValues[lk_Parameter["key"]])
+		{
+			QString ls_Key = ls_Item;
+			QString ls_Label = ls_Item;
+			if (ls_Item.contains(QChar(':')))
+			{
+				QStringList lk_Item = ls_Item.split(":");
+				ls_Key = lk_Item[0].trimmed();
+				ls_Label = lk_Item[1].trimmed();
+			}
+			if (!mk_ParameterValueLabels.contains(lk_Parameter["key"]))
+				mk_ParameterValueLabels[lk_Parameter["key"]] = QHash<QString, QString>();
+			mk_ParameterValueLabels[lk_Parameter["key"]][ls_Key] = ls_Label;
+		}
 	}
+	
+	mk_ParametersOrder = lk_ParametersOrder;
 
 	QHash<QString, QWidget* > lk_Containers;
 	QHash<QString, QGridLayout* > lk_GridLayouts;
@@ -429,7 +506,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 	lk_InternalWidget_->setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	lk_InternalWidget_->setWindowTitle(ms_Title);
 	lk_InternalWidget_->setWindowFlags(Qt::WindowStaysOnTopHint);
-	if (!ab_ProfileMode)
+	if (!mb_ProfileMode)
 	{
 		QLabel* lk_Label_ = new QLabel("<b>" + title() + "</b>", lk_InternalWidget_);
 		lk_ParameterLayout_->addWidget(lk_Label_);
@@ -449,6 +526,13 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}
 	}
+	else
+	{
+		mk_ProfileDescriptionLabel_ = new QLabel(lk_InternalWidget_);
+		mk_ProfileDescriptionLabel_->setWordWrap(true);
+		mk_ProfileDescriptionLabel_->setText("<i>No parameters have been specified.</i>");
+		lk_ParameterLayout_->addWidget(mk_ProfileDescriptionLabel_);
+	}
 	QFrame* lk_Frame_ = new QFrame(lk_InternalWidget_);
 	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 	lk_ParameterLayout_->addWidget(lk_Frame_);
@@ -465,7 +549,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 		if (ls_Key.startsWith("[output]") && ls_Key != "[output]prefix" && ls_Key != "[output]directory")
 			mk_OutFileDetails[ls_Key] = lk_Parameters[ls_Key];
 
-		if (!ab_IncludeOutputFiles && ls_Key.startsWith("[output]"))
+		if (!mb_IncludeOutputFiles && ls_Key.startsWith("[output]"))
 			continue;
 
 		QString ls_Group = lk_Parameters[ls_Key]["group"];
@@ -508,7 +592,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 
 	foreach (QString ls_Key, lk_ParametersOrder)
 	{
-		if (!ab_IncludeOutputFiles && ls_Key.startsWith("[output]"))
+		if (!mb_IncludeOutputFiles && ls_Key.startsWith("[output]"))
 			continue;
 
 		QHash<QString, QString> lk_Parameter = lk_Parameters[ls_Key];
@@ -559,8 +643,8 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 		
 		QString ls_Description = "";
 		if (lk_Parameter.contains("description"))
-			ls_Description = lk_Parameter["description"];
-		//ls_Description += QString("(default: %1)").arg(mk_DefaultConfiguration[ls_Key]);
+			ls_Description = lk_Parameter["description"] + " ";
+		ls_Description += QString("(default: %1)").arg(getHumanReadableParameterValue(ls_Key, lk_Parameter["default"]));
 		
 		if (ls_Type == "float")
 		{
@@ -655,7 +739,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 			lk_CheckBox_->setChecked((lk_Parameter["default"] == "true") || (lk_Parameter["default"] == "yes"));
 			if (lk_Parameter.contains("force"))
 				lk_CheckBox_->setEnabled(false);
-			if (!ls_Description.isEmpty())
+			if (!ls_Description.isEmpty() && !ls_Key.startsWith("[output]"))
 				lk_CheckBox_->setToolTip(ls_Description);
 			lb_AddLabel = false;
 			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_CheckBox_;
@@ -806,27 +890,28 @@ void k_Script::createParameterWidget(QStringList ak_Definition, bool ab_IncludeO
 		if (lb_AddLabel)
 		{
 			QWidget* lk_Label_;
-			if (ab_ProfileMode)
+			if (mb_ProfileMode)
 			{
 				lk_Label_ = new QCheckBox(lk_Parameter["label"] + ":", lk_Container_);
 				lk_Widget_->setEnabled(false);
 				dynamic_cast<QCheckBox*>(lk_Label_)->setCheckState(Qt::Unchecked);
-				connect(lk_Label_, SIGNAL(stateChanged(int)), this, SLOT(toggleParameter(int)));
 				lk_Label_->setProperty("key", QVariant(ls_Key));
+				connect(lk_Label_, SIGNAL(stateChanged(int)), this, SLOT(toggleParameter(int)));
+				connect(lk_Label_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
 			}
 			else
 				lk_Label_ = new QLabel(lk_Parameter["label"] + ":", lk_Container_);
 				
 			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_Label_;
 				
-			if (!ls_Description.isEmpty())
+			if (!ls_Description.isEmpty() && !ls_Key.startsWith("[output]"))
 				lk_Label_->setToolTip(ls_Description);
 			
 			lk_Layout_->addWidget(lk_Label_);
 		}
 		if (lk_Widget_ != NULL)
 		{
-			if (!ls_Description.isEmpty())
+			if (!ls_Description.isEmpty() && !ls_Key.startsWith("[output]"))
 				lk_Widget_->setToolTip(ls_Description);
 			
 			lk_Layout_->addWidget(lk_Widget_);
@@ -873,32 +958,71 @@ void k_Script::parameterChangedWithKey(QString as_Key)
 	else if (lk_CheckBox_)
 		ls_String = lk_CheckBox_->text();
 		
-	if (ls_String.startsWith("<u>"))
+	if (!mb_ProfileMode)
 	{
-		ls_String.replace("<u>", "");
-		ls_String.replace("</u>", "");
+		if (ls_String.startsWith("<u>"))
+		{
+			ls_String.replace("<u>", "");
+			ls_String.replace("</u>", "");
+		}
+		if (!lb_Default)
+			ls_String = "<u>" + ls_String + "</u>";
 	}
-	if (!lb_Default)
-		ls_String = "<u>" + ls_String + "</u>";
 	
 	if (lk_Label_)
 		lk_Label_->setText(ls_String);
 	else if (lk_CheckBox_)
 		lk_CheckBox_->setText(ls_String);
 		
-	int li_ChangedCount = 0;
 	QString ls_Group = mk_ParameterDefs[as_Key]["group"];
-	foreach (QString ls_Key, mk_GroupParameters[ls_Group])
-	{
-		if (!mk_ParametersAtDefault[ls_Key])
-			li_ChangedCount += 1;
-	}
+	int li_Count = 0;
 	
-	if (li_ChangedCount == 0)
-		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix("");
-	else if (li_ChangedCount == 1)
-		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix(QString("(1 change)"));
+	if (!mb_ProfileMode)
+	{
+		foreach (QString ls_Key, mk_GroupParameters[ls_Group])
+		{
+			if (!mk_ParametersAtDefault[ls_Key])
+				li_Count += 1;
+		}
+	}
 	else
-		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix(QString("(%1 changes)").arg(li_ChangedCount));
+	{
+		foreach (QString ls_Key, mk_GroupParameters[ls_Group])
+		{
+			QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[ls_Key];
+			QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
+			if (lk_CheckBox_ != NULL)
+			{
+				if (lk_CheckBox_->checkState() == Qt::Checked)
+					li_Count += 1;
+			}
+		}
+	}
+		
+	if (li_Count == 0)
+		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix("");
+	else if (li_Count == 1)
+		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix(mb_ProfileMode? QString("(1 setting)"): QString("(1 change)"));
+	else
+		mk_FoldedHeaders[mk_ParameterDefs[as_Key]["group"]]->setSuffix(mb_ProfileMode? QString("(%1 settings)").arg(li_Count): QString("(%1 changes)").arg(li_Count));
+
+	if (mb_ProfileMode)
+	{
+		QStringList lk_ProfileDescription;
+		foreach (QString ls_Key, mk_ParametersOrder)
+		{
+			QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[ls_Key];
+			QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
+			if (lk_CheckBox_ != NULL)
+			{
+				if (lk_CheckBox_->checkState() == Qt::Checked)
+					lk_ProfileDescription.push_back(QString("%1: %2").arg(mk_ParameterDefs[ls_Key]["label"]).arg(getHumanReadableParameterValue(ls_Key, getParameterValue(ls_Key))));
+			}
+		}
+		if (lk_ProfileDescription.isEmpty())
+			mk_ProfileDescriptionLabel_->setText("<i>No parameters have been specified.</i>");
+		else
+			mk_ProfileDescriptionLabel_->setText("Settings:<ul><li>" + lk_ProfileDescription.join("</li><li>") + "</li></ul>");
+	}
 }
 

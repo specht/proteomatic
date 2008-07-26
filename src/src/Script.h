@@ -41,6 +41,7 @@ public:
 	QHash<QString, QString> outFileDetails(QString as_Key);
 
 	QString getParameterValue(QString as_Key);
+	QString getHumanReadableParameterValue(QString as_Key, QString as_Value);
 	void setParameterValue(QString as_Key, QString as_Value);
 
 	QHash<QString, QString> getConfiguration();
@@ -67,7 +68,7 @@ protected slots:
 
 protected:
 	void addChoiceItems(QString as_Key, QStringList ak_Choices);
-	void createParameterWidget(QStringList ak_Definition, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+	void createParameterWidget(QStringList ak_Definition);
 
 	r_ScriptType::Enumeration me_Type;
 	QString ms_ScriptUri;
@@ -82,6 +83,8 @@ protected:
 	QHash<QString, QHash<QString, QString> > mk_OutFileDetails;
 	QHash<QString, QWidget*> mk_WidgetLabelsOrCheckBoxes;
 	QHash<QString, QHash<QString, QString> > mk_ParameterDefs;
+	QHash<QString, QHash<QString, QString> > mk_ParameterValueLabels;
+	QStringList mk_ParametersOrder;
 	QHash<QString, bool> mk_ParametersAtDefault;
 	QHash<QString, QStringList> mk_GroupParameters;
 	QString ms_Prefix;
@@ -89,6 +92,9 @@ protected:
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_IsGood;
 	bool mb_HasParameters;
+	bool mb_IncludeOutputFiles;
+	bool mb_ProfileMode;
+	QLabel* mk_ProfileDescriptionLabel_;
 	QLineEdit* mk_OutputDirectory_;
 	QToolButton* mk_ClearOutputDirectory_;
 	QStringList mk_InputFileDescriptionList;
