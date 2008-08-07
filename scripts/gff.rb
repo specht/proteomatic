@@ -8,6 +8,16 @@ def handleFile(ak_Files, ak_Out = $stdout)
 	lk_Peptides.each do |ls_Peptide, lk_Hits|
 		li_AssemblyCount = lk_Hits.size
 		next if li_AssemblyCount == 0
+
+		# chuck out intron split assemblies when there are non-intron split assemblies
+		# available
+
+		lb_HasImmediateHits = false
+		lk_Hits.each { |lk_Assembly| lb_HasImmediateHits = true if lk_Assembly['details']['parts'].size == 1 }
+		if lb_HasImmediateHits
+			lk_Hits.reject! { |lk_Assembly|	lk_Assembly['details']['parts'].size != 1 }
+		end
+	
 		lk_Hits.each_index do |li_AssemblyIndex|
 			lk_Assembly = lk_Hits[li_AssemblyIndex]
 			

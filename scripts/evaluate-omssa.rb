@@ -385,6 +385,9 @@ class EvaluateOmssa < ProteomaticScript
 				end
 				puts 'done.' unless lk_NeededSpots.to_a == lk_MissingSpots
 				
+				# write AMS header
+				lk_Out.puts "spectrum_id!software!charge!meas_mass!cal_mass!delta_mass!scores!sequence_in!sequence_out!left_fragment!right_fragment!left_pos!right_pos!left_rf!right_rf!tic!database!reference!spectrum!search_string!"
+				
 				# iterate OMSSA results
 				lk_PeptideHash.each do |ls_Peptide, lk_Peptide|
 					lk_Peptide['scans'].each do |ls_Scan|
@@ -400,7 +403,11 @@ class EvaluateOmssa < ProteomaticScript
 							lf_EValue = lk_ScanHash[ls_Scan]['e']
 							ls_SpectrumData = lk_ScanData[ls_Scan]
 							ls_SpectrumData = '' unless ls_SpectrumData
-							lk_Out.puts "#{ls_Scan}!#{ls_Software}!#{li_Charge}!#{lf_MeasuredMass}!#{lf_CalculatedMass}!#{lf_MeasuredMass - lf_CalculatedMass}!fpr:#{@param[:targetFpr] / 100.0},evalue:#{lf_EValue}!#{ls_Peptide}!#{ls_Peptide}!!!!!!!!!#{ls_SpectrumData}!!"
+							# database and reference intentionally left blank because 2DB does
+							# the search by itself.
+							ls_Database = ''
+							ls_Reference = ''
+							lk_Out.puts "#{ls_Scan}!#{ls_Software}!#{li_Charge}!#{lf_MeasuredMass}!#{lf_CalculatedMass}!#{lf_MeasuredMass - lf_CalculatedMass}!fpr:#{@param[:targetFpr] / 100.0},evalue:#{lf_EValue}!!#{ls_Peptide}!!!!!!!!#{ls_Database}!#{ls_Reference}!#{ls_SpectrumData}!!"
 						end
 					end
 				end
