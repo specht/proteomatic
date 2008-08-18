@@ -4,20 +4,27 @@ require 'scripts/include/misc'
 
 ls_Platform = determinePlatform()
 
-if ls_Platform == 'windows' && !(File::exists?('release.conf'))
-	puts 'Error: Need release.conf!'
-	exit
+ls_Config = ''
+
+if ls_Platform == 'windows' 
+	unless File::exists?('release.conf')
+		puts 'Error: Need release.conf!'
+		exit
+	else
+		ls_Config = File::read('release.conf')
+	end
 end
 
-eval(File::read('release.conf'))
+eval(ls_Config)
 
-ls_Version = nil
-File.open('scripts/include/version.rb', 'r') { |lk_File| ls_Version = lk_File.read.strip }
+ls_Version = File::basename(Dir::pwd())
 
 if ls_Version == nil
 	puts 'Internal error: Unable to determine Proteomatic version.'
 	exit 1
 end
+
+File.open('scripts/include/version.rb', 'w') { |lk_File| lk_File.write(ls_Version) }
 
 puts "Creating release for Proteomatic #{ls_Version}..."
 
