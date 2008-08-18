@@ -2,6 +2,15 @@ require 'fileutils'
 require 'yaml'
 require 'scripts/include/misc'
 
+ls_Platform = determinePlatform()
+
+if ls_Platform == 'windows' && !(File::exists?('release.conf'))
+	puts 'Error: Need release.conf!'
+	exit
+end
+
+eval(File::read('release.conf'))
+
 ls_Version = nil
 File.open('scripts/include/version.rb', 'r') { |lk_File| ls_Version = lk_File.read.strip }
 
@@ -12,7 +21,6 @@ end
 
 puts "Creating release for Proteomatic #{ls_Version}..."
 
-ls_Platform = determinePlatform()
 ls_Make = {'windows' => 'make', 'linux' => 'make', 'mac' => 'make'}
 ls_QMake = {'windows' => 'qmake -spec win32-g++', 'linux' => 'qmake', 'mac' => 'qmake -spec macx-g++'}
 ls_BinaryExtension = {'windows' => '.exe', 'linux' => '', 'mac' => ''}
@@ -35,11 +43,10 @@ puts 'Collecting Proteomatic executables...'
 lk_Projects.each { |ls_Project| FileUtils.cp(ls_Project + ls_BinaryExtension[ls_Platform], ls_DestDir) }
 
 if (ls_Platform == 'windows')
-	#lk_Projects.each { |ls_Project| FileUtils.cp(ls_Project + '.exe.manifest', ls_DestDir) }
-	FileUtils.cp('C:/Qt/4.4.1/bin/QtCore4.dll', ls_DestDir)
-	FileUtils.cp('C:/Qt/4.4.1/bin/QtGui4.dll', ls_DestDir)
-	FileUtils.cp('C:/Qt/4.4.1/bin/QtNetwork4.dll', ls_DestDir)
-	FileUtils.cp('C:/MinGW/bin/mingwm10.dll', ls_DestDir)
+	FileUtils.cp(File::join(QT_PATH, 'bin/QtCore4.dll'), ls_DestDir)
+	FileUtils.cp(File::join(QT_PATH, 'bin/QtGui4.dll'), ls_DestDir)
+	FileUtils.cp(File::join(QT_PATH, 'bin/QtNetwork4.dll'), ls_DestDir)
+	FileUtils.cp(File::join(MINGW_PATH, 'bin/mingwm10.dll'), ls_DestDir)
 end
 
 puts 'Collecting scripts...'
@@ -68,7 +75,7 @@ if (ls_Platform == 'windows')
 	lk_File.write(ls_Script)
 	lk_File.close()
 	
-	system("\"c:/Program Files/NSIS/makensis.exe\" temp.nsi")
+	system("\"#{File::join(NSIS_PATH, 'makensis.exe')}\" temp.nsi")
 	
 	FileUtils.rm_f(['temp.nsi'])
 else
@@ -80,7 +87,6 @@ end
 FileUtils.rmtree(ls_DestDir)
 FileUtils.rmtree(File::join('src', 'obj'))
 lk_Projects.each { |ls_Project| FileUtils::rm_rf(ls_Project + ls_BinaryExtension[ls_Platform]) }
-lk_Projects.each { |ls_Project| FileUtils.rm_rf(ls_Project + '.exe.manifest') } if (ls_Platform == 'windows')
 
 __END__
 ;NSIS Modern User Interface
