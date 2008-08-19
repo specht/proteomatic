@@ -12,17 +12,18 @@ macx {
 	ICON = ../../src/icons/proteomatic.icns
 }
 
+TARGET = Proteomatic
+
 CONFIG(debug, debug|release) {
 	OBJECTS_DIR = ../../obj/debug/
 	MOC_DIR = ../../obj/debug/
 	RCC_DIR = ../../obj/debug/
-	TARGET = Proteomatic_debug
+	TARGET = $$join(TARGET,,,_debug)
 }
 else {
 	OBJECTS_DIR = ../../obj/release/
 	MOC_DIR = ../../obj/release/
 	RCC_DIR = ../../obj/release/
-	TARGET = Proteomatic
 }
 
 DESTDIR = ../../../
