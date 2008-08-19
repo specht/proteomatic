@@ -1,8 +1,10 @@
 TEMPLATE = app
+
 win32 {
     RC_FILE = Proteomatic.rc
-    CONFIG += embed_manifest_exe
 }
+
+CONFIG += debug_and_release
 
 macx {
 	CONFIG -= app_bundle
@@ -10,16 +12,22 @@ macx {
 	ICON = ../../src/icons/proteomatic.icns
 }
 
-OBJECTS_DIR = ../../obj/
-MOC_DIR = ../../obj/
-RCC_DIR = ../../obj/
+CONFIG(debug, debug|release) {
+	OBJECTS_DIR = ../../obj/debug/
+	MOC_DIR = ../../obj/debug/
+	RCC_DIR = ../../obj/debug/
+	TARGET = Proteomatic_debug
+}
+else {
+	OBJECTS_DIR = ../../obj/release/
+	MOC_DIR = ../../obj/release/
+	RCC_DIR = ../../obj/release/
+	TARGET = Proteomatic
+}
 
-TARGET = Proteomatic
 DESTDIR = ../../../
 
 QT += gui network
-
-CONFIG += debug_and_release
 
 # Input
 HEADERS += \
