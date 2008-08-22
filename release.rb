@@ -44,8 +44,8 @@ File.open('scripts/include/version.rb', 'w') { |lk_File| lk_File.write(ls_Versio
 
 puts "Creating release for Proteomatic #{ls_Version}..."
 
-ls_Make = {'windows' => 'make', 'linux' => 'make', 'mac' => 'make'}
-ls_QMake = {'windows' => 'qmake -spec win32-g++', 'linux' => 'qmake', 'mac' => 'qmake -spec macx-g++'}
+ls_Make = {'windows' => File::join(MINGW_PATH, 'bin', 'mingw32-make.exe'), 'linux' => 'make', 'mac' => 'make'}
+ls_QMake = {'windows' => File::join(QT_PATH, 'bin', 'qmake.exe') + ' -spec win32-g++', 'linux' => 'qmake', 'mac' => 'qmake -spec macx-g++'}
 ls_BinaryExtension = {'windows' => '.exe', 'linux' => '', 'mac' => ''}
 
 ls_DestDir = "proteomatic-#{ls_Version}-#{ls_Platform}"
