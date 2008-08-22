@@ -8,14 +8,30 @@ ls_Config = ''
 
 if ls_Platform == 'windows' 
 	unless File::exists?('release.conf')
-		puts 'Error: Need release.conf!'
-		exit
-	else
-		ls_Config = File::read('release.conf')
+		puts 'Using default config. Please adjust values in release.conf if neccessary.'
+		File::open('release.conf', 'w') do |lk_File|
+			lk_File.puts "QT_PATH = 'c:/Qt/4.4.1'"
+			lk_File.puts "MINGW_PATH = 'c:/MinGW'"
+			lk_File.puts "NSIS_PATH = File::join(ENV['ProgramFiles'], 'NSIS')"
+		end
 	end
+	ls_Config = File::read('release.conf')
 end
 
 eval(ls_Config)
+
+# test config
+if ls_Platform == 'windows' 
+	lk_Errors = Array.new
+	lk_Errors.push("Unable to find MinGW in #{MINGW_PATH}.") unless File::exists?(File::join(MINGW_PATH, 'bin/mingwm10.dll'))
+	lk_Errors.push("Unable to find Qt in #{QT_PATH}.") unless File::exists?(File::join(QT_PATH, 'bin/QtCore4.dll'))
+	lk_Errors.push("Unable to find NSIS in #{NSIS_PATH}.") unless File::exists?(File::join(NSIS_PATH, 'makensis.exe'))
+	unless lk_Errors.empty?
+		puts 'Errors:'
+		puts lk_Errors.join("\n")
+		exit 1
+	end
+end
 
 ls_Version = File::basename(Dir::pwd())
 
