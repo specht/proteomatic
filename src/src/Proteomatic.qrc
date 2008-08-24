@@ -25,6 +25,7 @@
   <file>icons/package-x-generic.png</file>
   <file>icons/preferences-system.png</file>
   <file>icons/proteomatic.png</file>
+  <file>icons/ruby.png</file>
   <file>icons/ticket.png</file>
 </qresource>
 </RCC>
