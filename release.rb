@@ -20,6 +20,10 @@ end
 
 eval(ls_Config)
 
+MINGW_PATH = '' unless defined?(MINGW_PATH)
+QT_PATH = '' unless defined?(QT_PATH)
+NSIS_PATH = '' unless defined?(NSIS_PATH)
+
 # test config
 if ls_Platform == 'windows' 
 	lk_Errors = Array.new
@@ -59,7 +63,12 @@ puts 'Building Proteomatic executables...'
 
 FileUtils.rmtree(File::join('src', 'obj'))
 lk_Projects = ['Proteomatic']
-lk_Projects.each { |ls_Project| system("cd src/projects/#{ls_Project} && #{ls_QMake[ls_Platform]} && #{ls_Make[ls_Platform]} release && cd ../../../") }
+lk_Projects.each do |ls_Project| 
+	unless system("cd src/projects/#{ls_Project} && #{ls_QMake[ls_Platform]} && #{ls_Make[ls_Platform]} release && cd ../../../")
+		puts 'There was an error!'
+		exit 1
+	end
+end
 
 puts 'Collecting Proteomatic executables...'
 
@@ -86,7 +95,10 @@ end
 if (ls_Platform == 'windows')
 	puts 'Building ZIP package...'
 	
-	system("scripts/include/helpers/7z/7za.exe a -r #{ls_DestDir}.zip #{ls_DestDir}")
+	unless system("scripts/include/helpers/7z/7za.exe a -r #{ls_DestDir}.zip #{ls_DestDir}")
+		puts 'There was an error!'
+		exit 1
+	end
 	
 	puts 'Compiling installer...'
 	
@@ -98,15 +110,24 @@ if (ls_Platform == 'windows')
 	lk_File.write(ls_Script)
 	lk_File.close()
 	
-	system("\"#{File::join(NSIS_PATH, 'makensis.exe')}\" temp.nsi")
+	unless system("\"#{File::join(NSIS_PATH, 'makensis.exe')}\" temp.nsi")
+		puts 'There was an error!'
+		exit 1
+	end
 	
 	FileUtils.rm_f(['temp.nsi'])
 else
 	puts 'Builing bzip2 package...'
-	system("tar cvf #{ls_DestDir}.tar #{ls_DestDir}")
-	system("bzip2 -z #{ls_DestDir}.tar")
+	unless system("tar cvf #{ls_DestDir}.tar #{ls_DestDir}")
+		puts 'There was an error!'
+		exit 1
+	end
+	unless system("bzip2 -z #{ls_DestDir}.tar")
+		puts 'There was an error!'
+		exit 1
+	end
 end
-
+ 
 FileUtils.rmtree(ls_DestDir)
 FileUtils.rmtree(File::join('src', 'obj'))
 lk_Projects.each { |ls_Project| FileUtils::rm_rf(ls_Project + ls_BinaryExtension[ls_Platform]) }
