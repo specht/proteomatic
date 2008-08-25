@@ -61,8 +61,8 @@ SOURCES += \
 	../../src/RemoteScript.cpp \
 	../../src/RubyWindow.cpp \
 	../../src/Script.cpp \
-	../../src/ScriptHelper.cpp \
 	../../src/ScriptFactory.cpp \
+	../../src/ScriptHelper.cpp \
 	../../src/TicketWindow.cpp \
 	
 RESOURCES += \

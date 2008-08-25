@@ -1,19 +1,34 @@
 TEMPLATE = app
+
 win32 {
-    #TEMPLATE = vcapp
     RC_FILE = Proteomatic.rc
 }
 
-OBJECTS_DIR = ../../obj/
-MOC_DIR = ../../obj/
-RCC_DIR = ../../obj/
+CONFIG += debug_and_release
+
+macx {
+	CONFIG -= app_bundle
+	CONFIG += ppc
+	ICON = ../../src/icons/proteomatic.icns
+}
 
 TARGET = ProteomaticPipeline
+
+CONFIG(debug, debug|release) {
+	OBJECTS_DIR = ../../obj/debug/
+	MOC_DIR = ../../obj/debug/
+	RCC_DIR = ../../obj/debug/
+	TARGET = $$join(TARGET,,,_debug)
+}
+else {
+	OBJECTS_DIR = ../../obj/release/
+	MOC_DIR = ../../obj/release/
+	RCC_DIR = ../../obj/release/
+}
+
 DESTDIR = ../../../
 
 QT += gui network
-
-CONFIG += debug_and_release
 
 # Input
 HEADERS += \
@@ -26,13 +41,17 @@ HEADERS += \
 	../../src/FoldedHeader.h \
 	../../src/LocalScript.h \
 	../../src/PipelineMainWindow.h \
+	../../src/ProfileManager.h \
 	../../src/Proteomatic.h \
 	../../src/RefPtr.h \
 	../../src/RemoteScript.h \
 	../../src/RubyWindow.h \
 	../../src/Script.h \
+	../../src/ScriptHelper.h \
 	../../src/ScriptFactory.h \
     ../../src/StopWatch.h \
+	../../src/SizeWatchWidget.h \
+	../../src/TicketWindow.h \
 
 SOURCES += \
 	../../src/ClickableLabel.cpp \
@@ -43,13 +62,16 @@ SOURCES += \
 	../../src/FoldedHeader.cpp \
 	../../src/LocalScript.cpp \
 	../../src/PipelineMainWindow.cpp \
+	../../src/ProfileManager.cpp \
 	../../src/Proteomatic.cpp \
 	../../src/ProteomaticPipelineMain.cpp \
 	../../src/RemoteScript.cpp \
 	../../src/RubyWindow.cpp \
 	../../src/Script.cpp \
 	../../src/ScriptFactory.cpp \
+	../../src/ScriptHelper.cpp \
     ../../src/StopWatch.cpp \
+	../../src/TicketWindow.cpp \
 	
 RESOURCES += \
 	../../src/Proteomatic.qrc \
