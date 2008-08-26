@@ -1,3 +1,4 @@
+# removed excess tab!
 group: OMSSA
 
 title: Run OMSSA
@@ -7,7 +8,7 @@ type: processor
 description: >
   This script runs OMSSA on a given set of spectra files and databases. 
   A target-decoy approach is used.
-  
+
 input:
   - key: spectra
     label: spectra
@@ -17,7 +18,7 @@ input:
     label: database
     formats: [fasta-proteins]
     min: 1
-	
+
 defaultOutputDirectory: spectra
     
 output:
