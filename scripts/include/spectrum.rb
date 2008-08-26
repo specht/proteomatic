@@ -183,6 +183,45 @@ class SpectrumIterator
 			end
 			@mk_Proc.call(@mk_CurrentSpectrum)
 			lk_File.close()
+		elsif fileMatchesFormat(@ms_Filename, 'mgf')
+			puts 'TODO: MGF parsing not yet implemented.'
+			exit 1
+=begin
+			@mk_CurrentSpectrum = Hash.new 
+			lk_Temp = @ms_Filename.gsub('.mgf', '').split('.')
+			if (lk_Temp.size < 2)
+				puts "Error reading #{@ms_Filename}"
+				puts lk_Temp.to_yaml
+				return
+			end
+			@mk_CurrentSpectrum['id'] = lk_Temp[lk_Temp.size - 2].to_s
+			lk_Line = lk_File.readline.split(' ')
+			if (lk_Line.size != 2)
+				puts "Error reading #{@ms_Filename}"
+				puts lk_Line.to_yaml
+				return
+			end
+			li_Charge = lk_Line[1].strip.to_i
+			lf_PrecursorMH = lk_Line[0].strip.to_f
+			lf_Mz = (lf_PrecursorMH + 1.007825 * (li_Charge - 1)) / li_Charge
+			@ms_ExperimentName = File::basename(@ms_Filename)
+			@ms_ExperimentName = @ms_ExperimentName[0, @ms_ExperimentName.index('.')]
+			@mk_CurrentSpectrum['charge'] = Array.new
+			@mk_CurrentSpectrum['charge'].push(li_Charge)
+			@mk_CurrentSpectrum['mz'] = lf_Mz
+			@mk_CurrentSpectrum['mzList'] = Array.new
+			@mk_CurrentSpectrum['intensityList'] = Array.new
+			while (!lk_File.eof())
+				ls_Line = lk_File.readline
+				lk_Line = ls_Line.split(' ')
+				if (lk_Line.size == 2)
+					@mk_CurrentSpectrum['mzList'].push(lk_Line[0].strip.to_f)
+					@mk_CurrentSpectrum['intensityList'].push(lk_Line[1].strip.to_f)
+				end
+			end
+			@mk_Proc.call(@mk_CurrentSpectrum)
+			lk_File.close()
+=end
 		end
 	end
 end

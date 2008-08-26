@@ -485,9 +485,6 @@ class ProteomaticScript
 		
 		@mk_Parameters = Parameters.new
 
-		# add script parameters
-		@mk_ScriptProperties['parameters'].each { |lk_Parameter| @mk_Parameters.addParameter(lk_Parameter) }
-		
 		# add external tool parameters if desired
 		if (@mk_ScriptProperties.has_key?('externalParameters'))
 			@mk_ScriptProperties['externalParameters'].each do |ls_ExtTool|
@@ -498,6 +495,9 @@ class ProteomaticScript
 				end
 			end
 		end
+		
+		# add script parameters
+		@mk_ScriptProperties['parameters'].each { |lk_Parameter| @mk_Parameters.addParameter(lk_Parameter) }
 		
 		# handle input files
 		lk_InputFormats = Hash.new

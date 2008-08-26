@@ -11,7 +11,7 @@ description: >
 input:
   - key: spectra
     label: spectra
-    formats: [dta, xml-mzdata, xml-mzxml]
+    formats: [dta, mgf, xml-mzdata, xml-mzxml]
     min: 1
   - key: databases
     label: database
@@ -26,11 +26,10 @@ output:
     format: csv
     filename: omssa-results.csv
     default: yes
-    force: yes
 
 parameters:
   - key: batchSize
-    group: Script options
+    group: Tweaks
     label: Spectrum batch size
     type: int
     default: 2000

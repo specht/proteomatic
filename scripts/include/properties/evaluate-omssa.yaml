@@ -33,7 +33,7 @@ output:
     label: 2DB import file
     format: ams
     filename: 2db-import.ams
-    default: yes
+    default: no
 
 parameters:
   - key: targetFpr
