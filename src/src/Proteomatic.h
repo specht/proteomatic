@@ -6,6 +6,7 @@
 
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
 #define CONFIG_REMOTE_SCRIPTS "remoteScripts"
+#define CONFIG_PROFILES "profiles"
 
 
 struct r_RemoteRequestType

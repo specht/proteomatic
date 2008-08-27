@@ -1,8 +1,9 @@
 #include "ProfileManager.h"
 
 
-k_ProfileManager::k_ProfileManager(QWidget * parent, Qt::WindowFlags f)
+k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic, QWidget * parent, Qt::WindowFlags f)
 	: QDialog(parent, f)
+	, mk_Proteomatic(ak_Proteomatic)
 {
 	setWindowTitle("Profile Manager");
 	setModal(true);
@@ -42,15 +43,17 @@ k_ProfileManager::k_ProfileManager(QWidget * parent, Qt::WindowFlags f)
 
 	lk_VSplitter_->addWidget(mk_ListWidget_);
 	
-	QListWidgetItem* lk_Item_ = new QListWidgetItem("LTQ", mk_ListWidget_);
-	lk_Item_->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-	lk_Item_->setCheckState(Qt::Unchecked);
-	lk_Item_ = new QListWidgetItem("Orbitrap", mk_ListWidget_);
-	lk_Item_->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-	lk_Item_->setCheckState(Qt::Unchecked);
-	lk_Item_ = new QListWidgetItem("oldschool pedal-driven MS device", mk_ListWidget_);
-	lk_Item_->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-	lk_Item_->setCheckState(Qt::Unchecked);
+	QListWidgetItem* lk_Item_;
+	int li_Index = 0;
+	foreach (QVariant lk_ProfileVariant, mk_Proteomatic.getConfiguration(CONFIG_PROFILES).toList())
+	{
+		QMap<QString, QVariant> lk_Profile = lk_ProfileVariant.toMap();
+		lk_Item_ = new QListWidgetItem(lk_Profile["title"].toString(), mk_ListWidget_);
+		lk_Item_->setData(Qt::UserRole, li_Index);
+		lk_Item_->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+		lk_Item_->setCheckState(Qt::Unchecked);
+		++li_Index;
+	}
 	
 	connect(mk_ListWidget_, SIGNAL(currentRowChanged(int)), this, SLOT(updateDescription()));
 	mk_DescriptionLabel_ = new QLabel("", this);
@@ -91,7 +94,7 @@ void k_ProfileManager::updateDescription()
 {
 	int li_CurrentRow = mk_ListWidget_->currentRow();
 	if (li_CurrentRow == -1)
-		mk_DescriptionLabel_->setText("<i>No profile selected.</i>");
+		mk_DescriptionLabel_->setText("<i>(no profile selected)</i>");
 	else
-		mk_DescriptionLabel_->setText(mk_ListWidget_->item(li_CurrentRow)->text());
+		mk_DescriptionLabel_->setText(mk_Proteomatic.getConfiguration(CONFIG_PROFILES).toList()[mk_ListWidget_->item(li_CurrentRow)->data(Qt::UserRole).toInt()].toMap()["description"].toString());
 }

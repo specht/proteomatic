@@ -270,7 +270,7 @@ void k_ScriptHelper::setScript(QString as_Filename)
 	mk_Script_ = NULL;
 	
 	mk_Script_ = k_ScriptFactory::makeScript(as_Filename, mk_Proteomatic, true);
-	mk_ProfileManager_ = new k_ProfileManager(mk_Proteomatic.messageBoxParent());
+	mk_ProfileManager_ = new k_ProfileManager(mk_Proteomatic, mk_Proteomatic.messageBoxParent());
 		
 	activateScript();
 	

@@ -171,25 +171,6 @@ QString k_Script::getHumanReadableParameterValue(QString as_Key, QString as_Valu
 	QString ls_Type = mk_ParameterDefs[as_Key]["type"];
 	if (ls_Type == "csvString")
 	{
-		/*
-		QStringList lk_Choices = as_Value.split(",");
-		QList<QWidget*> lk_ChoiceWidgets = mk_ParameterMultiChoiceWidgets[as_Key];
-		foreach (QWidget* lk_ChoiceWidget_, lk_ChoiceWidgets)
-		{
-			QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_ChoiceWidget_);
-			if (lk_CheckBox_ != NULL)
-				lk_CheckBox_->setChecked(lk_Choices.contains(lk_CheckBox_->property("ProteomaticValue").toString()));
-
-			k_FileList* lk_ListWidget_ = dynamic_cast<k_FileList*>(lk_ChoiceWidget_);
-			if (lk_ListWidget_ != NULL)
-			{
-				lk_ListWidget_->selectAll();
-				lk_ListWidget_->forceRemove(lk_ListWidget_->selectedItems());
-				addChoiceItems(as_Key, lk_Choices);
-			}
-		}
-		parameterChangedWithKey(as_Key);
-		*/
 		QStringList lk_Values = as_Value.split(",");
 		for (int i = 0; i < lk_Values.size(); ++i)
 		{
@@ -210,12 +191,18 @@ QString k_Script::getHumanReadableParameterValue(QString as_Key, QString as_Valu
 				ls_Result += " " + mk_ParameterDefs[as_Key]["suffix"];
 		}
 		else if (ls_Type == "enum")
+		{
 			ls_Result = mk_ParameterValueLabels[as_Key][as_Value];
+			if (ls_Result == "")
+				ls_Result = as_Value;
+		}
 		else if (ls_Type == "flag")
 			ls_Result = (as_Value == "true")? "yes": "no";
 	}
+	
 	if (ls_Result == "")
 		ls_Result = "<i>empty</i>";
+		
 	return ls_Result;
 }
 

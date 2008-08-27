@@ -110,12 +110,16 @@ bool k_Proteomatic::versionChanged() const
 
 void k_Proteomatic::loadConfiguration()
 {
-	if (QFile(ms_ProgramConfigurationPath).exists())
-		mk_Configuration = k_Yaml::parseFromFile(ms_ProgramConfigurationPath).toMap();
+	// can install program configuration as user configuration?
+	if (QFile(ms_ProgramConfigurationPath).exists() && !QFile(ms_UserConfigurationPath).exists())
+	{
+		QFile lk_File(ms_ProgramConfigurationPath);
+		lk_File.copy(ms_UserConfigurationPath);
+	}
 		
 	// update program configuration with user configuration
 	if (QFile(ms_UserConfigurationPath).exists())
-		mk_Configuration = mk_Configuration.unite(k_Yaml::parseFromFile(ms_UserConfigurationPath).toMap());
+		mk_Configuration = k_Yaml::parseFromFile(ms_UserConfigurationPath).toMap();
 		
 	// insert default values
 	if (!mk_Configuration.contains(CONFIG_PATH_TO_RUBY))
