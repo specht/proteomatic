@@ -1,35 +1,24 @@
 #include "Proteomatic.h"
 #include "RefPtr.h"
 #include "RubyWindow.h"
+#include "Yaml.h"
+#include "version.h"
 
 
 k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
-	: ms_RubyPath("ruby")
 	// TODO cache maybe? currently disabled
-	, mb_SupressCache(true)
-	, mk_MessageBoxParent_(NULL)
+	: mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
 	, mk_RemoteHubHttp_(NULL)
 	, ms_ScriptPath(as_ApplicationPath + "/scripts")
+	, ms_ProgramConfigurationPath(as_ApplicationPath + "/proteomatic.conf.yaml")
+	, ms_UserConfigurationPath(QDir::homePath() + "/proteomatic.conf.yaml")
 {
 	QDir::setCurrent(as_ApplicationPath);
+	this->loadConfiguration();
 
-	if (QFile::exists("no.cache"))
-		mb_SupressCache = true;
-
-	QString ls_Version = syncRuby(QStringList() << "-v");
-	// TODO: better version comparison (1.8.6 and up)
-	if (!ls_Version.startsWith("ruby 1.8.6"))
-	{
-		if (QFile::exists("ruby.fallback"))
-		{
-			QFile lk_File("ruby.fallback");
-			lk_File.open(QIODevice::ReadOnly);
-			ms_RubyPath = QString(lk_File.readLine().trimmed());
-			lk_File.close();
-		}
-	}
+	// TODO: check if Ruby is good
 	
 	// start remote hub
 	QFileInfo lk_FileInfo("scripts/remote.rb");
@@ -37,7 +26,7 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 	connect(mk_pRemoteHubProcess.get_Pointer(), SIGNAL(readyRead()), this, SLOT(remoteHubReadyReadSlot()));
 	mk_pRemoteHubProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
 	mk_pRemoteHubProcess->setProcessChannelMode(QProcess::MergedChannels);
-	mk_pRemoteHubProcess->start(ms_RubyPath, QStringList() << "remote.rb" << "--hub", QIODevice::ReadOnly | QIODevice::Unbuffered);
+	mk_pRemoteHubProcess->start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), QStringList() << "remote.rb" << "--hub", QIODevice::ReadOnly | QIODevice::Unbuffered);
 	
 	QFontDatabase lk_FontDatabase;
 	QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Courier New" << "Courier";
@@ -93,7 +82,7 @@ QString k_Proteomatic::syncRuby(QStringList ak_Arguments)
 	QFileInfo lk_FileInfo(ak_Arguments.first());
 	lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
 	lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-	lk_QueryProcess.start(ms_RubyPath, ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 	if (lk_QueryProcess.waitForFinished())
 		return lk_QueryProcess.readAll();
 	else
@@ -101,31 +90,43 @@ QString k_Proteomatic::syncRuby(QStringList ak_Arguments)
 }
 
 
-QString k_Proteomatic::rubyPath()
-{
-	return ms_RubyPath;
-}
-
-
 QString k_Proteomatic::version()
 {
-	return ms_Version;
+	return gs_ProteomaticVersion;
 }
 
 
 bool k_Proteomatic::versionChanged() const
 {
+	return false;
+	/*
 	QFile lk_VersionFile("scripts/include/version.rb");
 	lk_VersionFile.open(QIODevice::ReadOnly);
 	QString ls_Version = QString(lk_VersionFile.readAll().trimmed());
 	lk_VersionFile.close();
 	return ls_Version != ms_Version;
+	*/
 }
 
 
-bool k_Proteomatic::supressCache() const
+void k_Proteomatic::loadConfiguration()
 {
-	return mb_SupressCache;
+	if (QFile(ms_ProgramConfigurationPath).exists())
+		mk_Configuration = k_Yaml::parseFromFile(ms_ProgramConfigurationPath).toMap();
+		
+	// update program configuration with user configuration
+	if (QFile(ms_UserConfigurationPath).exists())
+		mk_Configuration = mk_Configuration.unite(k_Yaml::parseFromFile(ms_UserConfigurationPath).toMap());
+		
+	// insert default values
+	if (!mk_Configuration.contains(CONFIG_PATH_TO_RUBY))
+		mk_Configuration[CONFIG_PATH_TO_RUBY] = "ruby";
+	if (!mk_Configuration.contains("remoteScripts"))
+		mk_Configuration["remoteScripts"] = QList<QVariant>();
+		
+	// write user configuration if it doesn't already exist
+	if (!QFile(ms_UserConfigurationPath).exists())
+		this->saveConfiguration();
 }
 
 
@@ -149,11 +150,13 @@ void k_Proteomatic::collectScriptInfo()
 			QString ls_Marker = QString(lk_File.read(29));
 			if (ls_Marker == "require 'include/proteomatic'")
 			{
+				/*
 				if (!mb_SupressCache && !QFile::exists("cache"))
 				{
 					QDir lk_Dir;
 					lk_Dir.mkdir("cache");
 				}
+				*/
 
 				QProcess lk_QueryProcess;
 
@@ -162,9 +165,10 @@ void k_Proteomatic::collectScriptInfo()
 				QStringList lk_Arguments;
 				lk_Arguments << ls_Path << "---info";
 				lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-				lk_QueryProcess.start(ms_RubyPath, lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+				lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 				QString ls_Response;
 				QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
+				/*
 				if (QFile::exists(ls_CacheFilename) && !mb_SupressCache)
 				{
 					QFile lk_File(ls_CacheFilename);
@@ -175,10 +179,12 @@ void k_Proteomatic::collectScriptInfo()
 					}
 				}
 				else
+				*/
 				{
 					if (lk_QueryProcess.waitForFinished())
 					{
 						ls_Response = lk_QueryProcess.readAll();
+						/*
 						if (!mb_SupressCache && !QFile::exists(ls_CacheFilename))
 						{
 							QFile lk_File(ls_CacheFilename);
@@ -190,6 +196,7 @@ void k_Proteomatic::collectScriptInfo()
 								lk_File.close();
 							}
 						}
+						*/
 					}
 				}
 				if (ls_Response.length() > 0)
@@ -221,11 +228,6 @@ void k_Proteomatic::collectScriptInfo()
 			mk_ScriptInfo.insert(ls_Path, lk_Script);
 		}
 	}
-
-	QFile lk_VersionFile("scripts/include/version.rb");
-	lk_VersionFile.open(QIODevice::ReadOnly);
-	ms_Version = QString(lk_VersionFile.readAll().trimmed());
-	lk_VersionFile.close();
 }
 
 
@@ -292,39 +294,6 @@ void k_Proteomatic::createProteomaticScriptsMenu()
    	lk_Menu_->addMenu(mk_RemoteMenu_);
 
 	mk_pProteomaticScriptsMenu = RefPtr<QMenu>(lk_Menu_);
-}
-
-
-void k_Proteomatic::rememberScriptUri(QString as_Uri)
-{
-	QStringList lk_Uris = rememberedScriptUris();
-	if (!lk_Uris.contains(as_Uri))
-	{
-		lk_Uris << as_Uri;
-		QFile lk_File(QDir::homePath() + "/proteomatic.conf");
-		if (lk_File.open(QIODevice::WriteOnly))
-		{
-			lk_File.write(lk_Uris.join("\n").toAscii());
-			lk_File.close();
-		}
-	}
-}
-
-
-QStringList k_Proteomatic::rememberedScriptUris()
-{
-	QFile lk_File(QDir::homePath() + "/proteomatic.conf");
-	if (lk_File.open(QIODevice::ReadOnly))
-	{
-		QStringList lk_Uris = QString(lk_File.readAll()).split("\n");
-		lk_File.close();
-		QStringList lk_Result;
-		foreach (QString ls_Uri, lk_Uris)
-			lk_Result << ls_Uri.trimmed();
-		return lk_Result;
-	}
-	else 
-		return QStringList();
 }
 
 
@@ -409,10 +378,13 @@ void k_Proteomatic::remoteHubReadyReadSlot()
 		connect(mk_RemoteHubHttp_, SIGNAL(requestFinished(int, bool)), this, SLOT(remoteHubRequestFinishedSlot(int, bool)));
 		mk_RemoteMenu_->setEnabled(true);
 		mk_RemoteMenu_->setTitle("Remote");
-		QStringList lk_Uris = rememberedScriptUris();
-		foreach (QString ls_Uri, lk_Uris)
+		QList<QVariant> lk_Uris = mk_Configuration[CONFIG_REMOTE_SCRIPTS].toList();
+		foreach (QVariant lk_Uri, lk_Uris)
+		{
+			QString ls_Uri = lk_Uri.toString();
 	 		mk_RemoteRequests[queryRemoteHub(ls_Uri, QStringList() << "---getInfoAndParameters")]
  				= r_RemoteRequest(r_RemoteRequestType::GetInfoAndParameters, ls_Uri);
+ 		}
  				
 		emit remoteHubReady();
 	}
@@ -532,7 +504,16 @@ void k_Proteomatic::remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error)
 				mk_RemoteScripts[ls_Caption] = ls_Uri;
 				rebuildRemoteScriptsMenu();
 				if (lr_RemoteRequest.mk_AdditionalInfo.contains("remember"))
-					rememberScriptUri(ls_Uri);
+				{
+					QVariant lk_Uri = QVariant(ls_Uri);
+					QList<QVariant> lk_RemoteScriptList = mk_Configuration[CONFIG_REMOTE_SCRIPTS].toList();
+					if (!lk_RemoteScriptList.contains(lk_Uri))
+					{
+						lk_RemoteScriptList.push_back(lk_Uri);
+						mk_Configuration[CONFIG_REMOTE_SCRIPTS] = lk_RemoteScriptList;
+						this->saveConfiguration();
+					}
+				}
 				if (lr_RemoteRequest.mk_AdditionalInfo.contains("feedback"))
 					showMessageBox("Remote script added", "Successfully added " + ls_Caption + ".", ":/icons/applications-internet.png");
 			}
@@ -563,4 +544,16 @@ void k_Proteomatic::rebuildRemoteScriptsMenu()
 	connect(lk_Action_, SIGNAL(triggered()), this, SLOT(addRemoteScriptDialog()));
 	lk_Action_->setData("druby-add-remote-script");
 	mk_RemoteMenu_->addAction(lk_Action_);
+}
+
+
+QVariant k_Proteomatic::getConfiguration(QString as_Key)
+{
+	return mk_Configuration[as_Key];
+}
+
+
+void k_Proteomatic::saveConfiguration()
+{
+	k_Yaml::emitToFile(mk_Configuration, ms_UserConfigurationPath);
 }

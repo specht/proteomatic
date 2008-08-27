@@ -45,6 +45,12 @@ if ls_Version == nil
 end
 
 File.open('scripts/include/version.rb', 'w') { |lk_File| lk_File.write(ls_Version) }
+File.open('src/src/versuib.h', 'w') do |lk_File|
+	lk_File.puts '#pragma once'
+	lk_File.puts
+	lk_File.puts 'QString gs_ProteomaticVersion = "' + ls_Version + '";'
+end
+
 
 puts "Creating release for Proteomatic #{ls_Version}..."
 

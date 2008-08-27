@@ -69,7 +69,7 @@ k_LocalScript::~k_LocalScript()
 
 void k_LocalScript::start(QStringList ak_Parameters)
 {
-	mk_Process.start(mk_Proteomatic.rubyPath(), (QStringList() << ms_ScriptUri) + commandLineArguments() + ak_Parameters, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << ms_ScriptUri) + commandLineArguments() + ak_Parameters, QIODevice::ReadOnly | QIODevice::Unbuffered);
 }
 
 

@@ -63,7 +63,7 @@ void k_RubyWindow::exec()
 	if (lk_FileInfo.exists())
 		lk_pProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
 	lk_pProcess->setProcessChannelMode(QProcess::MergedChannels);
-	lk_pProcess->start(mk_Proteomatic.rubyPath(), mk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	lk_pProcess->start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), mk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 
 	mk_pDialog->exec();
 }

@@ -4,6 +4,9 @@
 #include <QtNetwork>
 #include "RefPtr.h"
 
+#define CONFIG_PATH_TO_RUBY "pathToRuby"
+#define CONFIG_REMOTE_SCRIPTS "remoteScripts"
+
 
 struct r_RemoteRequestType
 {
@@ -67,7 +70,6 @@ public:
 	QString rubyPath();
 	QString version();
 	bool versionChanged() const;
-	bool supressCache() const;
 	int showMessageBox(QString as_Title, QString as_Text, QString as_Icon = "", 
 		QMessageBox::StandardButtons ae_Buttons = QMessageBox::Ok, 
 		QMessageBox::StandardButton ae_DefaultButton = QMessageBox::Ok, 
@@ -77,6 +79,8 @@ public:
 	int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);
 	QFont& consoleFont();
 	QString scriptPath() const;
+	QVariant getConfiguration(QString as_Key);
+	void saveConfiguration();
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);
@@ -92,17 +96,12 @@ protected slots:
 	void rebuildRemoteScriptsMenu();
 
 protected:
+	void loadConfiguration();
 	void collectScriptInfo();
 	void createProteomaticScriptsMenu();
-	void rememberScriptUri(QString as_Uri);
-	QStringList rememberedScriptUris();
-	
-	QString ms_RubyPath;
-	QString ms_Version;
 	
 	// uri / path => uri, title, group, description, optional: parameters
 	QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
-	bool mb_SupressCache;
 	QWidget* mk_MessageBoxParent_;
 	RefPtr<QMenu> mk_pProteomaticScriptsMenu;
 	QMenu* mk_RemoteMenu_;
@@ -111,6 +110,8 @@ protected:
 	QHttp* mk_RemoteHubHttp_;
 	QFont mk_ConsoleFont;
 	QString ms_ScriptPath;
+	QString ms_ProgramConfigurationPath;
+	QString ms_UserConfigurationPath;
 	
 	// title => uri
 	QMap<QString, QString> mk_RemoteScripts;
@@ -119,4 +120,5 @@ protected:
 	QHash<int, r_RemoteRequest> mk_RemoteRequests;
 	
 	QString ms_RemoteHubPortion;
+	QMap<QString, QVariant> mk_Configuration;
 };
