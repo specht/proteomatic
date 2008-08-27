@@ -94,11 +94,14 @@ protected slots:
 	void addRemoteScriptDialog();
 	void remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error);
 	void rebuildRemoteScriptsMenu();
+	void checkRubyTextChanged(const QString& as_Text);
+	void checkRubySearchDialog();
 
 protected:
 	void loadConfiguration();
 	void collectScriptInfo();
 	void createProteomaticScriptsMenu();
+	void checkRuby();
 	
 	// uri / path => uri, title, group, description, optional: parameters
 	QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
@@ -121,4 +124,9 @@ protected:
 	
 	QString ms_RemoteHubPortion;
 	QMap<QString, QVariant> mk_Configuration;
+	
+	// check ruby stuff
+	QDialog mk_CheckRubyDialog;
+	QPushButton* mk_CheckRubyRetryButton_;
+	QLineEdit* mk_CheckRubyLocation_;
 };

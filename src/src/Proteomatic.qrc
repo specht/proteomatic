@@ -26,6 +26,9 @@
   <file>icons/preferences-system.png</file>
   <file>icons/proteomatic.png</file>
   <file>icons/ruby.png</file>
+  <file>icons/system-log-out.png</file>
+  <file>icons/system-search.png</file>
   <file>icons/ticket.png</file>
+  <file>icons/view-refresh.png</file>
 </qresource>
 </RCC>

@@ -17,7 +17,7 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 	QDir::setCurrent(as_ApplicationPath);
 	this->loadConfiguration();
 
-	// TODO: check if Ruby is good
+	this->checkRuby();
 	
 	// start remote hub
 	QFileInfo lk_FileInfo("scripts/remote.rb");
@@ -555,4 +555,94 @@ QVariant k_Proteomatic::getConfiguration(QString as_Key)
 void k_Proteomatic::saveConfiguration()
 {
 	k_Yaml::emitToFile(mk_Configuration, ms_UserConfigurationPath);
+}
+
+
+void k_Proteomatic::checkRuby()
+{
+	mk_CheckRubyDialog.setMaximumWidth(300);
+	QBoxLayout* lk_VLayout_ = new QVBoxLayout(&mk_CheckRubyDialog);
+	
+	QBoxLayout* lk_HLayout_ = new QHBoxLayout(&mk_CheckRubyDialog);
+	QLabel* lk_IconLabel_ = new QLabel(&mk_CheckRubyDialog);
+	lk_IconLabel_ ->setPixmap(QPixmap(":/icons/dialog-warning.png"));
+	lk_HLayout_->addWidget(lk_IconLabel_);
+	QLabel* lk_ErrorLabel_ = new QLabel(&mk_CheckRubyDialog);
+	lk_HLayout_->addWidget(lk_ErrorLabel_);
+	lk_VLayout_->addLayout(lk_HLayout_);
+	
+	lk_HLayout_ = new QHBoxLayout(&mk_CheckRubyDialog);
+	lk_HLayout_->addWidget(new QLabel("Path to Ruby:", &mk_CheckRubyDialog));
+	mk_CheckRubyLocation_ = new QLineEdit(&mk_CheckRubyDialog);
+	mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
+	lk_HLayout_->addWidget(mk_CheckRubyLocation_);
+	QToolButton* lk_FindRubyButton_ = new QToolButton(&mk_CheckRubyDialog);
+	lk_FindRubyButton_->setIcon(QIcon(":/icons/system-search.png"));
+	lk_HLayout_->addWidget(lk_FindRubyButton_);
+	lk_VLayout_->addLayout(lk_HLayout_);
+	
+	lk_HLayout_ = new QHBoxLayout(&mk_CheckRubyDialog);
+	lk_HLayout_->addStretch();
+	QPushButton* lk_QuitButton_ = new QPushButton(QIcon(":/icons/system-log-out.png"), "Quit", &mk_CheckRubyDialog);
+	lk_HLayout_->addWidget(lk_QuitButton_);
+	mk_CheckRubyRetryButton_ = new QPushButton(QIcon(":/icons/view-refresh.png"), "Retry", &mk_CheckRubyDialog);
+	lk_HLayout_->addWidget(mk_CheckRubyRetryButton_);
+	lk_VLayout_->addLayout(lk_HLayout_);
+	
+	mk_CheckRubyRetryButton_->setEnabled(false);
+	
+	connect(mk_CheckRubyRetryButton_, SIGNAL(clicked()), &mk_CheckRubyDialog, SLOT(accept()));
+	connect(lk_QuitButton_, SIGNAL(clicked()), &mk_CheckRubyDialog, SLOT(reject()));
+	connect(mk_CheckRubyLocation_, SIGNAL(textChanged(const QString&)), this, SLOT(checkRubyTextChanged(const QString&)));
+	connect(lk_FindRubyButton_, SIGNAL(clicked()), this, SLOT(checkRubySearchDialog()));
+	
+	mk_CheckRubyDialog.setLayout(lk_VLayout_);
+	
+	while (true)
+	{
+		QString ls_Version = syncRuby(QStringList() << "-v");
+		QString ls_Error;
+		if (!ls_Version.startsWith("ruby"))
+			ls_Error = "Proteomatic cannot find Ruby, which is required in order to run the scripts.";
+		else
+		{
+			ls_Version.replace("ruby", "");
+			ls_Version = ls_Version.trimmed();
+			QStringList lk_Tokens = ls_Version.split(" ");
+			ls_Version = lk_Tokens.first();
+			if (ls_Version != "1.8.6")
+				ls_Error = QString("The Ruby version on this computer is %1, but Proteomatic needs Ruby 1.8.6.").arg(ls_Version);
+			else
+				ls_Error = "";
+		}
+		if (ls_Error != "")
+		{
+			ls_Error += "<br />You can download the Ruby at <a href='http://www.ruby-lang.org/en/downloads/'>http://www.ruby-lang.org/en/downloads/</a>.";
+			ls_Error += "<br />If you already have Ruby, please specify the path to the Ruby interpreter below:";
+			lk_ErrorLabel_->setText(ls_Error);
+			mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
+			if (mk_CheckRubyDialog.exec() == QDialog::Rejected)
+				exit(0);
+		}
+		else
+			break;
+	}
+}
+
+void k_Proteomatic::checkRubyTextChanged(const QString& as_Text)
+{
+	mk_CheckRubyRetryButton_->setEnabled(!as_Text.isEmpty());
+}
+
+
+void k_Proteomatic::checkRubySearchDialog()
+{
+	QFileDialog lk_FileDialog(&mk_CheckRubyDialog, "Locate ruby executable", "", "");
+	lk_FileDialog.setFileMode(QFileDialog::ExistingFile);
+	if (lk_FileDialog.exec())
+	{
+		mk_Configuration[CONFIG_PATH_TO_RUBY] = QVariant(lk_FileDialog.selectedFiles().first());
+		mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
+		mk_CheckRubyRetryButton_->setEnabled(true);
+	}
 }
