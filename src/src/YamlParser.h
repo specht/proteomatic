@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libyaml/yaml.h"
+#include "libyaml/ly_yaml.h"
 
 
 class k_YamlParser

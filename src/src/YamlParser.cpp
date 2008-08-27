@@ -35,7 +35,7 @@ QVariant k_YamlParser::parseFromString(QString as_Yaml)
 	
 	yaml_parser_initialize(&mk_Parser);
 
-	yaml_parser_set_input_string(&mk_Parser, as_Yaml.toStdString().c_str(), as_Yaml.length());
+	yaml_parser_set_input_string(&mk_Parser, (const unsigned char*)as_Yaml.toStdString().c_str(), as_Yaml.length());
 	
 	return this->parse();
 }

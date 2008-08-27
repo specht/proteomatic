@@ -68,7 +68,6 @@ FileUtils.rm_rf(ls_DestDir + '.zip')
 puts 'Building Proteomatic executables...'
 
 FileUtils.rmtree(File::join('src', 'obj'))
-system("cd src/src/libyaml && #{ls_QMake[ls_Platform]} && #{ls_Make[ls_Platform]} release")
 lk_Projects = ['Proteomatic']
 lk_Projects.each do |ls_Project| 
 	unless system("cd src/projects/#{ls_Project} && #{ls_QMake[ls_Platform]} && #{ls_Make[ls_Platform]} release && cd ../../../")

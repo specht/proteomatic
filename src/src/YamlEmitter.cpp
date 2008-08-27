@@ -50,14 +50,14 @@ void k_YamlEmitter::emitAny(QVariant ak_Node)
 	else
 	{
 		// emit scalar
-		yaml_scalar_event_initialize(&mk_Event, NULL, NULL, ak_Node.toString().toStdString().c_str(), ak_Node.toString().length(), 0, 1, 0);
+		yaml_scalar_event_initialize(&mk_Event, NULL, NULL, (yaml_char_t*)ak_Node.toString().toStdString().c_str(), ak_Node.toString().length(), 0, 1, YAML_ANY_SCALAR_STYLE);
 		yaml_emitter_emit(&mk_Emitter, &mk_Event);
 	}
 }
 
 void k_YamlEmitter::emitSequence(QList<QVariant> ak_Node)
 {
-	yaml_sequence_start_event_initialize(&mk_Event, NULL, NULL, 1, 0);
+	yaml_sequence_start_event_initialize(&mk_Event, NULL, NULL, 1, YAML_ANY_SEQUENCE_STYLE);
 	yaml_emitter_emit(&mk_Emitter, &mk_Event);
 	
 	foreach (QVariant lk_Node, ak_Node)
@@ -70,7 +70,7 @@ void k_YamlEmitter::emitSequence(QList<QVariant> ak_Node)
 
 void k_YamlEmitter::emitMapping(QMap<QString, QVariant> ak_Node)
 {
-	yaml_mapping_start_event_initialize(&mk_Event, NULL, NULL, 1, 0);
+	yaml_mapping_start_event_initialize(&mk_Event, NULL, NULL, 1, YAML_ANY_MAPPING_STYLE);
 	yaml_emitter_emit(&mk_Emitter, &mk_Event);
 	
 	QMap<QString, QVariant>::const_iterator lk_Iter = ak_Node.begin();
