@@ -6,7 +6,6 @@
 
 
 k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
-	// TODO cache maybe? currently disabled
 	: mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
@@ -150,8 +149,8 @@ void k_Proteomatic::collectScriptInfo()
 			QString ls_Marker = QString(lk_File.read(29));
 			if (ls_Marker == "require 'include/proteomatic'")
 			{
-				/*
-				if (!mb_SupressCache && !QFile::exists("cache"))
+			/*
+				if (!QFile::exists("cache"))
 				{
 					QDir lk_Dir;
 					lk_Dir.mkdir("cache");

@@ -283,6 +283,11 @@ class ProteomaticScript
 			exit 1
 		end
 		
+		if ARGV == ['--showFileDependencies']
+			showFileDependencies()
+			exit 0
+		end
+		
 		unless ARGV == ['---info']
 			begin
 				setupParameters()
@@ -426,6 +431,23 @@ class ProteomaticScript
 		end
 	end
 	private :resolveDependencies
+	
+	def showFileDependencies()
+		puts $0
+		puts "include/properties/#{@ms_ScriptName}.yaml"
+		ls_ConfigPath = File::join('config', "#{@ms_ScriptName}.config.yaml")
+		puts ls_ConfigPath if @mb_NeedsConfig && File::exists?(ls_ConfigPath)
+		@mk_ScriptProperties['needs'].each do |ls_Need|
+			next if ls_Need == 'config'
+			puts Dir[File::join('include', 'properties', "#{ls_Need}*")].join("\n")
+		end
+		if (@mk_ScriptProperties.has_key?('externalParameters'))
+			@mk_ScriptProperties['externalParameters'].each do |ls_ExtTool|
+				puts("include/properties/ext.#{ls_ExtTool}.yaml")
+			end
+		end
+	end
+	private :showFileDependencies
 	
 	def loadDescription()
 		# load script parameters and external tools
