@@ -28,6 +28,8 @@ else {
 
 DESTDIR = ../../../
 
+LIBS += -L../../src/libyaml/ -llibyaml
+
 QT += gui network
 
 # Input
@@ -48,6 +50,9 @@ HEADERS += \
 	../../src/ScriptFactory.h \
 	../../src/SizeWatchWidget.h \
 	../../src/TicketWindow.h \
+	../../src/Yaml.h \
+	../../src/YamlEmitter.h \
+	../../src/YamlParser.h \
 	
 SOURCES += \
 	../../src/ClickableLabel.cpp \
@@ -64,6 +69,9 @@ SOURCES += \
 	../../src/ScriptFactory.cpp \
 	../../src/ScriptHelper.cpp \
 	../../src/TicketWindow.cpp \
+	../../src/Yaml.cpp \
+	../../src/YamlEmitter.cpp \
+	../../src/YamlParser.cpp \
 	
 RESOURCES += \
 	../../src/Proteomatic.qrc \
