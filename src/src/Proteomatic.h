@@ -3,6 +3,7 @@
 #include <QtGui>
 #include <QtNetwork>
 #include "RefPtr.h"
+#include "Yaml.h"
 
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
 #define CONFIG_REMOTE_SCRIPTS "remoteScripts"
@@ -81,6 +82,7 @@ public:
 	QFont& consoleFont();
 	QString scriptPath() const;
 	QVariant getConfiguration(QString as_Key);
+	tk_YamlMap& getConfigurationRoot();
 	void saveConfiguration();
 	
 signals:
@@ -124,7 +126,7 @@ protected:
 	QHash<int, r_RemoteRequest> mk_RemoteRequests;
 	
 	QString ms_RemoteHubPortion;
-	QMap<QString, QVariant> mk_Configuration;
+	tk_YamlMap mk_Configuration;
 	
 	// check ruby stuff
 	QDialog mk_CheckRubyDialog;

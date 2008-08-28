@@ -6,6 +6,7 @@
 #include "Proteomatic.h"
 #include "SizeWatchWidget.h"
 #include "ProfileManager.h"
+#include "Yaml.h"
 
 
 struct r_ScriptType
@@ -47,13 +48,20 @@ public:
 
 	QHash<QString, QString> getConfiguration();
 	void setConfiguration(QHash<QString, QString> ak_Configuration);
+	
+	tk_YamlMap getProfile();
+	void applyProfile(tk_YamlMap ak_Profile);
 
 	QStringList commandLineArguments();
+	QString profileDescription() const;
 	
 	virtual void start(QStringList ak_Parameters) = 0;
 	virtual void kill() = 0;
 	virtual bool running() = 0;
 	virtual QString readAll() = 0;
+	
+signals:
+	void profileDescriptionChanged(const QString&);
 
 protected slots:
 	void toggleGroup();
@@ -95,7 +103,6 @@ protected:
 	bool mb_HasParameters;
 	bool mb_IncludeOutputFiles;
 	bool mb_ProfileMode;
-	QLabel* mk_ProfileDescriptionLabel_;
 	QLineEdit* mk_OutputDirectory_;
 	QToolButton* mk_ClearOutputDirectory_;
 	QStringList mk_InputFileDescriptionList;

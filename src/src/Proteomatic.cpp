@@ -124,8 +124,10 @@ void k_Proteomatic::loadConfiguration()
 	// insert default values
 	if (!mk_Configuration.contains(CONFIG_PATH_TO_RUBY))
 		mk_Configuration[CONFIG_PATH_TO_RUBY] = "ruby";
-	if (!mk_Configuration.contains("remoteScripts"))
-		mk_Configuration["remoteScripts"] = QList<QVariant>();
+	if (!mk_Configuration.contains(CONFIG_REMOTE_SCRIPTS) || mk_Configuration[CONFIG_REMOTE_SCRIPTS].type() != QVariant::List)
+		mk_Configuration[CONFIG_REMOTE_SCRIPTS] = QList<QVariant>();
+	if (!mk_Configuration.contains(CONFIG_PROFILES) || mk_Configuration[CONFIG_PROFILES].type() != QVariant::Map)
+		mk_Configuration["profiles"] = QMap<QString, QVariant>();
 		
 	// write user configuration if it doesn't already exist
 	if (!QFile(ms_UserConfigurationPath).exists())
@@ -553,6 +555,12 @@ void k_Proteomatic::rebuildRemoteScriptsMenu()
 QVariant k_Proteomatic::getConfiguration(QString as_Key)
 {
 	return mk_Configuration[as_Key];
+}
+
+
+tk_YamlMap& k_Proteomatic::getConfigurationRoot()
+{
+	return mk_Configuration;
 }
 
 

@@ -3,6 +3,10 @@
 #include <QtCore>
 
 
+typedef QMap<QString, QVariant> tk_YamlMap;
+typedef QList<QVariant> tk_YamlSequence;
+
+
 class k_Yaml
 {
 public:

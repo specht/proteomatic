@@ -21,4 +21,6 @@ protected:
 	virtual void mousePressEvent(QMouseEvent* event);
 	virtual void enterEvent(QMouseEvent* event);
 	virtual void leaveEvent(QMouseEvent* event);
+	virtual void focusInEvent(QFocusEvent* event);
+	virtual void focusOutEvent(QFocusEvent* event);
 };

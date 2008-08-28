@@ -42,7 +42,7 @@ SOURCES += ../../src/libyaml/ly_api.c \
            ../../src/libyaml/ly_scanner.c \
            ../../src/libyaml/ly_writer.c \
 
-INCLUDEPATH += ../../src/libyaml/
+INCLUDEPATH += ../../src/libyaml/ ../../src/ ../../src/dialogs
 
 # Input files
 HEADERS += \
@@ -66,6 +66,7 @@ HEADERS += \
 	../../src/Yaml.h \
 	../../src/YamlEmitter.h \
 	../../src/YamlParser.h \
+	../../src/dialogs/EditProfileDialog.h \
 	
 SOURCES += \
 	../../src/ClickableLabel.cpp \
@@ -85,6 +86,7 @@ SOURCES += \
 	../../src/Yaml.cpp \
 	../../src/YamlEmitter.cpp \
 	../../src/YamlParser.cpp \
+	../../src/dialogs/EditProfileDialog.cpp \
 	
 RESOURCES += \
 	../../src/Proteomatic.qrc \

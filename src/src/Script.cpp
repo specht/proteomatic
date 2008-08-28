@@ -22,7 +22,6 @@ k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Pr
 	, mb_HasParameters(false)
 	, mb_IncludeOutputFiles(ab_IncludeOutputFiles)
 	, mb_ProfileMode(ab_ProfileMode)
-	, mk_ProfileDescriptionLabel_(NULL)
 {
 }
 
@@ -113,6 +112,30 @@ QStringList k_Script::commandLineArguments()
 		lk_Result.push_back(getParameterValue(ls_Key));
 	}
 	return lk_Result;
+}
+
+
+QString k_Script::profileDescription() const
+{
+	QStringList lk_ProfileDescription;
+	foreach (QString ls_Key, mk_ParametersOrder)
+	{
+		QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[ls_Key];
+		QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
+		if (lk_CheckBox_ != NULL)
+		{
+			if (lk_CheckBox_->checkState() == Qt::Checked)
+				lk_ProfileDescription.push_back(QString("<b>%1</b>: %2").arg(mk_ParameterDefs[ls_Key]["label"]).arg(getHumanReadableParameterValue(ls_Key, getParameterValue(ls_Key))));
+		}
+	}
+	
+	QString ls_Description;
+	if (lk_ProfileDescription.isEmpty())
+		ls_Description = "<i>No parameters have been specified.</i>";
+	else
+		ls_Description = lk_ProfileDescription.join("<br />");
+		
+	return ls_Description;
 }
 
 
@@ -212,6 +235,14 @@ void k_Script::setParameterValue(QString as_Key, QString as_Value)
 	if (!mk_ParameterValueWidgets.contains(as_Key))
 		return;
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
+	
+	if (mb_ProfileMode)
+	{
+		QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(mk_WidgetLabelsOrCheckBoxes[as_Key]);
+		if (lk_CheckBox_ != NULL)
+			lk_CheckBox_->setCheckState(Qt::Checked);
+	}
+	
 	if (mk_ParameterMultiChoiceWidgets.contains(as_Key))
 	{
 		QStringList lk_Choices = as_Value.split(",");
@@ -271,6 +302,34 @@ void k_Script::setConfiguration(QHash<QString, QString> ak_Configuration)
 }
 
 
+tk_YamlMap k_Script::getProfile()
+{
+	tk_YamlMap lk_Profile;
+	if (!mb_ProfileMode)
+		return lk_Profile;
+		
+	foreach (QString ls_Key, mk_ParametersOrder)
+	{
+		QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[ls_Key];
+		QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
+		if (lk_CheckBox_ != NULL)
+		{
+			if (lk_CheckBox_->checkState() == Qt::Checked)
+				lk_Profile[ls_Key] = getParameterValue(ls_Key);
+		}
+	}
+	return lk_Profile;
+}
+
+
+void k_Script::applyProfile(tk_YamlMap ak_Profile)
+{
+	foreach (QString ls_Key, mk_ParametersOrder)
+		if (ak_Profile.contains(ls_Key))
+			setParameterValue(ls_Key, ak_Profile[ls_Key].toString());
+}
+
+
 void k_Script::addChoiceItems(QString as_Key, QStringList ak_Choices)
 {
 	// find file list child in sender dialog
@@ -282,7 +341,9 @@ void k_Script::addChoiceItems(QString as_Key, QStringList ak_Choices)
 	QListWidget* lk_Source_ = lk_Target_->findChild<QListWidget*>("choices-stock");
 	if (lk_Source_ == NULL)
 		return;
-
+		
+	QList<QListWidgetItem*> lk_ItemsToBeDeleted;
+	
 	for (int i = 0; i < lk_Source_->count(); ++i)
 	{
 		QListWidgetItem* lk_Item_ = lk_Source_->item(i);
@@ -290,10 +351,12 @@ void k_Script::addChoiceItems(QString as_Key, QStringList ak_Choices)
 		{
 			k_CiListWidgetItem* lk_NewItem_ = new k_CiListWidgetItem(lk_Item_->text(), lk_Target_);
 			lk_NewItem_->setData(Qt::UserRole, lk_Item_->data(Qt::UserRole));
-			delete lk_Item_;
+			lk_ItemsToBeDeleted.push_back(lk_Item_);
 		}
 	}
-
+	
+	foreach (QListWidgetItem* lk_Item_, lk_ItemsToBeDeleted)
+		delete lk_Item_;
 }
 
 
@@ -515,16 +578,13 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}
 	}
-	else
+	
+	if (!mb_ProfileMode)
 	{
-		mk_ProfileDescriptionLabel_ = new QLabel(lk_InternalWidget_);
-		mk_ProfileDescriptionLabel_->setWordWrap(true);
-		mk_ProfileDescriptionLabel_->setText("<i>No parameters have been specified.</i>");
-		lk_ParameterLayout_->addWidget(mk_ProfileDescriptionLabel_);
+		QFrame* lk_Frame_ = new QFrame(lk_InternalWidget_);
+		lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+		lk_ParameterLayout_->addWidget(lk_Frame_);
 	}
-	QFrame* lk_Frame_ = new QFrame(lk_InternalWidget_);
-	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
-	lk_ParameterLayout_->addWidget(lk_Frame_);
 	
 	//lk_ParameterLayout_->setContentsMargins(0, 0, 0, 0);
 	//mk_UpperLayout_->insertWidget(3, lk_InternalWidget_);
@@ -998,21 +1058,8 @@ void k_Script::parameterChangedWithKey(QString as_Key)
 
 	if (mb_ProfileMode)
 	{
-		QStringList lk_ProfileDescription;
-		foreach (QString ls_Key, mk_ParametersOrder)
-		{
-			QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[ls_Key];
-			QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
-			if (lk_CheckBox_ != NULL)
-			{
-				if (lk_CheckBox_->checkState() == Qt::Checked)
-					lk_ProfileDescription.push_back(QString("%1: %2").arg(mk_ParameterDefs[ls_Key]["label"]).arg(getHumanReadableParameterValue(ls_Key, getParameterValue(ls_Key))));
-			}
-		}
-		if (lk_ProfileDescription.isEmpty())
-			mk_ProfileDescriptionLabel_->setText("<i>No parameters have been specified.</i>");
-		else
-			mk_ProfileDescriptionLabel_->setText("Settings:<ul><li>" + lk_ProfileDescription.join("</li><li>") + "</li></ul>");
+		QString ls_Description = this->profileDescription();
+		emit profileDescriptionChanged(ls_Description);
 	}
 }
 
