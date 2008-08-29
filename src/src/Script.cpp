@@ -125,7 +125,7 @@ QString k_Script::profileDescription() const
 		if (lk_CheckBox_ != NULL)
 		{
 			if (lk_CheckBox_->checkState() == Qt::Checked)
-				lk_ProfileDescription.push_back(QString("<b>%1</b>: %2").arg(mk_ParameterDefs[ls_Key]["label"]).arg(getHumanReadableParameterValue(ls_Key, getParameterValue(ls_Key))));
+				lk_ProfileDescription.push_back(QString("%1: %2").arg(mk_ParameterDefs[ls_Key]["label"]).arg(getHumanReadableParameterValue(ls_Key, getParameterValue(ls_Key))));
 		}
 	}
 	
@@ -279,6 +279,24 @@ void k_Script::setParameterValue(QString as_Key, QString as_Value)
 }
 
 
+QStringList k_Script::getParameterKeys() const
+{
+	return mk_ParametersOrder;
+}
+
+
+QString k_Script::getHumanReadableParameterKey(QString as_Key) const
+{
+	return mk_ParameterDefs[as_Key]["label"];
+}
+
+
+QString k_Script::getHumanReadableParameterValue(QString as_Key) const
+{
+	return getHumanReadableParameterValue(as_Key, getParameterValue(as_Key));
+}
+
+
 QHash<QString, QString> k_Script::getConfiguration()
 {
 	QHash<QString, QString> lk_Result;
@@ -360,27 +378,6 @@ void k_Script::addChoiceItems(QString as_Key, QStringList ak_Choices)
 }
 
 
-void k_Script::toggleGroup()
-{
-	k_FoldedHeader* lk_Header_ = dynamic_cast<k_FoldedHeader*>(sender());
-	if (lk_Header_ != NULL)
-	{
-		if (!lk_Header_->buddyVisible())
-		{
-			/*
-			// hide all other folded headers
-			foreach (k_FoldedHeader* lk_Other_, mk_FoldedHeaders)
-			{
-				if (lk_Other_ != lk_Header_)
-					lk_Other_->hideBuddy();
-			}
-			*/
-		}
-		lk_Header_->toggleBuddy();
-	}
-}
-
-
 void k_Script::addChoiceItems()
 {
 	// find file list child in sender dialog
@@ -441,9 +438,12 @@ void k_Script::setOutputDirectoryButtonClicked()
 	if (mk_OutputDirectory_ == NULL)
 		return;
 	
-	QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), QDir::homePath());
+	QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
 	if (ls_Path.length() > 0)
+	{
 		mk_OutputDirectory_->setText(ls_Path);
+		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_OUTPUT_PATH] = ls_Path;
+	}
 }
 
 
@@ -611,7 +611,6 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			QWidget* lk_Container_ = new QWidget(lk_InternalWidget_);
 			k_FoldedHeader* lk_Header_ = new k_FoldedHeader("<b>" + ls_Group + "</b>", lk_Container_, lk_InternalWidget_);
 			mk_FoldedHeaders[ls_Group] = lk_Header_;
-			connect(lk_Header_, SIGNAL(clicked()), this, SLOT(toggleGroup()));
 			QFrame* lk_Frame_ = new QFrame(lk_InternalWidget_);
 			lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 

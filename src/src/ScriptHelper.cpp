@@ -18,7 +18,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
 	, mk_Script_(NULL)
-	, mk_ProfileManager_(NULL)
+	, mk_pProfileManager(new k_ProfileManager(ak_Proteomatic, QString(), QStringList(), this))
 	, ms_WindowTitle("Proteomatic")
 	, mk_ProgressDialog_(NULL)
 {
@@ -79,6 +79,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
 	
 	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Profiles");
+	connect(mk_ProfilesAction_, SIGNAL(triggered()), mk_pProfileManager.get_Pointer(), SLOT(exec()));
 	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
@@ -222,10 +223,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 
 k_ScriptHelper::~k_ScriptHelper()
 {
-	if (mk_ProfileManager_)
-		delete mk_ProfileManager_;
-	mk_ProfileManager_ = NULL;
-	
 	if (mk_Script_)
 		delete mk_Script_;
 	mk_Script_ = NULL;
@@ -261,16 +258,13 @@ void k_ScriptHelper::setScript(QString as_Filename)
 	if (checkVersionChanged())
 		return;
 
-	if (mk_ProfileManager_)
-		delete mk_ProfileManager_;
-	mk_ProfileManager_ = NULL;
-	
 	if (mk_Script_)
 		delete mk_Script_;
 	mk_Script_ = NULL;
 	
 	mk_Script_ = k_ScriptFactory::makeScript(as_Filename, mk_Proteomatic, true);
-	mk_ProfileManager_ = new k_ProfileManager(mk_Proteomatic, as_Filename, mk_Proteomatic.messageBoxParent());
+	mk_pProfileManager = RefPtr<k_ProfileManager>(new k_ProfileManager(mk_Proteomatic, as_Filename, mk_Script_->getParameterKeys(), this));
+	connect(mk_ProfilesAction_, SIGNAL(triggered()), mk_pProfileManager.get_Pointer(), SLOT(exec()));
 		
 	activateScript();
 	
@@ -287,7 +281,6 @@ void k_ScriptHelper::activateScript()
 			ls_Text += "<br /><br />" + mk_Script_->description();
 		mk_Script_->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
 		connect(mk_Script_->parameterWidget(), SIGNAL(widgetResized()), this, SLOT(parameterWidgetResized()));
-		connect(mk_ProfilesAction_, SIGNAL(triggered()), mk_ProfileManager_, SLOT(exec()));
 		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
 		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
 		mk_ParameterLayout_->addWidget(mk_Script_->parameterWidget());
@@ -400,9 +393,16 @@ void k_ScriptHelper::parameterLabelClicked(const QString& as_Id)
 
 void k_ScriptHelper::loadFilesButtonClicked()
 {
-	QStringList lk_Files = QFileDialog::getOpenFileNames(this, tr("Add files"), QDir::homePath(), tr("All files (*.*)"));
+	QStringList lk_Files = QFileDialog::getOpenFileNames(this, tr("Add files"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_INPUT_FILES_PATH).toString(), tr("All files (*.*)"));
+	QString ls_FirstPath = "";
 	foreach (QString ls_Path, lk_Files)
+	{
+		if (ls_FirstPath.isEmpty())
+			ls_FirstPath = ls_Path;
 		addInputFile(ls_Path);
+	}
+	if (!ls_FirstPath.isEmpty())
+		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_INPUT_FILES_PATH] = QFileInfo(ls_FirstPath).absolutePath();
 }
 
 
@@ -422,6 +422,8 @@ void k_ScriptHelper::toggleUi()
 {
 	mk_ScrollArea_->setVisible(mk_Script_);
 	this->setEnabled(mk_RemoteRequests.empty());
+	mk_ProfilesAction_->setEnabled(true);
+
 		
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
 	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptType::Remote;
@@ -441,7 +443,6 @@ void k_ScriptHelper::toggleUi()
 	{
 		mk_RemoveInputFileButton.setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
-		mk_ProfilesAction_->setEnabled(false);
 		mk_ReloadScriptAction_->setEnabled(false);
 		mk_StartAction_->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
@@ -452,7 +453,6 @@ void k_ScriptHelper::toggleUi()
 	else
 	{
 		mk_RemoveInputFileButton.setEnabled(mk_FileList.selectedItems().count() != 0);
-		mk_ProfilesAction_->setEnabled(mk_Script_ && mk_Script_->hasParameters());
 		mk_ResetAction_->setEnabled(mk_Script_);
 		mk_ReloadScriptAction_->setEnabled(mk_Script_);
 		mk_StartAction_->setEnabled(mk_Script_);
@@ -716,21 +716,4 @@ void k_ScriptHelper::parameterWidgetResized()
 		mk_ScrollArea_->setMinimumWidth(li_Width + 10);
 	}
 	*/
-}
-
-
-void k_ScriptHelper::createProfile()
-{
-	k_Script* lk_Script_ = k_ScriptFactory::makeScript(mk_Script_->uri(), mk_Proteomatic, false, true);
-	QDialog lk_Dialog(this);
-	lk_Dialog.setModal(true);
-	QBoxLayout* lk_Layout_ = new QVBoxLayout(&lk_Dialog);
-	QScrollArea* lk_ScrollArea_ = new QScrollArea(&lk_Dialog);
-	lk_ScrollArea_->setWidgetResizable(true);
-	lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
-	lk_ScrollArea_->setWidget(lk_Script_->parameterWidget());
-	lk_Layout_->addWidget(lk_ScrollArea_);
-	lk_Dialog.setLayout(lk_Layout_);
-	lk_Script_->parameterWidget()->resize(550, 10);
-	lk_Dialog.exec();
 }

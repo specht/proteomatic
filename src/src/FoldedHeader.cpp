@@ -115,7 +115,7 @@ void k_FoldedHeader::init()
 {
 	for (int i = 0; i < 7; ++i)
 		mk_FoldedIcons.push_back(RefPtr<QPixmap>(new QPixmap(QString(":/icons/folded-%1.png").arg(i))));
-	
+		
 	mi_CurrentIndex = 0;
 	mb_Increasing = true;
 	mk_Icon.setPixmap(*mk_FoldedIcons[mi_CurrentIndex].get_Pointer());
@@ -135,4 +135,5 @@ void k_FoldedHeader::init()
 	connect(&mk_Icon, SIGNAL(enter()), this, SIGNAL(enter()));
 	connect(&mk_Icon, SIGNAL(leave()), this, SIGNAL(leave()));
 	connect(&mk_Timer, SIGNAL(timeout()), this, SLOT(update()));
+	connect(this, SIGNAL(clicked()), this, SLOT(toggleBuddy()));
 }

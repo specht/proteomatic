@@ -14,6 +14,17 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, QString 
 	mk_pScript = RefPtr<k_Script>(k_ScriptFactory::makeScript(ms_TargetScriptUri, mk_Proteomatic, false, true));
 	this->setWindowTitle(ms_WindowTitle);
 	
+	// determine incoming parameters that are non-applicable to the current script
+	QStringList lk_ScriptKeys = mk_pScript->getParameterKeys();
+	foreach (QString ls_OldProfileKey, ak_OldProfile["settings"].toMap().uniqueKeys())
+	{
+		if (!lk_ScriptKeys.contains(ls_OldProfileKey))
+		{
+			mk_NonApplicableParameters[ls_OldProfileKey] = ak_OldProfile["settings"].toMap()[ls_OldProfileKey];
+			mk_NonApplicableParametersVerbose[ls_OldProfileKey] = ak_OldProfile["verbose"].toMap()[ls_OldProfileKey];
+		}
+	}
+	
 	QSplitter* lk_HSplitter_ = new QSplitter(this);
 	lk_HSplitter_->setStyle(new QPlastiqueStyle());
 	lk_HSplitter_->setOrientation(Qt::Horizontal);
@@ -51,14 +62,45 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, QString 
 	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 	lk_VLayout_->addWidget(lk_Frame_);
 	
-	//lk_VLayout_->addWidget(new QLabel("Settings:", this));
+	QScrollArea* lk_DescriptionScrollArea_ = new QScrollArea(this);
+	lk_DescriptionScrollArea_->setWidgetResizable(true);
+	lk_DescriptionScrollArea_->setFrameStyle(QFrame::NoFrame);
+	QBoxLayout* lk_ScrollLayout_ = new QVBoxLayout(this);
+
+	if (!mk_NonApplicableParametersVerbose.empty())
+	{
+		QStringList lk_Keys = mk_NonApplicableParametersVerbose.uniqueKeys();
+		qSort(lk_Keys);
+		QStringList lk_Items;
+		ms_NonApplicableParametersDescription = "<i>Note: Although these parameters cannot be changed in the context of the current script, they will be preserved when you change the profile.</i><br />";
+		foreach (QString ls_Key, lk_Keys)
+		{
+			lk_Items.push_back(QString("%1: %2")
+				.arg(mk_NonApplicableParametersVerbose[ls_Key].toMap()["key"].toString())
+				.arg(mk_NonApplicableParametersVerbose[ls_Key].toMap()["value"].toString()));
+		}
+		ms_NonApplicableParametersDescription += lk_Items.join("<br />");
+		QLabel* lk_Info_ = new QLabel(ms_NonApplicableParametersDescription, this);
+		k_FoldedHeader* lk_Header_ = new k_FoldedHeader("<b>Non-applicable profile parameters<b>", lk_Info_, this);
+		lk_ScrollLayout_->addWidget(lk_Header_);
+		lk_ScrollLayout_->addWidget(lk_Info_);
+		lk_Info_->setWordWrap(true);
+		lk_Header_->hideBuddy();
+	}
 	
-	QTextEdit* lk_ProfileDescriptionLabel_ = new QTextEdit(this);
-	lk_ProfileDescriptionLabel_->setFrameStyle(QFrame::NoFrame);
-	lk_ProfileDescriptionLabel_->setBackgroundRole(QPalette::Window);
-	lk_ProfileDescriptionLabel_->setReadOnly(true);
-	lk_ProfileDescriptionLabel_->setStyleSheet("QTextEdit { background-color: none; }");
-	lk_VLayout_->addWidget(lk_ProfileDescriptionLabel_);
+	mk_ProfileDescriptionText_ = new QLabel(this);
+	mk_ProfileDescriptionText_->setWordWrap(true);
+	k_FoldedHeader* lk_Header_ = new k_FoldedHeader("<b>Profile parameters<b>", mk_ProfileDescriptionText_, this);
+	lk_ScrollLayout_->addWidget(lk_Header_);
+	lk_ScrollLayout_->addWidget(mk_ProfileDescriptionText_);
+	lk_ScrollLayout_->addStretch();
+	lk_ScrollLayout_->setContentsMargins(0, 0, 0, 0);
+	lk_Header_->showBuddy();
+	
+	QWidget* lk_ScrollLayoutWidget_ = new QWidget(this);
+	lk_ScrollLayoutWidget_->setLayout(lk_ScrollLayout_);
+	lk_DescriptionScrollArea_->setWidget(lk_ScrollLayoutWidget_);
+	lk_VLayout_->addWidget(lk_DescriptionScrollArea_);
 	
 	QWidget* lk_VLayoutWidget_ = new QWidget(this);
 	lk_VLayoutWidget_->setLayout(lk_VLayout_);
@@ -78,10 +120,12 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, QString 
 	lk_MainLayout_->addLayout(lk_HLayout_);
 	this->setLayout(lk_MainLayout_);
 	//lk_MainLayout_->setContentsMargins(0, 0, 0, 0);
-	lk_ProfileDescriptionLabel_->setText(mk_pScript->profileDescription());
-	connect(mk_pScript.get_Pointer(), SIGNAL(profileDescriptionChanged(const QString&)), lk_ProfileDescriptionLabel_, SLOT(setText(const QString&)));
+	mk_ProfileDescriptionText_->setText(mk_pScript->profileDescription());
+	connect(mk_pScript.get_Pointer(), SIGNAL(profileDescriptionChanged(const QString&)), mk_ProfileDescriptionText_, SLOT(setText(const QString&)));
+
 	lk_HSplitter_->setStretchFactor(0, 4);
 	lk_HSplitter_->setStretchFactor(1, 5);
+	resize(800, 400);
 }
 
 
@@ -95,7 +139,29 @@ tk_YamlMap k_EditProfileDialog::getProfile()
 	tk_YamlMap lk_Profile;
 	lk_Profile["title"] = mk_ProfileTitle_->text();
 	lk_Profile["description"] = mk_ProfileDescription_->text();
-	lk_Profile["settings"] = mk_pScript->getProfile();
+	
+	tk_YamlMap lk_Settings = mk_pScript->getProfile();
+	// add all non-applicable parameters that came in, so that they are not lost
+	foreach (QString ls_Key, mk_NonApplicableParameters.uniqueKeys())
+		lk_Settings[ls_Key] = mk_NonApplicableParameters[ls_Key];
+	
+	lk_Profile["settings"] = lk_Settings;
+	
+	tk_YamlMap lk_Verbose;
+	
+	foreach (QString ls_Key, lk_Profile["settings"].toMap().uniqueKeys())
+	{
+		tk_YamlMap lk_Entry;
+		lk_Entry["key"] = mk_pScript->getHumanReadableParameterKey(ls_Key);
+		lk_Entry["value"] = mk_pScript->getHumanReadableParameterValue(ls_Key);
+		lk_Verbose[ls_Key] = lk_Entry;
+	}
+	// add all non-applicable parameters that came in, so that they are not lost
+	foreach (QString ls_Key, mk_NonApplicableParametersVerbose.uniqueKeys())
+		lk_Verbose[ls_Key] = mk_NonApplicableParametersVerbose[ls_Key];
+		
+	lk_Profile["verbose"] = lk_Verbose;
+	
 		
 	return lk_Profile;
 }

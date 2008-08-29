@@ -8,6 +8,9 @@
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
 #define CONFIG_REMOTE_SCRIPTS "remoteScripts"
 #define CONFIG_PROFILES "profiles"
+#define CONFIG_REMEMBER_PROFILE_PATH "rememberProfilePath"
+#define CONFIG_REMEMBER_INPUT_FILES_PATH "rememberInputFilesPath"
+#define CONFIG_REMEMBER_OUTPUT_PATH "rememberOutputPath"
 
 
 struct r_RemoteRequestType

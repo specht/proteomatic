@@ -46,6 +46,8 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 
 k_Proteomatic::~k_Proteomatic()
 {
+	// save configuration
+	this->saveConfiguration();
 	mk_pRemoteHubProcess->kill();
 }
 
@@ -122,15 +124,40 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration = k_Yaml::parseFromFile(ms_UserConfigurationPath).toMap();
 		
 	// insert default values
-	if (!mk_Configuration.contains(CONFIG_PATH_TO_RUBY))
+	bool lb_InsertedDefaultValue = false;
+	if (!mk_Configuration.contains(CONFIG_PATH_TO_RUBY) || mk_Configuration[CONFIG_PATH_TO_RUBY].type() != QVariant::String)
+	{
 		mk_Configuration[CONFIG_PATH_TO_RUBY] = "ruby";
+		lb_InsertedDefaultValue = true;
+	}
 	if (!mk_Configuration.contains(CONFIG_REMOTE_SCRIPTS) || mk_Configuration[CONFIG_REMOTE_SCRIPTS].type() != QVariant::List)
+	{
 		mk_Configuration[CONFIG_REMOTE_SCRIPTS] = QList<QVariant>();
+		lb_InsertedDefaultValue = true;
+	}
 	if (!mk_Configuration.contains(CONFIG_PROFILES) || mk_Configuration[CONFIG_PROFILES].type() != QVariant::Map)
-		mk_Configuration["profiles"] = QMap<QString, QVariant>();
+	{
+		mk_Configuration[CONFIG_PROFILES] = QMap<QString, QVariant>();
+		lb_InsertedDefaultValue = true;
+	}
+	if (!mk_Configuration.contains(CONFIG_REMEMBER_PROFILE_PATH) || mk_Configuration[CONFIG_REMEMBER_PROFILE_PATH].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_REMEMBER_PROFILE_PATH] = QDir::homePath();
+		lb_InsertedDefaultValue = true;
+	}
+	if (!mk_Configuration.contains(CONFIG_REMEMBER_INPUT_FILES_PATH) || mk_Configuration[CONFIG_REMEMBER_INPUT_FILES_PATH].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_REMEMBER_INPUT_FILES_PATH] = QDir::homePath();
+		lb_InsertedDefaultValue = true;
+	}
+	if (!mk_Configuration.contains(CONFIG_REMEMBER_OUTPUT_PATH) || mk_Configuration[CONFIG_REMEMBER_OUTPUT_PATH].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_REMEMBER_OUTPUT_PATH] = QDir::homePath();
+		lb_InsertedDefaultValue = true;
+	}
 		
 	// write user configuration if it doesn't already exist
-	if (!QFile(ms_UserConfigurationPath).exists())
+	if (lb_InsertedDefaultValue)
 		this->saveConfiguration();
 }
 

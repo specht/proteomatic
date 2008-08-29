@@ -28,4 +28,8 @@ protected:
 	QString ms_WindowTitle;
 	QLineEdit* mk_ProfileTitle_;
 	QLineEdit* mk_ProfileDescription_;
+	QLabel* mk_ProfileDescriptionText_;
+	tk_YamlMap mk_NonApplicableParameters;
+	tk_YamlMap mk_NonApplicableParametersVerbose;
+	QString ms_NonApplicableParametersDescription;
 };

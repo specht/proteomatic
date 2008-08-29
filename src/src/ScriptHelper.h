@@ -40,7 +40,6 @@ protected slots:
 	void checkTicket(QString as_Ticket);
 	void ticketWindowClosed();
 	void parameterWidgetResized();
-	void createProfile();
 
 protected:
 	void setScript(QString as_Filename);
@@ -73,7 +72,7 @@ protected:
 	
 	// should be a RefPtr, but not possible with VC on win32... (sigh!)
 	k_Script* mk_Script_;
-	k_ProfileManager* mk_ProfileManager_;
+	RefPtr<k_ProfileManager> mk_pProfileManager;
 	
 	k_Proteomatic& mk_Proteomatic;
 	

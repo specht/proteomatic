@@ -45,6 +45,9 @@ public:
 	QString getParameterValue(QString as_Key);
 	QString getHumanReadableParameterValue(QString as_Key, QString as_Value);
 	void setParameterValue(QString as_Key, QString as_Value);
+	QStringList getParameterKeys() const;
+	QString getHumanReadableParameterKey(QString as_Key) const;
+	QString getHumanReadableParameterValue(QString as_Key) const;
 
 	QHash<QString, QString> getConfiguration();
 	void setConfiguration(QHash<QString, QString> ak_Configuration);
@@ -64,7 +67,6 @@ signals:
 	void profileDescriptionChanged(const QString&);
 
 protected slots:
-	void toggleGroup();
 	void addChoiceItems();
 	void removeChoiceItems(QList<QListWidgetItem *> ak_Items);
 	void setOutputDirectoryButtonClicked();

@@ -13,12 +13,13 @@ public:
 	k_FoldedHeader(QWidget* ak_Buddy_ = NULL, QWidget* parent = 0, Qt::WindowFlags f = 0);
 	k_FoldedHeader(const QString& text, QWidget* ak_Buddy_ = NULL, QWidget* parent = 0, Qt::WindowFlags f = 0);
 	~k_FoldedHeader();
+	void setSuffix(QString as_Text);
+	bool buddyVisible();
 
+public slots:
 	void hideBuddy();
 	void showBuddy();
-	bool buddyVisible();
 	void toggleBuddy();
-	void setSuffix(QString as_Text);
 
 signals:
 	void clicked();
