@@ -79,7 +79,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
 	
 	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Profiles");
-	connect(mk_ProfilesAction_, SIGNAL(triggered()), mk_pProfileManager.get_Pointer(), SLOT(exec()));
+	connect(mk_ProfilesAction_, SIGNAL(triggered()), this, SLOT(showProfileManager()));
 	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
@@ -264,7 +264,6 @@ void k_ScriptHelper::setScript(QString as_Filename)
 	
 	mk_Script_ = k_ScriptFactory::makeScript(as_Filename, mk_Proteomatic, true);
 	mk_pProfileManager = RefPtr<k_ProfileManager>(new k_ProfileManager(mk_Proteomatic, as_Filename, mk_Script_->getParameterKeys(), this));
-	connect(mk_ProfilesAction_, SIGNAL(triggered()), mk_pProfileManager.get_Pointer(), SLOT(exec()));
 		
 	activateScript();
 	
@@ -716,4 +715,10 @@ void k_ScriptHelper::parameterWidgetResized()
 		mk_ScrollArea_->setMinimumWidth(li_Width + 10);
 	}
 	*/
+}
+
+
+void k_ScriptHelper::showProfileManager()
+{
+	mk_pProfileManager->exec();
 }

@@ -26,36 +26,36 @@ class k_Script: public QObject
 public:
 	k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_Script();
-	bool isGood();
-	bool hasParameters();
+	bool isGood() const;
+	bool hasParameters() const;
 	
 	r_ScriptType::Enumeration type() const;
-	k_SizeWatchWidget* parameterWidget();
-	QString uri();
-	virtual QString title();
-	virtual QString description();
+	k_SizeWatchWidget* parameterWidget() const;
+	QString uri() const;
+	virtual QString title() const;
+	virtual QString description() const;
 
 	void reset();
 
 	void setPrefix(QString as_Prefix);
-	QString prefix();
-	QList<QString> outFiles();
-	QHash<QString, QString> outFileDetails(QString as_Key);
+	QString prefix() const;
+	QList<QString> outFiles() const;
+	QHash<QString, QString> outFileDetails(QString as_Key) const;
 
-	QString getParameterValue(QString as_Key);
-	QString getHumanReadableParameterValue(QString as_Key, QString as_Value);
+	QString getParameterValue(QString as_Key) const;
+	QString getHumanReadableParameterValue(QString as_Key, QString as_Value) const;
 	void setParameterValue(QString as_Key, QString as_Value);
 	QStringList getParameterKeys() const;
 	QString getHumanReadableParameterKey(QString as_Key) const;
 	QString getHumanReadableParameterValue(QString as_Key) const;
 
-	QHash<QString, QString> getConfiguration();
+	QHash<QString, QString> getConfiguration() const;
 	void setConfiguration(QHash<QString, QString> ak_Configuration);
 	
-	tk_YamlMap getProfile();
+	tk_YamlMap getProfile() const;
 	void applyProfile(tk_YamlMap ak_Profile);
 
-	QStringList commandLineArguments();
+	QStringList commandLineArguments() const;
 	QString profileDescription() const;
 	
 	virtual void start(QStringList ak_Parameters) = 0;

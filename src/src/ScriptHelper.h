@@ -40,6 +40,7 @@ protected slots:
 	void checkTicket(QString as_Ticket);
 	void ticketWindowClosed();
 	void parameterWidgetResized();
+	void showProfileManager();
 
 protected:
 	void setScript(QString as_Filename);

@@ -31,13 +31,13 @@ k_Script::~k_Script()
 }
 
 
-bool k_Script::isGood()
+bool k_Script::isGood() const
 {
 	return mb_IsGood;
 }
 
 
-bool k_Script::hasParameters()
+bool k_Script::hasParameters() const
 {
 	return mb_HasParameters;
 }
@@ -49,25 +49,25 @@ r_ScriptType::Enumeration k_Script::type() const
 }
 
 
-k_SizeWatchWidget* k_Script::parameterWidget()
+k_SizeWatchWidget* k_Script::parameterWidget() const
 {
 	return mk_pParameterWidget.get_Pointer();
 }
 
 
-QString k_Script::uri()
+QString k_Script::uri() const
 {
 	return ms_ScriptUri;
 }
 
 
-QString k_Script::title()
+QString k_Script::title() const
 {
 	return ms_Title;
 }
 
 
-QString k_Script::description()
+QString k_Script::description() const
 {
 	return ms_Description;
 }
@@ -85,25 +85,25 @@ void k_Script::setPrefix(QString as_Prefix)
 }
 
 
-QString k_Script::prefix()
+QString k_Script::prefix() const
 {
 	return ms_Prefix;
 }
 
 
-QList<QString> k_Script::outFiles()
+QList<QString> k_Script::outFiles() const
 {
 	return mk_OutFileDetails.keys();
 }
 
 
-QHash<QString, QString> k_Script::outFileDetails(QString as_Key)
+QHash<QString, QString> k_Script::outFileDetails(QString as_Key) const
 {
 	return mk_OutFileDetails[as_Key];
 }
 
 
-QStringList k_Script::commandLineArguments()
+QStringList k_Script::commandLineArguments() const
 {
 	QStringList lk_Result;
 	foreach (QString ls_Key, mk_ParameterValueWidgets.keys())
@@ -139,7 +139,7 @@ QString k_Script::profileDescription() const
 }
 
 
-QString k_Script::getParameterValue(QString as_Key)
+QString k_Script::getParameterValue(QString as_Key) const
 {
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
 	if (mk_ParameterMultiChoiceWidgets.contains(as_Key))
@@ -188,7 +188,7 @@ QString k_Script::getParameterValue(QString as_Key)
 }
 
 
-QString k_Script::getHumanReadableParameterValue(QString as_Key, QString as_Value)
+QString k_Script::getHumanReadableParameterValue(QString as_Key, QString as_Value) const
 {
 	QString ls_Result;
 	QString ls_Type = mk_ParameterDefs[as_Key]["type"];
@@ -297,7 +297,7 @@ QString k_Script::getHumanReadableParameterValue(QString as_Key) const
 }
 
 
-QHash<QString, QString> k_Script::getConfiguration()
+QHash<QString, QString> k_Script::getConfiguration() const
 {
 	QHash<QString, QString> lk_Result;
 
@@ -320,7 +320,7 @@ void k_Script::setConfiguration(QHash<QString, QString> ak_Configuration)
 }
 
 
-tk_YamlMap k_Script::getProfile()
+tk_YamlMap k_Script::getProfile() const
 {
 	tk_YamlMap lk_Profile;
 	if (!mb_ProfileMode)

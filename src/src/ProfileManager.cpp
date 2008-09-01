@@ -182,7 +182,6 @@ void k_ProfileManager::updateDescription()
 		mk_DescriptionLabel_->setText("<i>(no profile applied)</i>");
 	else
 	{
-		/*
 		//mk_DescriptionLabel_->setText(mk_AppliedProfiles.join(", "));
 		QString ls_Label;
 		//foreach (QString ls_AppliedProfiles
@@ -198,7 +197,7 @@ void k_ProfileManager::updateDescription()
 			qSort(lk_ConflictingParameterKeys);
 			foreach (QString ls_Key, lk_ConflictingParameterKeys)
 			{
-				ls_Label += "<img src=':/icons/dialog-warning-16.png' />" + ls_Key + "<br />";
+				ls_Label += ls_Key + "<br />";
 			}
 		}
 		
@@ -208,8 +207,6 @@ void k_ProfileManager::updateDescription()
 		{
 			ls_Label += QString("%1: %2").arg(ls_Key).arg(mk_ProfileMixParameterKeys[ls_Key].size());
 		}
-		*/
-		QString ls_Label;
 		mk_DescriptionLabel_->setText(ls_Label);
 	}
 }
@@ -471,7 +468,6 @@ void k_ProfileManager::updateProfileMix()
 			mk_AppliedProfiles.push_back(lk_Item_->text());
 	}
 	
-	/*
 	mk_ProfileMixParameterKeys = QHash<QString, QStringList>();
 	
 	foreach (QString ls_ProfileTitle, mk_AppliedProfiles)
@@ -480,15 +476,10 @@ void k_ProfileManager::updateProfileMix()
 		foreach (QString ls_Key, lk_Settings.uniqueKeys())
 		{
 			if (!mk_ProfileMixParameterKeys.contains(ls_Key))
-			{
 				mk_ProfileMixParameterKeys[ls_Key] = QStringList();
-				mk_ProfileMixParameterKeys[ls_Key].push_back(ls_ProfileTitle);
-			}
-			else
-				mk_ProfileMixParameterKeys[ls_Key].push_back(ls_ProfileTitle);
+			mk_ProfileMixParameterKeys[ls_Key].push_back(ls_ProfileTitle);
 		}
 	}
-	*/
 	
 	this->updateDescription();
 }
