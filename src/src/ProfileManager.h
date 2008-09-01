@@ -60,5 +60,4 @@ protected:
 	QListWidgetItem* mk_SelectedItem_;
 	QHash<QString, Qt::CheckState> mk_ProfileCheckState;
 	QStringList mk_AppliedProfiles;
-	QHash<QString, QStringList> mk_ProfileMixParameterKeys;
 };

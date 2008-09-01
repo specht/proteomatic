@@ -157,9 +157,13 @@ void k_ProfileManager::toggleUi()
 	{
 		mk_PartlyApplicableProfilesHeader_->hideBuddy();
 		mk_PartlyApplicableProfilesHeader_->setEnabled(false);
+		mk_PartlyApplicableProfilesHeader_->hide();
 	}
 	else
+	{
+		mk_PartlyApplicableProfilesHeader_->show();
 		mk_PartlyApplicableProfilesWidget_->setEnabled(true);
+	}
 	
 	if (mk_NonApplicableProfilesWidget_->count() == 0)
 	{
@@ -178,13 +182,34 @@ void k_ProfileManager::updateDescription()
 		mk_DescriptionLabel_->setText("<i>(no profile applied)</i>");
 	else
 	{
+		/*
 		//mk_DescriptionLabel_->setText(mk_AppliedProfiles.join(", "));
 		QString ls_Label;
 		//foreach (QString ls_AppliedProfiles
+		QStringList lk_ConflictingParameterKeys;
+		foreach (QString ls_Key, mk_ProfileMixParameterKeys.keys())
+			if (mk_ProfileMixParameterKeys[ls_Key].size() != 1)
+				lk_ConflictingParameterKeys.push_back(ls_Key);
+				
+		if (!lk_ConflictingParameterKeys.empty())
+		{
+			// currently applied profile mix produced conflicts!
+			ls_Label += "<b>Conflicts:</b><br />";
+			qSort(lk_ConflictingParameterKeys);
+			foreach (QString ls_Key, lk_ConflictingParameterKeys)
+			{
+				ls_Label += "<img src=':/icons/dialog-warning-16.png' />" + ls_Key + "<br />";
+			}
+		}
+		
+		ls_Label += "<b>Settings:</b><br />";
+		
 		foreach (QString ls_Key, mk_ProfileMixParameterKeys.keys())
 		{
 			ls_Label += QString("%1: %2").arg(ls_Key).arg(mk_ProfileMixParameterKeys[ls_Key].size());
 		}
+		*/
+		QString ls_Label;
 		mk_DescriptionLabel_->setText(ls_Label);
 	}
 }
@@ -446,6 +471,7 @@ void k_ProfileManager::updateProfileMix()
 			mk_AppliedProfiles.push_back(lk_Item_->text());
 	}
 	
+	/*
 	mk_ProfileMixParameterKeys = QHash<QString, QStringList>();
 	
 	foreach (QString ls_ProfileTitle, mk_AppliedProfiles)
@@ -462,6 +488,7 @@ void k_ProfileManager::updateProfileMix()
 				mk_ProfileMixParameterKeys[ls_Key].push_back(ls_ProfileTitle);
 		}
 	}
+	*/
 	
 	this->updateDescription();
 }
