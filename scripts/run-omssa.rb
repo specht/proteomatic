@@ -61,7 +61,7 @@ class RunOmssa < ProteomaticScript
 			handleSpectrumBatch() if (@li_SpectrumBatchSize >= @param[:batchSize])
 		end
 		
-		MgfIterator.new(as_SpectrumFilename, lk_SpectrumProc, @param['omssa.omssacl.precursorChargeDetermination'.intern] == 1).run
+		MgfIterator.new(as_SpectrumFilename, lk_SpectrumProc, :levels => 2, :iterateAllCharges => @param['omssa.omssacl.precursorChargeDetermination'.intern] == 1).run
 		handleSpectrumBatch()
 		
 		puts

@@ -25,7 +25,7 @@ class RunPeaks < ProteomaticScript
 		File.open(ls_MgfFile, 'w') do |lk_MgfFile|
 			lk_SpectrumFiles.each do |ls_SpectrumFilename|
 				lk_SpectrumProc = Proc.new { |ls_Contents| lk_MgfFile.write(ls_Contents) }
-				MgfIterator.new(ls_SpectrumFilename, lk_SpectrumProc).run
+				MgfIterator.new(ls_SpectrumFilename, lk_SpectrumProc, :levels => 2).run
 			end
 		end
 		ls_ParamFile = tempFilename('peaks-config') + '.xml'

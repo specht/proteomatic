@@ -6,7 +6,7 @@ require 'base64'
 class SpectrumXmlParserMzData
 	include REXML::StreamListener
 	
-	def initialize(ak_Proc)
+	def initialize(ak_Proc, ak_Options = {:levels => (1..10).to_a})
 		@mk_CurrentSpectrum = Hash.new
 		@mk_XmlPath = Array.new
 		@mk_Treat = Hash.new()
@@ -16,6 +16,7 @@ class SpectrumXmlParserMzData
 		@mk_Treat['64-big'] = 'G';
 		@ms_ExperimentName = 'untitled';
 		@mk_Proc = ak_Proc
+		@mk_Options = ak_Options
 	end
 	
 	def tag_start(as_Name, ak_Attributes)
@@ -68,11 +69,12 @@ class SpectrumXmlParserMzData
 	end
 end
 
+
 class SpectrumXmlParserMzXml
 	include REXML::StreamListener
 	
-	def initialize(ak_Proc)
-		@mk_CurrentSpectrum = Hash.new
+	def initialize(ak_Proc, ak_Options = {:levels => (1..10).to_a})
+		@mk_CurrentSpectrumStack = Array.new
 		@mk_XmlPath = Array.new
 		@mk_Treat = Hash.new()
 		@mk_Treat['32-little'] = 'e';
@@ -81,6 +83,7 @@ class SpectrumXmlParserMzXml
 		@mk_Treat['64-network'] = 'G';
 		@ms_ExperimentName = 'untitled';
 		@mk_Proc = ak_Proc
+		@mk_Options = ak_Options
 	end
 	
 	def tag(ai_Index)
@@ -96,10 +99,12 @@ class SpectrumXmlParserMzXml
 		lk_Hash['tag'] = as_Name
 		lk_Hash['attributes'] = ak_Attributes
 		@mk_XmlPath.push(lk_Hash)
-		if (tag(0) == 'scan' && tag(1) == 'scan')
-			@mk_CurrentSpectrum = Hash.new 
-			@mk_CurrentSpectrum['id'] = ak_Attributes['num']
-			@mk_CurrentSpectrum['experimentName'] = @ms_ExperimentName
+		if (as_Name == 'scan')
+			@mk_CurrentSpectrumStack.push(Hash.new)
+			@mk_CurrentSpectrumStack.last['id'] = ak_Attributes['num']
+			@mk_CurrentSpectrumStack.last['level'] = ak_Attributes['msLevel'].to_i
+			@mk_CurrentSpectrumStack.last['time'] = ak_Attributes['retentionTime']
+			@mk_CurrentSpectrumStack.last['experimentName'] = @ms_ExperimentName
 		end
 		if (tag(0) == 'parentFile' && tag(1) == 'msRun')
 			@ms_ExperimentName = File::basename(ak_Attributes['fileName'].gsub('.RAW', '').gsub('file://', ''))
@@ -108,46 +113,51 @@ class SpectrumXmlParserMzXml
 	
 	def text(as_Text)
 		if (tag(0) == 'precursorMz' && tag(1) == 'scan')
-			@mk_CurrentSpectrum['mz'] = as_Text.to_f
+			@mk_CurrentSpectrumStack.last['mz'] = as_Text.to_f
 		end
-		if (tag(0) == 'peaks' && tag(1) == 'scan' && tag(2) == 'scan')
+		if (tag(0) == 'peaks' && tag(1) == 'scan')
 			ls_Decoded = Base64.decode64(as_Text)
 			li_Length = @mk_XmlPath[@mk_XmlPath.size - 2]['attributes']['peaksCount'].to_i * 2
 			ls_Treat = @mk_Treat[@mk_XmlPath.last['attributes']['precision'] + '-' + @mk_XmlPath.last['attributes']['byteOrder']]
 			ls_Code = ''
 			(0...li_Length).each { |i| ls_Code += ls_Treat }
 			lk_Values = ls_Decoded.unpack(ls_Code)
-			#@mk_CurrentSpectrum[ls_Key] = lk_Values
-			#puts lk_Values.to_yaml
-			@mk_CurrentSpectrum['mzList'] = Array.new
-			@mk_CurrentSpectrum['intensityList'] = Array.new
+			@mk_CurrentSpectrumStack.last['mzList'] = Array.new
+			@mk_CurrentSpectrumStack.last['intensityList'] = Array.new
 			lk_Id = ['mzList', 'intensityList']
 			lk_Values.each_index do |li_Index|
 				ls_Id = lk_Id[li_Index % 2]
-				@mk_CurrentSpectrum[ls_Id].push(lk_Values[li_Index])
+				@mk_CurrentSpectrumStack.last[ls_Id].push(lk_Values[li_Index])
 			end
 		end
 		
 	end
 	
 	def tag_end(as_Name)
-		@mk_Proc.call(@mk_CurrentSpectrum) if (tag(0) == 'scan' && tag(1) == 'scan')
+		if as_Name == 'scan'
+			if (@mk_Options[:levels].include?(@mk_CurrentSpectrumStack.last['level']))
+				@mk_Proc.call(@mk_CurrentSpectrumStack.last)
+			end
+			@mk_CurrentSpectrumStack.pop
+		end
 		@mk_XmlPath.pop()
 	end
 end
 
+
 class SpectrumIterator
-	def initialize(as_Filename, ak_Proc)
+	def initialize(as_Filename, ak_Proc, ak_Options = {:levels => (1..10).to_a})
 		@ms_Filename = as_Filename
 		@mk_Proc = ak_Proc
+		@mk_Options = ak_Options
 	end
 	
 	def run
 		lk_File = File.new(@ms_Filename)
 		if fileMatchesFormat(@ms_Filename, 'xml-mzdata')
-			REXML::Document.parse_stream(lk_File, SpectrumXmlParserMzData.new(@mk_Proc))
+			REXML::Document.parse_stream(lk_File, SpectrumXmlParserMzData.new(@mk_Proc, @mk_Options))
 		elsif fileMatchesFormat(@ms_Filename, 'xml-mzxml')
-			REXML::Document.parse_stream(lk_File, SpectrumXmlParserMzXml.new(@mk_Proc))
+			REXML::Document.parse_stream(lk_File, SpectrumXmlParserMzXml.new(@mk_Proc, @mk_Options))
 		elsif fileMatchesFormat(@ms_Filename, 'dta')
 			@mk_CurrentSpectrum = Hash.new 
 			lk_Temp = @ms_Filename.gsub('.dta', '').split('.')
@@ -181,7 +191,7 @@ class SpectrumIterator
 					@mk_CurrentSpectrum['intensityList'].push(lk_Line[1].strip.to_f)
 				end
 			end
-			@mk_Proc.call(@mk_CurrentSpectrum)
+			@mk_Proc.call(@mk_CurrentSpectrum) if (ak_Options[:levels].include?(2))
 			lk_File.close()
 		elsif fileMatchesFormat(@ms_Filename, 'mgf')
 			puts 'TODO: MGF parsing not yet implemented.'
@@ -228,8 +238,8 @@ end
 
 
 class DtaIterator < SpectrumIterator
-	def initialize(as_Filename, ak_Proc, ab_IterateAllCharges = true)
-		@mb_IterateAllCharges = ab_IterateAllCharges
+	def initialize(as_Filename, ak_Proc, ak_Options = {:levels => (1..10).to_a, :iterateAllCharges => true})
+		@mb_IterateAllCharges = ak_Options[:iterateAllCharges]
 		@mk_ChildProc = ak_Proc
 		@mk_SpectrumProc = Proc.new do |ak_Spectrum|
 			unless @mb_IterateAllCharges
@@ -245,14 +255,14 @@ class DtaIterator < SpectrumIterator
 				@mk_ChildProc.call(ls_DtaFilename, ls_Result)
 			end
 		end
-		super(as_Filename, @mk_SpectrumProc)
+		super(as_Filename, @mk_SpectrumProc, ak_Options)
 	end
 end
 
 
 class MgfIterator < SpectrumIterator
-	def initialize(as_Filename, ak_Proc, ab_IterateAllCharges = true)
-		@mb_IterateAllCharges = ab_IterateAllCharges
+	def initialize(as_Filename, ak_Proc, ak_Options = {:levels => (1..10).to_a, :iterateAllCharges => true})
+		@mb_IterateAllCharges = ak_Options[:iterateAllCharges]
 		@mk_ChildProc = ak_Proc
 		@mk_SpectrumProc = Proc.new do |ak_Spectrum|
 			if (ak_Spectrum.has_key?('charge') && !ak_Spectrum['charge'].empty?)
@@ -282,6 +292,6 @@ class MgfIterator < SpectrumIterator
 				@mk_ChildProc.call(ls_Result)
 			end
 		end
-		super(as_Filename, @mk_SpectrumProc)
+		super(as_Filename, @mk_SpectrumProc, ak_Options)
 	end
 end
