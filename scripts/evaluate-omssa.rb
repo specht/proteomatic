@@ -26,8 +26,6 @@ class EvaluateOmssa < ProteomaticScript
 			ls_Spot = File::basename(ls_Filename).split('.').first
 			lk_File = File.open(ls_Filename, 'r')
 			
-			lk_ScanHash[ls_Spot] = Hash.new
-			
 			# skip header
 			lk_File.readline
 			
@@ -47,6 +45,8 @@ class EvaluateOmssa < ProteomaticScript
 				lk_ScanParts = ls_Scan.split('.')
 				lk_ScanParts[3] = li_Charge.to_s
 				ls_Scan = lk_ScanParts.join('.')
+				ls_Spot = lk_ScanParts.first
+				lk_ScanHash[ls_Spot] ||= Hash.new
 				
 				lk_ScanHash[ls_Spot][ls_Scan] = Hash.new if !lk_ScanHash[ls_Spot].has_key?(ls_Scan)
 				if (!lk_ScanHash[ls_Spot][ls_Scan].has_key?('e') || lf_E < lk_ScanHash[ls_Spot][ls_Scan]['e'])
@@ -225,14 +225,47 @@ class EvaluateOmssa < ProteomaticScript
 				lk_Out.puts '<ol>'
 				lk_SpotLinks = Array.new
 				lk_ShortScanKeys.each { |ls_Spot| lk_SpotLinks.push("<a href='#subheader-spot-#{ls_Spot}'>#{ls_Spot}</a>") }
+				lk_Out.puts "<li><a href='#header-identified-proteins'>Identified proteins</a></li>"
 				lk_Out.puts "<li><a href='#header-identified-proteins-by-spot'>Identified proteins by spot</a><br />(#{lk_SpotLinks.join(', ')})</li>"
 				lk_Out.puts "<li><a href='#header-new-gpf-peptides'>Additional peptides identified by GPF</a></li>" if (lk_GpfPeptides - lk_ModelPeptides).size > 0
 				lk_Out.puts "<li><a href='#header-ambiguous-peptides'>Identified peptides that appear in more than one model protein</a></li>" if (lk_ModelPeptides - lk_ProteinIdentifyingModelPeptides).size > 0
 				lk_Out.puts "<li><a href='#header-e-thresholds'>E-value thresholds by spot</a></li>"
 				lk_Out.puts '</ol>'
 			
-				lk_Out.puts "<h2 id='header-identified-proteins-by-spot'>Identified proteins by spot</h2>"
+				lk_Out.puts "<h2 id='header-identified-proteins'>Identified proteins</h2>"
 				lk_Out.puts "<p>This table contains all model proteins that could be identified. Peptides that have additionally been found by de novo prediction and GPF search are <span class='gpf-confirm'>highlighted</span>.</p>"
+				
+				lk_Out.puts '<table>'
+				lk_Out.puts "<tr><th>Protein</th><th>Protein spectra count</th><th>Peptides</th><th>Peptide spectra count</th></tr>"
+				lk_Out.print '<tr>'
+				lb_Open0 = true
+				lk_ProteinsBySpectraCount.each do |ls_Protein|
+					lb_Open1 = true
+					lk_Out.print "<tr>" unless lb_Open0
+					lk_FoundInSpots = Set.new
+					lk_Proteins[ls_Protein]['peptides'].keys.each do |ls_Peptide|
+						lk_FoundInSpots.merge(lk_PeptideHash[ls_Peptide]['spots'])
+					end
+					lk_FoundInSpots = lk_FoundInSpots.to_a
+					lk_FoundInSpots.sort! { |x, y| String::natcmp(x, y) }
+					lk_FoundInSpots.collect! { |x| "<a href='#subheader-spot-#{x}'>#{x}</a>" }
+					ls_FoundInSpots = lk_FoundInSpots.join(', ')
+					lk_Out.print "<td rowspan='#{lk_Proteins[ls_Protein]['peptides'].size}'>#{ls_Protein.sub('target_', '')} <i>(found in: #{ls_FoundInSpots})</i></td>"
+					lk_Out.print "<td rowspan='#{lk_Proteins[ls_Protein]['peptides'].size}'>#{lk_Proteins[ls_Protein]['spectraCount']}</td>"
+					lk_PeptidesSorted = lk_Proteins[ls_Protein]['peptides'].keys.sort { |x, y| lk_Proteins[ls_Protein]['peptides'][y] <=> lk_Proteins[ls_Protein]['peptides'][x]}
+					lk_PeptidesSorted.each do |ls_Peptide|
+						lk_Out.print "<tr>" unless lb_Open1
+						ls_CellStyle = lk_PeptideHash[ls_Peptide]['found']['gpf']? ' class=\'gpf-confirm\'' : ''
+						lk_Out.print "<td><span#{ls_CellStyle}>#{ls_Peptide}</span></td><td>#{lk_Proteins[ls_Protein]['peptides'][ls_Peptide]}</td></tr>\n"
+						lb_Open0 = false
+						lb_Open1 = false
+					end
+				end
+				lk_Out.puts '</table>'
+				
+				
+				lk_Out.puts "<h2 id='header-identified-proteins-by-spot'>Identified proteins by spot</h2>"
+				lk_Out.puts "<p>This table contains all model proteins that could be identified, sorted by spot. Peptides that have additionally been found by de novo prediction and GPF search are <span class='gpf-confirm'>highlighted</span>.</p>"
 				
 				lk_Out.puts '<table>'
 				lk_ShortScanKeys.each do |ls_Spot|
@@ -319,6 +352,7 @@ class EvaluateOmssa < ProteomaticScript
 				lk_Out.puts "<p>In the following table you find the E-value thresholds that have been determined for each spot in order to achieve a maximum false positive ratio of #{@param[:targetFpr]}%.</p>"
 				lk_Out.puts '<table>'
 				lk_Out.puts '<tr><th>Spot</th><th>E-value threshold</th></tr>'
+				
 				lk_ShortScanKeys.each do |ls_Spot|
 					lk_Out.puts "<tr><td>#{ls_Spot}</td><td>#{lk_EThresholds[ls_Spot] ? sprintf('%e', lk_EThresholds[ls_Spot]) : 'n/a'}</td></tr>"
 				end
