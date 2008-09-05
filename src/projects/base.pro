@@ -26,7 +26,7 @@ else {
 
 DESTDIR = ../../../
 
-QT += gui network
+QT = core gui network
 
 # libyaml files
 HEADERS += ../../src/libyaml/ly_config.h \
