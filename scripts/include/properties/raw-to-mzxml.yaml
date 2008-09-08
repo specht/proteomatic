@@ -24,11 +24,16 @@ output:
     filename: '#{basename}.mzxml'
     
 parameters:
+  - key: useCompression
+    group: Conversion parameters
+    label: Compress spectra
+    type: flag
+    default: yes
   - key: stripMs1Scans
     group: Conversion parameters
     label: Strip MS 1 scans
     type: flag
-    default: yes
+    default: no
 
 needs:
   - ext.readw

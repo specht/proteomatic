@@ -8,7 +8,9 @@ class Raw2MzXML < ProteomaticScript
 			ls_TempOutPath = tempFilename('raw-to-mzxml')
 			
 			# call ReAdW
-			ls_Command = "#{ExternalTools::binaryPath('readw.readw')} --mzXML #{@mk_Parameters.commandLineFor('readw.readw')} \"#{ls_InPath}\" \"#{ls_TempOutPath}\""
+			lk_Arguments = Array.new
+			lk_Arguments.push('-z') if (@param[:useCompression])
+			ls_Command = "#{ExternalTools::binaryPath('readw.readw')} --mzXML #{@mk_Parameters.commandLineFor('readw.readw')} #{lk_Arguments.join(' ')} \"#{ls_InPath}\" \"#{ls_TempOutPath}\""
 			unless system(ls_Command)
 				puts 'There was an error while executing readw.'
 				exit 1
