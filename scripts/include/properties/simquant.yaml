@@ -3,7 +3,7 @@ group: AK Hippler
 title: SIM Quantitation
 
 description: >
-  Perform quantitation on SIM scans.
+   Perform quantitation on SIM scans. <br />All specified spots are searched against all specified peptides. Peptides may be specified via text files and additionally in the peptides input field.
 
 type: processor
 
@@ -12,6 +12,9 @@ input:
     label: spectra
     formats: [xml-mzdata, xml-mzxml]
     min: 1
+  - key: peptidesFile
+    label: peptides
+    formats: [txt]
 
 defaultOutputDirectory: spectra
 
