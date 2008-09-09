@@ -11,7 +11,7 @@ description: >
 input:
   - key: spectra
     label: spectra
-    formats: [dta, mgf, xml-mzdata, xml-mzxml]
+    formats: [dta, xml-mzdata, xml-mzxml]
     min: 1
   - key: databases
     label: database
