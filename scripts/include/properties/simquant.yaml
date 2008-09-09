@@ -16,10 +16,10 @@ input:
 defaultOutputDirectory: spectra
 
 output:
-  - key: htmlReport
-    label: HTML report
-    format: html
-    filename: quantitation-results.html
+  - key: xhtmlReport
+    label: XHTML report
+    format: xhtml
+    filename: quantitation-results.xhtml
     default: yes
 
 parameters:
@@ -37,14 +37,14 @@ parameters:
     label: Minimum charge
     type: int
     default: 2
-    min: 1
-    max: 10
+    min: 2
+    max: 2
   - key: maxCharge
     label: Maximum charge
     type: int
     default: 3
-    min: 1
-    max: 10
+    min: 3
+    max: 3
     
 needs:
   - ext.simquant
