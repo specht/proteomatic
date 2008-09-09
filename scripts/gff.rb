@@ -1,4 +1,48 @@
 require 'yaml'
+require 'set'
+
+$gk_NtoAA = Hash.new
+$gk_AAtoN = Hash.new
+
+def setupAminoAcids()
+	ls_Info = DATA.read()
+	ls_Info.each do |ls_Line|
+		ls_Line.strip!
+		lk_Line = ls_Line.split(';')
+		next if lk_Line[0].include?('N')
+		$gk_NtoAA[lk_Line[0]] = lk_Line[1]
+		$gk_AAtoN[lk_Line[1]] ||= Array.new
+		$gk_AAtoN[lk_Line[1]].push(lk_Line[0])
+	end
+end
+
+
+def findCombinations(as_Peptide, ai_Start, ai_Length)
+	ls_Stretched = ''
+	(0...as_Peptide.length).each { |i| x = as_Peptide[i, 1]; ls_Stretched += x + x + x }
+	(0...ai_Start).each { |i| ls_Stretched[i, 1] = '.' }
+	((ai_Start + ai_Length)...ls_Stretched.length).each { |i| ls_Stretched[i, 1] = '.' }
+	li_Combinations = 1
+	while (!ls_Stretched.empty?) do
+		ls_Piece = ls_Stretched.slice!(0, 3)
+		next if (ls_Piece == '...')
+		ls_Char = ls_Piece.gsub('.', '')[0, 1]
+		if (!ls_Piece.include?('.'))
+			li_Combinations *= $gk_AAtoN[ls_Char].size()
+		else
+			lk_Combinations = Array.new
+			$gk_AAtoN[ls_Char].each do |ls_Nucleotides|
+				ls_Copy = ''
+				(0...3).each { |i| ls_Copy += ls_Piece[i, 1] == '.' ? '.' : ls_Nucleotides[i, 1]  }
+				lk_Combinations.push(ls_Copy)
+			end
+			lk_Combinations.uniq!
+			li_Combinations *= lk_Combinations.size
+		end
+	end
+	return li_Combinations
+end
+
 
 def handleFile(ak_Files, ak_Out = $stdout)
 	lk_Peptides = Hash.new
@@ -18,26 +62,25 @@ def handleFile(ak_Files, ak_Out = $stdout)
 			lk_Hits.reject! { |lk_Assembly|	lk_Assembly['details']['parts'].size != 1 }
 		end
 	
+		# adjust positions if reverse (from GPF to GFF)
 		lk_Hits.each_index do |li_AssemblyIndex|
 			lk_Assembly = lk_Hits[li_AssemblyIndex]
-			
-			# adjust positions if reverse (from GPF to GFF)
 			if lk_Assembly['details']['forward']
 				lk_Assembly['details']['parts'].each { |lk_Part| lk_Part['position'] += 1 } 
 			else
 				lk_Assembly['details']['parts'].each { |lk_Part| lk_Part['position'] = lk_Part['position'] - lk_Part['length'] + 2 } 
 			end
-			
 			lk_Hits[li_AssemblyIndex] = lk_Assembly
 		end
 		
+		# in the examples, nrhits had as many entries as hits, so I don't know what this is about
 		lk_NrHits = lk_Hits.collect { |x| {'parts' => x['details']['parts'], 'peptide' => x['peptide'], 'forward' => x['details']['forward']} }
 		lk_NrHits = lk_NrHits.collect { |x| x.to_yaml }.uniq.collect { |x| YAML::load(x) }
 		li_AssemblyCount = lk_NrHits.size
 		
-		# TODO: - assemblies wrong, don't validate
-		#       - intron wrong
-		#       - chuck out short CDS and adjacent introns
+		lk_PeptideCombinations = Hash.new
+		lk_PeptideSpanOccurences = Hash.new
+		
 		lk_AllSpans = Array.new
 		lk_NrHits.each do |lk_Assembly|
 			lk_Spans = Array.new
@@ -46,7 +89,6 @@ def handleFile(ak_Files, ak_Out = $stdout)
 				li_Frame = (3 - (li_NucleotideCount % 3)) % 3
 				li_Start = lk_Part['position']
 				li_End = lk_Part['position'] + lk_Part['length'] - 1
-				li_NucleotideCount += li_End - li_Start + 1
 				lk_Spans.push({
 					:start => li_Start,
 					:end => li_End,
@@ -54,15 +96,37 @@ def handleFile(ak_Files, ak_Out = $stdout)
 					:length => lk_Part['length'],
 					:peptide => lk_Assembly['peptide'],
 					:forward => lk_Assembly['forward'],
-					:scaffold => lk_Assembly['parts'].first['scaffold']
+					:scaffold => lk_Assembly['parts'].first['scaffold'],
+					:assemblyStart => li_NucleotideCount
 				})
+				li_NucleotideCount += li_End - li_Start + 1
 			end
 			# chuck out all CDS that are shorter than 4 nucleotides
-			lk_Spans.reject! { |lk_Span| lk_Span[:length] < 4 }
+			#lk_Spans.reject! { |lk_Span| lk_Span[:length] < 4 }
+			ls_Peptide = lk_Assembly['peptide']
+			lk_PeptideCombinations[ls_Peptide] ||= Hash.new
+			lk_PeptideSpanOccurences[ls_Peptide] ||= Hash.new
+			lk_Spans.each do |lk_Span|
+				ls_Key = "#{lk_Span[:assemblyStart]}:#{lk_Span[:length]}"
+				lk_PeptideCombinations[ls_Peptide][ls_Key] = findCombinations(lk_Span[:peptide], lk_Span[:assemblyStart], lk_Span[:length])
+				lk_PeptideSpanOccurences[ls_Peptide][ls_Key] ||= Set.new
+				lk_PeptideSpanOccurences[ls_Peptide][ls_Key].add("#{lk_Span[:start]}-#{lk_Span[:end]}")
+			end
 			lk_AllSpans.push(lk_Spans)
 		end
 		
-		# chuck out duplicate span lists
+		# chuck out assembly parts that are not statistically significant
+		lk_AllSpans.each do |lk_Spans|
+			lk_Spans.reject! do |lk_Span|
+				ls_Peptide = lk_Span[:peptide]
+				ls_Key = "#{lk_Span[:assemblyStart]}:#{lk_Span[:length]}"
+				li_Combinations = lk_PeptideCombinations[ls_Peptide][ls_Key]
+				li_Occurences = lk_PeptideSpanOccurences[ls_Peptide][ls_Key].size
+				puts "#{ls_Peptide} (#{ls_Key}): #{li_Occurences} / #{li_Combinations}"
+			end
+		end
+		
+		# chuck out duplicate span lists (these might appear because assembly parts have been chucked out)
 		li_AssemblyId = 0
 		lk_AllSpans = lk_AllSpans.collect { |x| x.to_yaml }.uniq.collect{ |x| YAML::load(x) }
 		lk_AllSpans.each do |lk_Spans|
@@ -97,6 +161,133 @@ def handleFile(ak_Files, ak_Out = $stdout)
 	end
 end
 
+setupAminoAcids()
 File::open('/home/michael/Augustus/gpf-alignments.gff', 'w') { |f| handleFile(['/home/michael/Augustus/omssa/MT_HydACPAN-augustus-peptides.yaml', 
 '/home/michael/Augustus/omssa/MT_HydACPAR-augustus-peptides.yaml'], f) }
 
+__END__
+AAA;K
+AAC;N
+AAG;K
+AAU;N
+AAN;K;X
+ACA;T
+ACC;T
+ACG;T
+ACU;T
+ACN;T
+AGA;R
+AGC;S
+AGG;R
+AGU;S
+AGN;R;X
+AUA;I
+AUC;I
+AUG;M
+AUU;I
+AUN;I;X
+ANA;X
+ANC;X
+ANG;X
+ANU;X
+ANN;X
+CAA;Q
+CAC;H
+CAG;Q
+CAU;H
+CAN;Q;X
+CCA;P
+CCC;P
+CCG;P
+CCU;P
+CCN;P
+CGA;R
+CGC;R
+CGG;R
+CGU;R
+CGN;R
+CUA;L
+CUC;L
+CUG;L
+CUU;L
+CUN;L
+CNA;X
+CNC;X
+CNG;X
+CNU;X
+CNN;X
+GAA;E
+GAC;D
+GAG;E
+GAU;D
+GAN;D;X
+GCA;A
+GCC;A
+GCG;A
+GCU;A
+GCN;A
+GGA;G
+GGC;G
+GGG;G
+GGU;G
+GGN;G
+GUA;V
+GUC;V
+GUG;V
+GUU;V
+GUN;V
+GNA;X
+GNC;X
+GNG;X
+GNU;X
+GNN;X
+UAA;$
+UAC;Y
+UAG;$
+UAU;Y
+UAN;Y;X
+UCA;S
+UCC;S
+UCG;S
+UCU;S
+UCN;S
+UGA;$
+UGC;C
+UGG;W
+UGU;C
+UGN;C;X
+UUA;L
+UUC;F
+UUG;L
+UUU;F
+UUN;L;X
+UNA;X
+UNC;X
+UNG;X
+UNU;X
+UNN;X
+NAA;X
+NAC;X
+NAG;X
+NAU;X
+NAN;X
+NCA;X
+NCC;X
+NCG;X
+NCU;X
+NCN;X
+NGA;X
+NGC;X
+NGG;X
+NGU;X
+NGN;X
+NUA;X
+NUC;X
+NUG;X
+NUU;X
+NUN;X
+NNA;X
+NNC;X
+NNG;X
+NNU;X
+NNN;X
