@@ -28,10 +28,8 @@ class SimQuant < ProteomaticScript
 		end
 		
 		puts "Searching for #{lk_Peptides.size} peptides..."
-		@input[:spectra].each do |ls_SpectraPath|
-			ls_Command = "#{ExternalTools::binaryPath('simquant.simquant')} -ox #{@output[:xhtmlReport]} #{ls_SpectraPath} #{lk_Peptides.join(' ')}"
-			puts 'There was an error while executing simquant.' unless system(ls_Command)
-		end
+		ls_Command = "#{ExternalTools::binaryPath('simquant.simquant')} -ox #{@output[:xhtmlReport]} #{@input[:spectra].join(' ')} #{lk_Peptides.join(' ')}"
+		puts 'There was an error while executing simquant.' unless system(ls_Command)
 	end
 end
 
