@@ -1,3 +1,8 @@
+# A: 0.1796
+# C: 0.3202
+# G: 0.3204
+# T: 0.1798
+
 require 'yaml'
 require 'set'
 
@@ -79,7 +84,6 @@ def handleFile(ak_Files, ak_Out = $stdout)
 		li_AssemblyCount = lk_NrHits.size
 		
 		lk_PeptideCombinations = Hash.new
-		lk_PeptideSpanOccurences = Hash.new
 		
 		lk_AllSpans = Array.new
 		lk_NrHits.each do |lk_Assembly|
@@ -105,12 +109,9 @@ def handleFile(ak_Files, ak_Out = $stdout)
 			#lk_Spans.reject! { |lk_Span| lk_Span[:length] < 4 }
 			ls_Peptide = lk_Assembly['peptide']
 			lk_PeptideCombinations[ls_Peptide] ||= Hash.new
-			lk_PeptideSpanOccurences[ls_Peptide] ||= Hash.new
 			lk_Spans.each do |lk_Span|
 				ls_Key = "#{lk_Span[:assemblyStart]}:#{lk_Span[:length]}"
 				lk_PeptideCombinations[ls_Peptide][ls_Key] = findCombinations(lk_Span[:peptide], lk_Span[:assemblyStart], lk_Span[:length])
-				lk_PeptideSpanOccurences[ls_Peptide][ls_Key] ||= Set.new
-				lk_PeptideSpanOccurences[ls_Peptide][ls_Key].add("#{lk_Span[:start]}-#{lk_Span[:end]}")
 			end
 			lk_AllSpans.push(lk_Spans)
 		end
@@ -121,8 +122,9 @@ def handleFile(ak_Files, ak_Out = $stdout)
 				ls_Peptide = lk_Span[:peptide]
 				ls_Key = "#{lk_Span[:assemblyStart]}:#{lk_Span[:length]}"
 				li_Combinations = lk_PeptideCombinations[ls_Peptide][ls_Key]
-				li_Occurences = lk_PeptideSpanOccurences[ls_Peptide][ls_Key].size
-				puts "#{ls_Peptide} (#{ls_Key}): #{li_Occurences} / #{li_Combinations}"
+				q = li_Combinations.to_f / (4.0**lk_Span[:length].to_f)
+				p = 1.0 - ((1.0 - q)**2100.0)
+				puts "#{ls_Peptide} (#{ls_Key}): #{p}"
 			end
 		end
 		
