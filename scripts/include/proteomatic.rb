@@ -350,6 +350,11 @@ class ProteomaticScript
 			end
 		end
 		ls_Result += @mk_Parameters.helpString()
+		if @mk_Input
+			ls_Result += "#{underline('Output directory', '-')}\n"
+			ls_Result += wordwrap("Unless an output directory is specified, the output files will be written to the directory of the first #{@mk_Input['groups'][@ms_DefaultOutputDirectoryGroup]['label']} file.")
+			ls_Result += "\n"
+		end
 		return ls_Result
 	end
 	
@@ -386,6 +391,10 @@ class ProteomaticScript
 				ls_Result += "\n"
 			end
 			ls_Result << "!!!end input\n"
+			ls_Result << "!!!begin defaultOutputDirectory\n"
+			ls_Result << "#{@mk_Input['groups'][@ms_DefaultOutputDirectoryGroup]['label']}\n"
+			ls_Result << "!!!end defaultOutputDirectory\n"
+			
 		end
 		return ls_Result
 	end

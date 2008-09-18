@@ -85,6 +85,7 @@ protected:
 	QString ms_ScriptUri;
 	QString ms_Title;
 	QString ms_Description;
+	QString ms_DefaultOutputDirectory;
 	RefPtr<k_SizeWatchWidget> mk_pParameterWidget;
 	QHash<QString, QWidget* > mk_ParameterValueWidgets;
 	QHash<QString, QWidget* > mk_ParameterDisplayWidgets;

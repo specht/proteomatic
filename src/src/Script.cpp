@@ -471,6 +471,7 @@ void k_Script::resetDialog()
 
 void k_Script::createParameterWidget(QStringList ak_Definition)
 {
+	ms_DefaultOutputDirectory.clear();
 	mk_InputFileDescriptionList.clear();
 	mk_OutputDirectory_ = NULL;
 	mk_ClearOutputDirectory_ = NULL;
@@ -519,6 +520,16 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				if (ls_Key == "!!!end input")
 					break;
 				mk_InputFileDescriptionList.push_back(ls_Key);
+			}
+		}
+		if (ls_Parameter == "!!!begin defaultOutputDirectory")
+		{
+			while (true)
+			{
+				QString ls_Key = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "!!!end defaultOutputDirectory")
+					break;
+				ms_DefaultOutputDirectory = ls_Key;
 			}
 		}
 		if (lk_Parameter["key"].length() > 0)
@@ -573,7 +584,13 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			QString ls_List;
 			foreach (QString ls_Item, mk_InputFileDescriptionList)
 				ls_List += "<li>" + ls_Item + "</li>";
-			lk_Label_ = new QLabel("<i></i>Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
+			lk_Label_ = new QLabel("Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
+			lk_Label_->setWordWrap(true);
+			lk_ParameterLayout_->addWidget(lk_Label_);
+		}
+		if (!ms_DefaultOutputDirectory.isEmpty())
+		{
+			lk_Label_ = new QLabel("Unless an output directory is specified, the output files will be written to the directory of the first " + ms_DefaultOutputDirectory + " file.", lk_InternalWidget_);
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}
