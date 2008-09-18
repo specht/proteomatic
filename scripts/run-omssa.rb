@@ -1,7 +1,6 @@
 require 'include/proteomatic'
 require 'include/externaltools'
 require 'include/fasta'
-require 'include/spectrum'
 require 'yaml'
 require 'fileutils'
 
@@ -113,15 +112,23 @@ class RunOmssa < ProteomaticScript
 			end
 		end
 		
+		# convert spectra to MGF
+		ls_MgfTempPath = tempFilename('mgf-temp')
+		FileUtils::mkpath(ls_MgfTempPath)
+		system("\"#{ExternalTools::binaryPath('xml2mgf.xml2mgf')}\" -b 2000 -o \"#{ls_MgfTempPath}/out\" #{@input[:spectra].join(' ')}");
+		
 		# run OMSSA on each spectrum
+=begin		
 		lk_OutFiles = Array.new
 		@input[:spectra].each do |ls_Path|
 			lk_OutFiles += runOmssa(ls_Path, lk_Databases, File::dirname(@output[:resultFile]), 'csv')
 		end
 		
+		
 		# merge results
 		print "Merging OMSSA results..."
 		mergeCsvFiles(lk_OutFiles, @output[:resultFile])
+=end		
 		FileUtils.rm_f(lk_ToBeDeleted);
 		puts "done."
 	end

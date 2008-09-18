@@ -1,7 +1,6 @@
 require 'include/proteomatic'
 require 'include/fastercsv'
 require 'include/misc'
-require 'include/spectrum'
 require 'set'
 require 'yaml'
 

@@ -41,3 +41,4 @@ externalParameters:
 needs:
   - ext.omssa
   - ext.blast
+  - ext.xml2mgf

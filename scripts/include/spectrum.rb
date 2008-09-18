@@ -3,6 +3,9 @@ require 'rexml/streamlistener'
 require 'base64'
 
 
+KA BLAM!! In Soviet Russia, peptide searches YOU!!
+
+
 class SpectrumXmlParserMzData
 	include REXML::StreamListener
 	
