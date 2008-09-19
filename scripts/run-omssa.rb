@@ -1,78 +1,35 @@
 require 'include/proteomatic'
 require 'include/externaltools'
 require 'include/fasta'
+require 'include/formats'
 require 'yaml'
 require 'fileutils'
 
 class RunOmssa < ProteomaticScript
 
 	def runOmssa(as_SpectrumFilename, ak_Databases, as_OutputDirectory, as_Format = 'csv')
-		print "#{File::basename(as_SpectrumFilename)}:"
+		lk_TargetDecoyFilenames = Array.new()
+		ak_Databases.each { |ls_Path| lk_TargetDecoyFilenames.push(getTargetDecoyFilename(ls_Path)) }
+		lk_OutFiles = Array.new
 		
-		@lk_TargetDecoyFilenames = Array.new()
-		ak_Databases.each { |ls_Path| @lk_TargetDecoyFilenames.push(getTargetDecoyFilename(ls_Path)) }
-		@lk_OutFiles = Array.new()
+		lb_TestDtaExisted = File.exists?('test.dta')
 		
-		@ls_OutputDirectory = as_OutputDirectory
-		@ls_SpectrumFilename = as_SpectrumFilename
-		@ls_MgfFilename = tempFilename("mgf-#{File.basename(@ls_SpectrumFilename)}")
-		
-		@lk_MgfFile = File.open(@ls_MgfFilename, 'w')
-		@li_SpectrumBatchSize = 0
-		@lb_FirstBatch = true
-		
-		@li_TotalSpectraCount = 0
-		
-		@ls_SpectrumFilename = as_SpectrumFilename
-		
-		def handleSpectrumBatch()
-			@li_TotalSpectraCount += @li_SpectrumBatchSize
-			print "\r#{File::basename(@ls_SpectrumFilename)}: #{@li_TotalSpectraCount} spectr#{@li_TotalSpectraCount == 1 ? 'um' : 'a'} "
-		
-			@lk_MgfFile.close()
+		lk_TargetDecoyFilenames.each do |ls_TargetDecoyPath|
+			ls_OutFilename = tempFilename("omssa-out", as_OutputDirectory)
+			lk_OutFiles.push(ls_OutFilename)
 			
-			lb_TestDtaExisted = File.exists?('test.dta')
+			ls_InputSwitch = '-fm'
+			ls_InputSwitch = '-f' if fileMatchesFormat(as_SpectrumFilename, 'dta')
+
+			ls_Command = "\"#{ExternalTools::binaryPath('omssa.omssacl')}\" -d \"#{ls_TargetDecoyPath}\" #{ls_InputSwitch} \"#{as_SpectrumFilename}\" -oc \"#{ls_OutFilename}\" -ni "
+			ls_Command += @mk_Parameters.commandLineFor('omssa.omssacl')
 			
-			@lk_TargetDecoyFilenames.each do |ls_TargetDecoyPath|
-				ls_OutFilename = tempFilename("omssa-out-#{File.basename(@ls_SpectrumFilename)}")
-				@lk_OutFiles.push(ls_OutFilename)
-				ls_Command = "\"#{ExternalTools::binaryPath('omssa.omssacl')}\" -d \"#{ls_TargetDecoyPath}\" -fm \"#{@ls_MgfFilename}\" -oc \"#{ls_OutFilename}\" -ni "
-				ls_Command += @mk_Parameters.commandLineFor('omssa.omssacl')
-				
-				system(ls_Command);
-			end
-	
-			File::delete('test.dta') if File.exists?('test.dta') && !lb_TestDtaExisted
-			
-			@li_SpectrumBatchSize = 0
-			begin
-				File::delete(@lk_MgfFile.path)
-			rescue StandardError => e
-				puts e
-			end
-			@lk_MgfFile = File.open(@ls_MgfFilename, 'w')
-			@lb_FirstBatch = false
+			system(ls_Command);
 		end
+
+		File::delete('test.dta') if File.exists?('test.dta') && !lb_TestDtaExisted
 		
-		lk_SpectrumProc = Proc.new do |ls_Contents|
-			@lk_MgfFile.write(ls_Contents)
-			@li_SpectrumBatchSize += 1
-			handleSpectrumBatch() if (@li_SpectrumBatchSize >= @param[:batchSize])
-		end
-		
-		MgfIterator.new(as_SpectrumFilename, lk_SpectrumProc, :levels => 2, :iterateAllCharges => @param['omssa.omssacl.precursorChargeDetermination'.intern] == 1).run
-		handleSpectrumBatch()
-		
-		puts
-		
-		@lk_MgfFile.close()
-		begin
-			File::delete(@lk_MgfFile.path)
-		rescue StandardError => e
-			puts e
-		end
-		
-		return @lk_OutFiles
+		return lk_OutFiles
 	end
 
 
@@ -112,39 +69,45 @@ class RunOmssa < ProteomaticScript
 			end
 		end
 		
-		# convert spectra to MGF
-		ls_MgfTempPath = tempFilename('mgf-temp')
-		FileUtils::mkpath(ls_MgfTempPath)
-		system("\"#{ExternalTools::binaryPath('xml2mgf.xml2mgf')}\" -b 2000 -o \"#{ls_MgfTempPath}/out\" #{@input[:spectra].join(' ')}");
-		
-		# run OMSSA on each spectrum
-=begin		
-		lk_OutFiles = Array.new
+		# check if there are spectra files that are not dta or mgf
+		lk_PreparedSpectraFiles = Array.new
+		lk_XmlFiles = Array.new
 		@input[:spectra].each do |ls_Path|
-			lk_OutFiles += runOmssa(ls_Path, lk_Databases, File::dirname(@output[:resultFile]), 'csv')
+			if ['dta', 'mgf'].include?(@inputFormat[ls_Path])
+				# it's DTA or MGF, give that directly to OMSSA
+				lk_PreparedSpectraFiles.push(ls_Path)
+			else
+				# it's something else, convert it first
+				lk_XmlFiles.push(ls_Path) 
+			end
 		end
 		
+		ls_TempPath = tempFilename('run-omssa')
+		FileUtils::mkpath(ls_TempPath)
+		unless (lk_XmlFiles.empty?)
+			# convert spectra to MGF
+			puts 'Converting XML spectra to MGF format...'
+			system("\"#{ExternalTools::binaryPath('xml2mgf.xml2mgf')}\" -b #{@param[:batchSize]} -o \"#{ls_TempPath}/mgf-in\" #{@input[:spectra].join(' ')}");
+			lk_PreparedSpectraFiles = lk_PreparedSpectraFiles + Dir[ls_TempPath + '/mgf-in*']
+		end
+		
+		# run OMSSA on each spectrum file
+		lk_OutFiles = Array.new
+		li_Counter = 0
+		lk_PreparedSpectraFiles.each do |ls_Path|
+			print "\rRunning OMSSA: #{li_Counter * 100 / lk_PreparedSpectraFiles.size}% done."
+			lk_OutFiles += runOmssa(ls_Path, lk_Databases, ls_TempPath, 'csv')
+			li_Counter += 1
+		end
+		puts "\rRunning OMSSA: 100% done."
 		
 		# merge results
 		print "Merging OMSSA results..."
 		mergeCsvFiles(lk_OutFiles, @output[:resultFile])
-=end		
+		
 		FileUtils.rm_f(lk_ToBeDeleted);
 		puts "done."
 	end
 end
 
 lk_Object = RunOmssa.new
-=begin
-def mergeSpectrumFilesToMgf(ak_SpectrumFilenames, as_OutputDirectory)
-	@ls_OutputDirectory = as_OutputDirectory
-	@ls_MgfFilename = tempFilename()
-	
-	@lk_MgfFile = File.open(@ls_MgfFilename, 'w')
-	lk_SpectrumProc = Proc.new { |ls_Contents| @lk_MgfFile.write(ls_Contents) }
-	ak_SpectrumFilenames.each { |ls_Filename| MgfIterator.new(ls_Filename, lk_SpectrumProc).run }
-	
-	@lk_MgfFile.close()
-	return  @ls_MgfFilename
-end
-=end

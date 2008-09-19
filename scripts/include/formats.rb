@@ -23,7 +23,14 @@ end
 def fileMatchesFormat(as_Filename, as_Format)
 	lk_Format = formatInfo(as_Format)
 	# match file extension
-	return false if !lk_Format['extensions'].include?(File.extname(as_Filename).downcase)
+	lb_ExtensionMatches = false
+	lk_Format['extensions'].each do |ls_Extension|
+		if (as_Filename.rindex(ls_Extension) == as_Filename.size - ls_Extension.size)
+			lb_ExtensionMatches = true
+			break
+		end
+	end
+	return false unless lb_ExtensionMatches
 	# try detection by reading some bytes
 	eval(lk_Format['detection']) rescue return false
 	# if we came through this, throw in a return true 'for good measure'

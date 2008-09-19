@@ -345,7 +345,8 @@ class ProteomaticScript
 				ls_Result += 'optional: ' if (ls_Range == '')
 				ls_Result += "#{@mk_Input['groups'][ls_Group]['label']} #{ls_FileLabel}"
 				ls_Result += "\n"
-				ls_Result += "  format: #{@mk_Input['groups'][ls_Group]['formats'].collect { |x| info = formatInfo(x); "#{info['description']} (#{info['extensions'].join('|')})" }.join(', ')}\n"
+				ls_Line = "format: #{@mk_Input['groups'][ls_Group]['formats'].collect { |x| info = formatInfo(x); "#{info['description']} (#{info['extensions'].join('|')})" }.join(', ')}"
+				ls_Result += indent(wordwrap(ls_Line), 2, true) + "\n"
 				ls_Result += "\n"
 			end
 		end
@@ -632,11 +633,14 @@ class ProteomaticScript
 		
 		# determine input files
 		@input = Hash.new
+		# @inputFormat stores the format of each input file
+		@inputFormat = Hash.new
 		lk_Files.each do |ls_Path|
-			ls_Group = findGroupForFile(ls_Path)
+			ls_Group, ls_Format = findGroupForFile(ls_Path)
 			if (ls_Group)
 				@input[ls_Group.intern] ||= Array.new
 				@input[ls_Group.intern].push(ls_Path)
+				@inputFormat[ls_Path] = ls_Format
 			end
 		end
 
@@ -729,7 +733,7 @@ class ProteomaticScript
 		end
 		
 		# delete output files
-		FileUtils::rm_f(@mk_TempFiles)
+		FileUtils::rm_rf(@mk_TempFiles)
 		return lk_Files
 	end
 	
@@ -742,7 +746,7 @@ class ProteomaticScript
 	def findGroupForFile(as_Path)
 		@mk_Input['groups'].each do |ls_Group, lk_Group|
 			lk_Group['formats'].each do |ls_Format|
-				return ls_Group if (fileMatchesFormat(as_Path, ls_Format))
+				return ls_Group, ls_Format if (fileMatchesFormat(as_Path, ls_Format))
 			end
 		end
 		return nil
@@ -768,8 +772,9 @@ class ProteomaticScript
 		return @mk_Input['files'][as_Group]
 	end
 	
-	def tempFilename(as_Prefix = 'temp-')
-		lk_TempFile = Tempfile.new(as_Prefix, @outputDirectory)
+	def tempFilename(as_Prefix = 'temp-', as_Directory = nil)
+		as_Directory = @outputDirectory unless as_Directory
+		lk_TempFile = Tempfile.new(as_Prefix, as_Directory)
 		ls_TempFilename = lk_TempFile.path
 		lk_TempFile.close!
 		@mk_TempFiles.push(ls_TempFilename)
