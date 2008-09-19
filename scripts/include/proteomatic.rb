@@ -366,7 +366,7 @@ class ProteomaticScript
 		if @mk_Input
 			ls_Result << "!!!begin input\n"
 			@mk_Input['groupOrder'].each do |ls_Group|
-				ls_Format = "#{@mk_Input['groups'][ls_Group]['formats'].collect { |x| formatInfo(x)['extensions'] }.flatten.uniq.sort.join('|')}"
+				ls_Format = "#{@mk_Input['groups'][ls_Group]['formats'].collect { |x| formatInfo(x)['extensions'] }.flatten.uniq.sort.join(' | ')}"
 				ls_Range = ''
 				ls_Range += 'min' if @mk_Input['groups'][ls_Group]['min']
 				ls_Range += 'max' if @mk_Input['groups'][ls_Group]['max']
