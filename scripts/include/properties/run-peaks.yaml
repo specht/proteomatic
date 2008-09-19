@@ -10,7 +10,7 @@ type: processor
 input:
   - key: spectra
     label: spectra
-    formats: [dta, xml-mzdata, xml-mzxml]
+    formats: [dta, mgf, xml-mzdata, xml-mzdata-zipped, xml-mzxml, xml-mzxml-zipped]
     min: 1
 
 defaultOutputDirectory: spectra
