@@ -633,6 +633,9 @@ class ProteomaticScript
 		
 		# determine input files
 		@input = Hash.new
+		
+		@mk_Input['groups'].each { |ls_Group, lk_Group|	@input[ls_Group.intern] = Array.new }
+		
 		# @inputFormat stores the format of each input file
 		@inputFormat = Hash.new
 		lk_Files.each do |ls_Path|
@@ -772,7 +775,8 @@ class ProteomaticScript
 		return @mk_Input['files'][as_Group]
 	end
 	
-	def tempFilename(as_Prefix = 'temp-', as_Directory = nil)
+	def tempFilename(as_Prefix = '', as_Directory = nil)
+		as_Prefix = 'temp-' + as_Prefix
 		as_Directory = @outputDirectory unless as_Directory
 		lk_TempFile = Tempfile.new(as_Prefix, as_Directory)
 		ls_TempFilename = lk_TempFile.path

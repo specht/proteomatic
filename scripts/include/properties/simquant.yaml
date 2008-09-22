@@ -10,7 +10,7 @@ type: processor
 input:
   - key: spectra
     label: spectra
-    formats: [dta, mgf, xml-mzdata, xml-mzdata-zipped, xml-mzxml, xml-mzxml-zipped]
+    formats: [xml-mzdata, xml-mzdata-zipped, xml-mzxml, xml-mzxml-zipped]
     min: 1
   - key: peptidesFile
     label: peptides
@@ -40,14 +40,14 @@ parameters:
     label: Minimum charge
     type: int
     default: 2
-    min: 2
-    max: 2
+    min: 1
+    max: 10
   - key: maxCharge
     label: Maximum charge
     type: int
     default: 3
-    min: 3
-    max: 3
+    min: 1
+    max: 10
     
 needs:
   - ext.simquant
