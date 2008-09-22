@@ -78,7 +78,7 @@ class RunOmssa < ProteomaticScript
 				lk_PreparedSpectraFiles.push(ls_Path)
 			else
 				# it's something else, convert it first
-				lk_XmlFiles.push(ls_Path) 
+				lk_XmlFiles.push("\"" + ls_Path + "\"") 
 			end
 		end
 		
@@ -87,7 +87,7 @@ class RunOmssa < ProteomaticScript
 		unless (lk_XmlFiles.empty?)
 			# convert spectra to MGF
 			puts 'Converting XML spectra to MGF format...'
-			system("\"#{ExternalTools::binaryPath('xml2mgf.xml2mgf')}\" -b #{@param[:batchSize]} -o \"#{ls_TempPath}/mgf-in\" #{@input[:spectra].join(' ')}");
+			system("\"#{ExternalTools::binaryPath('xml2mgf.xml2mgf')}\" -b #{@param[:batchSize]} -o \"#{ls_TempPath}/mgf-in\" #{lk_XmlFiles.join(' ')}");
 			lk_PreparedSpectraFiles = lk_PreparedSpectraFiles + Dir[ls_TempPath + '/mgf-in*']
 		end
 		
