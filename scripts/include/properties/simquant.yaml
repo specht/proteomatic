@@ -48,6 +48,13 @@ parameters:
     default: 3
     min: 1
     max: 10
+  - key: cropUpper
+    label: Crop upper
+    type: float
+    default: 25.0
+    suffix: %
+    min: 0.0
+    max: 100.0
     
 needs:
   - ext.simquant
