@@ -212,7 +212,18 @@ class EvaluateOmssa < ProteomaticScript
 				lk_Out.puts 'table th, td {vertical-align: top; border: 1px solid #888; padding: 0.2em;}'
 				lk_Out.puts 'table th {font-weight: bold;}'
 				lk_Out.puts '.gpf-confirm { background-color: #aed16f; }'
+				lk_Out.puts '.toggle { cursor: pointer; text-decoration: underline; color: #aaa; }'
+				lk_Out.puts '.toggle:hover { color: #000; }'
 				lk_Out.puts '</style>'
+				lk_Out.puts "<script type='text/javascript'>"
+				lk_Out.puts "/*<![CDATA[*/"
+				lk_Out.puts "function toggle(as_Name, as_Display) {"
+				lk_Out.puts "lk_Elements = document.getElementsByClassName(as_Name);"
+				lk_Out.puts "for (var i = 0; i < lk_Elements.length; ++i)"
+				lk_Out.puts "lk_Elements[i].style.display = lk_Elements[i].style.display == 'none' ? as_Display : 'none';"
+				lk_Out.puts "}"
+				lk_Out.puts "/*]]>*/"
+				lk_Out.puts "</script>"
 				lk_Out.puts '</head>'
 				lk_Out.puts '<body>'
 				lk_Out.puts '<h1>OMSSA Report</h1>'
@@ -224,20 +235,22 @@ class EvaluateOmssa < ProteomaticScript
 				lk_Out.puts '<ol>'
 				lk_SpotLinks = Array.new
 				lk_ShortScanKeys.each { |ls_Spot| lk_SpotLinks.push("<a href='#subheader-spot-#{ls_Spot}'>#{ls_Spot}</a>") }
-				lk_Out.puts "<li><a href='#header-identified-proteins'>Identified proteins</a></li>"
-				lk_Out.puts "<li><a href='#header-identified-proteins-by-spot'>Identified proteins by spot</a><br />(#{lk_SpotLinks.join(', ')})</li>"
+				lk_Out.puts "<li><a href='#header-identified-proteins-by-spectra-count'>Identified proteins by spectra count</a></li>"
+				lk_Out.puts "<li><a href='#header-identified-proteins-by-spot'>Identified proteins by spot</a> <span class='toggle' onclick='toggle(\"toc-proteins-by-spot-spots\", \"inline\")'>[show spots]</span><span class='toc-proteins-by-spot-spots' style='display: none;'><br />(#{lk_SpotLinks.join(', ')})</span></li>"
+				lk_Out.puts "<li><a href='#header-identified-proteins-by-distinct-peptide-count'>Identified proteins by distinct peptide count</a></li>"
 				lk_Out.puts "<li><a href='#header-new-gpf-peptides'>Additional peptides identified by GPF</a></li>" if (lk_GpfPeptides - lk_ModelPeptides).size > 0
 				lk_Out.puts "<li><a href='#header-ambiguous-peptides'>Identified peptides that appear in more than one model protein</a></li>" if (lk_ModelPeptides - lk_ProteinIdentifyingModelPeptides).size > 0
 				lk_Out.puts "<li><a href='#header-e-thresholds'>E-value thresholds by spot</a></li>"
 				lk_Out.puts '</ol>'
 			
-				lk_Out.puts "<h2 id='header-identified-proteins'>Identified proteins</h2>"
+				lk_Out.puts "<h2 id='header-identified-proteins-by-spectra-count'>Identified proteins by spectra count</h2>"
 				lk_Out.puts "<p>This table contains all model proteins that could be identified. Peptides that have additionally been found by de novo prediction and GPF search are <span class='gpf-confirm'>highlighted</span>.</p>"
 				
 				lk_Out.puts '<table>'
 				lk_Out.puts "<tr><th>Protein</th><th>Protein spectra count</th><th>Peptides</th><th>Peptide spectra count</th></tr>"
 				lk_Out.print '<tr>'
 				lb_Open0 = true
+				li_ToggleCounter = 0
 				lk_ProteinsBySpectraCount.each do |ls_Protein|
 					lb_Open1 = true
 					lk_Out.print "<tr>" unless lb_Open0
@@ -249,7 +262,9 @@ class EvaluateOmssa < ProteomaticScript
 					lk_FoundInSpots.sort! { |x, y| String::natcmp(x, y) }
 					lk_FoundInSpots.collect! { |x| "<a href='#subheader-spot-#{x}'>#{x}</a>" }
 					ls_FoundInSpots = lk_FoundInSpots.join(', ')
-					lk_Out.print "<td rowspan='#{lk_Proteins[ls_Protein]['peptides'].size}'>#{ls_Protein.sub('target_', '')} <i>(found in: #{ls_FoundInSpots})</i></td>"
+					li_ToggleCounter += 1
+					ls_ToggleClass = "proteins-by-spectra-count-#{li_ToggleCounter}"
+					lk_Out.print "<td rowspan='#{lk_Proteins[ls_Protein]['peptides'].size}'>#{ls_Protein.sub('target_', '')} <i>(<span class='toggle' onclick='toggle(\"#{ls_ToggleClass}\", \"inline\")'>found in:</span><span class='#{ls_ToggleClass}' style='display: none;'> #{ls_FoundInSpots}</span>)</i></td>"
 					lk_Out.print "<td rowspan='#{lk_Proteins[ls_Protein]['peptides'].size}'>#{lk_Proteins[ls_Protein]['spectraCount']}</td>"
 					lk_PeptidesSorted = lk_Proteins[ls_Protein]['peptides'].keys.sort { |x, y| lk_Proteins[ls_Protein]['peptides'][y] <=> lk_Proteins[ls_Protein]['peptides'][x]}
 					lk_PeptidesSorted.each do |ls_Peptide|
@@ -309,6 +324,18 @@ class EvaluateOmssa < ProteomaticScript
 					end
 				end
 				lk_Out.puts '</table>'
+				
+				lk_Out.puts "<h2 id='header-identified-proteins-by-distinct-peptide-count'>Identified proteins by distinct peptide count</h2>"
+				lk_Out.puts "<p>This table contains all model proteins that could be identified, sorted by the number of distinct peptides that identified the protein.</p>"
+				
+				lk_ProteinsByDistinctPeptideCount = lk_Proteins.keys.sort { |a, b| lk_Proteins[b]['peptides'].size <=> lk_Proteins[a]['peptides'].size}
+				lk_Out.puts '<table>'
+				lk_Out.puts '<tr><th>Protein</th><th>Distinct peptide count</th><th>Peptides</th></tr>'
+				lk_ProteinsByDistinctPeptideCount.each do |ls_Protein|
+					lk_Out.puts "<tr><td>#{ls_Protein}</td><td>#{lk_Proteins[ls_Protein]['peptides'].size}</td><td>#{lk_Proteins[ls_Protein]['peptides'].keys.join(', ')}</td></tr>"
+				end
+				lk_Out.puts '</table>'
+				
 				
 				if (lk_GpfPeptides - lk_ModelPeptides).size > 0
 					lk_Out.puts "<h2 id='header-new-gpf-peptides'>Additional peptides identified by GPF</h2>" 
