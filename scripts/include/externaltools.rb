@@ -23,7 +23,7 @@ class ExternalTools
 				return
 			end
 		elsif (@@ms_Platform == 'windows')
-			system("..\\..\\include\\helpers\\7z\\7za.exe x #{as_Path}")
+			system("#{binaryPath('7zip.7zip')} x #{as_Path}")
 			return
 		end
 		puts "Internal error: Unable to unpack #{as_Path} (file extension handling not implemented for this system)."
