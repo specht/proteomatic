@@ -4,6 +4,8 @@ title: Evaluate OMSSA results
 
 description: >
   Evaluate an OMSSA search at a certain target false positive ratio and create a HTML report.
+  If you specify multiple OMSSA result files, please specify whether you want to merge or
+  compare them.
 
 type: processor
 
@@ -37,7 +39,7 @@ output:
 
 parameters:
   - key: targetFpr
-    group: Script options
+    group: Evaluation options
     label: Target FPR
     type: float
     default: 0.1
@@ -45,3 +47,13 @@ parameters:
     min: 0.0
     max: 100.0
     step: 0.1
+  - key: mode
+    group: Evaluation options
+    label: Mode
+    type: enum
+    choices: [{merge: 'Merge OMSSA runs'}, {compare: 'Compare OMSSA runs'}]
+    default: compare
+    description: >
+      If multiple OMSSA result files are specified, choose whether they should
+      be merged before evaluation or whether the results from each file should
+      be compared.
