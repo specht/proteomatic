@@ -39,13 +39,11 @@ end
 
 ls_Version = File::basename(Dir::pwd())
 
-if ls_Version == nil
-	puts 'Internal error: Unable to determine Proteomatic version.'
-	exit 1
-end
+# add current date if this is a trunk build
+ls_Version += ' ' + Time.new.strftime('%Y-%m-%d') if ls_Version == 'trunk'
 
 File.open('scripts/include/version.rb', 'w') { |lk_File| lk_File.write(ls_Version) }
-File.open('src/src/versuib.h', 'w') do |lk_File|
+File.open('src/src/version.h', 'w') do |lk_File|
 	lk_File.puts '#pragma once'
 	lk_File.puts
 	lk_File.puts 'QString gs_ProteomaticVersion = "' + ls_Version + '";'
