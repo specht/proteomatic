@@ -1,0 +1,9 @@
+projects:
+  - src/projects/Proteomatic
+qt: [core, gui, network]
+versionInject:
+  src/src/version.h: |
+    #pragma once
+    #include <QtCore>
+    QString gs_ProteomaticVersion = "#{VERSION}";
+  scripts/include/version.rb: '#{VERSION}'
