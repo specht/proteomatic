@@ -1,10 +1,9 @@
 group: OMSSA
 
-title: Evaluate OMSSA results
+title: Compare OMSSA Runs
 
 description: >
-  Evaluate an OMSSA search at a certain target false positive ratio and create a HTML report.
-  If you specify multiple OMSSA result files, they will be merged before evaluation.
+  Compare OMSSA runs at a certain target false positive ratio.
 
 type: processor
 
@@ -23,18 +22,13 @@ output:
   - key: htmlReport
     label: HTML report
     format: html
-    filename: omssa-report.html
+    filename: compare-omssa-report.html
+    default: no
+  - key: csvReport
+    label: CSV report
+    format: csv
+    filename: compare-omssa-report.csv
     default: yes
-  - key: identifiedPeptides
-    label: identified peptides
-    format: fasta-proteins
-    filename: identified-peptides.fasta
-    default: no
-  - key: amsFile
-    label: 2DB import file
-    format: ams
-    filename: 2db-import.ams
-    default: no
 
 parameters:
   - key: targetFpr

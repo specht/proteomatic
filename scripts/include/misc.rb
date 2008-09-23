@@ -1,3 +1,14 @@
+def stddev(ak_Values)
+	lf_Mean = 0.0
+	ak_Values.each { |f| lf_Mean += f.to_f }
+	lf_Mean /= ak_Values.size
+	
+	lf_Sum = 0.0
+	ak_Values.each { |f| lf_Sum += (f.to_f - lf_Mean) * (f.to_f - lf_Mean) }
+	return Math.sqrt(lf_Sum / ak_Values.size)
+end
+
+
 def wordwrap(as_String, ai_MaxLength = 70)
 	lk_RegExp = Regexp.new('.{1,' + ai_MaxLength.to_s + '}(?:\s|\Z)')
 	as_String.gsub(/\t/,"     ").gsub(lk_RegExp){($& + 5.chr).gsub(/\n\005/,"\n").gsub(/\005/,"\n")}
