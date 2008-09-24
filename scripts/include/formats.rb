@@ -42,7 +42,7 @@ def fileMatchesFormat(as_Filename, as_Format)
 	# match file extension
 	lb_ExtensionMatches = false
 	lk_Format['extensions'].each do |ls_Extension|
-		if (as_Filename.rindex(ls_Extension) == as_Filename.size - ls_Extension.size)
+		if (as_Filename.downcase.rindex(ls_Extension.downcase) == as_Filename.size - ls_Extension.size)
 			lb_ExtensionMatches = true
 			break
 		end

@@ -19,17 +19,10 @@ defaultOutputDirectory: rawFiles
 
 output:
   - key: rawFiles
-    label: mzXML files
-    format: xml-mzxml
-    filename: '#{basename}.mzxml'
+    label: zipped mzXML files
+    format: xml-mzxml-zipped
+    filename: '#{basename}.mzxml.zip'
     
-parameters:
-  - key: zipResultFile
-    group: Conversion parameters
-    label: Zip result file
-    type: flag
-    default: yes
-
 needs:
   - ext.readw
   - ext.7zip
