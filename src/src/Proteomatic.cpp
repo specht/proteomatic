@@ -195,79 +195,80 @@ void k_Proteomatic::collectScriptInfo()
 		QString ls_Description = "";
 
 		QFile lk_File(ls_Path);
-		lk_File.open(QIODevice::ReadOnly | QIODevice::Unbuffered);
-		if (lk_File.size() >= 29)
+		lk_File.open(QIODevice::ReadOnly);
+		QString ls_Marker;
+		QTextStream lk_Stream(&lk_File);
+		while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#")))
+			ls_Marker = lk_Stream.readLine().trimmed();
+		lk_File.close();
+			
+		if (ls_Marker == "require 'include/proteomatic'" || ls_Marker == "require \"include/proteomatic\"")
 		{
-			QString ls_Marker = QString(lk_File.read(29));
-			if (ls_Marker == "require 'include/proteomatic'")
+		/*
+			if (!QFile::exists("cache"))
 			{
+				QDir lk_Dir;
+				lk_Dir.mkdir("cache");
+			}
+			*/
+
+			QProcess lk_QueryProcess;
+
+			QFileInfo lk_FileInfo(ls_Path);
+			lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+			QStringList lk_Arguments;
+			lk_Arguments << ls_Path << "---info";
+			lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+			lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+			QString ls_Response;
+			QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
 			/*
-				if (!QFile::exists("cache"))
+			if (QFile::exists(ls_CacheFilename) && !mb_SupressCache)
+			{
+				QFile lk_File(ls_CacheFilename);
+				if (lk_File.open(QIODevice::ReadOnly))
 				{
-					QDir lk_Dir;
-					lk_Dir.mkdir("cache");
+					ls_Response = lk_File.readAll();
+					lk_File.close();
 				}
-				*/
-
-				QProcess lk_QueryProcess;
-
-				QFileInfo lk_FileInfo(ls_Path);
-				lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
-				QStringList lk_Arguments;
-				lk_Arguments << ls_Path << "---info";
-				lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-				lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
-				QString ls_Response;
-				QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
-				/*
-				if (QFile::exists(ls_CacheFilename) && !mb_SupressCache)
+			}
+			else
+			*/
+			{
+				if (lk_QueryProcess.waitForFinished())
 				{
-					QFile lk_File(ls_CacheFilename);
-					if (lk_File.open(QIODevice::ReadOnly))
+					ls_Response = lk_QueryProcess.readAll();
+					/*
+					if (!mb_SupressCache && !QFile::exists(ls_CacheFilename))
 					{
-						ls_Response = lk_File.readAll();
-						lk_File.close();
-					}
-				}
-				else
-				*/
-				{
-					if (lk_QueryProcess.waitForFinished())
-					{
-						ls_Response = lk_QueryProcess.readAll();
-						/*
-						if (!mb_SupressCache && !QFile::exists(ls_CacheFilename))
+						QFile lk_File(ls_CacheFilename);
+						if (lk_File.open(QIODevice::WriteOnly))
 						{
-							QFile lk_File(ls_CacheFilename);
-							if (lk_File.open(QIODevice::WriteOnly))
-							{
-								QTextStream lk_Stream(&lk_File);
-								lk_Stream << ls_Response;
-								lk_Stream.flush();
-								lk_File.close();
-							}
+							QTextStream lk_Stream(&lk_File);
+							lk_Stream << ls_Response;
+							lk_Stream.flush();
+							lk_File.close();
 						}
-						*/
 					}
+					*/
 				}
-				if (ls_Response.length() > 0)
+			}
+			if (ls_Response.length() > 0)
+			{
+				QStringList lk_Response = ls_Response.split(QChar('\n'));
+				if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---info")
 				{
-					QStringList lk_Response = ls_Response.split(QChar('\n'));
-					if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---info")
+					ls_Title = lk_Response.takeFirst().trimmed();
+					ls_Group = lk_Response.takeFirst().trimmed();
+					while (!lk_Response.empty())
 					{
-						ls_Title = lk_Response.takeFirst().trimmed();
-						ls_Group = lk_Response.takeFirst().trimmed();
-						while (!lk_Response.empty())
-						{
-							if (!ls_Description.isEmpty())
-								ls_Description += "\n";
-							ls_Description += lk_Response.takeFirst().trimmed();
-						}
+						if (!ls_Description.isEmpty())
+							ls_Description += "\n";
+						ls_Description += lk_Response.takeFirst().trimmed();
 					}
 				}
 			}
 		}
-		lk_File.close();
 
 		if (ls_Title.length() > 0)
 		{

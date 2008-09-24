@@ -34,15 +34,14 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 	mk_Process.setWorkingDirectory(lk_FileInfo.path());
 
 	QFile lk_File(as_ScriptPath);
-	lk_File.open(QIODevice::ReadOnly | QIODevice::Unbuffered);
-	
+	lk_File.open(QIODevice::ReadOnly);
 	QString ls_Marker;
-	if (lk_File.size() >= 29)
-		ls_Marker = QString(lk_File.read(29));
-	
+	QTextStream lk_Stream(&lk_File);
+	while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#")))
+		ls_Marker = lk_Stream.readLine().trimmed();
 	lk_File.close();
 		
-	if (ls_Marker == "require 'include/proteomatic'")
+	if (ls_Marker == "require 'include/proteomatic'" || ls_Marker == "require \"include/proteomatic\"")
 	{
 		QString ls_Response = mk_Proteomatic.syncRuby(QStringList() << as_ScriptPath << "---getParameters");
 		QStringList lk_Response = ls_Response.split(QChar('\n'));
