@@ -1,3 +1,0 @@
-extensions: ['.zip']
-detection: return true
-description: ZIP

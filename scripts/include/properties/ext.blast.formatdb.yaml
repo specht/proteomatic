@@ -1,4 +1,0 @@
-binary:
-  linux: formatdb
-  windows: formatdb.exe
-  mac: formatdb

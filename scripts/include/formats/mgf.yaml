@@ -1,4 +1,0 @@
-extensions: ['.mgf']
-detection: |
-  return true
-description: Mascot generic format

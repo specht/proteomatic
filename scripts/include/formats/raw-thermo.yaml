@@ -1,3 +1,0 @@
-extensions: ['.raw']
-detection: return true
-description: Thermo RAW
