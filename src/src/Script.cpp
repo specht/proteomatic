@@ -869,6 +869,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			{
 				lk_Widget_ = new QWidget(lk_Container_);
 				QHBoxLayout* lk_WidgetLayout_ = new QHBoxLayout(lk_Widget_);
+				lk_WidgetLayout_->addStretch();
 				foreach (QString ls_Item, lk_ParametersValues[ls_Key])
 				{
 					QCheckBox* lk_CheckBox_ = new QCheckBox(lk_Widget_);
@@ -889,7 +890,6 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 					lk_CheckBox_->setProperty("key", QVariant(ls_Key));
 					connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
 				}
-				lk_WidgetLayout_->addStretch();
 				lk_WidgetLayout_->setMargin(0);
 			}
 			else
