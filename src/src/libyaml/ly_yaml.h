@@ -25,6 +25,7 @@ extern "C" {
  */
 
 /** The public API declaration. */
+#define YAML_DECLARE_STATIC 1
 
 #ifdef WIN32
 #   if defined(YAML_DECLARE_STATIC)
