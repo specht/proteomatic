@@ -9,6 +9,7 @@
   <file>icons/dialog-ok.png</file>
   <file>icons/dialog-warning.png</file>
   <file>icons/document-open.png</file>
+  <file>icons/document-properties.png</file>
   <file>icons/document-save.png</file>
   <file>icons/edit-clear.png</file>
   <file>icons/face-monkey.png</file>
@@ -26,8 +27,10 @@
   <file>icons/preferences-system.png</file>
   <file>icons/proteomatic.png</file>
   <file>icons/ruby.png</file>
+  <file>icons/software-update-available.png</file>
   <file>icons/system-log-out.png</file>
   <file>icons/system-search.png</file>
+  <file>icons/system-software-update.png</file>
   <file>icons/ticket.png</file>
   <file>icons/view-refresh.png</file>
 </qresource>

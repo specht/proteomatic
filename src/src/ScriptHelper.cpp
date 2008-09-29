@@ -97,7 +97,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_LoadScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
 	
-	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Profiles");
+	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles");
 	connect(mk_ProfilesAction_, SIGNAL(triggered()), this, SLOT(showProfileManager()));
 	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
@@ -116,6 +116,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_CheckTicketAction_ = lk_ToolBar_->addAction(QIcon(":/icons/ticket.png"), "&Check ticket");
 	connect(mk_CheckTicketAction_, SIGNAL(triggered()), this, SLOT(checkTicket()));
 	mk_CheckTicketAction_->setEnabled(false);
+	
+	lk_ToolBar_->addSeparator();
+	
+	QAction* lk_PreferencesOptions_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Preferences...");
 	
 	addToolBar(Qt::TopToolBarArea, lk_ToolBar_);
 
