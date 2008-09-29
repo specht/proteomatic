@@ -100,6 +100,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Profiles");
 	connect(mk_ProfilesAction_, SIGNAL(triggered()), this, SLOT(showProfileManager()));
 	
+	// disable all profile related stuff for this branch!
+	mk_ProfilesAction_->setEnabled(false);
+	mk_ProfilesAction_->setVisible(false);
+	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
 	mk_ReloadScriptAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
