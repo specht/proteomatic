@@ -3,6 +3,7 @@ require 'uri'
 require 'net/ftp'
 require 'tempfile'
 require 'fileutils'
+require 'yaml'
 
 
 def determinePlatform()
@@ -71,7 +72,7 @@ end
 ls_Uri = ''
 
 if ARGV.size < 1
-	puts 'Usage: ruby check-for-updates.rb [proteomatic-scripts URI] [(optional) --dryrun] [--outpath .]'
+	puts 'Usage: ruby check-for-updates.rb [proteomatic-scripts URI] [(optional) --dryrun] [--outpath .] [--oldpath .]'
 	exit 1
 end
 
@@ -79,10 +80,16 @@ ls_Uri = ARGV[0]
 
 lb_DryRun = ARGV.include?('--dryrun')
 ls_OutPath = '.'
+ls_OldPath = ''
 
 if ARGV.include?('--outpath')
 	li_Index = ARGV.index('--outpath')
 	ls_OutPath = ARGV[li_Index + 1]
+end
+
+if ARGV.include?('--oldpath')
+	li_Index = ARGV.index('--oldpath')
+	ls_OldPath = ARGV[li_Index + 1]
 end
 
 unless (File::exists?(ls_OutPath))
@@ -130,6 +137,41 @@ elsif (ls_Platform == 'win32')
 	unless system("#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x \"#{ls_PackagePath}\"")
 		puts "Error: Unable to unpack #{ls_PackagePath}."
 		exit 1
+	end
+end
+
+unless (ls_OldPath.empty?)
+	puts "Copying configuration files and external tools..."
+	lk_OldFiles = Dir[File::join(ls_OldPath, 'config/**/*')]
+	lk_OldFiles += Dir[File::join(ls_OldPath, 'ext/**/*')]
+	lk_OldFiles.collect! { |x| x.sub(ls_OldPath, '') }
+	ls_NewPath = File::join(ls_OutPath, ls_Current.sub('.tar.bz2', ''))
+	lk_NewFiles = Dir[File::join(ls_NewPath, 'config/**/*')]
+	lk_NewFiles += Dir[File::join(ls_NewPath, 'ext/**/*')]
+	
+	# strip base dir
+	lk_NewFiles.collect! { |x| x.sub(ls_NewPath, '') }
+	
+	# reject files that are already in the new location
+	lk_OldFiles.reject! { |x| lk_NewFiles.include?(x) }
+	
+	# expand to full path again
+	lk_OldFiles.collect! { |x| File::join(ls_OldPath, x) }
+	
+	# extact dirs
+	lk_OldExtraDirs = lk_OldFiles.select { |x| File::directory?(x) } 
+	
+	# reject dirs
+	lk_OldFiles.reject! { |x| File::directory?(x) }
+	
+	# create dirs in new location
+	lk_OldExtraDirs.each do |ls_Dir|
+		FileUtils::mkpath(File::join(ls_NewPath, ls_Dir.sub(ls_OldPath, '')))
+	end
+	
+	# copy files to new location
+	lk_OldFiles.each do |ls_File|
+		FileUtils::cp(ls_File, File::join(ls_NewPath, ls_File.sub(ls_OldPath, '')))
 	end
 end
 

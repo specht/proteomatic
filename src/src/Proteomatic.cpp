@@ -88,7 +88,8 @@ void k_Proteomatic::checkForUpdates()
 			QString ls_LatestVersion = ls_Result.replace(".tar.bz2", "").trimmed();
 			QString ls_Version = ls_Result.replace(".tar.bz2", "").replace("proteomatic-scripts-", "").trimmed();
 			QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
-			QString ls_InstalledVersion = ms_ScriptPackage.replace("proteomatic-scripts-", "").trimmed();
+			QString ls_InstalledVersion = ms_ScriptPackage;
+			ls_InstalledVersion.replace("proteomatic-scripts-", "").trimmed();
 			if (ls_Version != ls_InstalledVersion)
 			{
 				if (this->showMessageBox("Online update", 
@@ -96,7 +97,11 @@ void k_Proteomatic::checkForUpdates()
 					"Latest version: " + ls_Version + ", installed: " + ls_InstalledVersion + "<br />Do you want to update to the latest version?",
 					":/icons/system-software-update.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
 				{
-					k_RubyWindow lk_RubyWindow(*this, QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << ms_ScriptPath, "Online update", ":/icons/system-software-update.png");
+					QStringList lk_Arguments;
+					lk_Arguments = QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << ms_ScriptPath;
+					if (!ms_ScriptPackage.isEmpty())
+						lk_Arguments << "--oldpath" << ms_ScriptPath + "/" + ms_ScriptPackage;
+					k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/system-software-update.png");
 					lk_RubyWindow.exec();
 					
 					ms_ScriptPackage = ls_LatestVersion;
@@ -682,7 +687,8 @@ void k_Proteomatic::saveConfiguration()
 
 QString k_Proteomatic::scriptsVersion()
 {
-	return ms_ScriptPackage.replace("proteomatic-scripts-", "").trimmed();
+	QString ls_Version = ms_ScriptPackage;
+	return ls_Version.replace("proteomatic-scripts-", "").trimmed();
 }
 
 
