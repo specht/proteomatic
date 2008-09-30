@@ -45,8 +45,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	connect(&mk_Proteomatic, SIGNAL(remoteHubLineBatch(QStringList)), this, SLOT(remoteHubLineBatch(QStringList)));
 	connect(&mk_Proteomatic, SIGNAL(remoteHubRequestFinished(int, bool, QString)), this, SLOT(remoteHubRequestFinished(int, bool, QString)));
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
-	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version() + " (using scripts " + mk_Proteomatic.scriptsVersion() + ")";
-	setWindowTitle(ms_WindowTitle);
+	this->updateWindowTitle();
 	
 	//mk_ProteomaticScriptVersionLabel_ = new QLabel(this);
 	//mk_ProteomaticScriptVersionLabel_->setText("Scripts version: " + mk_Proteomatic.scriptsVersion());
@@ -458,11 +457,8 @@ void k_ScriptHelper::toggleUi()
 		
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
 	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptType::Remote;
-	
-	if (mk_Script_)
-		setWindowTitle(mk_Script_->title() + " - " + ms_WindowTitle);
-	else
-		setWindowTitle(ms_WindowTitle);
+
+	this->updateWindowsTitle();
 	
 	//mk_CheckTicketAction_->setEnabled(mk_Proteomatic.remoteHub().isReady());
 
@@ -673,8 +669,7 @@ void k_ScriptHelper::scriptMenuScriptClicked(QAction* ak_Action_)
 void k_ScriptHelper::scriptMenuChanged()
 {
 	mk_LoadScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
-	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version() + " (using scripts " + mk_Proteomatic.scriptsVersion() + ")";
-	setWindowTitle(ms_WindowTitle);
+	this->updateWindowTitle();
 }
 
 
@@ -724,6 +719,20 @@ bool k_ScriptHelper::checkVersionChanged()
 		toggleUi();
 	}
 	return mb_VersionChanged;
+}
+
+
+void k_ScriptHelper::updateWindowTitle()
+{
+	QString ls_ScriptsVersion = "(no scripts available)";
+	if (mk_Proteomatic.scriptsVersion() != "")
+	{
+		ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion() + ")";
+	}
+	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version() + " " + ls_ScriptsVersion;
+	if (mk_Script_)
+		ms_WindowTitle = mk_Script_->title() + " - " + ms_WindowTitle;
+	setWindowTitle(ms_WindowTitle);
 }
 
 
