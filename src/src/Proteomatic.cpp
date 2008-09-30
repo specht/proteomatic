@@ -28,7 +28,6 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 	: mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
-	, mk_RemoteHubHttp_(NULL)
 	, ms_ScriptPath(as_ApplicationPath + "/scripts")
 	, ms_ProgramConfigurationPath(as_ApplicationPath + "/proteomatic.conf.yaml")
 	, ms_UserConfigurationPath(QDir::homePath() + "/proteomatic.conf.yaml")
@@ -37,14 +36,6 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 	this->loadConfiguration();
 
 	this->checkRuby();
-	
-	// start remote hub
-	QFileInfo lk_FileInfo(ms_ScriptPath + "/remote.rb");
-	mk_pRemoteHubProcess = RefPtr<QProcess>(new QProcess());
-	connect(mk_pRemoteHubProcess.get_Pointer(), SIGNAL(readyRead()), this, SLOT(remoteHubReadyReadSlot()));
-	mk_pRemoteHubProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
-	mk_pRemoteHubProcess->setProcessChannelMode(QProcess::MergedChannels);
-	mk_pRemoteHubProcess->start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), QStringList() << "remote.rb" << "--hub", QIODevice::ReadOnly | QIODevice::Unbuffered);
 	
 	QFontDatabase lk_FontDatabase;
 	QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Courier New" << "Courier";
@@ -406,19 +397,30 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 
 	mk_pProteomaticScriptsMenu = RefPtr<QMenu>(lk_Menu_);
 	emit scriptMenuChanged();
+
+	ms_RemoteHubStdout = "";
+	mk_pRemoteHubHttp = RefPtr<QHttp>(NULL);
+
+	// (re-)start remote hub
+	QFileInfo lk_FileInfo(ms_ScriptPath + "/" + ms_ScriptPackage + "/remote.rb");
+	mk_pRemoteHubProcess = RefPtr<QProcess>(new QProcess());
+	connect(mk_pRemoteHubProcess.get_Pointer(), SIGNAL(readyRead()), this, SLOT(remoteHubReadyReadSlot()));
+	mk_pRemoteHubProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
+	mk_pRemoteHubProcess->setProcessChannelMode(QProcess::MergedChannels);
+	mk_pRemoteHubProcess->start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), QStringList() << "remote.rb" << "--hub", QIODevice::ReadOnly | QIODevice::Unbuffered);
 }
 
 
 int k_Proteomatic::queryRemoteHub(QString as_Uri, QStringList ak_Arguments)
 {
-	if (mk_RemoteHubHttp_ == NULL)
+	if (mk_pRemoteHubHttp.get_Pointer() == NULL)
 		return -1;
 		
 	QString ls_Arguments = QString("%1\r\n").arg(as_Uri);
 	foreach (QString ls_Argument, ak_Arguments)
 		ls_Arguments += QString("%1\r\n").arg(ls_Argument);
 	
-	return mk_RemoteHubHttp_->post("/", ls_Arguments.toAscii());
+	return mk_pRemoteHubHttp->post("/", ls_Arguments.toAscii());
 }
 
 
@@ -476,7 +478,7 @@ void k_Proteomatic::remoteHubReadyReadSlot()
 	}
 	
 	// don't care about stdout if we already know our rubylicious remote hub
-	if (mk_RemoteHubHttp_ != NULL)
+	if (mk_pRemoteHubHttp.get_Pointer() != NULL)
 		return;
 		
 	ms_RemoteHubStdout += ls_Result;
@@ -486,8 +488,8 @@ void k_Proteomatic::remoteHubReadyReadSlot()
 		QString ls_Port = lk_RegExp.cap(2);
 		bool lb_Ok;
 		int li_HubPort = QVariant(ls_Port).toInt(&lb_Ok);
-		mk_RemoteHubHttp_ = new QHttp("127.0.0.1", li_HubPort);
-		connect(mk_RemoteHubHttp_, SIGNAL(requestFinished(int, bool)), this, SLOT(remoteHubRequestFinishedSlot(int, bool)));
+		mk_pRemoteHubHttp = RefPtr<QHttp>(new QHttp("127.0.0.1", li_HubPort));
+		connect(mk_pRemoteHubHttp.get_Pointer(), SIGNAL(requestFinished(int, bool)), this, SLOT(remoteHubRequestFinishedSlot(int, bool)));
 		mk_RemoteMenu_->setEnabled(true);
 		mk_RemoteMenu_->setTitle("Remote");
 		QList<QVariant> lk_Uris = mk_Configuration[CONFIG_REMOTE_SCRIPTS].toList();
@@ -564,7 +566,7 @@ void k_Proteomatic::addRemoteScriptDialog()
 
 void k_Proteomatic::remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error)
 {
-	QString ls_Response = QString(mk_RemoteHubHttp_->readAll());
+	QString ls_Response = QString(mk_pRemoteHubHttp->readAll());
 	
 	if (mk_RemoteRequests.contains(ai_SocketId))
 	{
@@ -777,7 +779,7 @@ QString k_Proteomatic::findCurrentScriptPackage()
 {
 	QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
 	if (lk_AvailableVersions.empty())
-		return ms_ScriptPath;
+		return "";
 	else
 	{
 		QString ls_Current;

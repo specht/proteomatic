@@ -141,7 +141,7 @@ protected:
 	QMenu* mk_RemoteMenu_;
 	RefPtr<QProcess> mk_pRemoteHubProcess;
 	QString ms_RemoteHubStdout;
-	QHttp* mk_RemoteHubHttp_;
+	RefPtr<QHttp> mk_pRemoteHubHttp;
 	QFont mk_ConsoleFont;
 	QString ms_ScriptPath;
 	QString ms_ProgramConfigurationPath;

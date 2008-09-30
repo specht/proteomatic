@@ -68,6 +68,7 @@ protected:
 	void addOutput(QString as_Text);
 	void addInputFile(QString as_Path);
 	bool checkVersionChanged();
+	void updateWindowTitle();
 
 	QString ms_WindowTitle;
 	k_FileList mk_FileList;
