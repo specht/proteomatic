@@ -174,6 +174,11 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_REMEMBER_OUTPUT_PATH] = QDir::homePath();
 		lb_InsertedDefaultValue = true;
 	}
+	if (!mk_Configuration.contains(CONFIG_SCRIPTS_URL) || mk_Configuration[CONFIG_SCRIPTS_URL].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_SCRIPTS_URL] = "";
+		lb_InsertedDefaultValue = true;
+	}
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)

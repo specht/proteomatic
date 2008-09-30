@@ -30,6 +30,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_REMEMBER_PROFILE_PATH "rememberProfilePath"
 #define CONFIG_REMEMBER_INPUT_FILES_PATH "rememberInputFilesPath"
 #define CONFIG_REMEMBER_OUTPUT_PATH "rememberOutputPath"
+#define CONFIG_SCRIPTS_URL "scriptsUrl"
 
 
 struct r_RemoteRequestType
