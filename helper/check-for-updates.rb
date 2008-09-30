@@ -92,7 +92,6 @@ end
 
 ls_Current = ''
 
-puts "Checking for updates..." if !lb_DryRun
 begin
 	ls_Current = fetchUriAsString(File::join(ls_Uri, 'current.txt'), false).strip
 rescue StandardError => e
@@ -127,6 +126,8 @@ elsif (ls_Platform == 'win32')
 		exit 1
 	end
 end
+
+puts "Update completed successfully."
 
 Dir::chdir(ls_OldDir)
 FileUtils::rm_f(ls_PackagePath)

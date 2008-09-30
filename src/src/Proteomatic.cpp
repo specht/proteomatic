@@ -39,7 +39,7 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 	this->checkRuby();
 	
 	// start remote hub
-	QFileInfo lk_FileInfo("scripts/remote.rb");
+	QFileInfo lk_FileInfo(ms_ScriptPath + "/remote.rb");
 	mk_pRemoteHubProcess = RefPtr<QProcess>(new QProcess());
 	connect(mk_pRemoteHubProcess.get_Pointer(), SIGNAL(readyRead()), this, SLOT(remoteHubReadyReadSlot()));
 	mk_pRemoteHubProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
@@ -58,6 +58,13 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 		}
 	}
 	
+	// create scripts subdirectory if it doesn't exist
+	if (!QFile::exists(ms_ScriptPath))
+		QDir().mkdir(ms_ScriptPath);
+		
+	// determine currently used script package
+	ms_ScriptPackage = findCurrentScriptPackage();
+		
 	collectScriptInfo();
 	createProteomaticScriptsMenu();
 }
@@ -65,9 +72,54 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 
 k_Proteomatic::~k_Proteomatic()
 {
+	/*
+	if (mk_RemoteMenu_)
+	{
+		delete mk_RemoteMenu_;
+		mk_RemoteMenu_ = NULL;
+	}
+	*/
+		
 	// save configuration
 	this->saveConfiguration();
 	mk_pRemoteHubProcess->kill();
+}
+
+
+void k_Proteomatic::checkForUpdates()
+{
+	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
+	{
+		QString ls_Result = this->syncRuby(QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun");
+		if (!ls_Result.toLower().startsWith("error"))
+		{
+			QString ls_LatestVersion = ls_Result.replace(".tar.bz2", "").trimmed();
+			QString ls_Version = ls_Result.replace(".tar.bz2", "").replace("proteomatic-scripts-", "").trimmed();
+			QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
+			QString ls_InstalledVersion = ms_ScriptPackage.replace("proteomatic-scripts-", "").trimmed();
+			if (ls_Version != ls_InstalledVersion)
+			{
+				if (this->showMessageBox("Online update", 
+					QString("A new version of Proteomatic scripts is available.<br /> ") + 
+					"Latest version: " + ls_Version + ", installed: " + ls_InstalledVersion + "<br />Do you want to update to the latest version?",
+					":/icons/system-software-update.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+				{
+					k_RubyWindow lk_RubyWindow(*this, QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << ms_ScriptPath, "Online update", ":/icons/system-software-update.png");
+					lk_RubyWindow.exec();
+					
+					ms_ScriptPackage = ls_LatestVersion;
+					QFile lk_File(ms_ScriptPath + "/which.txt");
+					lk_File.open(QIODevice::WriteOnly);
+					QTextStream lk_Stream(&lk_File);
+					lk_Stream << ms_ScriptPackage;
+					lk_File.close();
+					
+					this->collectScriptInfo();
+					this->createProteomaticScriptsMenu();
+				}
+			}
+		}
+	}
 }
 
 
@@ -176,7 +228,7 @@ void k_Proteomatic::loadConfiguration()
 	}
 	if (!mk_Configuration.contains(CONFIG_SCRIPTS_URL) || mk_Configuration[CONFIG_SCRIPTS_URL].type() != QVariant::String)
 	{
-		mk_Configuration[CONFIG_SCRIPTS_URL] = "";
+		mk_Configuration[CONFIG_SCRIPTS_URL] = "ftp://gpf.uni-muenster.de/download/proteomatic-scripts";
 		lb_InsertedDefaultValue = true;
 	}
 		
@@ -188,7 +240,8 @@ void k_Proteomatic::loadConfiguration()
 
 void k_Proteomatic::collectScriptInfo()
 {
-	QDir lk_Dir("scripts/");
+	mk_ScriptInfo.clear();
+	QDir lk_Dir(ms_ScriptPath + "/" + ms_ScriptPackage);
 	QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb", QDir::Files);
 	foreach (QString ls_Path, lk_Scripts)
 	{
@@ -290,6 +343,7 @@ void k_Proteomatic::collectScriptInfo()
 
 void k_Proteomatic::createProteomaticScriptsMenu()
 {
+	mk_pProteomaticScriptsMenu = RefPtr<QMenu>(NULL);
 	QMenu* lk_Menu_ = new QMenu(NULL);
 	QHash<QString, QMenu* > lk_GroupMenus;
 	lk_GroupMenus[""] = lk_Menu_;
@@ -346,11 +400,12 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 		lk_TargetMenu_->addAction(lk_Action_);
 		connect(lk_Action_, SIGNAL(triggered()), this, SLOT(scriptMenuScriptClickedInternal()));
 	}
-	/* TODO: revive remote stuff */
+    
     lk_Menu_->addSeparator();
    	lk_Menu_->addMenu(mk_RemoteMenu_);
 
 	mk_pProteomaticScriptsMenu = RefPtr<QMenu>(lk_Menu_);
+	emit scriptMenuChanged();
 }
 
 
@@ -622,6 +677,12 @@ void k_Proteomatic::saveConfiguration()
 }
 
 
+QString k_Proteomatic::scriptsVersion() const
+{
+	return ms_ScriptPackage.replace("proteomatic-scripts-", "").trimmed();
+}
+
+
 void k_Proteomatic::checkRuby()
 {
 	mk_CheckRubyDialog.setMaximumWidth(300);
@@ -708,5 +769,30 @@ void k_Proteomatic::checkRubySearchDialog()
 		mk_Configuration[CONFIG_PATH_TO_RUBY] = QVariant(lk_FileDialog.selectedFiles().first());
 		mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
 		mk_CheckRubyRetryButton_->setEnabled(true);
+	}
+}
+
+
+QString k_Proteomatic::findCurrentScriptPackage()
+{
+	QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
+	if (lk_AvailableVersions.empty())
+		return ms_ScriptPath;
+	else
+	{
+		QString ls_Current;
+		QFile lk_File(ms_ScriptPath + "/which.txt");
+		if (lk_File.open(QIODevice::ReadOnly))
+		{
+			QTextStream lk_Stream(&lk_File);
+			lk_Stream >> ls_Current;
+			lk_File.close();
+		}
+		foreach (QString ls_Path, lk_AvailableVersions)
+		{
+			if (QFileInfo(ls_Path).fileName() == ls_Current)
+				return ls_Path;
+		}
+		return QFileInfo(lk_AvailableVersions.first()).fileName();
 	}
 }

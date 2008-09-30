@@ -45,8 +45,14 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	connect(&mk_Proteomatic, SIGNAL(remoteHubLineBatch(QStringList)), this, SLOT(remoteHubLineBatch(QStringList)));
 	connect(&mk_Proteomatic, SIGNAL(remoteHubRequestFinished(int, bool, QString)), this, SLOT(remoteHubRequestFinished(int, bool, QString)));
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
-	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version();
+	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version() + " (using scripts " + mk_Proteomatic.scriptsVersion() + ")";
 	setWindowTitle(ms_WindowTitle);
+	
+	//mk_ProteomaticScriptVersionLabel_ = new QLabel(this);
+	//mk_ProteomaticScriptVersionLabel_->setText("Scripts version: " + mk_Proteomatic.scriptsVersion());
+	//QStatusBar* lk_StatusBar_ = new QStatusBar(this);
+	//lk_StatusBar_->addWidget(0, mk_ProteomaticScriptVersionLabel_);
+	//this->setStatusBar(lk_StatusBar_);
 	
 	QWidget* lk_UpperLayoutWidget_ = new QWidget(this);
 	QWidget* lk_LowerLayoutWidget_ = new QWidget(this);
@@ -84,15 +90,14 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	QBoxLayout* lk_GroupBoxLayout_;
 	
 
-	mk_ScriptMenu_ = mk_Proteomatic.proteomaticScriptsMenu();
-	
 	QToolBar* lk_ToolBar_ = new QToolBar(this);
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
 	mk_LoadScriptButton_ = new QToolButton(lk_ToolBar_);
 	mk_LoadScriptButton_->setIcon(QIcon(":/icons/document-open.png"));
 	mk_LoadScriptButton_->setText("Load script");
-	mk_LoadScriptButton_->setMenu(mk_ScriptMenu_);
+	mk_LoadScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
+	connect(&mk_Proteomatic, SIGNAL(scriptMenuChanged()), this, SLOT(scriptMenuChanged()));
 	mk_LoadScriptButton_->setPopupMode(QToolButton::InstantPopup);
 	mk_LoadScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
@@ -658,6 +663,14 @@ void k_ScriptHelper::aboutDialog()
 void k_ScriptHelper::scriptMenuScriptClicked(QAction* ak_Action_)
 {
 	setScript(ak_Action_->data().toString());
+}
+
+
+void k_ScriptHelper::scriptMenuChanged()
+{
+	mk_LoadScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
+	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version() + " (using scripts " + mk_Proteomatic.scriptsVersion() + ")";
+	setWindowTitle(ms_WindowTitle);
 }
 
 

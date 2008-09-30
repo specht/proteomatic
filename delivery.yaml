@@ -7,3 +7,4 @@ versionInject:
     #include <QtCore>
     QString gs_ProteomaticVersion = "#{VERSION}";
   scripts/include/version.rb: '#{VERSION}'
+externals: [helper]

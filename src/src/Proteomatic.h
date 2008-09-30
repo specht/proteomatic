@@ -85,6 +85,8 @@ class k_Proteomatic: public QObject
 public:
 	k_Proteomatic(QString as_ApplicationPath);
 	virtual ~k_Proteomatic();
+	
+	void checkForUpdates();
 
 	QStringList availableScripts();
 	QHash<QString, QString> scriptInfo(QString as_ScriptPath);
@@ -107,9 +109,11 @@ public:
 	QVariant getConfiguration(QString as_Key);
 	tk_YamlMap& getConfigurationRoot();
 	void saveConfiguration();
+	QString scriptsVersion() const;
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);
+	void scriptMenuChanged();
 	void remoteHubReady();
 	void remoteHubLineBatch(QStringList ak_Lines);
 	void remoteHubRequestFinished(int ai_SocketId, bool ab_Error, QString as_Response);
@@ -128,6 +132,7 @@ protected:
 	void collectScriptInfo();
 	void createProteomaticScriptsMenu();
 	void checkRuby();
+	QString findCurrentScriptPackage();
 	
 	// uri / path => uri, title, group, description, optional: parameters
 	QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
@@ -141,6 +146,7 @@ protected:
 	QString ms_ScriptPath;
 	QString ms_ProgramConfigurationPath;
 	QString ms_UserConfigurationPath;
+	QString ms_ScriptPackage;
 	
 	// title => uri
 	QMap<QString, QString> mk_RemoteScripts;

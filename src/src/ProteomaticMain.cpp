@@ -31,5 +31,9 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
 	
 	k_ScriptHelper lk_ScriptHelper(NULL, lk_Proteomatic);
 	lk_ScriptHelper.show();
+	
+	// check for updates on startup
+	lk_Proteomatic.checkForUpdates();
+
 	return lk_App.exec();
 }
