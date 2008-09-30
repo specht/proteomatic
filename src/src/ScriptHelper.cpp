@@ -103,8 +103,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	
 	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles");
 	connect(mk_ProfilesAction_, SIGNAL(triggered()), this, SLOT(showProfileManager()));
+	/*
 	mk_ProfilesAction_->setEnabled(false);
 	mk_ProfilesAction_->setVisible(false);
+	*/
 	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
@@ -126,8 +128,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_ToolBar_->addSeparator();
 	
 	QAction* lk_PreferencesOptions_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Preferences...");
+	/*
 	lk_PreferencesOptions_->setEnabled(false);
 	lk_PreferencesOptions_->setVisible(false);
+	*/
 	
 	addToolBar(Qt::TopToolBarArea, lk_ToolBar_);
 
@@ -458,7 +462,7 @@ void k_ScriptHelper::toggleUi()
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
 	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptType::Remote;
 
-	this->updateWindowsTitle();
+	this->updateWindowTitle();
 	
 	//mk_CheckTicketAction_->setEnabled(mk_Proteomatic.remoteHub().isReady());
 

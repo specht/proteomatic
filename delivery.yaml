@@ -7,3 +7,4 @@ versionInject:
     #include <QtCore>
     QString gs_ProteomaticVersion = "#{VERSION}";
 externals: [helper]
+specialAddScripts: ftp://gpf.uni-muenster.de/download/proteomatic-scripts/current.txt

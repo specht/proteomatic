@@ -100,7 +100,7 @@ rescue StandardError => e
 end
 
 if lb_DryRun
-	puts ls_Current 
+	puts "CURRENT-VERSION:#{ls_Current}"
 	exit 0
 end
 

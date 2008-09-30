@@ -73,7 +73,7 @@ k_Proteomatic::~k_Proteomatic()
 		
 	// save configuration
 	this->saveConfiguration();
-	mk_pRemoteHubProcess->kill();
+	//mk_pRemoteHubProcess->kill();
 }
 
 
@@ -82,8 +82,9 @@ void k_Proteomatic::checkForUpdates()
 	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
 	{
 		QString ls_Result = this->syncRuby(QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun");
-		if (!ls_Result.toLower().startsWith("error"))
+		if (ls_Result.startsWith("CURRENT-VERSION:"))
 		{
+			ls_Result.replace("CURRENT-VERSION:", "");
 			QString ls_LatestVersion = ls_Result.replace(".tar.bz2", "").trimmed();
 			QString ls_Version = ls_Result.replace(".tar.bz2", "").replace("proteomatic-scripts-", "").trimmed();
 			QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
