@@ -109,7 +109,7 @@ public:
 	QVariant getConfiguration(QString as_Key);
 	tk_YamlMap& getConfigurationRoot();
 	void saveConfiguration();
-	QString scriptsVersion() const;
+	QString scriptsVersion();
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);

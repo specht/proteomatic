@@ -677,7 +677,7 @@ void k_Proteomatic::saveConfiguration()
 }
 
 
-QString k_Proteomatic::scriptsVersion() const
+QString k_Proteomatic::scriptsVersion()
 {
 	return ms_ScriptPackage.replace("proteomatic-scripts-", "").trimmed();
 }

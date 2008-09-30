@@ -121,7 +121,13 @@ if (ls_Platform == 'linux' || ls_Platform == 'macx')
 		exit 1
 	end
 elsif (ls_Platform == 'win32')
-	unless system("#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x #{as_Path}")
+	unless system("#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x #{ls_PackagePath}")
+		puts "Error: Unable to unpack #{ls_PackagePath}."
+		exit 1
+	end
+	FileUtils::rm_f(ls_PackagePath)
+	ls_PackagePath.sub!('.bz2', '')
+	unless system("#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x #{ls_PackagePath}")
 		puts "Error: Unable to unpack #{ls_PackagePath}."
 		exit 1
 	end
