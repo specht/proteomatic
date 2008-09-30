@@ -30,6 +30,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_REMEMBER_PROFILE_PATH "rememberProfilePath"
 #define CONFIG_REMEMBER_INPUT_FILES_PATH "rememberInputFilesPath"
 #define CONFIG_REMEMBER_OUTPUT_PATH "rememberOutputPath"
+#define CONFIG_SCRIPTS_URL "scriptsUrl"
 
 
 struct r_RemoteRequestType
@@ -84,6 +85,8 @@ class k_Proteomatic: public QObject
 public:
 	k_Proteomatic(QString as_ApplicationPath);
 	virtual ~k_Proteomatic();
+	
+	void checkForUpdates();
 
 	QStringList availableScripts();
 	QHash<QString, QString> scriptInfo(QString as_ScriptPath);
@@ -106,9 +109,11 @@ public:
 	QVariant getConfiguration(QString as_Key);
 	tk_YamlMap& getConfigurationRoot();
 	void saveConfiguration();
+	QString scriptsVersion();
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);
+	void scriptMenuChanged();
 	void remoteHubReady();
 	void remoteHubLineBatch(QStringList ak_Lines);
 	void remoteHubRequestFinished(int ai_SocketId, bool ab_Error, QString as_Response);
@@ -127,6 +132,7 @@ protected:
 	void collectScriptInfo();
 	void createProteomaticScriptsMenu();
 	void checkRuby();
+	QString findCurrentScriptPackage();
 	
 	// uri / path => uri, title, group, description, optional: parameters
 	QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
@@ -135,11 +141,12 @@ protected:
 	QMenu* mk_RemoteMenu_;
 	RefPtr<QProcess> mk_pRemoteHubProcess;
 	QString ms_RemoteHubStdout;
-	QHttp* mk_RemoteHubHttp_;
+	RefPtr<QHttp> mk_pRemoteHubHttp;
 	QFont mk_ConsoleFont;
 	QString ms_ScriptPath;
 	QString ms_ProgramConfigurationPath;
 	QString ms_UserConfigurationPath;
+	QString ms_ScriptPackage;
 	
 	// title => uri
 	QMap<QString, QString> mk_RemoteScripts;

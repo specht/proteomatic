@@ -45,8 +45,13 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	connect(&mk_Proteomatic, SIGNAL(remoteHubLineBatch(QStringList)), this, SLOT(remoteHubLineBatch(QStringList)));
 	connect(&mk_Proteomatic, SIGNAL(remoteHubRequestFinished(int, bool, QString)), this, SLOT(remoteHubRequestFinished(int, bool, QString)));
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
-	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version();
-	setWindowTitle(ms_WindowTitle);
+	this->updateWindowTitle();
+	
+	//mk_ProteomaticScriptVersionLabel_ = new QLabel(this);
+	//mk_ProteomaticScriptVersionLabel_->setText("Scripts version: " + mk_Proteomatic.scriptsVersion());
+	//QStatusBar* lk_StatusBar_ = new QStatusBar(this);
+	//lk_StatusBar_->addWidget(0, mk_ProteomaticScriptVersionLabel_);
+	//this->setStatusBar(lk_StatusBar_);
 	
 	QWidget* lk_UpperLayoutWidget_ = new QWidget(this);
 	QWidget* lk_LowerLayoutWidget_ = new QWidget(this);
@@ -84,25 +89,24 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	QBoxLayout* lk_GroupBoxLayout_;
 	
 
-	mk_ScriptMenu_ = mk_Proteomatic.proteomaticScriptsMenu();
-	
 	QToolBar* lk_ToolBar_ = new QToolBar(this);
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
 	mk_LoadScriptButton_ = new QToolButton(lk_ToolBar_);
 	mk_LoadScriptButton_->setIcon(QIcon(":/icons/document-open.png"));
 	mk_LoadScriptButton_->setText("Load script");
-	mk_LoadScriptButton_->setMenu(mk_ScriptMenu_);
+	mk_LoadScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
+	connect(&mk_Proteomatic, SIGNAL(scriptMenuChanged()), this, SLOT(scriptMenuChanged()));
 	mk_LoadScriptButton_->setPopupMode(QToolButton::InstantPopup);
 	mk_LoadScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
 	
-	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Profiles");
+	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles");
 	connect(mk_ProfilesAction_, SIGNAL(triggered()), this, SLOT(showProfileManager()));
-	
-	// disable all profile related stuff for this branch!
+	/*
 	mk_ProfilesAction_->setEnabled(false);
 	mk_ProfilesAction_->setVisible(false);
+	*/
 	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
@@ -120,6 +124,14 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_CheckTicketAction_ = lk_ToolBar_->addAction(QIcon(":/icons/ticket.png"), "&Check ticket");
 	connect(mk_CheckTicketAction_, SIGNAL(triggered()), this, SLOT(checkTicket()));
 	mk_CheckTicketAction_->setEnabled(false);
+	
+	lk_ToolBar_->addSeparator();
+	
+	QAction* lk_PreferencesOptions_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Preferences...");
+	/*
+	lk_PreferencesOptions_->setEnabled(false);
+	lk_PreferencesOptions_->setVisible(false);
+	*/
 	
 	addToolBar(Qt::TopToolBarArea, lk_ToolBar_);
 
@@ -449,11 +461,8 @@ void k_ScriptHelper::toggleUi()
 		
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
 	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptType::Remote;
-	
-	if (mk_Script_)
-		setWindowTitle(mk_Script_->title() + " - " + ms_WindowTitle);
-	else
-		setWindowTitle(ms_WindowTitle);
+
+	this->updateWindowTitle();
 	
 	//mk_CheckTicketAction_->setEnabled(mk_Proteomatic.remoteHub().isReady());
 
@@ -661,6 +670,13 @@ void k_ScriptHelper::scriptMenuScriptClicked(QAction* ak_Action_)
 }
 
 
+void k_ScriptHelper::scriptMenuChanged()
+{
+	mk_LoadScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
+	this->updateWindowTitle();
+}
+
+
 void k_ScriptHelper::addInputFile(QString as_Path)
 {
 	mk_FileList.addItem(as_Path);
@@ -707,6 +723,20 @@ bool k_ScriptHelper::checkVersionChanged()
 		toggleUi();
 	}
 	return mb_VersionChanged;
+}
+
+
+void k_ScriptHelper::updateWindowTitle()
+{
+	QString ls_ScriptsVersion = "(no scripts available)";
+	if (mk_Proteomatic.scriptsVersion() != "")
+	{
+		ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion() + ")";
+	}
+	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version() + " " + ls_ScriptsVersion;
+	if (mk_Script_)
+		ms_WindowTitle = mk_Script_->title() + " - " + ms_WindowTitle;
+	setWindowTitle(ms_WindowTitle);
 }
 
 

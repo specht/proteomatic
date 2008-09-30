@@ -100,7 +100,7 @@ rescue StandardError => e
 end
 
 if lb_DryRun
-	puts ls_Current 
+	puts "CURRENT-VERSION:#{ls_Current}"
 	exit 0
 end
 
@@ -116,12 +116,18 @@ Dir::chdir(File::dirname(ls_PackagePath))
 ls_Platform = determinePlatform()
 
 if (ls_Platform == 'linux' || ls_Platform == 'macx')
-	unless system("bzip2 -dc #{File::basename(ls_PackagePath)} | tar xf -")
+	unless system("bzip2 -dc \"#{File::basename(ls_PackagePath)}\" | tar xf -")
 		puts "Error: Unable to unpack #{ls_PackagePath}."
 		exit 1
 	end
 elsif (ls_Platform == 'win32')
-	unless system("#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x #{as_Path}")
+	unless system("#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x \"#{ls_PackagePath}\"")
+		puts "Error: Unable to unpack #{ls_PackagePath}."
+		exit 1
+	end
+	FileUtils::rm_f(ls_PackagePath)
+	ls_PackagePath.sub!('.bz2', '')
+	unless system("#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x \"#{ls_PackagePath}\"")
 		puts "Error: Unable to unpack #{ls_PackagePath}."
 		exit 1
 	end

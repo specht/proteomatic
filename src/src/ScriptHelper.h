@@ -52,6 +52,7 @@ protected slots:
 	void resetDialog();
 	void aboutDialog();
 	void scriptMenuScriptClicked(QAction* ak_Action_);
+	void scriptMenuChanged();
 	void toggleUi();
 	void remoteHubLineBatch(QStringList ak_Lines);
 	void remoteHubRequestFinished(int ai_SocketId, bool ab_Error, QString as_Response);
@@ -67,6 +68,7 @@ protected:
 	void addOutput(QString as_Text);
 	void addInputFile(QString as_Path);
 	bool checkVersionChanged();
+	void updateWindowTitle();
 
 	QString ms_WindowTitle;
 	k_FileList mk_FileList;
@@ -83,7 +85,6 @@ protected:
 	QVBoxLayout mk_MainLayout;
 	QVBoxLayout* mk_UpperLayout_;
 	QVBoxLayout* mk_LowerLayout_;
-	QMenu* mk_ScriptMenu_;
 	QSplitter* mk_VSplitter_;
 	QSplitter* mk_HSplitter_;
 	QBoxLayout* mk_ParameterLayout_;
