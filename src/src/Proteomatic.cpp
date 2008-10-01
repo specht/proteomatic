@@ -228,6 +228,11 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_SCRIPTS_URL] = "ftp://gpf.uni-muenster.de/download/proteomatic-scripts";
 		lb_InsertedDefaultValue = true;
 	}
+	if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
+		lb_InsertedDefaultValue = true;
+	}
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)
@@ -731,6 +736,26 @@ void k_Proteomatic::checkRuby()
 	connect(lk_FindRubyButton_, SIGNAL(clicked()), this, SLOT(checkRubySearchDialog()));
 	
 	mk_CheckRubyDialog.setLayout(lk_VLayout_);
+	
+	// see whether there's a local Ruby installed and prefer that
+	// if there is a local Ruby then overwrite the configuration
+	QString ls_OldRubyPath = mk_Configuration[CONFIG_PATH_TO_RUBY].toString();
+	mk_Configuration[CONFIG_PATH_TO_RUBY] = "ruby";
+	QString ls_Version = syncRuby(QStringList() << "-v");
+	if (ls_Version.startsWith("ruby"))
+	{
+		ls_Version.replace("ruby", "");
+		ls_Version = ls_Version.trimmed();
+		QStringList lk_Tokens = ls_Version.split(" ");
+		ls_Version = lk_Tokens.first();
+		if (ls_Version == "1.8.6")
+		{
+			// we have found a local Ruby, hooray!
+			this->saveConfiguration();
+			return;
+		}
+	}
+	mk_Configuration[CONFIG_PATH_TO_RUBY] = ls_OldRubyPath;
 	
 	while (true)
 	{
