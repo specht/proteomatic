@@ -737,6 +737,26 @@ void k_Proteomatic::checkRuby()
 	
 	mk_CheckRubyDialog.setLayout(lk_VLayout_);
 	
+	// see whether there's a local Ruby installed and prefer that
+	// if there is a local Ruby then overwrite the configuration
+	QString ls_OldRubyPath = mk_Configuration[CONFIG_PATH_TO_RUBY].toString();
+	mk_Configuration[CONFIG_PATH_TO_RUBY] = "ruby";
+	QString ls_Version = syncRuby(QStringList() << "-v");
+	if (ls_Version.startsWith("ruby"))
+	{
+		ls_Version.replace("ruby", "");
+		ls_Version = ls_Version.trimmed();
+		QStringList lk_Tokens = ls_Version.split(" ");
+		ls_Version = lk_Tokens.first();
+		if (ls_Version == "1.8.6")
+		{
+			// we have found a local Ruby, hooray!
+			this->saveConfiguration();
+			return;
+		}
+	}
+	mk_Configuration[CONFIG_PATH_TO_RUBY] = ls_OldRubyPath;
+	
 	while (true)
 	{
 		QString ls_Version = syncRuby(QStringList() << "-v");
