@@ -95,13 +95,13 @@ void k_Proteomatic::checkForUpdates()
 				if (this->showMessageBox("Online update", 
 					QString("A new version of Proteomatic scripts is available.<br /> ") + 
 					"Latest version: " + ls_Version + ", installed: " + ls_InstalledVersion + "<br />Do you want to update to the latest version?",
-					":/icons/system-software-update.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+					":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
 				{
 					QStringList lk_Arguments;
 					lk_Arguments = QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << ms_ScriptPath;
 					if (!ms_ScriptPackage.isEmpty())
 						lk_Arguments << "--oldpath" << ms_ScriptPath + "/" + ms_ScriptPackage;
-					k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/system-software-update.png");
+					k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
 					lk_RubyWindow.exec();
 					
 					ms_ScriptPackage = ls_LatestVersion;

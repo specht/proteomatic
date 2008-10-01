@@ -31,17 +31,19 @@ class k_EditProfileDialog: public QDialog
 	Q_OBJECT
 	
 public:
-	k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, QString as_TargetScriptUri, tk_YamlMap ak_OldProfile = tk_YamlMap(), QWidget * parent = 0, Qt::WindowFlags f = 0);
+	k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, k_Script* ak_CurrentScript_, tk_YamlMap ak_OldProfile = tk_YamlMap(), QWidget * parent = 0, Qt::WindowFlags f = 0);
 	virtual ~k_EditProfileDialog();
 	
 	tk_YamlMap getProfile();
 	
 protected slots:
 	void applyClicked();
+	void copyFromCurrentScript();
 	
 protected:
 	bool mb_CreateNewMode;
 	k_Proteomatic& mk_Proteomatic;
+	k_Script* mk_CurrentScript_;
 	QString ms_TargetScriptUri;
 	RefPtr<k_Script> mk_pScript;
 	QString ms_WindowTitle;

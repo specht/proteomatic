@@ -37,7 +37,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
 	, mk_Script_(NULL)
-	, mk_pProfileManager(new k_ProfileManager(ak_Proteomatic, QString(), QStringList(), this))
+	, mk_pProfileManager(new k_ProfileManager(ak_Proteomatic, NULL, this))
 	, ms_WindowTitle("Proteomatic")
 	, mk_ProgressDialog_(NULL)
 {
@@ -298,7 +298,7 @@ void k_ScriptHelper::setScript(QString as_Filename)
 	mk_Script_ = NULL;
 	
 	mk_Script_ = k_ScriptFactory::makeScript(as_Filename, mk_Proteomatic, true);
-	mk_pProfileManager = RefPtr<k_ProfileManager>(new k_ProfileManager(mk_Proteomatic, as_Filename, mk_Script_->getParameterKeys(), this));
+	mk_pProfileManager = RefPtr<k_ProfileManager>(new k_ProfileManager(mk_Proteomatic, mk_Script_, this));
 		
 	activateScript();
 	

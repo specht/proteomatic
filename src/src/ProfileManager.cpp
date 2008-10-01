@@ -25,13 +25,22 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "dialogs/EditProfileDialog.h"
 
 
-k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic, QString as_TargetScriptUri, QStringList ak_TargetScriptParameterKeys, QWidget * parent, Qt::WindowFlags f)
+k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic, 
+								   k_Script* ak_CurrentScript_,
+								   QWidget * parent, Qt::WindowFlags f)
 	: QDialog(parent, f)
 	, mk_Proteomatic(ak_Proteomatic)
-	, ms_TargetScriptUri(as_TargetScriptUri)
-	, mk_TargetScriptParameterKeys(ak_TargetScriptParameterKeys)
+	, mk_CurrentScript_(ak_CurrentScript_)
+	, ms_TargetScriptUri()
+	, mk_TargetScriptParameterKeys()
 	, mk_SelectedItem_(NULL)
 {
+	if (mk_CurrentScript_)
+	{
+		ms_TargetScriptUri = mk_CurrentScript_->uri();
+		mk_TargetScriptParameterKeys = mk_CurrentScript_->getParameterKeys();
+	}
+	
 	setWindowTitle("Profile Manager");
 	setModal(true);
 	
@@ -233,7 +242,10 @@ void k_ProfileManager::updateDescription()
 
 void k_ProfileManager::newProfile()
 {
-	k_EditProfileDialog lk_Dialog(mk_Proteomatic, ms_TargetScriptUri, tk_YamlMap(), this);
+	if (!mk_CurrentScript_)
+		return;
+		
+	k_EditProfileDialog lk_Dialog(mk_Proteomatic, mk_CurrentScript_, tk_YamlMap(), this);
 	if (lk_Dialog.exec())
 	{
 		tk_YamlMap lk_Profile = lk_Dialog.getProfile();
@@ -248,10 +260,14 @@ void k_ProfileManager::newProfile()
 
 void k_ProfileManager::editProfile()
 {
-	if (mk_SelectedItem_ == NULL)
+	if (!mk_CurrentScript_)
 		return;
+		
+	if (!mk_SelectedItem_)
+		return;
+		
 	QString ls_OldTitle = mk_SelectedItem_->text();
-	k_EditProfileDialog lk_Dialog(mk_Proteomatic, ms_TargetScriptUri, mk_Proteomatic.getConfiguration(CONFIG_PROFILES).toMap()[ls_OldTitle].toMap(), this);
+	k_EditProfileDialog lk_Dialog(mk_Proteomatic, mk_CurrentScript_, mk_Proteomatic.getConfiguration(CONFIG_PROFILES).toMap()[ls_OldTitle].toMap(), this);
 	if (lk_Dialog.exec())
 	{
 		tk_YamlMap lk_NewProfile = lk_Dialog.getProfile();
