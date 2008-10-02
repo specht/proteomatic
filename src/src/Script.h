@@ -46,6 +46,8 @@ public:
 	k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_Script();
 	bool isGood() const;
+	
+	// hasParameters is true if there are any parameters except [output] parameters
 	bool hasParameters() const;
 	
 	r_ScriptType::Enumeration type() const;

@@ -214,8 +214,8 @@ QHash<QString, QString> k_ProfileManager::getGoodProfileMix()
 void k_ProfileManager::toggleUi()
 {
 	mk_ApplyButton_->setEnabled(!mk_GoodProfileMixKeys.empty());
-	mk_NewAction_->setEnabled(!ms_TargetScriptUri.isEmpty());
-	mk_EditAction_->setEnabled((!ms_TargetScriptUri.isEmpty()) && mk_SelectedItem_ != NULL);
+	mk_NewAction_->setEnabled(mk_CurrentScript_ && mk_CurrentScript_->hasParameters());
+	mk_EditAction_->setEnabled(mk_CurrentScript_ && mk_SelectedItem_);
 	mk_DeleteAction_->setEnabled(mk_SelectedItem_ != NULL);
 	mk_ImportAction_->setEnabled(true);
 	mk_ExportAction_->setEnabled(mk_SelectedItem_ != NULL);
