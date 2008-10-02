@@ -478,8 +478,7 @@ void k_ProfileManager::updateProfileList(QString as_SelectedItem)
 	else
 		mk_NonApplicableProfilesHeader_->setSuffix("");
 	
-	updateDescription();
-	toggleUi();
+	updateProfileMix();
 }
 
 
