@@ -127,7 +127,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	
 	lk_ToolBar_->addSeparator();
 	
-	QAction* lk_PreferencesOptions_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Preferences...");
+	//QAction* lk_PreferencesOptions_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Preferences...");
 	/*
 	lk_PreferencesOptions_->setEnabled(false);
 	lk_PreferencesOptions_->setVisible(false);
@@ -456,12 +456,12 @@ void k_ScriptHelper::toggleUi()
 {
 	mk_ScrollArea_->setVisible(mk_Script_);
 	this->setEnabled(mk_RemoteRequests.empty());
-	mk_ProfilesAction_->setEnabled(true);
 
-		
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
 	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptType::Remote;
 
+	mk_ProfilesAction_->setEnabled(!lb_ProcessRunning);
+	
 	this->updateWindowTitle();
 	
 	//mk_CheckTicketAction_->setEnabled(mk_Proteomatic.remoteHub().isReady());
@@ -773,5 +773,6 @@ void k_ScriptHelper::parameterWidgetResized()
 
 void k_ScriptHelper::showProfileManager()
 {
-	mk_pProfileManager->exec();
+	if (mk_pProfileManager->exec())
+		mk_Script_->setConfiguration(mk_pProfileManager->getGoodProfileMix());
 }

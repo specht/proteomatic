@@ -233,6 +233,11 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
 		lb_InsertedDefaultValue = true;
 	}
+	if (!mk_Configuration.contains(CONFIG_WARN_ABOUT_MIXED_PROFILES) || mk_Configuration[CONFIG_WARN_ABOUT_MIXED_PROFILES].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_WARN_ABOUT_MIXED_PROFILES] = true;
+		lb_InsertedDefaultValue = true;
+	}
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)

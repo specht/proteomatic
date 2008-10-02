@@ -52,7 +52,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	QAction* lk_CopyFromCurrentScriptAction_ = lk_CopyFromMenu_->addAction(QIcon(":/icons/proteomatic.png"), "Current script");
 	connect(lk_CopyFromCurrentScriptAction_, SIGNAL(triggered()), this, SLOT(copyFromCurrentScript()));
 	
-	lk_CopyFromMenu_->addAction(QIcon(":/icons/document-properties.png"), "Other profile");
+	//lk_CopyFromMenu_->addAction(QIcon(":/icons/document-properties.png"), "Other profile");
 	lk_CopyFromButton_->setMenu(lk_CopyFromMenu_);
 	
 	QAction* lk_ClearAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "&Reset");
@@ -79,6 +79,8 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
 	
 	QBoxLayout* lk_MainLayout_ = new QVBoxLayout(this);
+	lk_MainLayout_->setContentsMargins(0, 0, 0, 0);
+	lk_MainLayout_->setSpacing(0);
 	QBoxLayout* lk_VLayout_;
 	QBoxLayout* lk_HLayout_;
 	lk_VLayout_ = new QVBoxLayout(this);
@@ -150,6 +152,11 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	lk_VLayoutWidget_->setLayout(lk_VLayout_);
 	lk_HSplitter_->addWidget(lk_VLayoutWidget_);
 	lk_MainLayout_->addWidget(lk_ToolBar_);
+	
+	lk_Frame_ = new QFrame(this);
+	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+	lk_MainLayout_->addWidget(lk_Frame_);
+	
 	lk_MainLayout_->addWidget(lk_HSplitter_);
 	lk_ScrollArea_->setWidget(mk_pScript->parameterWidget());
 	lk_HSplitter_->addWidget(lk_ScrollArea_);
@@ -163,9 +170,9 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	connect(lk_CancelButton_, SIGNAL(clicked()), this, SLOT(reject()));
 	lk_HLayout_->addWidget(lk_CancelButton_);
 	lk_HLayout_->setContentsMargins(8, 8, 8, 8);
+	lk_HLayout_->setSpacing(10);
 	lk_MainLayout_->addLayout(lk_HLayout_);
 	this->setLayout(lk_MainLayout_);
-	lk_MainLayout_->setContentsMargins(0, 0, 0, 0);
 	mk_ProfileDescriptionText_->setText(mk_pScript->profileDescription());
 	connect(mk_pScript.get_Pointer(), SIGNAL(profileDescriptionChanged(const QString&)), mk_ProfileDescriptionText_, SLOT(setText(const QString&)));
 

@@ -96,7 +96,12 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	connect(mk_ApplicableProfilesWidget_, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(profileClicked(QListWidgetItem*)));
 	connect(mk_PartlyApplicableProfilesWidget_, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(profileClicked(QListWidgetItem*)));
 	connect(mk_NonApplicableProfilesWidget_, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(profileClicked(QListWidgetItem*)));
+	connect(mk_ApplicableProfilesWidget_, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(profileClicked(QListWidgetItem*)));
+	connect(mk_PartlyApplicableProfilesWidget_, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(profileClicked(QListWidgetItem*)));
+	connect(mk_NonApplicableProfilesWidget_, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(profileClicked(QListWidgetItem*)));
 
+	lk_IVLayout_->addWidget(new QLabel("Please check the profiles you want to apply:", this));
+	
 	mk_ApplicableProfilesHeader_ = new k_FoldedHeader("Applicable profiles", mk_ApplicableProfilesWidget_, this);
 	mk_ApplicableProfilesHeader_->showBuddy();
 	lk_IVLayout_->addWidget(mk_ApplicableProfilesHeader_);
@@ -124,29 +129,43 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	lk_ScrollArea_->setWidget(lk_IVLayoutWidget_);
 	lk_VSplitter_->addWidget(lk_ScrollArea_);
 	
-	mk_DescriptionLabel_ = new QTextEdit(this);
-	mk_DescriptionLabel_->setFrameStyle(QFrame::NoFrame);
-	mk_DescriptionLabel_->setReadOnly(true);
-	mk_DescriptionLabel_->setStyleSheet("QTextEdit { background-color: none; }");
+	mk_DescriptionLabel_ = new QLabel(this);
+	mk_DescriptionLabel_->setWordWrap(true);
+	//mk_DescriptionLabel_->setFrameStyle(QFrame::NoFrame);
+	//mk_DescriptionLabel_->setReadOnly(true);
+	//mk_DescriptionLabel_->setStyleSheet("QTextEdit { background-color: none; }");
 	mk_DescriptionLabel_->setContentsMargins(8, 0, 0, 0);
 	
-	if (ms_TargetScriptUri.isEmpty())
+	if (!mk_CurrentScript_)
 		mk_DescriptionLabel_->hide();
 	else
 	{
-		lk_VSplitter_->addWidget(mk_DescriptionLabel_);
-		lk_VSplitter_->setStretchFactor(0, 1);
-		lk_VSplitter_->setStretchFactor(1, 1);
+		QScrollArea* lk_ScrollArea_ = new QScrollArea(this);
+		lk_ScrollArea_->setWidgetResizable(true);
+		lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
+		QWidget* lk_LabelVLayoutWidget_ = new QWidget(this);
+		QBoxLayout* lk_LabelVLayout_ = new QVBoxLayout(this);
+		lk_LabelVLayout_->addWidget(mk_DescriptionLabel_);
+		lk_LabelVLayout_->addStretch();
+		lk_LabelVLayoutWidget_->setLayout(lk_LabelVLayout_);
+		lk_LabelVLayoutWidget_->setContentsMargins(0, 0, 0, 0);
+		lk_LabelVLayout_->setContentsMargins(0, 0, 0, 0);
+		lk_ScrollArea_->setWidget(lk_LabelVLayoutWidget_);
+		lk_VSplitter_->addWidget(lk_ScrollArea_);
 	}
 	
 	QBoxLayout* lk_HLayout_ = new QHBoxLayout(this);
+	lk_HLayout_->setSpacing(10);
 	lk_HLayout_->addStretch();
-	QPushButton* lk_CloseButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "Close", this);
-	connect(lk_CloseButton_, SIGNAL(clicked()), this, SLOT(accept()));
+	mk_ApplyButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "Apply", this);
+	connect(mk_ApplyButton_, SIGNAL(clicked()), this, SLOT(applyClicked()));
+	lk_HLayout_->addWidget(mk_ApplyButton_);
+	QPushButton* lk_CloseButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "Close", this);
+	connect(lk_CloseButton_, SIGNAL(clicked()), this, SLOT(reject()));
 	lk_HLayout_->addWidget(lk_CloseButton_);
 	lk_VLayout_->addLayout(lk_HLayout_);
 	updateProfileList();
-	resize(500, 300);
+	resize(700, 300);
 	toggleUi();
 	
 	// if any folded header is open, close all other folded headers
@@ -157,6 +176,13 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	}
 	else if (mk_PartlyApplicableProfilesWidget_->count() != 0)
 		mk_NonApplicableProfilesHeader_->hideBuddy();
+		
+	if (mk_CurrentScript_)
+	{
+		lk_VSplitter_->setStretchFactor(0, 1);
+		lk_VSplitter_->setStretchFactor(1, 1);
+		lk_VSplitter_->setSizes(QList<int>() << 350 << 350);
+	}
 }
 
 
@@ -165,8 +191,18 @@ k_ProfileManager::~k_ProfileManager()
 }
 
 
+QHash<QString, QString> k_ProfileManager::getGoodProfileMix()
+{
+	QHash<QString, QString> lk_GoodProfileMix;
+	foreach (QString ls_Key, mk_GoodProfileMixKeys)
+		lk_GoodProfileMix[ls_Key] = mk_ProfileMix[ls_Key].first().ms_Value;
+	return lk_GoodProfileMix;
+}
+
+
 void k_ProfileManager::toggleUi()
 {
+	mk_ApplyButton_->setEnabled(!mk_GoodProfileMixKeys.empty());
 	mk_NewAction_->setEnabled(!ms_TargetScriptUri.isEmpty());
 	mk_EditAction_->setEnabled((!ms_TargetScriptUri.isEmpty()) && mk_SelectedItem_ != NULL);
 	mk_DeleteAction_->setEnabled(mk_SelectedItem_ != NULL);
@@ -200,7 +236,6 @@ void k_ProfileManager::toggleUi()
 	}
 	else
 		mk_NonApplicableProfilesHeader_->setEnabled(true);
-	//if (!mk_ApplicableProfilesHeader_->buddyVisble() && !mk_PartlyApplicableProfilesHeader_->buddyVisble()
 }
 
 
@@ -210,31 +245,35 @@ void k_ProfileManager::updateDescription()
 		mk_DescriptionLabel_->setText("<i>(no profile applied)</i>");
 	else
 	{
-		//mk_DescriptionLabel_->setText(mk_AppliedProfiles.join(", "));
 		QString ls_Label;
-		//foreach (QString ls_AppliedProfiles
-		QStringList lk_ConflictingParameterKeys;
-		foreach (QString ls_Key, mk_ProfileMixParameterKeys.keys())
-			if (mk_ProfileMixParameterKeys[ls_Key].size() != 1)
-				lk_ConflictingParameterKeys.push_back(ls_Key);
-				
-		if (!lk_ConflictingParameterKeys.empty())
-		{
-			// currently applied profile mix produced conflicts!
-			ls_Label += "<b>Conflicts:</b><br />";
-			qSort(lk_ConflictingParameterKeys);
-			foreach (QString ls_Key, lk_ConflictingParameterKeys)
-			{
-				ls_Label += ls_Key + "<br />";
-			}
-		}
 		
 		ls_Label += "<b>Settings:</b><br />";
 		
-		foreach (QString ls_Key, mk_ProfileMixParameterKeys.keys())
+		if (mk_GoodProfileMixKeys.empty())
+			ls_Label += "<i>(none)</i><br />";
+		
+		foreach (QString ls_Key, mk_GoodProfileMixKeys)
 		{
-			ls_Label += QString("%1: %2").arg(ls_Key).arg(mk_ProfileMixParameterKeys[ls_Key].size());
+			ls_Label += QString("%1: %2<br />").arg(mk_ProfileMix[ls_Key].first().ms_HumanReadableKey).arg(mk_ProfileMix[ls_Key].first().ms_HumanReadableValue);
 		}
+		
+		if (!mk_ConflictingProfileMixKeys.empty())
+		{
+			// currently applied profile mix produced conflicts!
+			ls_Label += "<b>Conflicts:</b><br />";
+			foreach (QString ls_Key, mk_ConflictingProfileMixKeys)
+			{
+				/*
+				QStringList lk_AllValues;
+				foreach (r_ProfileMixInfo lr_ProfileMixInfo, mk_ProfileMix[ls_Key])
+					lk_AllValues.push_back(lr_ProfileMixInfo.ms_HumanReadableValue);
+					
+				ls_Label += mk_ProfileMix[ls_Key].first().ms_HumanReadableKey + ": " + lk_AllValues.join(" / ") + "<br />";
+				*/
+				ls_Label += mk_ProfileMix[ls_Key].first().ms_HumanReadableKey + "<br />";
+			}
+		}
+		
 		mk_DescriptionLabel_->setText(ls_Label);
 	}
 }
@@ -265,6 +304,12 @@ void k_ProfileManager::editProfile()
 		
 	if (!mk_SelectedItem_)
 		return;
+		
+	if (mk_Proteomatic.getConfiguration(CONFIG_WARN_ABOUT_MIXED_PROFILES).toBool() && mk_SelectedItem_->listWidget() != mk_ApplicableProfilesWidget_)
+	{
+		if (mk_Proteomatic.showMessageBox("Warning", "If you edit a profile which is not or not completely applicable, you might end up with partially applicable profiles. <br />If you are unsure about what that means, please select 'No'.<br />Are you sure you want to continue?", ":/icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+			return;
+	}
 		
 	QString ls_OldTitle = mk_SelectedItem_->text();
 	k_EditProfileDialog lk_Dialog(mk_Proteomatic, mk_CurrentScript_, mk_Proteomatic.getConfiguration(CONFIG_PROFILES).toMap()[ls_OldTitle].toMap(), this);
@@ -470,6 +515,9 @@ void k_ProfileManager::currentProfileChanged()
 	}
 	else
 		mk_SelectedItem_ = NULL;
+		
+	if (mk_SelectedItem_ && mk_ProfileCheckState[mk_SelectedItem_->text()])
+		this->profileClicked(mk_SelectedItem_);
 
 	this->toggleUi();
 }
@@ -477,18 +525,21 @@ void k_ProfileManager::currentProfileChanged()
 
 void k_ProfileManager::profileClicked(QListWidgetItem* ak_Item_)
 {
-	if (mk_ProfileCheckState[ak_Item_->text()] == ak_Item_->checkState())
-		return;
-	
-	mk_ProfileCheckState[ak_Item_->text()] = ak_Item_->checkState();
-	this->updateProfileMix();
+	bool lb_Changed = false;
+	if (mk_ProfileCheckState[ak_Item_->text()] != ak_Item_->checkState())
+	{
+		mk_ProfileCheckState[ak_Item_->text()] = ak_Item_->checkState();
+		lb_Changed = true;
+	}
+	if (lb_Changed)
+		this->updateProfileMix();
 }
 
 
 void k_ProfileManager::updateProfileMix()
 {
 	mk_AppliedProfiles = QStringList();
-	
+		
 	// determine new applied profile mix
 	for (int i = 0; i < mk_ApplicableProfilesWidget_->count(); ++i)
 	{
@@ -503,20 +554,87 @@ void k_ProfileManager::updateProfileMix()
 			mk_AppliedProfiles.push_back(lk_Item_->text());
 	}
 	
-	mk_ProfileMixParameterKeys = QHash<QString, QStringList>();
+	mk_ProfileMix = QHash<QString, QList<r_ProfileMixInfo> >();
+	QSet<QString> mk_ProfileKeysSet;
 	
 	foreach (QString ls_ProfileTitle, mk_AppliedProfiles)
 	{
 		tk_YamlMap lk_Settings = mk_Proteomatic.getConfiguration(CONFIG_PROFILES).toMap()[ls_ProfileTitle].toMap()["settings"].toMap();
 		foreach (QString ls_Key, lk_Settings.uniqueKeys())
 		{
-			if (!mk_ProfileMixParameterKeys.contains(ls_Key))
-				mk_ProfileMixParameterKeys[ls_Key] = QStringList();
-			mk_ProfileMixParameterKeys[ls_Key].push_back(ls_ProfileTitle);
+			mk_ProfileKeysSet.insert(ls_Key);
+			
+			if (!mk_ProfileMix.contains(ls_Key))
+				mk_ProfileMix[ls_Key] = QList<r_ProfileMixInfo>();
+			
+			QString ls_Value = lk_Settings[ls_Key].toString();
+			QString ls_HumanReadableValue = ls_Value;
+			QString ls_HumanReadableKey = ls_Key;
+			
+			// fetch both human readable key and value from the currently loaded script, if possible
+			// else use fallback verbose values from profile, if possible
+			// if everything fails, just report the plain non-human readable value
+			if (mk_CurrentScript_ && mk_CurrentScript_->getParameterKeys().contains(ls_Key))
+			{
+				ls_HumanReadableKey = mk_CurrentScript_->getHumanReadableParameterKey(ls_Key);
+				ls_HumanReadableValue = mk_CurrentScript_->getHumanReadableParameterValue(ls_Key, ls_Value);
+			}
+			else
+			{
+				tk_YamlMap lk_Verbose = mk_Proteomatic.getConfiguration(CONFIG_PROFILES).toMap()[ls_ProfileTitle].toMap()["verbose"].toMap();
+				if (lk_Verbose.contains(ls_Key))
+				{
+					tk_YamlMap lk_Info = lk_Verbose[ls_Key].toMap();
+					if (lk_Info.contains("key"))
+						ls_HumanReadableKey = lk_Info["key"].toString();
+					if (lk_Info.contains("value"))
+						ls_HumanReadableValue = lk_Info["value"].toString();
+				}
+			}
+			
+			r_ProfileMixInfo lr_ProfileMixInfo;
+			lr_ProfileMixInfo.ms_ProfileTitle = ls_ProfileTitle;
+			lr_ProfileMixInfo.ms_Value = ls_Value;
+			lr_ProfileMixInfo.ms_HumanReadableKey = ls_HumanReadableKey;
+			lr_ProfileMixInfo.ms_HumanReadableValue = ls_HumanReadableValue;
+			mk_ProfileMix[ls_Key].push_back(lr_ProfileMixInfo);
 		}
 	}
 	
+	// sort profile mix keys according to the currently loaded script, if foreign parameter by name
+	mk_ProfileMixKeysSorted = QStringList();
+	if (mk_CurrentScript_)
+	{
+		// first come the script keys, if there is a script - sort as intended by the script
+		foreach (QString ls_Key, mk_CurrentScript_->getParameterKeys())
+		{
+			if (mk_ProfileKeysSet.contains(ls_Key))
+			{
+				mk_ProfileKeysSet.remove(ls_Key);
+				mk_ProfileMixKeysSorted.push_back(ls_Key);
+			}
+		}
+	}
+	
+	// no come the remaining keys, sorted by name
+	QMap<QString, QString> lk_RemainingKeys;
+	foreach (QString ls_Key, mk_ProfileKeysSet)
+		lk_RemainingKeys[ls_Key.toLower()] = ls_Key;
+	foreach (QString ls_Key, lk_RemainingKeys)
+		mk_ProfileMixKeysSorted.push_back(ls_Key);
+	
+	mk_GoodProfileMixKeys = QStringList();
+	mk_ConflictingProfileMixKeys = QStringList();
+	foreach (QString ls_Key, mk_ProfileMixKeysSorted)
+	{
+		if (mk_ProfileMix[ls_Key].size() == 1)
+			mk_GoodProfileMixKeys.push_back(ls_Key);
+		else
+			mk_ConflictingProfileMixKeys.push_back(ls_Key);
+	}
+	
 	this->updateDescription();
+	this->toggleUi();
 }
 
 
@@ -539,4 +657,10 @@ r_ProfileState::Enumeration k_ProfileManager::classifyProfile(tk_YamlMap ak_Prof
 	else if (li_MatchingKeys == li_ProfileKeys)
 		return r_ProfileState::Applicable;
 	else return r_ProfileState::PartlyApplicable;
+}
+
+
+void k_ProfileManager::applyClicked()
+{
+	this->accept();
 }
