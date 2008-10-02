@@ -21,17 +21,42 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScriptFactory.h"
 
 
-k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, QString as_TargetScriptUri, tk_YamlMap ak_OldProfile, QWidget * parent, Qt::WindowFlags f)
+k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, 
+										 k_Script* ak_CurrentScript_, 
+										 tk_YamlMap ak_OldProfile, 
+										 QWidget * parent, Qt::WindowFlags f)
 	: QDialog(parent, f)
 	, mb_CreateNewMode(ak_OldProfile.empty())
 	, mk_Proteomatic(ak_Proteomatic)
-	, ms_TargetScriptUri(as_TargetScriptUri)
+	, mk_CurrentScript_(ak_CurrentScript_)
+	, ms_TargetScriptUri(mk_CurrentScript_->uri())
 	, ms_WindowTitle(ak_OldProfile.empty() ? "Create new profile" : "Edit profile")
 	, mk_ProfileTitle_(NULL)
 	, mk_ProfileDescription_(NULL)
 {
 	mk_pScript = RefPtr<k_Script>(k_ScriptFactory::makeScript(ms_TargetScriptUri, mk_Proteomatic, false, true));
 	this->setWindowTitle(ms_WindowTitle);
+	
+	QToolBar* lk_ToolBar_ = new QToolBar("Actions", this);
+	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	
+	QToolButton* lk_CopyFromButton_ = new QToolButton(lk_ToolBar_);
+	lk_CopyFromButton_->setIcon(QIcon(":/icons/edit-redo.png"));
+	lk_CopyFromButton_->setText("Copy from");
+	//connect(&mk_Proteomatic, SIGNAL(scriptMenuChanged()), this, SLOT(scriptMenuChanged()));
+	lk_CopyFromButton_->setPopupMode(QToolButton::InstantPopup);
+	lk_CopyFromButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	lk_ToolBar_->addWidget(lk_CopyFromButton_);
+	
+	QMenu* lk_CopyFromMenu_ = new QMenu(this);
+	QAction* lk_CopyFromCurrentScriptAction_ = lk_CopyFromMenu_->addAction(QIcon(":/icons/proteomatic.png"), "Current script");
+	connect(lk_CopyFromCurrentScriptAction_, SIGNAL(triggered()), this, SLOT(copyFromCurrentScript()));
+	
+	//lk_CopyFromMenu_->addAction(QIcon(":/icons/document-properties.png"), "Other profile");
+	lk_CopyFromButton_->setMenu(lk_CopyFromMenu_);
+	
+	QAction* lk_ClearAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "&Reset");
+	connect(lk_ClearAction_, SIGNAL(triggered()), mk_pScript.get_Pointer(), SLOT(resetUnchecked()));
 	
 	// determine incoming parameters that are non-applicable to the current script
 	QStringList lk_ScriptKeys = mk_pScript->getParameterKeys();
@@ -54,6 +79,8 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, QString 
 	lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
 	
 	QBoxLayout* lk_MainLayout_ = new QVBoxLayout(this);
+	lk_MainLayout_->setContentsMargins(0, 0, 0, 0);
+	lk_MainLayout_->setSpacing(0);
 	QBoxLayout* lk_VLayout_;
 	QBoxLayout* lk_HLayout_;
 	lk_VLayout_ = new QVBoxLayout(this);
@@ -124,27 +151,34 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, QString 
 	QWidget* lk_VLayoutWidget_ = new QWidget(this);
 	lk_VLayoutWidget_->setLayout(lk_VLayout_);
 	lk_HSplitter_->addWidget(lk_VLayoutWidget_);
+	lk_MainLayout_->addWidget(lk_ToolBar_);
+	
+	lk_Frame_ = new QFrame(this);
+	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+	lk_MainLayout_->addWidget(lk_Frame_);
+	
 	lk_MainLayout_->addWidget(lk_HSplitter_);
 	lk_ScrollArea_->setWidget(mk_pScript->parameterWidget());
 	lk_HSplitter_->addWidget(lk_ScrollArea_);
 	lk_HLayout_ = new QHBoxLayout(this);
 	lk_HLayout_->addStretch();
-	QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "&Cancel", this);
-	connect(lk_CancelButton_, SIGNAL(clicked()), this, SLOT(reject()));
-	lk_HLayout_->addWidget(lk_CancelButton_);
 	QPushButton* lk_SaveButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "&Save", this);
 	lk_SaveButton_->setDefault(true);
 	connect(lk_SaveButton_, SIGNAL(clicked()), this, SLOT(applyClicked()));
 	lk_HLayout_->addWidget(lk_SaveButton_);
+	QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "&Cancel", this);
+	connect(lk_CancelButton_, SIGNAL(clicked()), this, SLOT(reject()));
+	lk_HLayout_->addWidget(lk_CancelButton_);
+	lk_HLayout_->setContentsMargins(8, 8, 8, 8);
+	lk_HLayout_->setSpacing(10);
 	lk_MainLayout_->addLayout(lk_HLayout_);
 	this->setLayout(lk_MainLayout_);
-	//lk_MainLayout_->setContentsMargins(0, 0, 0, 0);
 	mk_ProfileDescriptionText_->setText(mk_pScript->profileDescription());
 	connect(mk_pScript.get_Pointer(), SIGNAL(profileDescriptionChanged(const QString&)), mk_ProfileDescriptionText_, SLOT(setText(const QString&)));
 
 	lk_HSplitter_->setStretchFactor(0, 4);
 	lk_HSplitter_->setStretchFactor(1, 5);
-	resize(800, 400);
+	resize(760, 400);
 }
 
 
@@ -205,4 +239,13 @@ void k_EditProfileDialog::applyClicked()
 		else
 			this->accept();
 	}
+}
+
+
+void k_EditProfileDialog::copyFromCurrentScript()
+{
+	if (!mk_CurrentScript_)
+		return;
+		
+	mk_pScript->setConfiguration(mk_CurrentScript_->getNonDefaultConfiguration());
 }

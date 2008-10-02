@@ -54,8 +54,6 @@ public:
 	virtual QString title() const;
 	virtual QString description() const;
 
-	void reset();
-
 	void setPrefix(QString as_Prefix);
 	QString prefix() const;
 	QList<QString> outFiles() const;
@@ -69,6 +67,7 @@ public:
 	QString getHumanReadableParameterValue(QString as_Key) const;
 
 	QHash<QString, QString> getConfiguration() const;
+	QHash<QString, QString> getNonDefaultConfiguration();
 	void setConfiguration(QHash<QString, QString> ak_Configuration);
 	
 	tk_YamlMap getProfile() const;
@@ -84,6 +83,10 @@ public:
 	
 signals:
 	void profileDescriptionChanged(const QString&);
+	
+public slots:
+	void reset();
+	void resetUnchecked();
 
 protected slots:
 	void addChoiceItems();

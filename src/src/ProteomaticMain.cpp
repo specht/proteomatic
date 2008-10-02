@@ -33,7 +33,8 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
 	lk_ScriptHelper.show();
 	
 	// check for updates on startup
-	lk_Proteomatic.checkForUpdates();
+	if (lk_Proteomatic.getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool())
+		lk_Proteomatic.checkForUpdates();
 
 	return lk_App.exec();
 }

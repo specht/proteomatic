@@ -37,7 +37,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
 	, mk_Script_(NULL)
-	, mk_pProfileManager(new k_ProfileManager(ak_Proteomatic, QString(), QStringList(), this))
+	, mk_pProfileManager(new k_ProfileManager(ak_Proteomatic, NULL, this))
 	, ms_WindowTitle("Proteomatic")
 	, mk_ProgressDialog_(NULL)
 {
@@ -103,8 +103,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	
 	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles");
 	connect(mk_ProfilesAction_, SIGNAL(triggered()), this, SLOT(showProfileManager()));
+	/*
 	mk_ProfilesAction_->setEnabled(false);
 	mk_ProfilesAction_->setVisible(false);
+	*/
 	
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
@@ -123,11 +125,13 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	connect(mk_CheckTicketAction_, SIGNAL(triggered()), this, SLOT(checkTicket()));
 	mk_CheckTicketAction_->setEnabled(false);
 	
+	/*
 	lk_ToolBar_->addSeparator();
 	
-	QAction* lk_PreferencesOptions_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Preferences...");
+	//QAction* lk_PreferencesOptions_ = lk_ToolBar_->addAction(QIcon(":/icons/preferences-system.png"), "Preferences...");
 	lk_PreferencesOptions_->setEnabled(false);
 	lk_PreferencesOptions_->setVisible(false);
+	*/
 	
 	addToolBar(Qt::TopToolBarArea, lk_ToolBar_);
 
@@ -294,7 +298,7 @@ void k_ScriptHelper::setScript(QString as_Filename)
 	mk_Script_ = NULL;
 	
 	mk_Script_ = k_ScriptFactory::makeScript(as_Filename, mk_Proteomatic, true);
-	mk_pProfileManager = RefPtr<k_ProfileManager>(new k_ProfileManager(mk_Proteomatic, as_Filename, mk_Script_->getParameterKeys(), this));
+	mk_pProfileManager = RefPtr<k_ProfileManager>(new k_ProfileManager(mk_Proteomatic, mk_Script_, this));
 		
 	activateScript();
 	
@@ -452,13 +456,13 @@ void k_ScriptHelper::toggleUi()
 {
 	mk_ScrollArea_->setVisible(mk_Script_);
 	this->setEnabled(mk_RemoteRequests.empty());
-	mk_ProfilesAction_->setEnabled(true);
 
-		
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
 	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptType::Remote;
 
-	this->updateWindowsTitle();
+	mk_ProfilesAction_->setEnabled(!lb_ProcessRunning);
+	
+	this->updateWindowTitle();
 	
 	//mk_CheckTicketAction_->setEnabled(mk_Proteomatic.remoteHub().isReady());
 
@@ -769,5 +773,7 @@ void k_ScriptHelper::parameterWidgetResized()
 
 void k_ScriptHelper::showProfileManager()
 {
-	mk_pProfileManager->exec();
+	mk_pProfileManager->reset();
+	if (mk_pProfileManager->exec())
+		mk_Script_->setConfiguration(mk_pProfileManager->getGoodProfileMix());
 }

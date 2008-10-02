@@ -73,7 +73,7 @@ k_Proteomatic::~k_Proteomatic()
 		
 	// save configuration
 	this->saveConfiguration();
-	mk_pRemoteHubProcess->kill();
+	//mk_pRemoteHubProcess->kill();
 }
 
 
@@ -82,20 +82,26 @@ void k_Proteomatic::checkForUpdates()
 	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
 	{
 		QString ls_Result = this->syncRuby(QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun");
-		if (!ls_Result.toLower().startsWith("error"))
+		if (ls_Result.startsWith("CURRENT-VERSION:"))
 		{
+			ls_Result.replace("CURRENT-VERSION:", "");
 			QString ls_LatestVersion = ls_Result.replace(".tar.bz2", "").trimmed();
 			QString ls_Version = ls_Result.replace(".tar.bz2", "").replace("proteomatic-scripts-", "").trimmed();
 			QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
-			QString ls_InstalledVersion = ms_ScriptPackage.replace("proteomatic-scripts-", "").trimmed();
+			QString ls_InstalledVersion = ms_ScriptPackage;
+			ls_InstalledVersion.replace("proteomatic-scripts-", "").trimmed();
 			if (ls_Version != ls_InstalledVersion)
 			{
 				if (this->showMessageBox("Online update", 
 					QString("A new version of Proteomatic scripts is available.<br /> ") + 
 					"Latest version: " + ls_Version + ", installed: " + ls_InstalledVersion + "<br />Do you want to update to the latest version?",
-					":/icons/system-software-update.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+					":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
 				{
-					k_RubyWindow lk_RubyWindow(*this, QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << ms_ScriptPath, "Online update", ":/icons/system-software-update.png");
+					QStringList lk_Arguments;
+					lk_Arguments = QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << ms_ScriptPath;
+					if (!ms_ScriptPackage.isEmpty())
+						lk_Arguments << "--oldpath" << ms_ScriptPath + "/" + ms_ScriptPackage;
+					k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
 					lk_RubyWindow.exec();
 					
 					ms_ScriptPackage = ls_LatestVersion;
@@ -220,6 +226,16 @@ void k_Proteomatic::loadConfiguration()
 	if (!mk_Configuration.contains(CONFIG_SCRIPTS_URL) || mk_Configuration[CONFIG_SCRIPTS_URL].type() != QVariant::String)
 	{
 		mk_Configuration[CONFIG_SCRIPTS_URL] = "ftp://gpf.uni-muenster.de/download/proteomatic-scripts";
+		lb_InsertedDefaultValue = true;
+	}
+	if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
+		lb_InsertedDefaultValue = true;
+	}
+	if (!mk_Configuration.contains(CONFIG_WARN_ABOUT_MIXED_PROFILES) || mk_Configuration[CONFIG_WARN_ABOUT_MIXED_PROFILES].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_WARN_ABOUT_MIXED_PROFILES] = true;
 		lb_InsertedDefaultValue = true;
 	}
 		
@@ -681,7 +697,8 @@ void k_Proteomatic::saveConfiguration()
 
 QString k_Proteomatic::scriptsVersion()
 {
-	return ms_ScriptPackage.replace("proteomatic-scripts-", "").trimmed();
+	QString ls_Version = ms_ScriptPackage;
+	return ls_Version.replace("proteomatic-scripts-", "").trimmed();
 }
 
 
@@ -724,6 +741,26 @@ void k_Proteomatic::checkRuby()
 	connect(lk_FindRubyButton_, SIGNAL(clicked()), this, SLOT(checkRubySearchDialog()));
 	
 	mk_CheckRubyDialog.setLayout(lk_VLayout_);
+	
+	// see whether there's a local Ruby installed and prefer that
+	// if there is a local Ruby then overwrite the configuration
+	QString ls_OldRubyPath = mk_Configuration[CONFIG_PATH_TO_RUBY].toString();
+	mk_Configuration[CONFIG_PATH_TO_RUBY] = "ruby";
+	QString ls_Version = syncRuby(QStringList() << "-v");
+	if (ls_Version.startsWith("ruby"))
+	{
+		ls_Version.replace("ruby", "");
+		ls_Version = ls_Version.trimmed();
+		QStringList lk_Tokens = ls_Version.split(" ");
+		ls_Version = lk_Tokens.first();
+		if (ls_Version == "1.8.6")
+		{
+			// we have found a local Ruby, hooray!
+			this->saveConfiguration();
+			return;
+		}
+	}
+	mk_Configuration[CONFIG_PATH_TO_RUBY] = ls_OldRubyPath;
 	
 	while (true)
 	{

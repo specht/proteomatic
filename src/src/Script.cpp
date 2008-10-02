@@ -98,6 +98,22 @@ void k_Script::reset()
 }
 
 
+void k_Script::resetUnchecked()
+{
+	this->reset();
+	// uncheck all checkboxes, if any
+	if (mb_ProfileMode)
+	{
+		foreach (QString ls_Key, mk_WidgetLabelsOrCheckBoxes.keys())
+		{
+			QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(mk_WidgetLabelsOrCheckBoxes[ls_Key]);
+			if (lk_CheckBox_)
+				lk_CheckBox_->setCheckState(Qt::Unchecked);
+		}
+	}
+}
+
+
 void k_Script::setPrefix(QString as_Prefix)
 {
 	ms_Prefix = as_Prefix;
@@ -322,6 +338,20 @@ QHash<QString, QString> k_Script::getConfiguration() const
 
 	foreach (QString ls_Key, mk_ParameterValueWidgets.keys())
 		lk_Result[ls_Key] = getParameterValue(ls_Key);
+
+	return lk_Result;
+}
+
+
+QHash<QString, QString> k_Script::getNonDefaultConfiguration()
+{
+	QHash<QString, QString> lk_Result;
+
+	foreach (QString ls_Key, mk_ParameterValueWidgets.keys())
+	{
+		if (mk_DefaultConfiguration[ls_Key] != getParameterValue(ls_Key))
+			lk_Result[ls_Key] = getParameterValue(ls_Key);
+	}
 
 	return lk_Result;
 }
