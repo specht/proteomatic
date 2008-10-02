@@ -773,6 +773,7 @@ void k_ScriptHelper::parameterWidgetResized()
 
 void k_ScriptHelper::showProfileManager()
 {
+	mk_pProfileManager->reset();
 	if (mk_pProfileManager->exec())
 		mk_Script_->setConfiguration(mk_pProfileManager->getGoodProfileMix());
 }

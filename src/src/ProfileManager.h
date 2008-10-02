@@ -55,6 +55,7 @@ public:
 	k_ProfileManager(k_Proteomatic& ak_Proteomatic, k_Script* ak_CurrentScript_ = NULL, QWidget * parent = 0, Qt::WindowFlags f = 0);
 	virtual ~k_ProfileManager();
 	
+	virtual void reset();
 	QHash<QString, QString> getGoodProfileMix();
 	
 protected slots:
@@ -99,4 +100,5 @@ protected:
 	QStringList mk_GoodProfileMixKeys;
 	QStringList mk_ConflictingProfileMixKeys;
 	QHash<QString, QList<r_ProfileMixInfo> > mk_ProfileMix;
+	QHash<QString, QString> mk_GoodProfileMix;
 };

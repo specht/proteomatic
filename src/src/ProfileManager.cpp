@@ -191,12 +191,23 @@ k_ProfileManager::~k_ProfileManager()
 }
 
 
+void k_ProfileManager::reset()
+{
+	mk_GoodProfileMix = QHash<QString, QString>();
+	foreach (QListWidget* lk_ListWidget_, mk_HeaderForList.keys())
+	{
+		for (int i = 0; i < lk_ListWidget_->count(); ++i)
+			lk_ListWidget_->item(i)->setCheckState(Qt::Unchecked);
+	}
+	foreach (QString ls_Key, mk_ProfileCheckState.keys())
+		mk_ProfileCheckState[ls_Key] = Qt::Unchecked;
+	this->updateProfileMix();
+}
+
+
 QHash<QString, QString> k_ProfileManager::getGoodProfileMix()
 {
-	QHash<QString, QString> lk_GoodProfileMix;
-	foreach (QString ls_Key, mk_GoodProfileMixKeys)
-		lk_GoodProfileMix[ls_Key] = mk_ProfileMix[ls_Key].first().ms_Value;
-	return lk_GoodProfileMix;
+	return mk_GoodProfileMix;
 }
 
 
@@ -242,7 +253,7 @@ void k_ProfileManager::toggleUi()
 void k_ProfileManager::updateDescription()
 {
 	if (mk_AppliedProfiles.empty())
-		mk_DescriptionLabel_->setText("<i>(no profile applied)</i>");
+		mk_DescriptionLabel_->setText("<i>(no profile checked)</i>");
 	else
 	{
 		QString ls_Label;
@@ -661,5 +672,8 @@ r_ProfileState::Enumeration k_ProfileManager::classifyProfile(tk_YamlMap ak_Prof
 
 void k_ProfileManager::applyClicked()
 {
+	mk_GoodProfileMix = QHash<QString, QString>();
+	foreach (QString ls_Key, mk_GoodProfileMixKeys)
+		mk_GoodProfileMix[ls_Key] = mk_ProfileMix[ls_Key].first().ms_Value;
 	this->accept();
 }
