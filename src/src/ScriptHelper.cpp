@@ -382,10 +382,15 @@ void k_ScriptHelper::processFinished(int ai_ExitCode, QProcess::ExitStatus ak_Ex
 {
 	processReadyRead();
 	toggleUi();
-	if (ai_ExitCode != 0)
+	if (ai_ExitCode == 0)
 	{
 		addOutput("\n-----------------------------------\n");
-		addOutput(QString("Process failed with exit code %1\n").arg(ai_ExitCode));
+		addOutput(QString("Script finished successfully.\n"));
+	}
+	else
+	{
+		addOutput("\n-----------------------------------\n");
+		addOutput(QString("Script failed with exit code %1\n").arg(ai_ExitCode));
 	}
 }
 
