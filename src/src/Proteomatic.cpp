@@ -73,7 +73,16 @@ k_Proteomatic::~k_Proteomatic()
 		
 	// save configuration
 	this->saveConfiguration();
-	//mk_pRemoteHubProcess->kill();
+	if (mk_pRemoteHubHttp.get_Pointer())
+	{
+		mk_pRemoteHubHttp->abort();
+		mk_pRemoteHubHttp = RefPtr<QHttp>(NULL);
+	}
+	if (mk_pRemoteHubProcess.get_Pointer())
+	{
+		mk_pRemoteHubProcess->kill();
+		mk_pRemoteHubProcess = RefPtr<QProcess>(NULL);
+	}
 }
 
 
@@ -238,6 +247,11 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_WARN_ABOUT_MIXED_PROFILES] = true;
 		lb_InsertedDefaultValue = true;
 	}
+	if (!mk_Configuration.contains(CONFIG_CACHE_SCRIPT_INFO) || mk_Configuration[CONFIG_CACHE_SCRIPT_INFO].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_CACHE_SCRIPT_INFO] = true;
+		lb_InsertedDefaultValue = true;
+	}
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)
@@ -269,27 +283,19 @@ void k_Proteomatic::collectScriptInfo()
 			
 		if (ls_Marker == "require 'include/proteomatic'" || ls_Marker == "require \"include/proteomatic\"")
 		{
-		/*
-			if (!QFile::exists("cache"))
+			if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists("cache")))
 			{
 				QDir lk_Dir;
 				lk_Dir.mkdir("cache");
 			}
-			*/
 
-			QProcess lk_QueryProcess;
 
 			QFileInfo lk_FileInfo(ls_Path);
-			lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
-			QStringList lk_Arguments;
-			lk_Arguments << ls_Path << "---info";
-			lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-			lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 			QString ls_Response;
 			QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
-			/*
-			if (QFile::exists(ls_CacheFilename) && !mb_SupressCache)
+			if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path))
 			{
+				// re-use cached information
 				QFile lk_File(ls_CacheFilename);
 				if (lk_File.open(QIODevice::ReadOnly))
 				{
@@ -298,14 +304,20 @@ void k_Proteomatic::collectScriptInfo()
 				}
 			}
 			else
-			*/
 			{
+				// retrieve information from script
+				QProcess lk_QueryProcess;
+				lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+				QStringList lk_Arguments;
+				lk_Arguments << ls_Path << "---info";
+				lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+				lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 				if (lk_QueryProcess.waitForFinished())
 				{
 					ls_Response = lk_QueryProcess.readAll();
-					/*
-					if (!mb_SupressCache && !QFile::exists(ls_CacheFilename))
+					if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
 					{
+						// update cached information
 						QFile lk_File(ls_CacheFilename);
 						if (lk_File.open(QIODevice::WriteOnly))
 						{
@@ -315,7 +327,6 @@ void k_Proteomatic::collectScriptInfo()
 							lk_File.close();
 						}
 					}
-					*/
 				}
 			}
 			if (ls_Response.length() > 0)
@@ -834,4 +845,21 @@ QString k_Proteomatic::findCurrentScriptPackage()
 		}
 		return QFileInfo(lk_AvailableVersions.first()).fileName();
 	}
+}
+
+
+bool k_Proteomatic::fileUpToDate(QString as_Path, QStringList ak_Dependencies)
+{
+	QFileInfo lk_MainInfo(as_Path);
+	if (!lk_MainInfo.exists())
+		return false;
+		
+	foreach (QString ls_Path, ak_Dependencies)
+	{
+		QFileInfo lk_FileInfo(ls_Path);
+		if (lk_FileInfo.exists())
+			if (lk_MainInfo.lastModified() < lk_FileInfo.lastModified())
+				return false;
+	}
+	return true;
 }

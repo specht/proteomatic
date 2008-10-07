@@ -113,10 +113,13 @@ end
 
 ls_PackagePath = File::join(ls_OutPath, ls_Current)
 puts "Fetching #{ls_Current}"
+$stdout.flush
 fetchUriAsFile(File::join(ls_Uri, ls_Current), ls_PackagePath)
 puts
+$stdout.flush
 
 puts "Unpacking..."
+$stdout.flush
 
 ls_OldDir = Dir::pwd()
 Dir::chdir(File::dirname(ls_PackagePath))
@@ -150,8 +153,10 @@ elsif (ls_Platform == 'win32')
 	end
 end
 
+$stdout.flush
 unless (ls_OldPath.empty?)
 	puts "Copying configuration files and external tools..."
+	$stdout.flush
 	lk_OldFiles = Dir[File::join(ls_OldPath, 'config/**/*')]
 	lk_OldFiles += Dir[File::join(ls_OldPath, 'ext/**/*')]
 	lk_OldFiles.collect! { |x| x.sub(ls_OldPath, '') }

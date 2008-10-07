@@ -36,6 +36,8 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 {
 	mk_pScript = RefPtr<k_Script>(k_ScriptFactory::makeScript(ms_TargetScriptUri, mk_Proteomatic, false, true));
 	this->setWindowTitle(ms_WindowTitle);
+	setWindowIcon(QIcon(":/icons/proteomatic.png"));
+
 	
 	QToolBar* lk_ToolBar_ = new QToolBar("Actions", this);
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);

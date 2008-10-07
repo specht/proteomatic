@@ -42,6 +42,8 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	}
 	
 	setWindowTitle("Profile Manager");
+	setWindowIcon(QIcon(":/icons/proteomatic.png"));
+
 	setModal(true);
 	
 	QToolBar* lk_ToolBar_ = new QToolBar("Profile actions", this);

@@ -32,6 +32,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 
 	QFileInfo lk_FileInfo(as_ScriptPath);
 	mk_Process.setWorkingDirectory(lk_FileInfo.path());
+	QString ls_CacheFilename = QString("cache/%1.parameters").arg(lk_FileInfo.baseName());
 
 	QFile lk_File(as_ScriptPath);
 	lk_File.open(QIODevice::ReadOnly);
@@ -43,7 +44,33 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 		
 	if (ls_Marker == "require 'include/proteomatic'" || ls_Marker == "require \"include/proteomatic\"")
 	{
-		QString ls_Response = mk_Proteomatic.syncRuby(QStringList() << as_ScriptPath << "---getParameters");
+		QString ls_Response;
+		if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && mk_Proteomatic.fileUpToDate(ls_CacheFilename, QStringList() << as_ScriptPath))
+		{
+			// re-use cached information
+			QFile lk_File(ls_CacheFilename);
+			if (lk_File.open(QIODevice::ReadOnly))
+			{
+				ls_Response = lk_File.readAll();
+				lk_File.close();
+			}
+		}
+		else
+		{
+			ls_Response = mk_Proteomatic.syncRuby(QStringList() << as_ScriptPath << "---getParameters");
+			if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
+			{
+				// update cached information
+				QFile lk_File(ls_CacheFilename);
+				if (lk_File.open(QIODevice::WriteOnly))
+				{
+					QTextStream lk_Stream(&lk_File);
+					lk_Stream << ls_Response;
+					lk_Stream.flush();
+					lk_File.close();
+				}
+			}
+		}
 		QStringList lk_Response = ls_Response.split(QChar('\n'));
 		if (!lk_Response.empty())
 		{
@@ -63,7 +90,19 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 					RefPtr<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(mk_Proteomatic, QStringList() << as_ScriptPath << "--resolveDependencies", "Installing external tools", ":/icons/package-x-generic.png"));
 					lk_pRubyWindow->exec();
 					// retry loading the script
-					QString ls_Response = mk_Proteomatic.syncRuby(QStringList() << as_ScriptPath << "---getParameters");
+					ls_Response = mk_Proteomatic.syncRuby(QStringList() << as_ScriptPath << "---getParameters");
+					if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
+					{
+						// update cached information
+						QFile lk_File(ls_CacheFilename);
+						if (lk_File.open(QIODevice::WriteOnly))
+						{
+							QTextStream lk_Stream(&lk_File);
+							lk_Stream << ls_Response;
+							lk_Stream.flush();
+							lk_File.close();
+						}
+					}
 					lk_Response = ls_Response.split(QChar('\n'));
 					ls_FirstLine = lk_Response.takeFirst().trimmed();
 				}
