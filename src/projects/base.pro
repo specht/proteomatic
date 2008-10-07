@@ -8,7 +8,7 @@ CONFIG += debug_and_release
 
 macx {
 	CONFIG -= app_bundle
-	CONFIG += ppc
+	CONFIG += x86
 	ICON = ../../src/icons/proteomatic.icns
 }
 
