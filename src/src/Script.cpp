@@ -18,6 +18,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Script.h"
+#include "ClickableLabel.h"
 #include "FoldedHeader.h"
 #include "FileList.h"
 #include "CiListWidgetItem.h"
@@ -744,6 +745,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 
 		bool lb_AddLabel = true;
+		bool lb_WidgetFirst = false;
 
 		bool lb_Ok;
 
@@ -845,6 +847,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 		else if (ls_Type == "flag")
 		{
+		/*
 			QString ls_Label = lk_Parameter["label"];
 			if (ls_Key.startsWith("[output]"))
 				ls_Label += QString(" (%1)").arg(lk_Parameter["filename"]);
@@ -861,6 +864,28 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			lk_CheckBox_->setProperty("key", QVariant(ls_Key));
 			if (!ls_Key.startsWith("[output]"))
 				connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
+		*/
+			if (mb_ProfileMode)
+			{
+				QComboBox* lk_ComboBox_ = new QComboBox(lk_Container_);
+				lk_Widget_ = lk_ComboBox_;
+				lk_ComboBox_->addItem("yes", QVariant("true"));
+				lk_ComboBox_->addItem("no", QVariant("false"));
+				lk_ComboBox_->setCurrentIndex((lk_Parameter["default"] == "true") || (lk_Parameter["default"] == "yes") ? 0 : 1);
+				
+				lk_ComboBox_->setProperty("key", QVariant(ls_Key));
+				connect(lk_ComboBox_, SIGNAL(currentIndexChanged(int)), this, SLOT(parameterChanged()));
+			}
+			else
+			{
+				lb_WidgetFirst = true;
+				QCheckBox* lk_CheckBox_ = new QCheckBox(lk_Container_);
+				lk_Widget_ = lk_CheckBox_;
+				lk_CheckBox_->setChecked((lk_Parameter["default"] == "true") || (lk_Parameter["default"] == "yes"));
+				lk_CheckBox_->setProperty("key", QVariant(ls_Key));
+				if (!ls_Key.startsWith("[output]"))
+					connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
+			}
 		}
 		else if (ls_Type == "enum")
 		{
@@ -1002,12 +1027,18 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			}
 			mk_ParameterMultiChoiceWidgets[ls_Key] = lk_CheckWidgets;
 		}
+		QWidget* lk_Label_ = NULL;
 		if (lb_AddLabel)
 		{
-			QWidget* lk_Label_;
+			QString ls_Label = lk_Parameter["label"];
+			if (ls_Key.startsWith("[output]") && !lk_Parameter["filename"].isEmpty())
+				ls_Label += QString(" (%1)").arg(lk_Parameter["filename"]);
+			if (!lb_WidgetFirst)
+				ls_Label += ":";
+				
 			if (mb_ProfileMode)
 			{
-				lk_Label_ = new QCheckBox(lk_Parameter["label"] + ":", lk_Container_);
+				lk_Label_ = new QCheckBox(ls_Label, lk_Container_);
 				lk_Widget_->setEnabled(false);
 				dynamic_cast<QCheckBox*>(lk_Label_)->setCheckState(Qt::Unchecked);
 				lk_Label_->setProperty("key", QVariant(ls_Key));
@@ -1015,27 +1046,41 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				connect(lk_Label_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
 			}
 			else
-				lk_Label_ = new QLabel(lk_Parameter["label"] + ":", lk_Container_);
+				lk_Label_ = new k_ClickableLabel(ls_Label, lk_Container_);
 				
 			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_Label_;
 				
 			if (!ls_Description.isEmpty() && !ls_Key.startsWith("[output]"))
 				lk_Label_->setToolTip(ls_Description);
-			
-			lk_Layout_->addWidget(lk_Label_);
 		}
 		if (lk_Widget_ != NULL)
 		{
 			if (!ls_Description.isEmpty() && !ls_Key.startsWith("[output]"))
 				lk_Widget_->setToolTip(ls_Description);
 			
-			lk_Layout_->addWidget(lk_Widget_);
 			mk_ParameterDisplayWidgets[ls_Key] = lk_Widget_;
 			if (lk_ValueWidget_ == NULL)
 				lk_ValueWidget_ = lk_Widget_;
 			mk_ParameterValueWidgets[ls_Key] = lk_ValueWidget_;
 			if (!ls_Key.startsWith("[output]"))
 				mb_HasParameters = true;
+		}
+		if (lb_WidgetFirst)
+		{
+			lk_Layout_->setSpacing(0);
+			if (lk_Widget_)
+				lk_Layout_->addWidget(lk_Widget_);
+			if (lb_AddLabel && lk_Label_)
+				lk_Layout_->addWidget(lk_Label_);
+			lk_Layout_->addStretch();
+			connect(lk_Label_, SIGNAL(clicked()), dynamic_cast<QCheckBox*>(lk_Widget_), SLOT(toggle()));
+		}
+		else
+		{
+			if (lb_AddLabel && lk_Label_)
+				lk_Layout_->addWidget(lk_Label_);
+			if (lk_Widget_)
+				lk_Layout_->addWidget(lk_Widget_);
 		}
 	}
 	lk_ParameterLayout_->addStretch();
