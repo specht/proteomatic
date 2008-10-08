@@ -289,11 +289,21 @@ void k_Proteomatic::collectScriptInfo()
 				lk_Dir.mkdir("cache");
 			}
 
-
 			QFileInfo lk_FileInfo(ls_Path);
 			QString ls_Response;
 			QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
-			if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path))
+			bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
+			if (lb_UseCache)
+			{
+				// see if cached info showed no errors or unresolved dependencies
+				QFile lk_File(ls_CacheFilename);
+				lk_File.open(QIODevice::ReadOnly);
+				QTextStream lk_Stream(&lk_File);
+				QString ls_Line = lk_Stream.readLine().trimmed();
+				if (ls_Line != "---info")
+					lb_UseCache = false;
+			}
+			if (lb_UseCache)
 			{
 				// re-use cached information
 				QFile lk_File(ls_CacheFilename);
