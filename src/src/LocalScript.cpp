@@ -45,7 +45,18 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 	if (ls_Marker == "require 'include/proteomatic'" || ls_Marker == "require \"include/proteomatic\"")
 	{
 		QString ls_Response;
-		if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && mk_Proteomatic.fileUpToDate(ls_CacheFilename, QStringList() << as_ScriptPath))
+		bool lb_UseCache = mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && mk_Proteomatic.fileUpToDate(ls_CacheFilename, QStringList() << as_ScriptPath);
+		if (lb_UseCache)
+		{
+			// see if cached info showed no errors or unresolved dependencies
+			QFile lk_File(ls_CacheFilename);
+			lk_File.open(QIODevice::ReadOnly);
+			QTextStream lk_Stream(&lk_File);
+			QString ls_Line = lk_Stream.readLine().trimmed();
+			if (ls_Line != "---getParameters")
+				lb_UseCache = false;
+		}
+		if (lb_UseCache)
 		{
 			// re-use cached information
 			QFile lk_File(ls_CacheFilename);
