@@ -93,18 +93,20 @@ k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteom
 	QHBoxLayout* lk_ButtonLayout_ = new QHBoxLayout();
 
 	QPushButton* lk_ConfigureButton_ = new QPushButton(this);
-	lk_ConfigureButton_->setIcon(QIcon(":/icons/other_configuration.png"));
+	lk_ConfigureButton_->setIcon(QIcon(":/icons/preferences-system.png"));
 	lk_ButtonLayout_->addWidget(lk_ConfigureButton_);
 	connect(lk_ConfigureButton_, SIGNAL(clicked()), mk_Script_->parameterWidget(), SLOT(show()));
 
 	QPushButton* lk_ShowOutputButton_ = new QPushButton(this);
-	lk_ShowOutputButton_->setIcon(QIcon(":/icons/konsole.png"));
+	lk_ShowOutputButton_->setIcon(QIcon(":/icons/utilities-terminal.png"));
 	lk_ButtonLayout_->addWidget(lk_ShowOutputButton_);
 	//connect(lk_ShowOutputButton_, SIGNAL(clicked()), mk_Script.parameterWidget(), SLOT(show()));
 
+/*
 	QPushButton* lk_ShowInfoButton_ = new QPushButton(this);
 	lk_ShowInfoButton_->setIcon(QIcon(":/icons/info.png"));
 	lk_ButtonLayout_->addWidget(lk_ShowInfoButton_);
+	*/
 	//connect(lk_ShowInfoButton_, SIGNAL(clicked()), mk_Script.parameterWidget(), SLOT(show()));
 
 	lk_ButtonLayout_->addStretch();

@@ -34,6 +34,7 @@
   <file>icons/system-search.png</file>
   <file>icons/system-software-update.png</file>
   <file>icons/ticket.png</file>
+  <file>icons/utilities-terminal.png</file>
   <file>icons/view-refresh.png</file>
 </qresource>
 </RCC>
