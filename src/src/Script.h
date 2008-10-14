@@ -104,6 +104,7 @@ protected slots:
 protected:
 	void addChoiceItems(QString as_Key, QStringList ak_Choices);
 	void createParameterWidget(QStringList ak_Definition);
+	void adjustDependentParameters();
 
 	r_ScriptType::Enumeration me_Type;
 	QString ms_ScriptUri;
@@ -133,4 +134,5 @@ protected:
 	QLineEdit* mk_OutputDirectory_;
 	QToolButton* mk_ClearOutputDirectory_;
 	QStringList mk_InputFileDescriptionList;
+	QStringList mk_DependentParameters;
 };

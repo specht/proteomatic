@@ -499,6 +499,7 @@ void k_Script::setOutputDirectoryButtonClicked()
 
 void k_Script::toggleUi()
 {
+	this->adjustDependentParameters();
 	if (mk_ClearOutputDirectory_ != NULL)
 		mk_ClearOutputDirectory_->setEnabled(!mk_OutputDirectory_->text().isEmpty());
 }
@@ -662,6 +663,8 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 	{
 		mk_ParametersAtDefault[ls_Key] = true;
 		mk_ParameterDefs[ls_Key] = lk_Parameters[ls_Key];
+		if (mk_ParameterDefs[ls_Key].contains("enabled"))
+			mk_DependentParameters.push_back(ls_Key);
 		if (ls_Key.startsWith("[output]") && ls_Key != "[output]prefix" && ls_Key != "[output]directory")
 			mk_OutFileDetails[ls_Key] = lk_Parameters[ls_Key];
 
@@ -1173,3 +1176,12 @@ void k_Script::parameterChangedWithKey(QString as_Key)
 	}
 }
 
+
+void k_Script::adjustDependentParameters()
+{
+	foreach (QString ls_Key, mk_DependentParameters)
+	{
+		// do something with the dependent parameter, like, enable or disable
+		// it according to its dependencies
+	}
+}
