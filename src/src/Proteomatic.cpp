@@ -770,16 +770,20 @@ void k_Proteomatic::checkRuby()
 	QString ls_Version = syncRuby(QStringList() << "-v");
 	if (ls_Version.startsWith("ruby"))
 	{
+		/*
 		ls_Version.replace("ruby", "");
 		ls_Version = ls_Version.trimmed();
 		QStringList lk_Tokens = ls_Version.split(" ");
 		ls_Version = lk_Tokens.first();
 		if (ls_Version == "1.8.6")
 		{
+			*/
 			// we have found a local Ruby, hooray!
 			this->saveConfiguration();
 			return;
+			/*
 		}
+		*/
 	}
 	mk_Configuration[CONFIG_PATH_TO_RUBY] = ls_OldRubyPath;
 	
@@ -791,6 +795,7 @@ void k_Proteomatic::checkRuby()
 			ls_Error = "Proteomatic cannot find Ruby, which is required in order to run the scripts.";
 		else
 		{
+			/*
 			ls_Version.replace("ruby", "");
 			ls_Version = ls_Version.trimmed();
 			QStringList lk_Tokens = ls_Version.split(" ");
@@ -799,10 +804,11 @@ void k_Proteomatic::checkRuby()
 				ls_Error = QString("The Ruby version on this computer is %1, but Proteomatic needs Ruby 1.8.6.").arg(ls_Version);
 			else
 				ls_Error = "";
+			*/
 		}
 		if (ls_Error != "")
 		{
-			ls_Error += "<br />You can download the Ruby at <a href='http://www.ruby-lang.org/en/downloads/'>http://www.ruby-lang.org/en/downloads/</a>.";
+			ls_Error += "<br />You can download Ruby at <a href='http://www.ruby-lang.org/en/downloads/'>http://www.ruby-lang.org/en/downloads/</a>.";
 			ls_Error += "<br />If you already have Ruby, please specify the path to the Ruby interpreter below:";
 			lk_ErrorLabel_->setText(ls_Error);
 			mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
