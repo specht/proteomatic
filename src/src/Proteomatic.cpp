@@ -121,7 +121,7 @@ void k_Proteomatic::checkForUpdates()
 					lk_File.close();
 					
 					// purge cache
-					QStringList lk_CacheFiles = QDir().entryList(QDir::Files);
+					QStringList lk_CacheFiles = QDir("cache").entryList(QDir::Files);
 					foreach (QString ls_Path, lk_CacheFiles)
 						QFile(ls_Path).remove();
 
