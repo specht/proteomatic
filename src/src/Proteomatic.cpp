@@ -120,6 +120,11 @@ void k_Proteomatic::checkForUpdates()
 					lk_Stream << ms_ScriptPackage;
 					lk_File.close();
 					
+					// purge cache
+					QStringList lk_CacheFiles = QDir().entryList(QDir::Files);
+					foreach (QString ls_Path, lk_CacheFiles)
+						QFile(ls_Path).remove();
+
 					this->collectScriptInfo();
 					this->createProteomaticScriptsMenu();
 				}
@@ -293,6 +298,11 @@ void k_Proteomatic::collectScriptInfo()
 			QString ls_Response;
 			QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
 			bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
+			
+			// disable cache if we're trunk!
+			if (gs_ProteomaticVersion == "trunk")
+			  lb_UseCache = false;
+			  
 			if (lb_UseCache)
 			{
 				// see if cached info showed no errors or unresolved dependencies
