@@ -607,6 +607,32 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 	}
 	
+	// TODO: finish this. Right now only leading {...} are stripped but
+	// not taken into account for sorting the parameter groups.
+	// adjust lk_ParametersOrder - {1} makes a group appear at the front,
+	// these go into lk_Positives. No {...} makes a group appear in the 
+	// middle, these go into lk_Remaining. {-1} makes a group appear at
+	// the end of the parameters list, these go into lk_Negatives.
+	// Make of that what you want, it was done to shift the target/decoy
+	// options up in the Run OMSSA script, because they are quite important.
+	// Probably there's something better.
+	
+	QStringList lk_Positives;
+	QStringList lk_Remaining;
+	QStringList lk_Negatives;
+	foreach (QString ls_Key, lk_ParametersOrder)
+	{
+		QString ls_Group = lk_Parameters[ls_Key]["group"].trimmed();
+		int li_StartIndex = ls_Group.indexOf("{");
+		int li_EndIndex = ls_Group.indexOf("}");
+		if (li_StartIndex == 0 && li_EndIndex > 0)
+		{
+			QString ls_Number = ls_Group.mid(li_StartIndex + 1, li_EndIndex - li_StartIndex - 1).trimmed();
+			ls_Group.remove(li_StartIndex, li_EndIndex - li_StartIndex + 1);
+			ls_Group = ls_Group.trimmed();
+			lk_Parameters[ls_Key]["group"] = ls_Group;
+		}
+	}
 	mk_ParametersOrder = lk_ParametersOrder;
 
 	QHash<QString, QWidget* > lk_Containers;
