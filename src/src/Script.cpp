@@ -32,12 +32,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
 	: me_Type(ae_Type)
 	, ms_ScriptUri(as_ScriptUri)
-	, ms_Prefix("")
 	, mk_Proteomatic(ak_Proteomatic)
 	, mb_IsGood(false)
 	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
 	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
 	, mk_OutputDirectory_(NULL)
+	, mk_OutputPrefix_(NULL)
 	, mk_ClearOutputDirectory_(NULL)
 	, mb_HasParameters(false)
 	, mb_IncludeOutputFiles(ab_IncludeOutputFiles)
@@ -117,13 +117,13 @@ void k_Script::resetUnchecked()
 
 void k_Script::setPrefix(QString as_Prefix)
 {
-	ms_Prefix = as_Prefix;
+	mk_OutputPrefix_->setText(as_Prefix);
 }
 
 
 QString k_Script::prefix() const
 {
-	return ms_Prefix;
+	return mk_OutputPrefix_->text();
 }
 
 
@@ -870,6 +870,24 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				lk_Container_->setLayout(lk_GroupBoxLayout_);
 				lk_LineEdit_->setReadOnly(true);
 				connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(toggleUi()));
+				lk_Widget_ = lk_SubContainer_;
+				lk_ValueWidget_ = lk_LineEdit_;
+			}
+			else if (ls_Key == "[output]prefix")
+			{
+				mk_OutputPrefix_ = lk_LineEdit_;
+				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
+				lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
+				QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
+				lk_GroupBoxLayout_->setMargin(0);
+				lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
+				QToolButton* lk_ProposePrefixButton_ = new QToolButton(lk_SubContainer_);
+				lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
+				//lk_ProposePrefixButton_->setHint("Let Proteomatic propose a prefix");
+				mk_ProposePrefix_ = lk_ProposePrefixButton_;
+				connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SIGNAL(proposePrefixButtonClicked()));
+				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ProposePrefixButton_, 0, Qt::AlignTop);
+				lk_Container_->setLayout(lk_GroupBoxLayout_);
 				lk_Widget_ = lk_SubContainer_;
 				lk_ValueWidget_ = lk_LineEdit_;
 			}

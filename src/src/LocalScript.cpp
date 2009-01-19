@@ -141,6 +141,12 @@ void k_LocalScript::start(QStringList ak_Parameters)
 }
 
 
+QString k_LocalScript::proposePrefix(QStringList ak_Parameters)
+{
+	return mk_Proteomatic.syncRuby((QStringList() << ms_ScriptUri) + commandLineArguments() + ak_Parameters << "--proposePrefix");
+}
+
+
 void k_LocalScript::kill()
 {
 	mk_Process.kill();

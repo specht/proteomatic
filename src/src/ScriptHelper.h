@@ -61,6 +61,7 @@ protected slots:
 	void ticketWindowClosed();
 	void parameterWidgetResized();
 	void showProfileManager();
+	void proposePrefix();
 
 protected:
 	void setScript(QString as_Filename);
