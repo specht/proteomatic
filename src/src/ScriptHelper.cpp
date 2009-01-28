@@ -804,7 +804,7 @@ void k_ScriptHelper::proposePrefix()
 		if (ls_Result.startsWith("--proposePrefix"))
 		{
 			QStringList lk_Result = ls_Result.split("\n");
-			mk_Script_->setPrefix(lk_Result[1]);
+			mk_Script_->setPrefix(lk_Result[1].trimmed());
 		}
 		else
 		{
