@@ -35,6 +35,7 @@ public:
 	virtual void kill();
 	virtual bool running();
 	virtual QString readAll();
+	virtual QString proposePrefix(QStringList ak_Parameters = QStringList());
 
 signals:
 	virtual void started();

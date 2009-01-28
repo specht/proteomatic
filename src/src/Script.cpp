@@ -32,12 +32,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
 	: me_Type(ae_Type)
 	, ms_ScriptUri(as_ScriptUri)
-	, ms_Prefix("")
 	, mk_Proteomatic(ak_Proteomatic)
 	, mb_IsGood(false)
 	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
 	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
 	, mk_OutputDirectory_(NULL)
+	, mk_OutputPrefix_(NULL)
 	, mk_ClearOutputDirectory_(NULL)
 	, mb_HasParameters(false)
 	, mb_IncludeOutputFiles(ab_IncludeOutputFiles)
@@ -117,13 +117,13 @@ void k_Script::resetUnchecked()
 
 void k_Script::setPrefix(QString as_Prefix)
 {
-	ms_Prefix = as_Prefix;
+	mk_OutputPrefix_->setText(as_Prefix);
 }
 
 
 QString k_Script::prefix() const
 {
-	return ms_Prefix;
+	return mk_OutputPrefix_->text();
 }
 
 
@@ -499,6 +499,7 @@ void k_Script::setOutputDirectoryButtonClicked()
 
 void k_Script::toggleUi()
 {
+	this->adjustDependentParameters();
 	if (mk_ClearOutputDirectory_ != NULL)
 		mk_ClearOutputDirectory_->setEnabled(!mk_OutputDirectory_->text().isEmpty());
 }
@@ -606,6 +607,32 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 	}
 	
+	// TODO: finish this. Right now only leading {...} are stripped but
+	// not taken into account for sorting the parameter groups.
+	// adjust lk_ParametersOrder - {1} makes a group appear at the front,
+	// these go into lk_Positives. No {...} makes a group appear in the 
+	// middle, these go into lk_Remaining. {-1} makes a group appear at
+	// the end of the parameters list, these go into lk_Negatives.
+	// Make of that what you want, it was done to shift the target/decoy
+	// options up in the Run OMSSA script, because they are quite important.
+	// Probably there's something better.
+	
+	QStringList lk_Positives;
+	QStringList lk_Remaining;
+	QStringList lk_Negatives;
+	foreach (QString ls_Key, lk_ParametersOrder)
+	{
+		QString ls_Group = lk_Parameters[ls_Key]["group"].trimmed();
+		int li_StartIndex = ls_Group.indexOf("{");
+		int li_EndIndex = ls_Group.indexOf("}");
+		if (li_StartIndex == 0 && li_EndIndex > 0)
+		{
+			QString ls_Number = ls_Group.mid(li_StartIndex + 1, li_EndIndex - li_StartIndex - 1).trimmed();
+			ls_Group.remove(li_StartIndex, li_EndIndex - li_StartIndex + 1);
+			ls_Group = ls_Group.trimmed();
+			lk_Parameters[ls_Key]["group"] = ls_Group;
+		}
+	}
 	mk_ParametersOrder = lk_ParametersOrder;
 
 	QHash<QString, QWidget* > lk_Containers;
@@ -662,6 +689,8 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 	{
 		mk_ParametersAtDefault[ls_Key] = true;
 		mk_ParameterDefs[ls_Key] = lk_Parameters[ls_Key];
+		if (mk_ParameterDefs[ls_Key].contains("enabled"))
+			mk_DependentParameters.push_back(ls_Key);
 		if (ls_Key.startsWith("[output]") && ls_Key != "[output]prefix" && ls_Key != "[output]directory")
 			mk_OutFileDetails[ls_Key] = lk_Parameters[ls_Key];
 
@@ -841,6 +870,24 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				lk_Container_->setLayout(lk_GroupBoxLayout_);
 				lk_LineEdit_->setReadOnly(true);
 				connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(toggleUi()));
+				lk_Widget_ = lk_SubContainer_;
+				lk_ValueWidget_ = lk_LineEdit_;
+			}
+			else if (ls_Key == "[output]prefix")
+			{
+				mk_OutputPrefix_ = lk_LineEdit_;
+				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
+				lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
+				QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
+				lk_GroupBoxLayout_->setMargin(0);
+				lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
+				QToolButton* lk_ProposePrefixButton_ = new QToolButton(lk_SubContainer_);
+				lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
+				//lk_ProposePrefixButton_->setHint("Let Proteomatic propose a prefix");
+				mk_ProposePrefix_ = lk_ProposePrefixButton_;
+				connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SIGNAL(proposePrefixButtonClicked()));
+				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ProposePrefixButton_, 0, Qt::AlignTop);
+				lk_Container_->setLayout(lk_GroupBoxLayout_);
 				lk_Widget_ = lk_SubContainer_;
 				lk_ValueWidget_ = lk_LineEdit_;
 			}
@@ -1173,3 +1220,12 @@ void k_Script::parameterChangedWithKey(QString as_Key)
 	}
 }
 
+
+void k_Script::adjustDependentParameters()
+{
+	foreach (QString ls_Key, mk_DependentParameters)
+	{
+		// do something with the dependent parameter, like, enable or disable
+		// it according to its dependencies
+	}
+}

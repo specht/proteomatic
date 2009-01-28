@@ -155,14 +155,14 @@ end
 
 $stdout.flush
 unless (ls_OldPath.empty?)
-	puts "Copying configuration files and external tools..."
+	puts "Copying configuration files..."
 	$stdout.flush
 	lk_OldFiles = Dir[File::join(ls_OldPath, 'config/**/*')]
-	lk_OldFiles += Dir[File::join(ls_OldPath, 'ext/**/*')]
+	#lk_OldFiles += Dir[File::join(ls_OldPath, 'ext/**/*')]
 	lk_OldFiles.collect! { |x| x.sub(ls_OldPath, '') }
 	ls_NewPath = File::join(ls_OutPath, ls_Current.sub('.tar.bz2', ''))
 	lk_NewFiles = Dir[File::join(ls_NewPath, 'config/**/*')]
-	lk_NewFiles += Dir[File::join(ls_NewPath, 'ext/**/*')]
+	#lk_NewFiles += Dir[File::join(ls_NewPath, 'ext/**/*')]
 	
 	# strip base dir
 	lk_NewFiles.collect! { |x| x.sub(ls_NewPath, '') }

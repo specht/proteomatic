@@ -85,6 +85,7 @@ public:
 	
 signals:
 	void profileDescriptionChanged(const QString&);
+	void proposePrefixButtonClicked();
 	
 public slots:
 	void reset();
@@ -104,6 +105,7 @@ protected slots:
 protected:
 	void addChoiceItems(QString as_Key, QStringList ak_Choices);
 	void createParameterWidget(QStringList ak_Definition);
+	void adjustDependentParameters();
 
 	r_ScriptType::Enumeration me_Type;
 	QString ms_ScriptUri;
@@ -123,7 +125,6 @@ protected:
 	QStringList mk_ParametersOrder;
 	QHash<QString, bool> mk_ParametersAtDefault;
 	QHash<QString, QStringList> mk_GroupParameters;
-	QString ms_Prefix;
 	QHash<QString, QString> mk_DefaultConfiguration;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_IsGood;
@@ -131,6 +132,9 @@ protected:
 	bool mb_IncludeOutputFiles;
 	bool mb_ProfileMode;
 	QLineEdit* mk_OutputDirectory_;
+	QLineEdit* mk_OutputPrefix_;
 	QToolButton* mk_ClearOutputDirectory_;
+	QToolButton* mk_ProposePrefix_;
 	QStringList mk_InputFileDescriptionList;
+	QStringList mk_DependentParameters;
 };

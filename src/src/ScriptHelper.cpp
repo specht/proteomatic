@@ -315,6 +315,7 @@ void k_ScriptHelper::activateScript()
 			ls_Text += "<br /><br />" + mk_Script_->description();
 		mk_Script_->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
 		connect(mk_Script_->parameterWidget(), SIGNAL(widgetResized()), this, SLOT(parameterWidgetResized()));
+		connect(mk_Script_, SIGNAL(proposePrefixButtonClicked()), this, SLOT(proposePrefix()));
 		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
 		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
 		mk_ParameterLayout_->addWidget(mk_Script_->parameterWidget());
@@ -781,4 +782,35 @@ void k_ScriptHelper::showProfileManager()
 	mk_pProfileManager->reset();
 	if (mk_pProfileManager->exec())
 		mk_Script_->setConfiguration(mk_pProfileManager->getGoodProfileMix());
+}
+
+
+void k_ScriptHelper::proposePrefix()
+{
+	if (!mk_Script_)
+		return;
+
+	if (mk_Script_->running())
+		return;
+
+	QStringList lk_Arguments;
+
+	for (int i = 0; i < mk_FileList.count(); ++i)
+		lk_Arguments.push_back(mk_FileList.item(i)->text());
+
+	if (mk_Script_->type() == r_ScriptType::Local)
+	{
+		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_Script_))->proposePrefix(lk_Arguments);
+		if (ls_Result.startsWith("--proposePrefix"))
+		{
+			QStringList lk_Result = ls_Result.split("\n");
+			mk_Script_->setPrefix(lk_Result[1].trimmed());
+		}
+		else
+		{
+			mk_Proteomatic.showMessageBox("Propose prefix", 
+				"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
+				":/icons/dialog-warning.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
+		}
+	}
 }

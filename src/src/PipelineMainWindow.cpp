@@ -37,7 +37,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	QToolButton* lk_AddScriptButton_ = new QToolButton(lk_AddToolBar_);
 	lk_AddScriptButton_->setIcon(QIcon(":/icons/folder.png"));
-	lk_AddScriptButton_->setText("Add script...");
+	lk_AddScriptButton_->setText("Add script");
 	lk_AddScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
 	lk_AddScriptButton_->setPopupMode(QToolButton::InstantPopup);
 	lk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
