@@ -815,6 +815,8 @@ void k_Proteomatic::checkRuby()
 			else
 				ls_Error = "";
 			*/
+			// if we're here, we have found a Ruby! Now we save the configuration so that the dialog won't pop up the next time.
+			this->saveConfiguration();
 		}
 		if (ls_Error != "")
 		{
