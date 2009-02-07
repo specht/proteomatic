@@ -450,14 +450,14 @@ void k_Desktop::dropEvent(QDropEvent* ak_Event_)
 void k_Desktop::paintEvent(QPaintEvent* ak_Event_)
 {
 	QPainter lk_Painter(this);
-	lk_Painter.fillRect(0, 0, width(), height(), QBrush(QColor::fromRgb(220, 220, 220)));
+	lk_Painter.fillRect(0, 0, width(), height(), QBrush(QColor("#eeeeec")));
 	lk_Painter.setRenderHints(QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform | QPainter::Antialiasing, true);
 
 	if (!mk_Lasso.isEmpty())
 	{
 		lk_Painter.setPen(Qt::SolidLine);
-		lk_Painter.setPen(QColor::fromRgb(160, 160, 160));
-		lk_Painter.setBrush(QBrush(QColor::fromRgb(230, 230, 230)));
+		lk_Painter.setPen(QColor("#888a85"));
+		lk_Painter.setBrush(QBrush(QColor("#d3d7cf")));
 		lk_Painter.drawPath(mk_ActualLasso);
 	}
 

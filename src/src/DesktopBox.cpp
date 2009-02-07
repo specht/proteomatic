@@ -164,6 +164,8 @@ k_FileBox::k_FileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 {
 	mk_Background = QBrush(QColor::fromRgb(200, 240, 200));
 	mk_Border = QPen(QColor::fromRgb(64, 160, 64));
+	mk_Background = QBrush(QColor("#8ae234"));
+	mk_Border = QPen(QColor("#4e9a06"));
 	mk_Layout.addWidget(&mk_Label);
 }
 
