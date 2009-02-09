@@ -193,6 +193,12 @@ QStringList k_Script::inputFileExtensions(QString as_Key) const
 }
 
 
+void k_Script::setOutputDirectory(QString as_Path)
+{
+	mk_OutputDirectory_->setText(as_Path);
+}
+
+
 QString k_Script::getParameterValue(QString as_Key) const
 {
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
@@ -509,7 +515,7 @@ void k_Script::setOutputDirectoryButtonClicked()
 	QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
 	if (ls_Path.length() > 0)
 	{
-		mk_OutputDirectory_->setText(ls_Path);
+		this->setOutputDirectory(ls_Path);
 		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_OUTPUT_PATH] = ls_Path;
 	}
 }

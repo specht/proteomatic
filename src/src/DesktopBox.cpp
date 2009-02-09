@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Desktop.h"
 #include "DesktopBox.h"
+#include "FileList.h"
 #include "ScriptFactory.h"
 
 
@@ -195,7 +196,7 @@ k_FileBox::k_FileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	mk_Label.setContentsMargins(8, 8, 8, 8);
 	QPushButton* lk_ArrowLabel_ = new QPushButton(this);
 	lk_ArrowLabel_->setFlat(true);
-	lk_ArrowLabel_->setIcon(QIcon(":icons/arrow.png"));
+	lk_ArrowLabel_->setIcon(QIcon(":icons/arrow-semi-transparent.png"));
 	lk_ArrowLabel_->setIconSize(QSize(20, 20));
 	mk_Layout.addWidget(lk_ArrowLabel_);
 	connect(lk_ArrowLabel_, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
@@ -212,4 +213,24 @@ void k_FileBox::setFilename(const QString& as_Filename)
 {
 	ms_Filename = as_Filename;
 	mk_Label.setText(QFileInfo(ms_Filename).fileName());
+}
+
+
+k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
+{
+	k_FileList* lk_FileList_ = new k_FileList(this, true, true);
+	QVBoxLayout* lk_VLayout_ = new QVBoxLayout(this);
+	lk_VLayout_->addWidget(lk_FileList_);
+	this->resize(250, 150);
+}
+
+
+k_FileListBox::~k_FileListBox()
+{
+}
+
+
+void k_FileListBox::addFilename(const QString& as_Filename)
+{
 }

@@ -93,3 +93,13 @@ protected:
 	QString ms_Filename;
 	QHBoxLayout mk_Layout;
 };
+
+
+class k_FileListBox: public k_DesktopBox
+{
+	Q_OBJECT
+public:
+	k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	virtual ~k_FileListBox();
+	void addFilename(const QString& as_Filename);
+};

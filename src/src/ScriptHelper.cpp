@@ -279,7 +279,12 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 		if (ls_Path != "" && mk_Script_)
 		{
 			QFileInfo lk_FileInfo(ls_Path);
-			if (!lk_FileInfo.isDir())
+			if (lk_FileInfo.isDir())
+			{
+				if (mk_Script_)
+					mk_Script_->setOutputDirectory(ls_Path);
+			}
+			else
 				addInputFile(ls_Path);
 		}
 	}

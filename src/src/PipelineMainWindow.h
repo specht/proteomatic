@@ -32,7 +32,8 @@ public:
 	virtual ~k_PipelineMainWindow();
 
 public slots:
-	void mouseModeButtonClicked();
+	void start();
+	void addFileListBox();
 
 protected:
 	k_Desktop mk_Desktop;

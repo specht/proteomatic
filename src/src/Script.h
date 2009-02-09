@@ -80,6 +80,7 @@ public:
 	QStringList inputFileKeys() const;
 	QString inputFileLabel(QString as_Key) const;
 	QStringList inputFileExtensions(QString as_Key) const;
+	void setOutputDirectory(QString as_Path);
 	
 	virtual void start(QStringList ak_Parameters) = 0;
 	virtual void kill() = 0;
