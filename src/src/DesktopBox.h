@@ -32,27 +32,32 @@ class k_ScriptBox;
 class k_FileBox;
 
 
-class k_DesktopBox: public QWidget
+class k_DesktopBox: public QFrame
 {
 	Q_OBJECT
 public:
 	k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_DesktopBox();
-
-	void scale(double ad_Scale);
+	
+signals:
+	void moved();
+	void arrowPressed();
+	void arrowReleased();
 
 protected:
 	virtual void paintEvent(QPaintEvent* ak_Event_);
+	virtual void mousePressEvent(QMouseEvent* ak_Event_);
+	virtual void mouseReleaseEvent(QMouseEvent* ak_Event_);
+	virtual void mouseMoveEvent(QMouseEvent* ak_Event_);
 
 protected:
 	k_Desktop* mk_Desktop_;
 	QBrush mk_Background;
 	QPen mk_Border;
-	double md_OriginalFontSize;
-	int mi_OriginalMargin;
-	int mi_OriginalIconSize;
-	QVBoxLayout mk_Layout;
 	k_Proteomatic& mk_Proteomatic;
+	bool mb_Moving;
+	QPoint mk_OldMousePosition;
+	QPoint mk_OldPosition;
 };
 
 
@@ -65,10 +70,13 @@ public:
 
 protected slots:
 	void toggleOutput(bool ab_Enabled);
+	void showParameterWidget();
 
 protected:
 	k_Script* mk_Script_;
+	RefPtr<QWidget> mk_pParameterWidget;
 	QHash<QString, k_FileBox*> mk_OutputFileBoxes;
+	QVBoxLayout mk_Layout;
 };
 
 
@@ -83,4 +91,5 @@ public:
 protected:
 	QLabel mk_Label;
 	QString ms_Filename;
+	QHBoxLayout mk_Layout;
 };

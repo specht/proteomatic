@@ -26,9 +26,15 @@ class k_FileList: public QListWidget
 {
 	Q_OBJECT
 public:
-	k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems);
+	k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_FileMode = false);
 	~k_FileList();
+	void resetAll();
 	void forceRemove(QList<QListWidgetItem *> ak_List);
+	void addInputFileGroup(QString as_Key, QString as_Label, QStringList ak_Extensions);
+	void addInputFile(QString as_Path);
+	// TODO: tell files sorted by key to solve ambiguous cases
+	QStringList files() const;
+	void refresh();
 
 signals:
 	void remove(QList<QListWidgetItem *>);
@@ -42,7 +48,13 @@ public slots:
 protected:
 	virtual void keyPressEvent(QKeyEvent* ak_Event_);
 	virtual void mouseDoubleClickEvent(QMouseEvent* event);
+	
+	QStringList mk_Keys;
+	QHash<QString, QString> mk_Labels;
+	QHash<QString, QStringList> mk_Extensions;
+	QHash<QString, QStringList> mk_Files;
 
 private:
 	bool mb_ReallyRemoveItems;
+	bool mb_FileMode;
 };

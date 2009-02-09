@@ -49,18 +49,16 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	lk_StartButton_->setIcon(QIcon(":/icons/dialog-ok.png"));
 	lk_StartButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_AddToolBar_->addWidget(lk_StartButton_);
-	//connect(lk_BeautifyButton_, SIGNAL(toggled(bool)), &mk_Desktop, SLOT(enableAnimation(bool)));
 
 	lk_AddToolBar_->addSeparator();
 
 	QToolButton* lk_BeautifyButton_ = new QToolButton(lk_AddToolBar_);
 	lk_BeautifyButton_->setCheckable(true);
-	lk_BeautifyButton_->setChecked(true);
+	lk_BeautifyButton_->setChecked(false);
 	lk_BeautifyButton_->setText("Self-arrangement");
 	lk_BeautifyButton_->setIcon(QIcon(":/icons/face-monkey.png"));
 	lk_BeautifyButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_AddToolBar_->addWidget(lk_BeautifyButton_);
-	connect(lk_BeautifyButton_, SIGNAL(toggled(bool)), &mk_Desktop, SLOT(enableAnimation(bool)));
 
 	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
 
@@ -100,7 +98,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	addToolBar(Qt::LeftToolBarArea, lk_MouseToolBar_);
 
-	mk_Desktop.enableAnimation(true);
+	//mk_Desktop.enableAnimation(true);
 	show();
 }
 

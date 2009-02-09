@@ -23,16 +23,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: QWidget(ak_Parent_)
+	: QFrame(NULL)
 	, mk_Desktop_(ak_Parent_)
 	, mk_Background(QColor::fromRgb(255, 255, 255))
 	, mk_Border(QColor::fromRgb(128, 128, 128))
-	, md_OriginalFontSize(font().pointSizeF())
-	, mi_OriginalIconSize(QPushButton().iconSize().width())
-	, mk_Layout(this)
 	, mk_Proteomatic(ak_Proteomatic)
+	, mb_Moving(false)
 {
-	mk_Layout.getContentsMargins(&mi_OriginalMargin, &mi_OriginalMargin, &mi_OriginalMargin, &mi_OriginalMargin);
+	this->setFrameShadow(QFrame::Raised);
+	this->setFrameShape(QFrame::StyledPanel);
 }
 
 
@@ -41,36 +40,44 @@ k_DesktopBox::~k_DesktopBox()
 }
 
 
-void k_DesktopBox::scale(double ad_Scale)
-{
-	hide();
-	double ld_NewFontSize = md_OriginalFontSize * ad_Scale;
-	QFont lk_Font(font());
-	lk_Font.setPointSizeF(ld_NewFontSize);
-	setFont(lk_Font);
-
-	int li_NewMargin = (int)((double)mi_OriginalMargin * ad_Scale);
-	mk_Layout.setContentsMargins(li_NewMargin, li_NewMargin, li_NewMargin, li_NewMargin);
-
-	int li_NewIconSize = (int)((double)mi_OriginalIconSize * ad_Scale);
-	QList<QPushButton*> lk_Buttons = findChildren<QPushButton*>();
-	foreach (QPushButton* lk_Button_, lk_Buttons)
-		lk_Button_->setIconSize(QSize(li_NewIconSize, li_NewIconSize));
-
-	mk_Layout.invalidate();
-	updateGeometry();
-	show();
-}
-
-
 void k_DesktopBox::paintEvent(QPaintEvent* ak_Event_)
 {
+	this->setLineWidth(mk_Desktop_->boxSelected(this) ? 2 : 1);
+	QFrame::paintEvent(ak_Event_);
+	return;
+	/*
 	QPainter lk_Painter(this);
 	lk_Painter.fillRect(0, 0, width(), height(), mk_Background);
 	lk_Painter.setPen(mk_Border);
 	lk_Painter.drawRect(0, 0, width() - 1, height() - 1);
 	if (mk_Desktop_->boxSelected(this))
 		lk_Painter.drawRect(2, 2, width() - 5, height() - 5);
+	*/
+	
+}
+
+
+void k_DesktopBox::mousePressEvent(QMouseEvent* ak_Event_)
+{
+	mb_Moving = true;
+	mk_OldPosition = this->pos();
+	mk_OldMousePosition = ak_Event_->globalPos();
+}
+
+
+void k_DesktopBox::mouseReleaseEvent(QMouseEvent* ak_Event_)
+{
+	mb_Moving = false;
+}
+
+
+void k_DesktopBox::mouseMoveEvent(QMouseEvent* ak_Event_)
+{
+	if (mb_Moving)
+	{
+		this->move(mk_OldPosition + ak_Event_->globalPos() - mk_OldMousePosition);
+		emit moved();
+	}
 }
 
 
@@ -78,24 +85,35 @@ k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteom
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
 	, mk_Script_(k_ScriptFactory::makeScript(as_ScriptName, ak_Proteomatic, false))
 {
+	this->setLayout(&mk_Layout);
 	mk_Background = QBrush(QColor::fromRgb(255, 255, 255));
 	mk_Border = QPen(QColor::fromRgb(128, 128, 128));
-	QLabel* lk_Label_ = new QLabel(mk_Script_->title(), this);
-	QFont lk_Font(lk_Label_->font());
-	lk_Font.setBold(true);
-	lk_Label_->setFont(lk_Font);
+	
+    QLabel* lk_Label_ = new QLabel(mk_Script_->title(), this);
+    QFont lk_Font(lk_Label_->font());
+    lk_Font.setBold(true);
+    lk_Label_->setFont(lk_Font);
 	mk_Layout.addWidget(lk_Label_);
-
+    
 	QFrame* lk_Frame_ = new QFrame(this);
-	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
-	mk_Layout.addWidget(lk_Frame_);
+    lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    mk_Layout.addWidget(lk_Frame_);
 
 	QHBoxLayout* lk_ButtonLayout_ = new QHBoxLayout();
+	
+	QScrollArea* lk_ScrollArea_ = new QScrollArea();
+	lk_ScrollArea_->setWidget(mk_Script_->parameterWidget());
+	lk_ScrollArea_->setWidgetResizable(true);
+	lk_ScrollArea_->resize(400, 600);
+	lk_ScrollArea_->setWindowTitle(mk_Script_->title());
+	lk_ScrollArea_->setWindowIcon(QIcon(":icons/proteomatic.png"));
+	
+	mk_pParameterWidget = RefPtr<QWidget>(lk_ScrollArea_);
 
 	QPushButton* lk_ConfigureButton_ = new QPushButton(this);
 	lk_ConfigureButton_->setIcon(QIcon(":/icons/preferences-system.png"));
 	lk_ButtonLayout_->addWidget(lk_ConfigureButton_);
-	connect(lk_ConfigureButton_, SIGNAL(clicked()), mk_Script_->parameterWidget(), SLOT(show()));
+	connect(lk_ConfigureButton_, SIGNAL(clicked()), this, SLOT(showParameterWidget()));
 
 	QPushButton* lk_ShowOutputButton_ = new QPushButton(this);
 	lk_ShowOutputButton_->setIcon(QIcon(":/icons/utilities-terminal.png"));
@@ -127,7 +145,6 @@ k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteom
 		}
 		mk_Layout.addWidget(lk_CheckBox_);
 	}
-	show();
 }
 
 
@@ -158,15 +175,31 @@ void k_ScriptBox::toggleOutput(bool ab_Enabled)
 }
 
 
+void k_ScriptBox::showParameterWidget()
+{
+	mk_pParameterWidget->show();
+}
+
+
 k_FileBox::k_FileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
 	, mk_Label("")
 {
+	this->setLayout(&mk_Layout);
+	mk_Layout.setContentsMargins(0, 0, 0, 0);
 	mk_Background = QBrush(QColor::fromRgb(200, 240, 200));
 	mk_Border = QPen(QColor::fromRgb(64, 160, 64));
 	mk_Background = QBrush(QColor("#8ae234"));
 	mk_Border = QPen(QColor("#4e9a06"));
 	mk_Layout.addWidget(&mk_Label);
+	mk_Label.setContentsMargins(8, 8, 8, 8);
+	QPushButton* lk_ArrowLabel_ = new QPushButton(this);
+	lk_ArrowLabel_->setFlat(true);
+	lk_ArrowLabel_->setIcon(QIcon(":icons/arrow.png"));
+	lk_ArrowLabel_->setIconSize(QSize(20, 20));
+	mk_Layout.addWidget(lk_ArrowLabel_);
+	connect(lk_ArrowLabel_, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
+	connect(lk_ArrowLabel_, SIGNAL(released()), this, SIGNAL(arrowReleased()));
 }
 
 
@@ -180,5 +213,3 @@ void k_FileBox::setFilename(const QString& as_Filename)
 	ms_Filename = as_Filename;
 	mk_Label.setText(QFileInfo(ms_Filename).fileName());
 }
-
-

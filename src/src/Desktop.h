@@ -36,7 +36,7 @@ struct r_MouseMode
 };
 
 
-class k_Desktop: public QWidget
+class k_Desktop: public QGraphicsView
 {
 	Q_OBJECT
 public:
@@ -51,60 +51,55 @@ public:
 	bool boxSelected(k_DesktopBox* ak_Box_) const;
 
 	typedef QPair<k_DesktopBox*, k_DesktopBox*> tk_BoxPair;
-
+	typedef QSet<k_DesktopBox*> tk_DesktopBoxSet;
+	
 public slots:
 	void setMouseMode(r_MouseMode::Enumeration ae_MouseMode);
-	void animate();
 	void addScriptBox(QAction* ak_Action_);
-	void enableAnimation(bool ab_Enable);
+	void boxMoved();
+	void fileBoxArrowPressed();
+	void fileBoxArrowReleased();
 
 protected:
-
 	virtual void mousePressEvent(QMouseEvent* ak_Event_);
 	virtual void mouseReleaseEvent(QMouseEvent* ak_Event_);
 	virtual void mouseMoveEvent(QMouseEvent* ak_Event_);
 	virtual void dragEnterEvent(QDragEnterEvent* ak_Event_);
+	virtual void dragMoveEvent(QDragMoveEvent* ak_Event_);
 	virtual void dropEvent(QDropEvent* ak_Event_);
 	virtual void paintEvent(QPaintEvent* ak_Event_);
 	virtual void wheelEvent(QWheelEvent* ak_Event_);
+	
+	inline QPoint boxLocation(k_DesktopBox* ak_Box_) const;
+	
 	virtual void drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_);
 	virtual void drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, QPoint ak_Point);
 	double intersect(QPointF p0, QPointF d0, QPointF p1, QPointF d1);
 	virtual void boxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_, QPointF& ak_Point0, QPointF& ak_Point1);
 	QPointF intersectLineWithBox(const QPointF& ak_Point0, const QPointF& ak_Point1, k_DesktopBox* ak_Widget_);
-	double boxDistance(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_);
-	double smoothStep(double x) const;
 	k_DesktopBox* boxAt(QPoint ak_Point) const;
+	void updateBoxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_);
+	void updateUserArrow();
 
 	QList<k_DesktopBox*> mk_Boxes;
-	QHash<k_DesktopBox*, QPointF> mk_BoxLocation;
-	QHash<k_DesktopBox*, QPointF> mk_BoxVelocity;
-	QHash<k_DesktopBox*, QPointF> mk_BoxAcceleration;
-	k_StopWatch mk_StopWatch;
-	double md_LastPaintTime;
-	QHash<tk_BoxPair, double> mk_BoxConnections;
-
-	// normalized direction vector between two boxes
-	QHash<tk_BoxPair, QPointF> mk_BoxDirection;
-	QHash<tk_BoxPair, double> mk_BoxDistance;
-	QHash<tk_BoxPair, bool> mk_BoxOverlap;
+	QHash<tk_BoxPair, RefPtr<QGraphicsPathItem> > mk_BoxConnections;
+	QHash<k_DesktopBox*, tk_DesktopBoxSet> mk_BoxConnectionsForBox;
 
 	k_DesktopBox* mk_ArrowStartBox_;
 	k_DesktopBox* mk_ArrowEndBox_;
-	QTimer mk_AnimationTimer;
-	bool mb_AnimationEnabled;
-	double md_Scale;
+	// this is the graphics item depicting an arrow that is currently being created
+	QGraphicsPathItem* mk_ArrowPathItem_;
+	QPointF mk_CurrentMousePosition;
 
-	QSet<k_DesktopBox*> mk_SelectedBoxes;
+	tk_DesktopBoxSet mk_SelectedBoxes;
 
 	r_MouseMode::Enumeration me_MouseMode;
-	bool mb_Moving;
-	QPoint mk_MoveStart;
 	QPainterPath mk_Lasso;
 	QPainterPath mk_ActualLasso;
 	QPoint mk_LastLassoPoint;
 	
 	k_Proteomatic& mk_Proteomatic;
+	RefPtr<QGraphicsScene> mk_pGraphicsScene;
 };
 
 

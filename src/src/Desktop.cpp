@@ -22,21 +22,22 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: QWidget(ak_Parent_)
+	: QGraphicsView(ak_Parent_)
 	, mk_ArrowStartBox_(NULL)
 	, mk_ArrowEndBox_(NULL)
-	, mb_AnimationEnabled(false)
-	, mk_AnimationTimer(this)
-	, md_Scale(1.0)
+	, mk_ArrowPathItem_(NULL)
 	, me_MouseMode(r_MouseMode::Move)
-	, mb_Moving(false)
 	, mk_Proteomatic(ak_Proteomatic)
 {
 	setAcceptDrops(true);
-	mk_StopWatch.reset();
-	md_LastPaintTime = mk_StopWatch.get_Time();
-	mk_AnimationTimer.setInterval(20);
-	connect(&mk_AnimationTimer, SIGNAL(timeout()), this, SLOT(animate()));
+	mk_pGraphicsScene = RefPtr<QGraphicsScene>(new QGraphicsScene(ak_Parent_));
+	this->setScene(mk_pGraphicsScene.get_Pointer());
+	this->setRenderHint(QPainter::Antialiasing, true);
+	this->setRenderHint(QPainter::TextAntialiasing, true);
+	this->setRenderHint(QPainter::SmoothPixmapTransform, true);
+	this->setBackgroundBrush(QBrush(QColor("#f8f8f8")));
+	this->setSceneRect(-10000.0, -10000.0, 20000.0, 20000.0);
+	this->setDragMode(QGraphicsView::ScrollHandDrag);
 }
 
 
@@ -48,20 +49,22 @@ k_Desktop::~k_Desktop()
 void k_Desktop::addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_)
 {
 	mk_Boxes.push_back(ak_Box_);
-	mk_BoxLocation[ak_Box_] = QPointF((double)width() * 0.5 + (((double)rand() / RAND_MAX) - 0.5) * 100.0, 
-		(double)height() * 0.5 + (((double)rand() / RAND_MAX) - 0.5) * 100.0);
 	if (ak_CloseTo_ != NULL)
-	{
-		mk_BoxLocation[ak_Box_] = mk_BoxLocation[ak_CloseTo_] + QPointF(0.0, ak_CloseTo_->height() / 2 + ak_Box_->height() / 2);
-	}
-	mk_BoxVelocity[ak_Box_] = QPointF(0.0, 0.0);
-	mk_BoxAcceleration[ak_Box_] = QPointF(0.0, 0.0);
-	ak_Box_->scale(md_Scale);
-	ak_Box_->move(mk_BoxLocation[ak_Box_].x() - ak_Box_->width() / 2, mk_BoxLocation[ak_Box_].y() - ak_Box_->height() / 2);
-	ak_Box_->show();
+		ak_Box_->move(ak_CloseTo_->pos() + QPoint(ak_CloseTo_->width() / 2, ak_CloseTo_->height() + 64));
+	
 	mk_SelectedBoxes.clear();
 	mk_SelectedBoxes.insert(ak_Box_);
-	update();
+	mk_BoxConnectionsForBox[ak_Box_] = tk_DesktopBoxSet();
+	
+	mk_pGraphicsScene->addWidget(ak_Box_);
+	ak_Box_->move(ak_Box_->pos() - QPoint(ak_Box_->size().width(), ak_Box_->size().height()) / 2);
+	connect(ak_Box_, SIGNAL(moved()), this, SLOT(boxMoved()));
+	k_FileBox* lk_FileBox_ = dynamic_cast<k_FileBox*>(ak_Box_);
+	if (lk_FileBox_ != NULL)
+	{
+		connect(lk_FileBox_, SIGNAL(arrowPressed()), this, SLOT(fileBoxArrowPressed()));
+		connect(lk_FileBox_, SIGNAL(arrowReleased()), this, SLOT(fileBoxArrowReleased()));
+	}
 }
 
 
@@ -69,17 +72,18 @@ void k_Desktop::removeBox(k_DesktopBox* ak_Box_)
 {
 	if (mk_Boxes.contains(ak_Box_))
 	{
+		ak_Box_->disconnect();
+		
 		QList<tk_BoxPair> lk_DeletePairs;
 		foreach (tk_BoxPair lk_BoxPair, mk_BoxConnections.keys())
 			if (lk_BoxPair.first == ak_Box_ || lk_BoxPair.second == ak_Box_)
 				lk_DeletePairs.push_back(lk_BoxPair);
 		foreach (tk_BoxPair lk_BoxPair, lk_DeletePairs)
-			mk_BoxConnections.remove(lk_BoxPair);
+			this->disconnectBoxes(lk_BoxPair.first, lk_BoxPair.second);
 
 		mk_Boxes.removeAll(ak_Box_);
 		mk_SelectedBoxes.remove(ak_Box_);
-
-		update();
+		mk_BoxConnectionsForBox.remove(ak_Box_);
 
 		delete ak_Box_;
 	}
@@ -90,7 +94,12 @@ void k_Desktop::connectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 {
 	if (ak_Box0_ == ak_Box1_)
 		return;
-	mk_BoxConnections.insert(QPair<k_DesktopBox*, k_DesktopBox*>(ak_Box0_, ak_Box1_), 60.0);
+	QGraphicsPathItem* lk_GraphicsPathItem_ = 
+		mk_pGraphicsScene->addPath(QPainterPath(), QPen(QColor("#888a85")), QBrush(QColor("#888a85")));
+	mk_BoxConnections.insert(tk_BoxPair(ak_Box0_, ak_Box1_), RefPtr<QGraphicsPathItem>(lk_GraphicsPathItem_));
+	mk_BoxConnectionsForBox[ak_Box0_].insert(ak_Box1_);
+	mk_BoxConnectionsForBox[ak_Box1_].insert(ak_Box0_);
+	this->updateBoxConnector(ak_Box0_, ak_Box1_);
 }
 
 
@@ -99,6 +108,8 @@ void k_Desktop::disconnectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 	if (ak_Box0_ == ak_Box1_)
 		return;
 	mk_BoxConnections.remove(tk_BoxPair(ak_Box0_, ak_Box1_));
+	mk_BoxConnectionsForBox[ak_Box0_].remove(ak_Box1_);
+	mk_BoxConnectionsForBox[ak_Box1_].remove(ak_Box0_);
 }
 
 
@@ -128,168 +139,6 @@ void k_Desktop::setMouseMode(r_MouseMode::Enumeration ae_MouseMode)
 }
 
 
-void k_Desktop::animate()
-{
-	if (!mb_AnimationEnabled)
-	{
-		foreach (k_DesktopBox* lk_Box_, mk_Boxes)
-		{
-			mk_BoxAcceleration[lk_Box_] = QPointF(0.0, 0.0);
-			mk_BoxVelocity[lk_Box_] = QPointF(0.0, 0.0);
-			mk_BoxLocation[lk_Box_] = QPointF(lk_Box_->x() + lk_Box_->width() / 2, lk_Box_->y() + lk_Box_->height() / 2);	
-		}
-	}
-	else
-	{
-		double ld_CurrentTime = mk_StopWatch.get_Time();
-		double ld_DeltaTime = ld_CurrentTime - md_LastPaintTime;
-		md_LastPaintTime = ld_CurrentTime;
-
-		mk_BoxDirection.clear();
-		mk_BoxDistance.clear();
-		mk_BoxOverlap.clear();
-
-		for (int li_FirstBoxIndex = 0; li_FirstBoxIndex < mk_Boxes.size(); ++li_FirstBoxIndex)
-		{
-			for (int li_SecondBoxIndex = li_FirstBoxIndex + 1; li_SecondBoxIndex < mk_Boxes.size(); ++li_SecondBoxIndex)
-			{
-				// calculate direction vector between two boxes
-				k_DesktopBox* lk_FirstBox_ = mk_Boxes[li_FirstBoxIndex];
-				k_DesktopBox* lk_SecondBox_ = mk_Boxes[li_SecondBoxIndex];
-				QPointF lk_Dir = mk_BoxLocation[lk_SecondBox_] - mk_BoxLocation[lk_FirstBox_];
-				double ld_Length = sqrt(lk_Dir.x() * lk_Dir.x() + lk_Dir.y() * lk_Dir.y());
-				if (fabs(ld_Length) > 0.00001)
-					lk_Dir /= ld_Length;
-				else
-					lk_Dir = QPointF(0.0, 0.0);
-				mk_BoxDirection[tk_BoxPair(lk_FirstBox_, lk_SecondBox_)] = lk_Dir;
-				mk_BoxDirection[tk_BoxPair(lk_SecondBox_, lk_FirstBox_)] = -lk_Dir;
-
-				// calculate box distance if necessary
-				QRect lk_FirstRect(lk_FirstBox_->pos(), lk_FirstBox_->size());
-				QRect lk_FirstRectExt = lk_FirstRect;
-				lk_FirstRectExt.setTopLeft(lk_FirstRectExt.topLeft() - QPoint(20, 20));
-				lk_FirstRectExt.setBottomRight(lk_FirstRectExt.bottomRight() + QPoint(20, 20));
-				QRect lk_SecondRect(lk_SecondBox_->pos(), lk_SecondBox_->size());
-				QRect lk_SecondRectExt = lk_FirstRect;
-				lk_SecondRectExt.setTopLeft(lk_SecondRectExt.topLeft() - QPoint(20, 20));
-				lk_SecondRectExt.setBottomRight(lk_SecondRectExt.bottomRight() + QPoint(20, 20));
-				if (lk_FirstRectExt.intersects(lk_SecondRect) || lk_SecondRectExt.intersects(lk_FirstRect))
-				{
-					double ld_Distance = boxDistance(lk_FirstBox_, lk_SecondBox_);
-					mk_BoxDistance[tk_BoxPair(lk_FirstBox_, lk_SecondBox_)] = ld_Distance;
-					mk_BoxDistance[tk_BoxPair(lk_SecondBox_, lk_FirstBox_)] = ld_Distance;
-				}
-
-				// calculate box overlap
-				lk_FirstRect = QRect(lk_FirstBox_->pos(), lk_FirstBox_->size());
-				lk_SecondRect = QRect(lk_SecondBox_->pos(), lk_SecondBox_->size());
-				bool lb_Overlap = (lk_FirstRect.intersects(lk_SecondRect) || lk_SecondRect.intersects(lk_FirstRect));
-				mk_BoxOverlap[tk_BoxPair(lk_FirstBox_, lk_SecondBox_)] = lb_Overlap;
-				mk_BoxOverlap[tk_BoxPair(lk_SecondBox_, lk_FirstBox_)] = lb_Overlap;
-			}
-		}
-
-		// calculate remaining box distances for connectes boxes
-		foreach (tk_BoxPair lk_BoxPair, mk_BoxConnections.keys())
-		{
-			if (!mk_BoxOverlap.contains(lk_BoxPair))
-			{
-				k_DesktopBox* lk_FirstBox_ = lk_BoxPair.first;
-				k_DesktopBox* lk_SecondBox_ = lk_BoxPair.second;
-				double ld_Distance = boxDistance(lk_FirstBox_, lk_SecondBox_);
-				mk_BoxDistance[tk_BoxPair(lk_FirstBox_, lk_SecondBox_)] = ld_Distance;
-				mk_BoxDistance[tk_BoxPair(lk_SecondBox_, lk_FirstBox_)] = ld_Distance;
-			}
-		}
-
-		foreach (k_DesktopBox* lk_Box_, mk_Boxes)
-		{
-			if (!mk_SelectedBoxes.contains(lk_Box_))
-			{
-				mk_BoxAcceleration[lk_Box_] = QPointF(0.0, 0.0);
-				foreach (k_DesktopBox* lk_Box2_, mk_Boxes)
-				{
-					if (lk_Box_ != lk_Box2_)
-					{
-						tk_BoxPair lk_BoxPair(lk_Box_, lk_Box2_);
-						if (mk_BoxOverlap[lk_BoxPair])
-						{
-							QPointF lk_Direction = mk_BoxDirection[lk_BoxPair];
-							if (lk_Direction.isNull())
-							{
-								double ld_Phi = ((double)rand() / RAND_MAX) * 2.0 * 3.14159;
-								lk_Direction = QPointF(cos(ld_Phi), sin(ld_Phi));
-							}
-							double ld_Force = 100000.0;
-							mk_BoxAcceleration[lk_Box_] -= lk_Direction * ld_Force;
-						}
-						else if (mk_BoxDistance.contains(lk_BoxPair))
-						{
-							double ld_Force = 100000.0 * (1.0 - smoothStep(mk_BoxDistance[lk_BoxPair] / 20.0));
-							mk_BoxAcceleration[lk_Box_] -= mk_BoxDirection[lk_BoxPair] * ld_Force;
-						}
-					}
-				}
-			}
-		}
-		/*
-		foreach (tk_BoxPair lk_BoxPair, mk_BoxConnections.keys())
-		{
-			// gegenseitige Anziehung
-			k_DesktopBox* lk_FirstBox_ = lk_BoxPair.first;
-			k_DesktopBox* lk_SecondBox_ = lk_BoxPair.second;
-			double ld_SpringLength = mk_BoxConnections[lk_BoxPair];
-			double ld_Distance = mk_BoxDistance[lk_BoxPair];
-			double ld_MinDistance = ld_SpringLength * md_Scale - 10.0;
-			double ld_MaxDistance = ld_SpringLength * md_Scale + 10.0;
-
-			if (ld_Distance > ld_MaxDistance)
-				ld_Distance = ld_MaxDistance - ld_Distance;
-			else if (ld_Distance < ld_MinDistance)
-				ld_Distance = ld_MinDistance - ld_Distance;
-			else
-				ld_Distance = 0.0;
-			double ld_Force = 300.0 * ld_Distance;
-			mk_BoxAcceleration[lk_FirstBox_] -= mk_BoxDirection[lk_BoxPair] * ld_Force;
-			mk_BoxAcceleration[lk_SecondBox_] += mk_BoxDirection[lk_BoxPair] * ld_Force;
-		}
-		*/
-
-		foreach (k_DesktopBox* lk_Box_, mk_Boxes)
-		{
-			if (mk_SelectedBoxes.contains(lk_Box_))
-			{
-				mk_BoxAcceleration[lk_Box_] = QPointF(0.0, 0.0);
-				mk_BoxVelocity[lk_Box_] = QPointF(0.0, 0.0);
-				mk_BoxLocation[lk_Box_] = QPointF(lk_Box_->x() + lk_Box_->width() / 2, lk_Box_->y() + lk_Box_->height() / 2);
-			}
-		}
-
-		foreach (k_DesktopBox* lk_Box_, mk_Boxes)
-		{
-			mk_BoxVelocity[lk_Box_] += mk_BoxAcceleration[lk_Box_] * ld_DeltaTime;
-			double ld_Velocity = sqrt(mk_BoxVelocity[lk_Box_].x() * mk_BoxVelocity[lk_Box_].x() + mk_BoxVelocity[lk_Box_].y() * mk_BoxVelocity[lk_Box_].y());
-			if (ld_Velocity > 300.0)
-				mk_BoxVelocity[lk_Box_] *= 300.0 / ld_Velocity;
-			mk_BoxLocation[lk_Box_] += mk_BoxVelocity[lk_Box_] * ld_DeltaTime;
-			if (mk_BoxLocation[lk_Box_].x() < lk_Box_->width() / 2)
-				mk_BoxLocation[lk_Box_].setX(lk_Box_->width() / 2);
-			if (mk_BoxLocation[lk_Box_].x() > width() - lk_Box_->width() / 2)
-				mk_BoxLocation[lk_Box_].setX(width() - lk_Box_->width() / 2);
-			if (mk_BoxLocation[lk_Box_].y() < lk_Box_->height() / 2)
-				mk_BoxLocation[lk_Box_].setY(lk_Box_->height() / 2);
-			if (mk_BoxLocation[lk_Box_].y() > height() - lk_Box_->height() / 2)
-				mk_BoxLocation[lk_Box_].setY(height() - lk_Box_->height() / 2);
-			//mk_BoxVelocity[lk_Box_] *= pow(0.00001, ld_DeltaTime);
-			mk_BoxVelocity[lk_Box_] = QPointF(0.0, 0.0);
-			lk_Box_->move(mk_BoxLocation[lk_Box_].x() - lk_Box_->width() / 2, mk_BoxLocation[lk_Box_].y() - lk_Box_->height() / 2);
-		}
-	}
-	update();
-}
-
-
 void k_Desktop::addScriptBox(QAction* ak_Action_)
 {
 	k_ScriptBox* lk_ScriptBox_ = new k_ScriptBox(ak_Action_->data().toString(), this, mk_Proteomatic);
@@ -297,19 +146,53 @@ void k_Desktop::addScriptBox(QAction* ak_Action_)
 }
 
 
-void k_Desktop::enableAnimation(bool ab_Enable)
+void k_Desktop::boxMoved()
 {
-	mb_AnimationEnabled = ab_Enable;
-	md_LastPaintTime = mk_StopWatch.get_Time();
-	if (mb_AnimationEnabled)
-		mk_AnimationTimer.start();
-	else
-		mk_AnimationTimer.stop();
+	k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(sender());
+	if (lk_Box_ == NULL)
+		return;
+	
+	// update connections between boxes
+	foreach (k_DesktopBox* lk_OtherBox_, mk_BoxConnectionsForBox[lk_Box_])
+		this->updateBoxConnector(lk_Box_, lk_OtherBox_);
+}
+
+
+void k_Desktop::fileBoxArrowPressed()
+{
+	k_FileBox* lk_FileBox_ = dynamic_cast<k_FileBox*>(sender());
+	if (lk_FileBox_ == NULL)
+		return;
+	
+	mk_ArrowStartBox_ = lk_FileBox_;
+	mk_ArrowEndBox_ = NULL;
+	mk_ArrowPathItem_ = mk_pGraphicsScene->
+		addPath(QPainterPath(), QPen(QColor("#888a85")), QBrush(QColor("#888a85")));
+}
+
+
+void k_Desktop::fileBoxArrowReleased()
+{
+	k_FileBox* lk_FileBox_ = dynamic_cast<k_FileBox*>(sender());
+	if (lk_FileBox_ == NULL)
+		return;
+	
+	if (mk_ArrowEndBox_ != NULL)
+		this->connectBoxes(mk_ArrowStartBox_, mk_ArrowEndBox_);
+
+	mk_ArrowStartBox_ = NULL;
+	mk_ArrowEndBox_ = NULL;
+	if (mk_ArrowPathItem_)
+		delete mk_ArrowPathItem_;
 }
 
 
 void k_Desktop::mousePressEvent(QMouseEvent* ak_Event_)
 {
+	QGraphicsView::mousePressEvent(ak_Event_);
+	return;
+	
+	/*
 	ak_Event_->accept();
 	k_DesktopBox* lk_Box_ = boxAt(ak_Event_->pos());
 	if (lk_Box_ != NULL)
@@ -354,11 +237,24 @@ void k_Desktop::mousePressEvent(QMouseEvent* ak_Event_)
 		}
 	}
 	animate();
+	*/
 }
 
 
 void k_Desktop::mouseReleaseEvent(QMouseEvent* ak_Event_)
 {
+	if (mk_ArrowStartBox_ != NULL)
+	{
+		if (mk_ArrowEndBox_ != NULL)
+			this->connectBoxes(mk_ArrowStartBox_, mk_ArrowEndBox_);
+		mk_ArrowStartBox_ = NULL;
+		mk_ArrowEndBox_ = NULL;
+		if (mk_ArrowPathItem_)
+			delete mk_ArrowPathItem_;
+	}
+
+	QGraphicsView::mouseReleaseEvent(ak_Event_);
+	/*
 	ak_Event_->accept();
 	k_DesktopBox* lk_Box_ = boxAt(ak_Event_->pos());
 	if (lk_Box_ != NULL)
@@ -374,11 +270,42 @@ void k_Desktop::mouseReleaseEvent(QMouseEvent* ak_Event_)
 	mk_ArrowEndBox_ = NULL;
 	mk_Lasso = QPainterPath();
 	animate();
+	*/
 }
 
 
 void k_Desktop::mouseMoveEvent(QMouseEvent* ak_Event_)
 {
+	if (mk_ArrowStartBox_ != NULL)
+	{
+		mk_CurrentMousePosition = this->mapToScene(ak_Event_->pos());
+		mk_ArrowEndBox_ = NULL;
+		k_DesktopBox* lk_Box_ = this->boxAt(mk_CurrentMousePosition.toPoint());
+		if (lk_Box_ != NULL)
+		{
+			k_ScriptBox* lk_ScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
+			if (lk_ScriptBox_ != NULL)
+			{
+				mk_ArrowEndBox_ = lk_ScriptBox_;
+				// check if arrow just goes back: NOT GOOD
+				if (mk_ArrowEndBox_ != NULL &&
+					mk_BoxConnectionsForBox.contains(mk_ArrowEndBox_) &&
+					mk_BoxConnectionsForBox[mk_ArrowEndBox_].contains(mk_ArrowStartBox_))
+					mk_ArrowEndBox_ = NULL;
+				// check if arrow already exists between these boxes: NOT GOOD
+				if (mk_ArrowEndBox_ != NULL &&
+					mk_BoxConnectionsForBox.contains(mk_ArrowStartBox_) &&
+					mk_BoxConnectionsForBox[mk_ArrowStartBox_].contains(mk_ArrowEndBox_))
+					mk_ArrowEndBox_ = NULL;
+			}
+		}
+		this->updateUserArrow();
+		ak_Event_->accept();
+	} 
+	else
+		QGraphicsView::mouseMoveEvent(ak_Event_);
+
+	/*
 	ak_Event_->accept();
 	if (me_MouseMode == r_MouseMode::Move)
 	{
@@ -418,6 +345,7 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* ak_Event_)
 		}
 	}
 	animate();
+	*/
 }
 
 
@@ -427,9 +355,15 @@ void k_Desktop::dragEnterEvent(QDragEnterEvent* ak_Event_)
 }
 
 
+void k_Desktop::dragMoveEvent(QDragMoveEvent* ak_Event_)
+{
+	ak_Event_->acceptProposedAction();
+}
+
+
 void k_Desktop::dropEvent(QDropEvent* ak_Event_)
 {
-	ak_Event_->accept();
+	ak_Event_->acceptProposedAction();
 	foreach (QUrl lk_Url, ak_Event_->mimeData()->urls())
 	{
 		QString ls_Path = lk_Url.toLocalFile();
@@ -449,6 +383,10 @@ void k_Desktop::dropEvent(QDropEvent* ak_Event_)
 
 void k_Desktop::paintEvent(QPaintEvent* ak_Event_)
 {
+	QGraphicsView::paintEvent(ak_Event_);
+	return;
+	
+	/*
 	QPainter lk_Painter(this);
 	lk_Painter.fillRect(0, 0, width(), height(), QBrush(QColor("#eeeeec")));
 	lk_Painter.setRenderHints(QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform | QPainter::Antialiasing, true);
@@ -474,6 +412,7 @@ void k_Desktop::paintEvent(QPaintEvent* ak_Event_)
 		else
 			drawArrow(&lk_Painter, mk_ArrowStartBox_, mk_ArrowEndBox_);
 	}
+	*/
 }
 
 
@@ -484,18 +423,20 @@ void k_Desktop::wheelEvent(QWheelEvent* ak_Event_)
 		double ld_ScaleDelta = pow(1.1, fabs(ak_Event_->delta() / 100.0));
 		if (ak_Event_->delta() < 0)
 			ld_ScaleDelta = 1.0 / ld_ScaleDelta;
-		md_Scale *= ld_ScaleDelta;
-		md_Scale = std::min<double>(md_Scale, 3.0);
-		md_Scale = std::max<double>(md_Scale, 0.5);
-		foreach (k_DesktopBox* lk_Box_, mk_Boxes)
-			lk_Box_->scale(md_Scale);
-		animate();
+		this->scale(ld_ScaleDelta, ld_ScaleDelta);
 	}
+}
+
+
+inline QPoint k_Desktop::boxLocation(k_DesktopBox* ak_Box_) const
+{
+	return ak_Box_->pos() + QPoint(ak_Box_->width(), ak_Box_->height()) / 2;
 }
 
 
 void k_Desktop::drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 {
+	/*
 	QPointF lk_Point0, lk_Point1;
 	QPointF lk_Dir = mk_BoxLocation[ak_Box1_] - mk_BoxLocation[ak_Box0_];
 	double ld_Length = sqrt(lk_Dir.x() * lk_Dir.x() + lk_Dir.y() * lk_Dir.y());
@@ -511,11 +452,13 @@ void k_Desktop::drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, k_Deskt
 	lk_Arrow << lk_Point1;
 	ak_Painter_->setBrush(QBrush(ak_Painter_->pen().color()));
 	ak_Painter_->drawPolygon(lk_Arrow);
+	*/
 }
 
 
 void k_Desktop::drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, QPoint ak_Point)
 {
+	/*
 	QPointF lk_Point0 = mk_BoxLocation[ak_Box0_];
 	QPointF lk_Point1(ak_Point);
 	QPointF lk_Dir = lk_Point1 - lk_Point0;
@@ -533,6 +476,7 @@ void k_Desktop::drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, QPoint 
 	lk_Arrow << lk_Point1;
 	ak_Painter_->setBrush(QBrush(ak_Painter_->pen().color()));
 	ak_Painter_->drawPolygon(lk_Arrow);
+	*/
 }
 
 
@@ -547,8 +491,8 @@ double k_Desktop::intersect(QPointF p0, QPointF d0, QPointF p1, QPointF d1)
 
 void k_Desktop::boxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_, QPointF& ak_Point0, QPointF& ak_Point1)
 {
-	QPointF lk_Point0 = mk_BoxLocation[ak_Box0_];
-	QPointF lk_Point1 = mk_BoxLocation[ak_Box1_];
+	QPointF lk_Point0 = boxLocation(ak_Box0_);
+	QPointF lk_Point1 = boxLocation(ak_Box1_);
 	ak_Point0 = intersectLineWithBox(lk_Point1, lk_Point0, ak_Box0_);
 	ak_Point1 = intersectLineWithBox(lk_Point0, lk_Point1, ak_Box1_);
 }
@@ -564,51 +508,105 @@ QPointF k_Desktop::intersectLineWithBox(const QPointF& ak_Point0, const QPointF&
 	{
 		QPointF lk_Quadrant = ak_Point0 - ak_Point1;
 		if (lk_Quadrant.x() < 0)
-			t = intersect(ak_Point0, lk_Dir, mk_BoxLocation[ak_Box_] - QPointF(ak_Box_->width(), ak_Box_->height()) * 0.5, QPointF(0, ak_Box_->height()));
+			t = intersect(ak_Point0, lk_Dir, boxLocation(ak_Box_) - QPointF(ak_Box_->width(), ak_Box_->height()) * 0.5, QPointF(0, ak_Box_->height()));
 		else
-			t = intersect(ak_Point0, lk_Dir, mk_BoxLocation[ak_Box_] - QPointF(ak_Box_->width(), ak_Box_->height()) * 0.5 + QPointF(ak_Box_->width(), 0), QPointF(0, ak_Box_->height()));
+			t = intersect(ak_Point0, lk_Dir, boxLocation(ak_Box_) - QPointF(ak_Box_->width(), ak_Box_->height()) * 0.5 + QPointF(ak_Box_->width(), 0), QPointF(0, ak_Box_->height()));
 	}
 	else
 	{
 		QPointF lk_Quadrant = ak_Point0 - ak_Point1;
 		if (lk_Quadrant.y() < 0)
-			t = intersect(ak_Point0, lk_Dir, mk_BoxLocation[ak_Box_] - QPointF(ak_Box_->width(), ak_Box_->height()) * 0.5, QPointF(ak_Box_->width(), 0));
+			t = intersect(ak_Point0, lk_Dir, boxLocation(ak_Box_) - QPointF(ak_Box_->width(), ak_Box_->height()) * 0.5, QPointF(ak_Box_->width(), 0));
 		else
-			t = intersect(ak_Point0, lk_Dir, mk_BoxLocation[ak_Box_] - QPointF(ak_Box_->width(), ak_Box_->height()) * 0.5 + QPointF(0, ak_Box_->height()), QPointF(ak_Box_->width(), 0));
+			t = intersect(ak_Point0, lk_Dir, boxLocation(ak_Box_) - QPointF(ak_Box_->width(), ak_Box_->height()) * 0.5 + QPointF(0, ak_Box_->height()), QPointF(ak_Box_->width(), 0));
 	}
 	
 	return ak_Point0 + lk_Dir * t;
 }
 
 
-double k_Desktop::boxDistance(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
-{
-	QPointF lk_Point0, lk_Point1;
-	boxConnector(ak_Box0_, ak_Box1_, lk_Point0, lk_Point1);
-	QPointF lk_Dir = lk_Point0 - lk_Point1;
-	return sqrt(lk_Dir.x() * lk_Dir.x() + lk_Dir.y() * lk_Dir.y());
-}
-
-
-double k_Desktop::smoothStep(double x) const
-{
-	if (x < 0.0)
-		return 0.0;
-	if (x > 1.0)
-		return 1.0;
-	return 3 * x * x - 2 * x * x * x;
-}
-
-
 k_DesktopBox* k_Desktop::boxAt(QPoint ak_Point) const
 {
-	QWidget* lk_Widget_ = childAt(ak_Point);
-	k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(lk_Widget_);
-	while (lk_Box_ == NULL && lk_Widget_ != this && lk_Widget_ != NULL)
-	{
-		lk_Widget_ = lk_Widget_->parentWidget();
-		lk_Box_ = dynamic_cast<k_DesktopBox*>(lk_Widget_);
-	}
-	return lk_Box_;
+	QGraphicsItem* lk_GraphicsItem_ = mk_pGraphicsScene->itemAt(QPointF() + ak_Point);
+	QGraphicsWidget* lk_GraphicsWidget_ = dynamic_cast<QGraphicsWidget*>(lk_GraphicsItem_);
+	if (lk_GraphicsWidget_ == NULL)
+		return NULL;
+	QGraphicsProxyWidget* lk_GraphicsProxyWidget_ = dynamic_cast<QGraphicsProxyWidget*>(lk_GraphicsWidget_);
+	if (lk_GraphicsProxyWidget_ == NULL)
+		return NULL;
+	return dynamic_cast<k_DesktopBox*>(lk_GraphicsProxyWidget_->widget());
 }
 
+
+void k_Desktop::updateBoxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
+{
+	tk_BoxPair lk_BoxPair(ak_Box0_, ak_Box1_);
+	
+	// it might be the other way around! because the connector is directed
+	if (!mk_BoxConnections.contains(lk_BoxPair))
+		lk_BoxPair = tk_BoxPair(ak_Box1_, ak_Box0_);
+
+	// oops, better return here, should not happen, but who knows
+	if (!mk_BoxConnections.contains(lk_BoxPair))
+		return;
+	
+	QGraphicsPathItem* lk_PathItem_ = mk_BoxConnections[lk_BoxPair].get_Pointer();
+	QPainterPath lk_Path;
+	QPointF lk_Start, lk_End;
+	boxConnector(lk_BoxPair.first, lk_BoxPair.second, lk_Start, lk_End);
+	lk_Path.moveTo(lk_Start);
+	lk_Path.lineTo(lk_End);
+	
+	QPointF lk_Dir = lk_End - lk_Start;
+	double ld_Length = sqrt(lk_Dir.x() * lk_Dir.x() + lk_Dir.y() * lk_Dir.y());
+	if (ld_Length > 1.0)
+	{
+		lk_Dir /= ld_Length;
+		QPointF lk_Normal = QPointF(-lk_Dir.y(), lk_Dir.x());
+		QPolygonF lk_Arrow;
+		lk_Arrow << lk_End;
+		lk_Arrow << lk_End - lk_Dir * 10.0 + lk_Normal * 3.5;
+		lk_Arrow << lk_End - lk_Dir * 7.0;
+		lk_Arrow << lk_End - lk_Dir * 10.0 - lk_Normal * 3.5;
+		lk_Arrow << lk_End;
+		lk_Path.addPolygon(lk_Arrow);
+	}
+	
+	lk_PathItem_->setPath(lk_Path);
+}
+
+
+void k_Desktop::updateUserArrow()
+{
+	if (mk_ArrowPathItem_ == NULL || mk_ArrowStartBox_ == NULL)
+		return;
+	
+	QGraphicsPathItem* lk_PathItem_ = mk_ArrowPathItem_;
+	QPainterPath lk_Path;
+	
+	QPointF lk_Start = boxLocation(mk_ArrowStartBox_);
+	QPointF lk_End = (mk_ArrowEndBox_ == NULL) ? mk_CurrentMousePosition : boxLocation(mk_ArrowEndBox_);
+	lk_Start = intersectLineWithBox(lk_End, lk_Start, mk_ArrowStartBox_);
+	if (mk_ArrowEndBox_ != NULL)
+ 		lk_End = intersectLineWithBox(lk_Start, lk_End, mk_ArrowEndBox_);
+	
+	lk_Path.moveTo(lk_Start);
+	lk_Path.lineTo(lk_End);
+	
+	QPointF lk_Dir = lk_End - lk_Start;
+	double ld_Length = sqrt(lk_Dir.x() * lk_Dir.x() + lk_Dir.y() * lk_Dir.y());
+	if (ld_Length > 1.0)
+	{
+		lk_Dir /= ld_Length;
+		QPointF lk_Normal = QPointF(-lk_Dir.y(), lk_Dir.x());
+		QPolygonF lk_Arrow;
+		lk_Arrow << lk_End;
+		lk_Arrow << lk_End - lk_Dir * 10.0 + lk_Normal * 3.5;
+		lk_Arrow << lk_End - lk_Dir * 7.0;
+		lk_Arrow << lk_End - lk_Dir * 10.0 - lk_Normal * 3.5;
+		lk_Arrow << lk_End;
+		lk_Path.addPolygon(lk_Arrow);
+	}
+	
+	lk_PathItem_->setPath(lk_Path);
+}

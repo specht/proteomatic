@@ -32,7 +32,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: QMainWindow(ak_Parent_)
-	, mk_FileList(NULL, true)
+	, mk_FileList(NULL, true, true)
 	, mk_MainLayout(this)
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
@@ -178,8 +178,8 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_VSplitter_->addWidget(lk_LowerLayoutWidget_);
 
 	mk_VSplitter_->setChildrenCollapsible(false);
-	mk_VSplitter_->setStretchFactor(0, 1);
-	mk_VSplitter_->setStretchFactor(1, 3);
+	mk_VSplitter_->setStretchFactor(0, 3);
+	mk_VSplitter_->setStretchFactor(1, 6);
 	mk_HSplitter_->setChildrenCollapsible(false);
 	mk_HSplitter_->setStretchFactor(0, 1);
 	mk_HSplitter_->setStretchFactor(1, 1);
@@ -323,6 +323,9 @@ void k_ScriptHelper::activateScript()
 		mk_ScrollArea_->resize(300, 10);
 		mk_HSplitter_->setStretchFactor(0, 1);
 		mk_HSplitter_->setStretchFactor(1, 1);
+		
+		foreach (QString ls_Key, mk_Script_->inputFileKeys())
+			mk_FileList.addInputFileGroup(ls_Key, mk_Script_->inputFileLabel(ls_Key), mk_Script_->inputFileExtensions(ls_Key));
 	
 		if (mk_Script_->type() == r_ScriptType::Local)
 		{
@@ -361,8 +364,8 @@ void k_ScriptHelper::start()
 
 	QStringList lk_Arguments;
 
-	for (int i = 0; i < mk_FileList.count(); ++i)
-		lk_Arguments.push_back(mk_FileList.item(i)->text());
+	for (int i = 0; i < mk_FileList.files().count(); ++i)
+		lk_Arguments.push_back(mk_FileList.files()[i]);
 
 	if (mk_Script_->type() == r_ScriptType::Local)
 		mk_Script_->start(lk_Arguments);
@@ -414,13 +417,17 @@ void k_ScriptHelper::addOutput(QString as_Text)
 void k_ScriptHelper::reset()
 {
 	setAcceptDrops(false);
+	
 	if (mk_Script_)
 		delete mk_Script_;
 	mk_Script_ = NULL;
+	
 	//mk_Program.setText("(no script loaded)");
-	mk_FileList.clear();
+	mk_FileList.resetAll();
+
 	ms_Output.clear();
 	mk_Output.clear();
+	
 	toggleUi();
 }
 
@@ -448,10 +455,15 @@ void k_ScriptHelper::loadFilesButtonClicked()
 
 void k_ScriptHelper::resetParameters()
 {
-	if (mk_Script_)
-		mk_Script_->reset();
+	mk_FileList.resetAll();
 
-	mk_FileList.clear();
+	if (mk_Script_)
+	{
+		mk_Script_->reset();
+		foreach (QString ls_Key, mk_Script_->inputFileKeys())
+			mk_FileList.addInputFileGroup(ls_Key, mk_Script_->inputFileLabel(ls_Key), mk_Script_->inputFileExtensions(ls_Key));
+	}
+
 	ms_Output.clear();
 	mk_Output.clear();
 	toggleUi();
@@ -685,35 +697,7 @@ void k_ScriptHelper::scriptMenuChanged()
 
 void k_ScriptHelper::addInputFile(QString as_Path)
 {
-	mk_FileList.addItem(as_Path);
-	return;
-
-/*
-	if (mk_Program.text().isEmpty())
-		return;
-		*/
-
-/*
-	QProcess lk_QueryProcess;
-	QFileInfo lk_FileInfo(mk_Program.text());
-	lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
-	QStringList lk_Arguments;
-	lk_Arguments << mk_Program.text() << "---detectInput" << as_Path;
-	lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-	lk_QueryProcess.start(mk_Proteomatic.rubyPath(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
-	if (lk_QueryProcess.waitForFinished())
-	{
-		QString ls_Response = lk_QueryProcess.readAll();
-		QStringList lk_Response = ls_Response.split(QChar('\n'));
-		if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---detectInput")
-		{
-			if (!lk_Response.empty() && !lk_Response.takeFirst().trimmed().isEmpty())
-			{
-				mk_FileList.addItem(as_Path);
-			}
-		}
-	}
-	*/
+	mk_FileList.addInputFile(as_Path);
 }
 
 
@@ -795,8 +779,8 @@ void k_ScriptHelper::proposePrefix()
 
 	QStringList lk_Arguments;
 
-	for (int i = 0; i < mk_FileList.count(); ++i)
-		lk_Arguments.push_back(mk_FileList.item(i)->text());
+	for (int i = 0; i < mk_FileList.files().size(); ++i)
+		lk_Arguments.push_back(mk_FileList.files()[i]);
 
 	if (mk_Script_->type() == r_ScriptType::Local)
 	{

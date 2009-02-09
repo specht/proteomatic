@@ -47,7 +47,7 @@ public:
 	virtual ~k_Script();
 	bool isGood() const;
 	
-	// hasParameters is true if there are any parameters except [output] parameters
+	// hasParameters is true if there are any parameters except output parameters
 	bool hasParameters() const;
 	
 	r_ScriptType::Enumeration type() const;
@@ -77,6 +77,9 @@ public:
 
 	QStringList commandLineArguments() const;
 	QString profileDescription() const;
+	QStringList inputFileKeys() const;
+	QString inputFileLabel(QString as_Key) const;
+	QStringList inputFileExtensions(QString as_Key) const;
 	
 	virtual void start(QStringList ak_Parameters) = 0;
 	virtual void kill() = 0;
@@ -135,6 +138,10 @@ protected:
 	QLineEdit* mk_OutputPrefix_;
 	QToolButton* mk_ClearOutputDirectory_;
 	QToolButton* mk_ProposePrefix_;
-	QStringList mk_InputFileDescriptionList;
+	QStringList mk_InputFileKeys;
+	QHash<QString, QString> mk_InputFileLabels;
+	QHash<QString, QStringList> mk_InputFileExtensions;
+	QHash<QString, QString> mk_InputFileDescriptions;
+	
 	QStringList mk_DependentParameters;
 };
