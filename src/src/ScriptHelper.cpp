@@ -101,8 +101,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_LoadScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
 	
-	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles");
-	connect(mk_ProfilesAction_, SIGNAL(triggered()), this, SLOT(showProfileManager()));
+	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
 	/*
 	mk_ProfilesAction_->setEnabled(false);
 	mk_ProfilesAction_->setVisible(false);
@@ -111,8 +110,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
 	mk_ReloadScriptAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
-	mk_ReloadScriptAction_->setToolTip("Reset all manual settings.");
-
 	
 	lk_ToolBar_->addSeparator();
 	
@@ -799,7 +796,7 @@ void k_ScriptHelper::proposePrefix()
 		{
 			mk_Proteomatic.showMessageBox("Propose prefix", 
 				"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
-				":/icons/dialog-warning.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
+				":/icons/emblem-important.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
 		}
 	}
 }

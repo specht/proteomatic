@@ -45,12 +45,14 @@ void k_FileList::resetAll()
 		mk_Files.clear();
 	}
 	this->clear();
+	emit changed();
 }
 
 
 void k_FileList::forceRemove(QList<QListWidgetItem *> ak_List)
 {
 	emit remove(ak_List);
+	emit changed();
 }
 
 
@@ -105,14 +107,22 @@ void k_FileList::addInputFile(QString as_Path)
 	}
 	mk_Files[ls_MatchingKey].push_back(as_Path);
 	this->refresh();
+	emit changed();
 }
 
 
 QStringList k_FileList::files() const
 {
 	QStringList lk_AllFiles;
-	foreach (QString ls_Key, mk_Files.keys())
-		lk_AllFiles += mk_Files[ls_Key];
+	if (mk_Keys.empty())
+	{
+		lk_AllFiles += mk_Files[""];
+	}
+	else
+	{
+		foreach (QString ls_Key, mk_Files.keys())
+			lk_AllFiles += mk_Files[ls_Key];
+	}
 	
 	return lk_AllFiles;
 }
@@ -125,8 +135,13 @@ void k_FileList::removeSelection()
 		foreach (QListWidgetItem* lk_Item_, selectedItems())
 		{
 			QString ls_Path = lk_Item_->text();
-			foreach (QString ls_Key, mk_Keys)
-				mk_Files[ls_Key].removeOne(ls_Path);
+			if (!mk_Keys.empty())
+			{
+				foreach (QString ls_Key, mk_Keys)
+					mk_Files[ls_Key].removeOne(ls_Path);
+			}
+			else
+				mk_Files[""].removeOne(ls_Path);
 		}
 		this->refresh();
 	}
@@ -138,6 +153,7 @@ void k_FileList::removeSelection()
 	}
 		
 	emit remove(selectedItems());
+	emit changed();
 }
 
 
@@ -172,16 +188,24 @@ void k_FileList::refresh()
 		return;
 	
 	this->clear();
-	foreach (QString ls_Key, mk_Keys)
+	if (mk_Keys.empty())
 	{
-		QListWidgetItem* lk_Item_ = new QListWidgetItem(mk_Labels[ls_Key] + QString(" files (%1)").arg(mk_Files[ls_Key].size()), this);
-		lk_Item_->setFlags(Qt::ItemIsEnabled);
-		QFont lk_Font = lk_Item_->font();
-		lk_Font.setBold(true);
-		lk_Item_->setFont(lk_Font);
-		foreach (QString ls_Path, mk_Files[ls_Key])
-		{
+		foreach (QString ls_Path, mk_Files[""])
 			QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
+	}
+	else
+	{
+		foreach (QString ls_Key, mk_Keys)
+		{
+			QListWidgetItem* lk_Item_ = new QListWidgetItem(mk_Labels[ls_Key] + QString(" files (%1)").arg(mk_Files[ls_Key].size()), this);
+			lk_Item_->setFlags(Qt::ItemIsEnabled);
+			QFont lk_Font = lk_Item_->font();
+			lk_Font.setBold(true);
+			lk_Item_->setFont(lk_Font);
+			foreach (QString ls_Path, mk_Files[ls_Key])
+			{
+				QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
+			}
 		}
 	}
 }

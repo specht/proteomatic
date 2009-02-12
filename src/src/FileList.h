@@ -40,6 +40,7 @@ signals:
 	void remove(QList<QListWidgetItem *>);
 	void selectionChanged(bool);
 	void doubleClick();
+	void changed();
 
 public slots:
 	void removeSelection();

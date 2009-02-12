@@ -80,7 +80,12 @@ public:
 	QStringList inputFileKeys() const;
 	QString inputFileLabel(QString as_Key) const;
 	QStringList inputFileExtensions(QString as_Key) const;
+	QString inputKeyForFilename(QString as_Path);
 	void setOutputDirectory(QString as_Path);
+	// checkInputFiles doesn't care whether files are actually there,
+	// it just checks whether all min/max requirements are fulfilled.
+	// files are filenames for input file key
+	bool checkInputFiles(QHash<QString, QSet<QString> > ak_Files);
 	
 	virtual void start(QStringList ak_Parameters) = 0;
 	virtual void kill() = 0;
@@ -143,6 +148,11 @@ protected:
 	QHash<QString, QString> mk_InputFileLabels;
 	QHash<QString, QStringList> mk_InputFileExtensions;
 	QHash<QString, QString> mk_InputFileDescriptions;
+	// these two hashes contain the optional input file min/max counts
+	// if a min/max value has not been defined, there will be no entry
+	// in the hashes. simple as that.
+	QHash<QString, int> mk_InputFileMinimum;
+	QHash<QString, int> mk_InputFileMaximum;
 	
 	QStringList mk_DependentParameters;
 };

@@ -143,7 +143,7 @@ void k_LocalScript::start(QStringList ak_Parameters)
 
 QString k_LocalScript::proposePrefix(QStringList ak_Parameters)
 {
-	return mk_Proteomatic.syncRuby((QStringList() << ms_ScriptUri) + commandLineArguments() + ak_Parameters << "--proposePrefix");
+	return mk_Proteomatic.syncRuby((QStringList() << ms_ScriptUri) << commandLineArguments() << "--proposePrefix" << ak_Parameters);
 }
 
 

@@ -51,6 +51,7 @@ HEADERS += \
 	../../src/ConsoleString.h \
 	../../src/FileList.h \
 	../../src/FoldedHeader.h \
+	../../src/HintLineEdit.h \
 	../../src/LocalScript.h \
 	../../src/ProfileManager.h \
 	../../src/Proteomatic.h \
@@ -63,6 +64,7 @@ HEADERS += \
 	../../src/SizeWatchWidget.h \
     ../../src/StopWatch.h \
 	../../src/TicketWindow.h \
+	../../src/UnclickableLabel.h \
 	../../src/Yaml.h \
 	../../src/YamlEmitter.h \
 	../../src/YamlParser.h \
@@ -73,6 +75,7 @@ SOURCES += \
 	../../src/ConsoleString.cpp \
 	../../src/FileList.cpp \
 	../../src/FoldedHeader.cpp \
+	../../src/HintLineEdit.cpp \
 	../../src/LocalScript.cpp \
 	../../src/ProfileManager.cpp \
 	../../src/Proteomatic.cpp \
@@ -83,6 +86,7 @@ SOURCES += \
 	../../src/ScriptHelper.cpp \
     ../../src/StopWatch.cpp \
 	../../src/TicketWindow.cpp \
+	../../src/UnclickableLabel.cpp \
 	../../src/Yaml.cpp \
 	../../src/YamlEmitter.cpp \
 	../../src/YamlParser.cpp \

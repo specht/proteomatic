@@ -38,55 +38,97 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	this->setBackgroundBrush(QBrush(QColor("#f8f8f8")));
 	this->setSceneRect(-10000.0, -10000.0, 20000.0, 20000.0);
 	this->setDragMode(QGraphicsView::ScrollHandDrag);
+	this->translate(0.5, 0.5);
 }
 
 
 k_Desktop::~k_Desktop()
 {
+	foreach (k_DesktopBox* lk_Box_, mk_Boxes)
+		this->removeBox(lk_Box_);
 }
 
 
-void k_Desktop::addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_)
+void k_Desktop::addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_, QPoint* ak_Location_)
 {
 	mk_Boxes.push_back(ak_Box_);
-	if (ak_CloseTo_ != NULL)
+	if (ak_CloseTo_)
 		ak_Box_->move(ak_CloseTo_->pos() + QPoint(ak_CloseTo_->width() / 2, ak_CloseTo_->height() + 64));
+	if (ak_Location_)
+		ak_Box_->move(*ak_Location_);
 	
-	mk_SelectedBoxes.clear();
-	mk_SelectedBoxes.insert(ak_Box_);
 	mk_BoxConnectionsForBox[ak_Box_] = tk_DesktopBoxSet();
+	
+	if (dynamic_cast<k_ScriptBox*>(ak_Box_) != NULL)
+		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box_)] = tk_FileBoxSet();
 	
 	mk_pGraphicsScene->addWidget(ak_Box_);
 	ak_Box_->move(ak_Box_->pos() - QPoint(ak_Box_->size().width(), ak_Box_->size().height()) / 2);
 	connect(ak_Box_, SIGNAL(moved()), this, SLOT(boxMoved()));
+	connect(ak_Box_, SIGNAL(resized()), this, SLOT(boxMoved()));
 	k_FileBox* lk_FileBox_ = dynamic_cast<k_FileBox*>(ak_Box_);
 	if (lk_FileBox_ != NULL)
 	{
 		connect(lk_FileBox_, SIGNAL(arrowPressed()), this, SLOT(fileBoxArrowPressed()));
 		connect(lk_FileBox_, SIGNAL(arrowReleased()), this, SLOT(fileBoxArrowReleased()));
 	}
+	connect(ak_Box_, SIGNAL(mousePressed(Qt::KeyboardModifiers)), this, SLOT(boxClicked(Qt::KeyboardModifiers)));
 }
 
 
-void k_Desktop::removeBox(k_DesktopBox* ak_Box_)
+void k_Desktop::removeBox(k_DesktopBox* ak_Box_, bool ab_DoSomeChecks)
 {
-	if (mk_Boxes.contains(ak_Box_))
+	if (!mk_Boxes.contains(ak_Box_))
+		return;
+
+	if (ab_DoSomeChecks)
 	{
-		ak_Box_->disconnect();
+		// if it's a script box, delete all associated output file boxes
+		if (dynamic_cast<k_ScriptBox*>(ak_Box_))
+		{
+			QList<k_OutputFileBox*> lk_OutputFileBoxes = dynamic_cast<k_ScriptBox*>(ak_Box_)->outputFileBoxes();
+			foreach (k_OutputFileBox* lk_Box_, lk_OutputFileBoxes)
+				this->removeBox(lk_Box_);
+		}
 		
-		QList<tk_BoxPair> lk_DeletePairs;
-		foreach (tk_BoxPair lk_BoxPair, mk_BoxConnections.keys())
-			if (lk_BoxPair.first == ak_Box_ || lk_BoxPair.second == ak_Box_)
-				lk_DeletePairs.push_back(lk_BoxPair);
-		foreach (tk_BoxPair lk_BoxPair, lk_DeletePairs)
-			this->disconnectBoxes(lk_BoxPair.first, lk_BoxPair.second);
-
-		mk_Boxes.removeAll(ak_Box_);
-		mk_SelectedBoxes.remove(ak_Box_);
-		mk_BoxConnectionsForBox.remove(ak_Box_);
-
-		delete ak_Box_;
+		// if it's an output file box, let the script box remove it
+		k_OutputFileBox* lk_OutputFileBox_ = dynamic_cast<k_OutputFileBox*>(ak_Box_);
+		if (lk_OutputFileBox_)
+		{
+			// determine the appropriate script box for this output file box
+			foreach (k_DesktopBox* lk_Box_, mk_BoxConnectionsForBox[ak_Box_])
+			{
+				k_ScriptBox* lk_ScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
+				if (lk_ScriptBox_)
+				{
+					if (lk_ScriptBox_->outputFileBoxes().contains(lk_OutputFileBox_))
+					{
+						lk_ScriptBox_->removeOutputFileBox(lk_OutputFileBox_);
+						return;
+					}
+				}
+			}
+		}
 	}
+	
+	ak_Box_->disconnect();
+		
+	QList<tk_BoxPair> lk_DeletePairs;
+	foreach (tk_BoxPair lk_BoxPair, mk_BoxConnections.keys())
+		if (lk_BoxPair.first == ak_Box_ || lk_BoxPair.second == ak_Box_)
+			lk_DeletePairs.push_back(lk_BoxPair);
+	foreach (tk_BoxPair lk_BoxPair, lk_DeletePairs)
+		this->disconnectBoxes(lk_BoxPair.first, lk_BoxPair.second);
+
+	mk_Boxes.removeAll(ak_Box_);
+	mk_SelectedBoxes.remove(ak_Box_);
+	// TODO: maybe we should delete not only the entries for this box,
+	// but also remove the box from all sets in which it is contained?!
+	mk_BoxConnectionsForBox.remove(ak_Box_);
+	if (dynamic_cast<k_ScriptBox*>(ak_Box_) != NULL)
+		mk_FileBoxesForScriptBox.remove(dynamic_cast<k_ScriptBox*>(ak_Box_));
+
+	delete ak_Box_;
 }
 
 
@@ -94,11 +136,24 @@ void k_Desktop::connectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 {
 	if (ak_Box0_ == ak_Box1_)
 		return;
+	
+	QPen lk_Pen(QColor("#888a85"));
+	lk_Pen.setWidth(1);
+	
 	QGraphicsPathItem* lk_GraphicsPathItem_ = 
-		mk_pGraphicsScene->addPath(QPainterPath(), QPen(QColor("#888a85")), QBrush(QColor("#888a85")));
+		mk_pGraphicsScene->addPath(QPainterPath(), lk_Pen, QBrush(QColor("#888a85")));
+	lk_GraphicsPathItem_->setZValue(-1.0);
 	mk_BoxConnections.insert(tk_BoxPair(ak_Box0_, ak_Box1_), RefPtr<QGraphicsPathItem>(lk_GraphicsPathItem_));
 	mk_BoxConnectionsForBox[ak_Box0_].insert(ak_Box1_);
 	mk_BoxConnectionsForBox[ak_Box1_].insert(ak_Box0_);
+	
+	if (dynamic_cast<k_FileBox*>(ak_Box0_) != NULL &&
+		dynamic_cast<k_ScriptBox*>(ak_Box1_) != NULL)
+	{
+		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].insert(dynamic_cast<k_FileBox*>(ak_Box0_));
+		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxConnected(dynamic_cast<k_FileBox*>(ak_Box0_));
+	}
+	
 	this->updateBoxConnector(ak_Box0_, ak_Box1_);
 }
 
@@ -110,6 +165,13 @@ void k_Desktop::disconnectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 	mk_BoxConnections.remove(tk_BoxPair(ak_Box0_, ak_Box1_));
 	mk_BoxConnectionsForBox[ak_Box0_].remove(ak_Box1_);
 	mk_BoxConnectionsForBox[ak_Box1_].remove(ak_Box0_);
+	
+	if (dynamic_cast<k_ScriptBox*>(ak_Box1_) != NULL &&
+		dynamic_cast<k_FileBox*>(ak_Box0_) != NULL)
+	{
+		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].remove(dynamic_cast<k_FileBox*>(ak_Box0_));
+		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxDisconnected(dynamic_cast<k_FileBox*>(ak_Box0_));
+	}
 }
 
 
@@ -130,6 +192,14 @@ void k_Desktop::arrowClick(k_DesktopBox* ak_Box_)
 bool k_Desktop::boxSelected(k_DesktopBox* ak_Box_) const
 {
 	return mk_SelectedBoxes.contains(ak_Box_);
+}
+
+
+k_Desktop::tk_FileBoxSet k_Desktop::fileBoxesForScriptBox(k_ScriptBox* ak_ScriptBox_) const
+{
+	if (!mk_FileBoxesForScriptBox.contains(ak_ScriptBox_))
+		return tk_FileBoxSet();
+	return mk_FileBoxesForScriptBox[ak_ScriptBox_];
 }
 
 
@@ -166,8 +236,10 @@ void k_Desktop::fileBoxArrowPressed()
 	
 	mk_ArrowStartBox_ = lk_FileBox_;
 	mk_ArrowEndBox_ = NULL;
+	QPen lk_Pen(QColor("#888a85"));
+	lk_Pen.setWidth(1);
 	mk_ArrowPathItem_ = mk_pGraphicsScene->
-		addPath(QPainterPath(), QPen(QColor("#888a85")), QBrush(QColor("#888a85")));
+		addPath(QPainterPath(), lk_Pen, QBrush(QColor("#888a85")));
 }
 
 
@@ -187,8 +259,34 @@ void k_Desktop::fileBoxArrowReleased()
 }
 
 
+void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
+{
+	k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(sender());
+	if (!lk_Box_)
+		return;
+	
+	if ((ae_Modifiers & Qt::ControlModifier) == 0)
+	{
+		// no ctrl pressed
+		this->clearSelection();
+		this->addBoxToSelection(lk_Box_);
+	}
+	else
+	{
+		// ctrl pressed
+		if (this->boxSelected(lk_Box_))
+			this->removeBoxFromSelection(lk_Box_);
+		else
+			this->addBoxToSelection(lk_Box_);
+	}
+}
+
+
 void k_Desktop::mousePressEvent(QMouseEvent* ak_Event_)
 {
+	if ((ak_Event_->modifiers() & Qt::ControlModifier) == 0)
+		this->clearSelection();
+	
 	QGraphicsView::mousePressEvent(ak_Event_);
 	return;
 	
@@ -243,6 +341,7 @@ void k_Desktop::mousePressEvent(QMouseEvent* ak_Event_)
 
 void k_Desktop::mouseReleaseEvent(QMouseEvent* ak_Event_)
 {
+	/*
 	if (mk_ArrowStartBox_ != NULL)
 	{
 		if (mk_ArrowEndBox_ != NULL)
@@ -252,6 +351,7 @@ void k_Desktop::mouseReleaseEvent(QMouseEvent* ak_Event_)
 		if (mk_ArrowPathItem_)
 			delete mk_ArrowPathItem_;
 	}
+	*/
 
 	QGraphicsView::mouseReleaseEvent(ak_Event_);
 	/*
@@ -372,9 +472,10 @@ void k_Desktop::dropEvent(QDropEvent* ak_Event_)
 			QFileInfo lk_FileInfo(ls_Path);
 			if (!lk_FileInfo.isDir())
 			{
-				k_FileBox* lk_FileBox_ = new k_FileBox(this, mk_Proteomatic);
-				lk_FileBox_->setFilename(ls_Path);
-				addBox(lk_FileBox_);
+				k_InputFileBox* lk_InputFileBox_ = new k_InputFileBox(this, mk_Proteomatic);
+				lk_InputFileBox_->setFilename(ls_Path);
+				QPoint lk_Position = this->mapToScene(ak_Event_->pos()).toPoint();
+				addBox(lk_InputFileBox_, NULL, &lk_Position);
 			}
 		}
 	}
@@ -425,6 +526,17 @@ void k_Desktop::wheelEvent(QWheelEvent* ak_Event_)
 			ld_ScaleDelta = 1.0 / ld_ScaleDelta;
 		this->scale(ld_ScaleDelta, ld_ScaleDelta);
 	}
+}
+
+
+void k_Desktop::keyPressEvent(QKeyEvent* ak_Event_)
+{
+	if (ak_Event_->key() == Qt::Key_Delete)
+	{
+		foreach (k_DesktopBox* lk_Box_, mk_SelectedBoxes)
+			this->removeBox(lk_Box_);
+	}
+	QGraphicsView::keyPressEvent(ak_Event_);
 }
 
 
@@ -609,4 +721,25 @@ void k_Desktop::updateUserArrow()
 	}
 	
 	lk_PathItem_->setPath(lk_Path);
+}
+
+
+void k_Desktop::clearSelection()
+{
+	foreach (k_DesktopBox* lk_Box_, mk_SelectedBoxes)
+		this->removeBoxFromSelection(lk_Box_);
+}
+
+
+void k_Desktop::addBoxToSelection(k_DesktopBox* ak_Box_)
+{
+	mk_SelectedBoxes.insert(ak_Box_);
+	ak_Box_->update();
+}
+
+
+void k_Desktop::removeBoxFromSelection(k_DesktopBox* ak_Box_)
+{
+	mk_SelectedBoxes.remove(ak_Box_);
+	ak_Box_->update();
 }

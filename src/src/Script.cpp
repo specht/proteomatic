@@ -199,6 +199,26 @@ void k_Script::setOutputDirectory(QString as_Path)
 }
 
 
+bool k_Script::checkInputFiles(QHash<QString, QSet<QString> > ak_Files)
+{
+	// check minimum counts
+	foreach (QString ls_Key, mk_InputFileMinimum.keys())
+	{
+		int li_Minimum = mk_InputFileMinimum[ls_Key];
+		if (!ak_Files.contains(ls_Key) || ak_Files[ls_Key].size() < li_Minimum)
+			return false;
+	}
+	// check maximum counts
+	foreach (QString ls_Key, mk_InputFileMaximum.keys())
+	{
+		int li_Maximum = mk_InputFileMaximum[ls_Key];
+		if (ak_Files.contains(ls_Key) && ak_Files[ls_Key].size() > li_Maximum)
+			return false;
+	}
+	return true;
+}
+
+
 QString k_Script::getParameterValue(QString as_Key) const
 {
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
@@ -507,6 +527,21 @@ void k_Script::clearOutputDirectoryButtonClicked()
 }
 
 
+QString k_Script::inputKeyForFilename(QString as_Path)
+{
+	QString ls_Path = as_Path.toLower();
+	foreach (QString ls_Key, mk_InputFileKeys)
+	{
+		foreach (QString ls_Extension, mk_InputFileExtensions[ls_Key])
+		{
+			if (ls_Path.endsWith(ls_Extension.toLower()))
+				return ls_Key;
+		}
+	}
+	return "";
+}
+
+
 void k_Script::setOutputDirectoryButtonClicked()
 {
 	if (mk_OutputDirectory_ == NULL)
@@ -592,19 +627,30 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 		if (ls_Parameter == "!!!begin input")
 		{
+			// collect key/value pairs
+			QString ls_InputFileKey;
 			while (true)
 			{
 				QString ls_Key = ak_Definition.takeFirst().trimmed();
 				if (ls_Key == "!!!end input")
 					break;
-				mk_InputFileKeys.push_back(ls_Key);
-				QString ls_Label = ak_Definition.takeFirst().trimmed();
-				mk_InputFileLabels[ls_Key] = ls_Label;
-				QString ls_Description = ak_Definition.takeFirst().trimmed();
-				mk_InputFileDescriptions[ls_Key] = ls_Description;
-				QString ls_Extensions = ak_Definition.takeFirst().trimmed();
-				QStringList lk_Extensions = ls_Extensions.split("/");
-				mk_InputFileExtensions[ls_Key] = lk_Extensions;
+				
+				QString ls_Value = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "key")
+				{
+					ls_InputFileKey = ls_Value;
+					mk_InputFileKeys.push_back(ls_InputFileKey);
+				}
+				else if (ls_Key == "label")
+					mk_InputFileLabels[ls_InputFileKey] = ls_Value;
+				else if (ls_Key == "description")
+					mk_InputFileDescriptions[ls_InputFileKey] = ls_Value;
+				else if (ls_Key == "extensions")
+					mk_InputFileExtensions[ls_InputFileKey] = ls_Value.split("/");
+				else if (ls_Key == "min")
+					mk_InputFileMinimum[ls_InputFileKey] = ls_Value.toInt();
+				else if (ls_Key == "max")
+					mk_InputFileMaximum[ls_InputFileKey] = ls_Value.toInt();
 			}
 		}
 		if (ls_Parameter == "!!!begin defaultOutputDirectory")

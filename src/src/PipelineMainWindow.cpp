@@ -27,6 +27,8 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	, mk_Desktop(this, ak_Proteomatic)
 	, mk_Proteomatic(ak_Proteomatic)
 {
+	mk_Proteomatic.setMessageBoxParent(this);
+
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	setWindowTitle("Proteomatic Pipeline");
 	resize(800, 600);
@@ -53,13 +55,25 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	lk_AddToolBar_->addSeparator();
 
+	QToolButton* lk_AddFileButton_ = new QToolButton(lk_AddToolBar_);
+	lk_AddFileButton_->setText("Add files");
+	lk_AddFileButton_->setIcon(QIcon(":/icons/document-open.png"));
+	lk_AddFileButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	lk_AddToolBar_->addWidget(lk_AddFileButton_);
+	//connect(lk_AddFileListButton_, SIGNAL(clicked()), this, SLOT(addFileListBox()));
+
 	QToolButton* lk_AddFileListButton_ = new QToolButton(lk_AddToolBar_);
 	lk_AddFileListButton_->setText("Add file list");
-	lk_AddFileListButton_->setIcon(QIcon(":/icons/document-open.png"));
+	lk_AddFileListButton_->setIcon(QIcon(":/icons/document-open-multiple.png"));
 	lk_AddFileListButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_AddToolBar_->addWidget(lk_AddFileListButton_);
 	connect(lk_AddFileListButton_, SIGNAL(clicked()), this, SLOT(addFileListBox()));
 
+	lk_AddToolBar_->addSeparator();
+	
+	lk_AddToolBar_->addWidget(new QLabel("Output directory:", this));
+	lk_AddToolBar_->addWidget(new QLineEdit(this));
+	
 	lk_AddToolBar_->addSeparator();
 
 	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
@@ -81,6 +95,6 @@ void k_PipelineMainWindow::start()
 
 void k_PipelineMainWindow::addFileListBox()
 {
-	k_FileListBox* lk_FileListBox_ = new k_FileListBox(&mk_Desktop, mk_Proteomatic);
-	mk_Desktop.addBox(lk_FileListBox_);
+	k_InputFileListBox* lk_InputFileListBox_ = new k_InputFileListBox(&mk_Desktop, mk_Proteomatic);
+	mk_Desktop.addBox(lk_InputFileListBox_);
 }

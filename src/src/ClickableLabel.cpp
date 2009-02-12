@@ -43,17 +43,27 @@ void k_ClickableLabel::mousePressEvent(QMouseEvent* event)
 {
 	event->accept();
 	emit clicked();
+	emit pressed();
+}
+
+
+void k_ClickableLabel::mouseReleaseEvent(QMouseEvent* event)
+{
+	event->accept();
+	emit released();
 }
 
 
 void k_ClickableLabel::enterEvent(QMouseEvent* event)
 {
+	event->accept();
 	emit enter();
 }
 
 
 void k_ClickableLabel::leaveEvent(QMouseEvent* event)
 {
+	event->accept();
 	emit leave();
 }
 
