@@ -44,6 +44,11 @@ k_DesktopBox::~k_DesktopBox()
 }
 
 
+void k_DesktopBox::updateStatus()
+{
+}
+
+
 void k_DesktopBox::paintEvent(QPaintEvent* ak_Event_)
 {
 	// TODO: is this safe? this is a workaround to achieve a compact desktop box
@@ -462,6 +467,8 @@ k_InputFileBox::k_InputFileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteoma
 {
 	QHBoxLayout* lk_Layout_ = new QHBoxLayout(this);
 	lk_Layout_->setContentsMargins(0, 0, 0, 0);
+	lk_Layout_->addWidget(&mk_IconLabel);
+	mk_IconLabel.setVisible(false);
 	lk_Layout_->addWidget(&mk_Label);
 	lk_Layout_->setContentsMargins(8, 8, 8, 8);
 	k_ClickableLabel* lk_ArrowLabel_ = new k_ClickableLabel(this);
@@ -555,7 +562,7 @@ k_InputFileListBox::k_InputFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_
 	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
 	
 	lk_HLayout_->addLayout(lk_VLayout_);
-	this->resize(250, 150);
+	this->resize(300, 1);
 	this->setAcceptDrops(true);
 	this->updateStatus();
 }
@@ -641,6 +648,7 @@ void k_InputFileListBox::dropEvent(QDropEvent* ak_Event_)
 k_OutputFileBox::k_OutputFileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: k_InputFileBox(ak_Parent_, ak_Proteomatic)
 {
+	mk_IconLabel.setPixmap(QPixmap(":icons/dialog-warning.png").scaledToWidth(16, Qt::SmoothTransformation));
 }
 
 
@@ -698,4 +706,20 @@ bool k_OutputFileBox::fileExists()
 QString k_OutputFileBox::displayString() const
 {
 	return ms_Prefix + QFileInfo(ms_Filename).fileName();
+}
+
+
+void k_OutputFileBox::updateStatus()
+{
+	mk_Label.setText(this->displayString());
+	if (this->fileExists())
+	{
+		mk_Label.setStyleSheet("color: #000");
+		mk_IconLabel.setVisible(true);
+	}
+	else
+	{
+		mk_Label.setStyleSheet("color: #888");
+		mk_IconLabel.setVisible(false);
+	}
 }

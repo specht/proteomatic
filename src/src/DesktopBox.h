@@ -50,6 +50,9 @@ signals:
 	void moved();
 	void resized();
 	void mousePressed(Qt::KeyboardModifiers ae_Modifiers);
+	
+public slots:
+	virtual void updateStatus();
 
 protected:
 	virtual void paintEvent(QPaintEvent* ak_Event_);
@@ -144,13 +147,14 @@ public:
 	QString filename() const;
 	
 public slots:
-	void updateStatus();
+	virtual void updateStatus();
 
 protected:
 	virtual bool fileExists();
 	virtual QString displayString() const;
 	
-	QLabel mk_Label;
+	k_UnclickableLabel mk_IconLabel;
+	k_UnclickableLabel mk_Label;
 	QString ms_Filename;
 };
 
@@ -194,6 +198,7 @@ public:
 public slots:
 	void setDirectory(const QString& as_Directory);
 	void setPrefix(const QString& as_Prefix);
+	virtual void updateStatus();
 	
 protected:
 	virtual bool fileExists();

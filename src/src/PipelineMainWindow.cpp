@@ -18,13 +18,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PipelineMainWindow.h"
+#include "Desktop.h"
 #include <QtGui>
 #include "Proteomatic.h"
 
 
 k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: QMainWindow(ak_Parent_)
-	, mk_Desktop(this, ak_Proteomatic)
+	, mk_Desktop(this, ak_Proteomatic, *this)
 	, mk_Proteomatic(ak_Proteomatic)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
@@ -36,6 +37,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	statusBar()->show();
 
 	QToolBar* lk_AddToolBar_ = new QToolBar(this);
+	lk_AddToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
 	QToolButton* lk_AddScriptButton_ = new QToolButton(lk_AddToolBar_);
 	lk_AddScriptButton_->setIcon(QIcon(":/icons/folder.png"));
@@ -46,33 +48,26 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	lk_AddToolBar_->addWidget(lk_AddScriptButton_);
 	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), &mk_Desktop, SLOT(addScriptBox(QAction*)));
 
-	QToolButton* lk_StartButton_ = new QToolButton(lk_AddToolBar_);
-	lk_StartButton_->setText("Start");
-	lk_StartButton_->setIcon(QIcon(":/icons/dialog-ok.png"));
-	lk_StartButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	lk_AddToolBar_->addWidget(lk_StartButton_);
-	connect(lk_StartButton_, SIGNAL(clicked()), this, SLOT(start()));
+	lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add files");
+	lk_AddToolBar_->addAction(QIcon(":/icons/document-open-multiple.png"), "Add file list", this, SLOT(addFileListBox()));
 
 	lk_AddToolBar_->addSeparator();
 
-	QToolButton* lk_AddFileButton_ = new QToolButton(lk_AddToolBar_);
-	lk_AddFileButton_->setText("Add files");
-	lk_AddFileButton_->setIcon(QIcon(":/icons/document-open.png"));
-	lk_AddFileButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	lk_AddToolBar_->addWidget(lk_AddFileButton_);
-	//connect(lk_AddFileListButton_, SIGNAL(clicked()), this, SLOT(addFileListBox()));
-
-	QToolButton* lk_AddFileListButton_ = new QToolButton(lk_AddToolBar_);
-	lk_AddFileListButton_->setText("Add file list");
-	lk_AddFileListButton_->setIcon(QIcon(":/icons/document-open-multiple.png"));
-	lk_AddFileListButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	lk_AddToolBar_->addWidget(lk_AddFileListButton_);
-	connect(lk_AddFileListButton_, SIGNAL(clicked()), this, SLOT(addFileListBox()));
+	lk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
+	lk_AddToolBar_->addAction(QIcon(":icons/dialog-ok.png"), "Start", this, SLOT(start()));
 
 	lk_AddToolBar_->addSeparator();
 	
 	lk_AddToolBar_->addWidget(new QLabel("Output directory:", this));
-	lk_AddToolBar_->addWidget(new QLineEdit(this));
+	
+	QString ls_Path = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString();
+	if (!QFileInfo(ls_Path).isDir())
+		ls_Path = QDir::homePath();
+	this->setOutputDirectory(ls_Path);
+	mk_OutputDirectory.setReadOnly(true);
+	
+	lk_AddToolBar_->addWidget(&mk_OutputDirectory);
+	lk_AddToolBar_->addAction(QIcon(":icons/folder.png"), "", this, SLOT(chooseOutputDirectory()));
 	
 	lk_AddToolBar_->addSeparator();
 
@@ -87,6 +82,12 @@ k_PipelineMainWindow::~k_PipelineMainWindow()
 }
 
 
+QString k_PipelineMainWindow::outputDirectory()
+{
+	return mk_OutputDirectory.text();
+}
+
+
 void k_PipelineMainWindow::start()
 {
 	
@@ -97,4 +98,22 @@ void k_PipelineMainWindow::addFileListBox()
 {
 	k_InputFileListBox* lk_InputFileListBox_ = new k_InputFileListBox(&mk_Desktop, mk_Proteomatic);
 	mk_Desktop.addBox(lk_InputFileListBox_);
+}
+
+
+void k_PipelineMainWindow::chooseOutputDirectory()
+{
+	QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
+	if (ls_Path.length() > 0)
+	{
+		this->setOutputDirectory(ls_Path);
+		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_OUTPUT_PATH] = ls_Path;
+	}
+}
+
+
+void k_PipelineMainWindow::setOutputDirectory(QString as_Path)
+{
+	mk_OutputDirectory.setText(as_Path);
+	emit outputDirectoryChanged(as_Path);
 }

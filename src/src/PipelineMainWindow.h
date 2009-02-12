@@ -24,20 +24,30 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Proteomatic.h"
 
 
+
+
 class k_PipelineMainWindow: public QMainWindow
 {
 	Q_OBJECT
 public:
 	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_PipelineMainWindow();
+	QString outputDirectory();
+	
+signals:
+	void outputDirectoryChanged(const QString& as_Path);
+	void forceRefresh();
 
 public slots:
 	void start();
 	void addFileListBox();
+	void chooseOutputDirectory();
+	void setOutputDirectory(QString as_Path);
 
 protected:
 	k_Desktop mk_Desktop;
 	QToolButton* mk_MouseMoveButton_;
 	QToolButton* mk_MouseArrowButton_;
+	QLineEdit mk_OutputDirectory;
 	k_Proteomatic& mk_Proteomatic;
 };

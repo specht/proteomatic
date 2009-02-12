@@ -27,6 +27,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Proteomatic.h"
 
 
+class k_PipelineMainWindow;
+
+
 struct r_MouseMode
 {
 	enum Enumeration
@@ -40,7 +43,7 @@ class k_Desktop: public QGraphicsView
 {
 	Q_OBJECT
 public:
-	k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_PipelineMainWindow& ak_PipelineMainWindow);
 	virtual ~k_Desktop();
 
 	typedef QPair<k_DesktopBox*, k_DesktopBox*> tk_BoxPair;
@@ -54,6 +57,7 @@ public:
 	void arrowClick(k_DesktopBox* ak_Box_);
 	bool boxSelected(k_DesktopBox* ak_Box_) const;
 	tk_FileBoxSet fileBoxesForScriptBox(k_ScriptBox* ak_ScriptBox_) const;
+	k_PipelineMainWindow& pipelineMainWindow();
 
 public slots:
 	void setMouseMode(r_MouseMode::Enumeration ae_MouseMode);
@@ -85,11 +89,15 @@ protected:
 	void updateBoxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_);
 	void updateUserArrow();
 	void clearSelection();
+	void deselectArrow();
 	void addBoxToSelection(k_DesktopBox* ak_Box_);
 	void removeBoxFromSelection(k_DesktopBox* ak_Box_);
 
 	QList<k_DesktopBox*> mk_Boxes;
 	QHash<tk_BoxPair, RefPtr<QGraphicsPathItem> > mk_BoxConnections;
+	QHash<QGraphicsPathItem*, RefPtr<QGraphicsLineItem> > mk_ProxyLineForArrow;
+	QHash<QGraphicsLineItem*, QGraphicsPathItem*> mk_ArrowForProxyLine;
+	QHash<QGraphicsLineItem*, tk_BoxPair> mk_BoxPairForProxyLine;
 	QHash<k_DesktopBox*, tk_DesktopBoxSet> mk_BoxConnectionsForBox;
 	QHash<k_ScriptBox*, tk_FileBoxSet> mk_FileBoxesForScriptBox;
 
@@ -106,7 +114,10 @@ protected:
 	QPainterPath mk_ActualLasso;
 	QPoint mk_LastLassoPoint;
 	
+	RefPtr<tk_BoxPair> mk_pSelectedArrow;
+	
 	k_Proteomatic& mk_Proteomatic;
+	k_PipelineMainWindow& mk_PipelineMainWindow;
 	RefPtr<QGraphicsScene> mk_pGraphicsScene;
 };
 

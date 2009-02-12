@@ -18,16 +18,18 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Desktop.h"
+#include "PipelineMainWindow.h"
 #include <math.h>
 
 
-k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_PipelineMainWindow& ak_PipelineMainWindow)
 	: QGraphicsView(ak_Parent_)
 	, mk_ArrowStartBox_(NULL)
 	, mk_ArrowEndBox_(NULL)
 	, mk_ArrowPathItem_(NULL)
 	, me_MouseMode(r_MouseMode::Move)
 	, mk_Proteomatic(ak_Proteomatic)
+	, mk_PipelineMainWindow(ak_PipelineMainWindow)
 {
 	setAcceptDrops(true);
 	mk_pGraphicsScene = RefPtr<QGraphicsScene>(new QGraphicsScene(ak_Parent_));
@@ -72,7 +74,14 @@ void k_Desktop::addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_, QPoint*
 		connect(lk_FileBox_, SIGNAL(arrowPressed()), this, SLOT(fileBoxArrowPressed()));
 		connect(lk_FileBox_, SIGNAL(arrowReleased()), this, SLOT(fileBoxArrowReleased()));
 	}
+	k_OutputFileBox* lk_OutputFileBox_ = dynamic_cast<k_OutputFileBox*>(ak_Box_);
+	if (lk_OutputFileBox_ != NULL)
+	{
+		lk_OutputFileBox_->setDirectory(mk_PipelineMainWindow.outputDirectory());
+		connect(&mk_PipelineMainWindow, SIGNAL(outputDirectoryChanged(const QString&)), lk_OutputFileBox_, SLOT(setDirectory(const QString&)));
+	}
 	connect(ak_Box_, SIGNAL(mousePressed(Qt::KeyboardModifiers)), this, SLOT(boxClicked(Qt::KeyboardModifiers)));
+	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), ak_Box_, SLOT(updateStatus()));
 }
 
 
@@ -147,6 +156,16 @@ void k_Desktop::connectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 	mk_BoxConnectionsForBox[ak_Box0_].insert(ak_Box1_);
 	mk_BoxConnectionsForBox[ak_Box1_].insert(ak_Box0_);
 	
+	QPen lk_ProxyPen(QColor("#f8f8f8"));
+	lk_ProxyPen.setWidth(10);
+	
+	QGraphicsLineItem* lk_GraphicsLineItem_ =
+		mk_pGraphicsScene->addLine(QLineF(boxLocation(ak_Box0_), boxLocation(ak_Box1_)), lk_ProxyPen);
+	lk_GraphicsLineItem_->setZValue(-2.0);
+	mk_ProxyLineForArrow[lk_GraphicsPathItem_] = RefPtr<QGraphicsLineItem>(lk_GraphicsLineItem_);
+	mk_ArrowForProxyLine[lk_GraphicsLineItem_] = lk_GraphicsPathItem_;
+	mk_BoxPairForProxyLine[lk_GraphicsLineItem_] = tk_BoxPair(ak_Box0_, ak_Box1_);
+	
 	if (dynamic_cast<k_FileBox*>(ak_Box0_) != NULL &&
 		dynamic_cast<k_ScriptBox*>(ak_Box1_) != NULL)
 	{
@@ -162,6 +181,10 @@ void k_Desktop::disconnectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 {
 	if (ak_Box0_ == ak_Box1_)
 		return;
+	QGraphicsLineItem* lk_ProxyLine_ = mk_ProxyLineForArrow[mk_BoxConnections[tk_BoxPair(ak_Box0_, ak_Box1_)].get_Pointer()].get_Pointer();
+	mk_ProxyLineForArrow.remove(mk_BoxConnections[tk_BoxPair(ak_Box0_, ak_Box1_)].get_Pointer());
+	mk_ArrowForProxyLine.remove(lk_ProxyLine_);
+	mk_BoxPairForProxyLine.remove(lk_ProxyLine_);
 	mk_BoxConnections.remove(tk_BoxPair(ak_Box0_, ak_Box1_));
 	mk_BoxConnectionsForBox[ak_Box0_].remove(ak_Box1_);
 	mk_BoxConnectionsForBox[ak_Box1_].remove(ak_Box0_);
@@ -203,6 +226,12 @@ k_Desktop::tk_FileBoxSet k_Desktop::fileBoxesForScriptBox(k_ScriptBox* ak_Script
 }
 
 
+k_PipelineMainWindow& k_Desktop::pipelineMainWindow()
+{
+	return mk_PipelineMainWindow;
+}
+
+
 void k_Desktop::setMouseMode(r_MouseMode::Enumeration ae_MouseMode)
 {
 	me_MouseMode = ae_MouseMode;
@@ -240,6 +269,7 @@ void k_Desktop::fileBoxArrowPressed()
 	lk_Pen.setWidth(1);
 	mk_ArrowPathItem_ = mk_pGraphicsScene->
 		addPath(QPainterPath(), lk_Pen, QBrush(QColor("#888a85")));
+	mk_ArrowPathItem_->setZValue(1000.0);
 }
 
 
@@ -265,6 +295,8 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 	if (!lk_Box_)
 		return;
 	
+	this->deselectArrow();
+	
 	if ((ae_Modifiers & Qt::ControlModifier) == 0)
 	{
 		// no ctrl pressed
@@ -287,6 +319,23 @@ void k_Desktop::mousePressEvent(QMouseEvent* ak_Event_)
 	if ((ak_Event_->modifiers() & Qt::ControlModifier) == 0)
 		this->clearSelection();
 	
+	QList<QGraphicsItem*> lk_Items = mk_pGraphicsScene->items(this->mapToScene(ak_Event_->pos()));
+	if (!lk_Items.empty())
+	{
+		// pick the last item in the list because proxy lines should be lowest of all
+		QGraphicsLineItem* lk_LineItem_ = dynamic_cast<QGraphicsLineItem*>(lk_Items.last());
+		if (lk_LineItem_)
+		{
+			this->deselectArrow();
+			mk_pSelectedArrow = RefPtr<tk_BoxPair>(new tk_BoxPair(mk_BoxPairForProxyLine[lk_LineItem_]));
+			// clear box selection
+			this->clearSelection();
+			this->updateBoxConnector(mk_BoxPairForProxyLine[lk_LineItem_].first, mk_BoxPairForProxyLine[lk_LineItem_].second);
+			return;
+		}
+	}
+	
+	this->deselectArrow();
 	QGraphicsView::mousePressEvent(ak_Event_);
 	return;
 	
@@ -535,6 +584,17 @@ void k_Desktop::keyPressEvent(QKeyEvent* ak_Event_)
 	{
 		foreach (k_DesktopBox* lk_Box_, mk_SelectedBoxes)
 			this->removeBox(lk_Box_);
+		if (mk_pSelectedArrow)
+		{
+			// if its an arrow that connects a script box with an output file box,
+			// remove the output file box entirely
+			if (dynamic_cast<k_ScriptBox*>(mk_pSelectedArrow->first) &&
+				dynamic_cast<k_OutputFileBox*>(mk_pSelectedArrow->second))
+				this->removeBox(mk_pSelectedArrow->second);
+			else
+				this->disconnectBoxes(mk_pSelectedArrow->first, mk_pSelectedArrow->second);
+			this->deselectArrow();
+		}
 	}
 	QGraphicsView::keyPressEvent(ak_Event_);
 }
@@ -685,6 +745,15 @@ void k_Desktop::updateBoxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1
 	}
 	
 	lk_PathItem_->setPath(lk_Path);
+	QPen lk_Pen = lk_PathItem_->pen();
+	if (mk_pSelectedArrow && *(mk_pSelectedArrow.get_Pointer()) == lk_BoxPair)
+		lk_Pen.setWidthF(2.0);
+	else
+		lk_Pen.setWidthF(1.0);
+	lk_Pen.setJoinStyle(Qt::MiterJoin);
+	lk_PathItem_->setPen(lk_Pen);
+	
+	mk_ProxyLineForArrow[lk_PathItem_]->setLine(QLineF(boxLocation(ak_Box0_), boxLocation(ak_Box1_)));
 }
 
 
@@ -728,6 +797,17 @@ void k_Desktop::clearSelection()
 {
 	foreach (k_DesktopBox* lk_Box_, mk_SelectedBoxes)
 		this->removeBoxFromSelection(lk_Box_);
+}
+
+
+void k_Desktop::deselectArrow()
+{
+	if (!mk_pSelectedArrow)
+		return;
+	
+	RefPtr<tk_BoxPair> lk_pBoxPair = mk_pSelectedArrow;
+	mk_pSelectedArrow = RefPtr<tk_BoxPair>();
+	this->updateBoxConnector(lk_pBoxPair->first, lk_pBoxPair->second);
 }
 
 
