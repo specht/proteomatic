@@ -265,16 +265,34 @@ k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteom
 	connect(lk_ConfigureButton_, SIGNAL(clicked()), this, SLOT(showParameterWidget()));
 
 	QToolButton* lk_ShowOutputButton_ = new QToolButton(this);
+	//lk_ShowOutputButton_->setCheckable(true);
 	lk_ShowOutputButton_->setIcon(QIcon(":/icons/utilities-terminal.png"));
 	lk_ButtonLayout_->addWidget(lk_ShowOutputButton_);
-	//connect(lk_ShowOutputButton_, SIGNAL(clicked()), mk_Script.parameterWidget(), SLOT(show()));
+	mk_pOutputWidget = RefPtr<QWidget>(new QWidget());
+	mk_pOutput = RefPtr<QTextEdit>(new QTextEdit(mk_pOutputWidget.get_Pointer()));
+	mk_pOutput->setReadOnly(true);
+	mk_pOutput->setFont(mk_Proteomatic.consoleFont());
+	QBoxLayout* lk_SVLayout_ = new QVBoxLayout(mk_pOutputWidget.get_Pointer());
+	lk_SVLayout_->addWidget(mk_pOutput.get_Pointer());
+	QBoxLayout* lk_SHLayout_ = new QHBoxLayout(mk_pOutputWidget.get_Pointer());
+	lk_SHLayout_->addStretch();
+	QPushButton* lk_CloseButton_ = new QPushButton(QIcon(":icons/dialog-ok.png"), "Close", mk_pOutputWidget.get_Pointer());
+	connect(lk_CloseButton_, SIGNAL(clicked()), mk_pOutputWidget.get_Pointer(), SLOT(hide()));
+	lk_SHLayout_->addWidget(lk_CloseButton_);
+	lk_SVLayout_->addLayout(lk_SHLayout_);
+	mk_pOutputWidget->setWindowIcon(QIcon(":icons/proteomatic.png"));
+	mk_pOutputWidget->setWindowTitle(mk_Script_->title());
+	connect(lk_ShowOutputButton_, SIGNAL(clicked()), mk_pOutputWidget.get_Pointer(), SLOT(show()));
+	connect(lk_ShowOutputButton_, SIGNAL(clicked()), mk_pOutputWidget.get_Pointer(), SLOT(raise()));
 	
 	lk_ButtonLayout_->addStretch();
 	
+	/*
 	QToolButton* lk_ClearPrefixButton_ = new QToolButton(this);
 	lk_ClearPrefixButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
 	lk_ButtonLayout_->addWidget(lk_ClearPrefixButton_);
 	connect(lk_ClearPrefixButton_, SIGNAL(clicked()), &mk_PrefixWidget, SLOT(clear()));
+	*/
 
 	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
 	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
@@ -303,6 +321,7 @@ k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteom
 		lk_CheckBox_->setObjectName(ls_Key);
 		connect(lk_CheckBox_, SIGNAL(toggled(bool)), this, SLOT(toggleOutput(bool)));
 	}
+	
 	this->updateStatus();
 }
 
@@ -371,6 +390,11 @@ void k_ScriptBox::removeOutputFileBox(k_OutputFileBox* ak_OutputFileBox_)
 void k_ScriptBox::resetScript()
 {
 	me_Status = r_BoxStatus::Ready;
+	ms_Output.clear();
+	mk_pOutput->setText(ms_Output.text());
+	mk_pOutput->moveCursor(QTextCursor::End);
+	mk_pOutput->ensureCursorVisible();
+	
 	this->updateStatus();
 }
 
@@ -607,6 +631,16 @@ void k_ScriptBox::scriptFinished(int ai_ExitCode, QProcess::ExitStatus ae_Status
 
 void k_ScriptBox::scriptReadyRead()
 {
+	addOutput(mk_Script_->readAll());
+}
+
+
+void k_ScriptBox::addOutput(QString as_Text)
+{
+	ms_Output.append(as_Text);
+	mk_pOutput->setText(ms_Output.text());
+	mk_pOutput->moveCursor(QTextCursor::End);
+	mk_pOutput->ensureCursorVisible();
 }
 
 
@@ -710,12 +744,11 @@ k_InputFileListBox::k_InputFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_
 	QToolButton* lk_AddFilesButton_ = new QToolButton(this);
 	lk_AddFilesButton_->setIcon(QIcon(":/icons/document-open.png"));
 	connect(lk_AddFilesButton_, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
-	QToolButton* lk_RemoveFilesButton_ = new QToolButton(this);
-	lk_RemoveFilesButton_->setIcon(QIcon(":/icons/list-remove.png"));
-	connect(lk_RemoveFilesButton_, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
-	connect(lk_RemoveFilesButton_, SIGNAL(clicked()), this, SIGNAL(changed()));
+	mk_RemoveFilesButton.setIcon(QIcon(":/icons/list-remove.png"));
+	connect(&mk_RemoveFilesButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
+	connect(&mk_RemoveFilesButton, SIGNAL(clicked()), this, SIGNAL(changed()));
 	lk_VLayout_->addWidget(lk_AddFilesButton_);
-	lk_VLayout_->addWidget(lk_RemoveFilesButton_);
+	lk_VLayout_->addWidget(&mk_RemoveFilesButton);
 	lk_VLayout_->addStretch();
 
 	k_ClickableLabel* lk_ArrowLabel_ = new k_ClickableLabel(this);
@@ -727,11 +760,13 @@ k_InputFileListBox::k_InputFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_
 	
 	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(updateStatus()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
+	connect(&mk_FileList, SIGNAL(itemSelectionChanged()), this, SLOT(toggleUi()));
 	
 	lk_HLayout_->addLayout(lk_VLayout_);
 	this->resize(300, 1);
 	this->setAcceptDrops(true);
 	this->updateStatus();
+	this->toggleUi();
 }
 
 
@@ -781,6 +816,12 @@ void k_InputFileListBox::updateStatus()
 		ls_Count = QString("%1 files").arg(li_Count);
 	
 	mk_Label.setText(QString("<b>File list</b> (%1)").arg(ls_Count));
+}
+
+
+void k_InputFileListBox::toggleUi()
+{
+	mk_RemoveFilesButton.setEnabled(!mk_FileList.selectedItems().empty());
 }
 
 

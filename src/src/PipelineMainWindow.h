@@ -24,8 +24,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Proteomatic.h"
 
 
-
-
 class k_PipelineMainWindow: public QMainWindow
 {
 	Q_OBJECT
@@ -40,6 +38,7 @@ signals:
 
 public slots:
 	void start();
+	void addFiles();
 	void addFileListBox();
 	void chooseOutputDirectory();
 	void setOutputDirectory(QString as_Path);

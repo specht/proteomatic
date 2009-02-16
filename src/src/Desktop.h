@@ -68,6 +68,7 @@ public:
 public slots:
 	void setMouseMode(r_MouseMode::Enumeration ae_MouseMode);
 	void addScriptBox(QAction* ak_Action_);
+	void addFileBox(QString as_Path);
 	void boxMoved();
 	void fileBoxArrowPressed();
 	void fileBoxArrowReleased();

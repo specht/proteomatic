@@ -327,6 +327,18 @@ void k_Desktop::addScriptBox(QAction* ak_Action_)
 }
 
 
+void k_Desktop::addFileBox(QString as_Path)
+{
+	QFileInfo lk_FileInfo(as_Path);
+	if (lk_FileInfo.isDir())
+		return;
+	
+	k_InputFileBox* lk_InputFileBox_ = new k_InputFileBox(this, mk_Proteomatic);
+	lk_InputFileBox_->setFilename(as_Path);
+	this->addBox(lk_InputFileBox_);
+}
+
+
 void k_Desktop::boxMoved()
 {
 	k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(sender());
@@ -551,6 +563,13 @@ void k_Desktop::wheelEvent(QWheelEvent* ak_Event_)
 
 void k_Desktop::keyPressEvent(QKeyEvent* ak_Event_)
 {
+	// do this so that pressing delete in a line edit widget 
+	// won't delete currently selected boxes / arrows
+	ak_Event_->ignore();
+	QGraphicsView::keyPressEvent(ak_Event_);
+	if (ak_Event_->isAccepted())
+		return;
+	
 	if (ak_Event_->key() == Qt::Key_Delete)
 	{
 		foreach (tk_BoxPair lk_BoxPair, mk_SelectedArrows)
@@ -569,7 +588,6 @@ void k_Desktop::keyPressEvent(QKeyEvent* ak_Event_)
 		
 		this->clearSelection();
 	}
-	QGraphicsView::keyPressEvent(ak_Event_);
 }
 
 

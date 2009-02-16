@@ -49,7 +49,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), &mk_Desktop, SLOT(addScriptBox(QAction*)));
 	mk_AddScriptAction_ = lk_AddScriptButton_;
 
-	mk_AddFilesAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add files");
+	mk_AddFilesAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add files", this, SLOT(addFiles()));
 	mk_AddFileListAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open-multiple.png"), "Add file list", this, SLOT(addFileListBox()));
 
 	lk_AddToolBar_->addSeparator();
@@ -94,6 +94,17 @@ QString k_PipelineMainWindow::outputDirectory()
 void k_PipelineMainWindow::start()
 {
 	mk_Desktop.start();
+}
+
+
+void k_PipelineMainWindow::addFiles()
+{
+	QStringList lk_Files = QFileDialog::getOpenFileNames(this, tr("Add files"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_INPUT_FILES_PATH).toString());
+	if (!lk_Files.empty())
+		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_INPUT_FILES_PATH] = QFileInfo(lk_Files[0]).absolutePath();
+
+	foreach (QString ls_Path, lk_Files)
+		mk_Desktop.addFileBox(ls_Path);
 }
 
 

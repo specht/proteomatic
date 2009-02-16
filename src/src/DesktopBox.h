@@ -21,6 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
 #include "ClickableLabel.h"
+#include "ConsoleString.h"
 #include "FileList.h"
 #include "Proteomatic.h"
 #include "StopWatch.h"
@@ -136,6 +137,7 @@ protected slots:
 	void scriptStarted();
 	void scriptFinished(int, QProcess::ExitStatus);
 	void scriptReadyRead();
+	void addOutput(QString as_Text);
 
 protected:
 	k_Script* mk_Script_;
@@ -151,6 +153,9 @@ protected:
 	QToolButton mk_StatusLabel;
 	QLineEdit mk_PrefixWidget;
 	QString ms_InputFilesErrorMessage;
+	k_ConsoleString ms_Output;
+	RefPtr<QWidget> mk_pOutputWidget;
+	RefPtr<QTextEdit> mk_pOutput;
 };
 
 
@@ -208,6 +213,7 @@ public:
 protected slots:
 	void addFilesButtonClicked();
 	void updateStatus();
+	void toggleUi();
 	
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* ak_Event_);
@@ -216,6 +222,7 @@ protected:
 	
 	k_FileList mk_FileList;
 	k_UnclickableLabel mk_Label;
+	QToolButton mk_RemoveFilesButton;
 };
 
 
