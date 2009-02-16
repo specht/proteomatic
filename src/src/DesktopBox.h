@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include "ClickableLabel.h"
 #include "FileList.h"
 #include "Proteomatic.h"
 #include "StopWatch.h"
@@ -37,6 +38,20 @@ class k_InputFileListBox;
 class k_OutputFileBox;
 
 
+struct r_BoxStatus
+{
+	enum Enumeration
+	{
+		Ready = 0,
+		OutputFileExists = 1,
+		InputFilesMissing = 2,
+		Running = 3,
+		Finished = 4,
+		Failed = 5
+	};
+};
+
+
 class k_DesktopBox: public QWidget
 {
 	Q_OBJECT
@@ -46,6 +61,8 @@ public:
 	
 	typedef QHash<QString, QString> tk_StringStringHash;
 	
+	r_BoxStatus::Enumeration status() const;
+	
 signals:
 	void moved();
 	void resized();
@@ -53,6 +70,8 @@ signals:
 	
 public slots:
 	virtual void updateStatus();
+	virtual void reportStatus();
+	virtual void snapToGrid();
 
 protected:
 	virtual void paintEvent(QPaintEvent* ak_Event_);
@@ -65,7 +84,6 @@ protected:
 	void setKeepSmall(bool ab_Flag);
 	bool cursorWithinSizeGrip(QPoint ak_Position);
 
-protected:
 	k_Desktop* mk_Desktop_;
 	QBrush mk_Background;
 	QPen mk_Border;
@@ -75,8 +93,11 @@ protected:
 	bool mb_Resizing;
 	QPoint mk_OldMousePosition;
 	QPoint mk_OldPosition;
+	QHash<k_DesktopBox*, QPoint> mk_OtherBoxesOldPosition;
 	QSize mk_OldSize;
 	bool mb_KeepSmall;
+	int mi_GridSize;
+	r_BoxStatus::Enumeration me_Status;
 };
 
 
@@ -88,12 +109,21 @@ public:
 	virtual ~k_ScriptBox();
 	
 	QList<k_OutputFileBox*> outputFileBoxes();
+	k_Script* script();
+	bool allInputFilesExist();
+	
+signals:
+	void scriptFinished();
 	
 public slots:
-	void updateStatus();
+	virtual void updateStatus();
+	virtual void reportStatus();
+	void toggleOutputFile(QString as_Key, bool ab_Enabled, bool ab_ToggleCheckBox = true);
 	void fileBoxConnected(k_FileBox* ak_FileBox_);
 	void fileBoxDisconnected(k_FileBox* ak_FileBox_);
 	void removeOutputFileBox(k_OutputFileBox* ak_OutputFileBox_);
+	void resetScript();
+	void start();
 
 protected slots:
 	void toggleOutput(bool ab_Enabled);
@@ -102,6 +132,10 @@ protected slots:
 	void proposePrefixButtonClicked();
 	void fileBoxChanged();
 	void showProfileManager();
+	
+	void scriptStarted();
+	void scriptFinished(int, QProcess::ExitStatus);
+	void scriptReadyRead();
 
 protected:
 	k_Script* mk_Script_;
@@ -114,8 +148,9 @@ protected:
 	QHash<k_FileBox*, tk_StringStringHash> mk_InputFileBoxes;
 	
 	QVBoxLayout mk_Layout;
-	QLabel mk_StatusLabel;
+	QToolButton mk_StatusLabel;
 	QLineEdit mk_PrefixWidget;
+	QString ms_InputFilesErrorMessage;
 };
 
 
@@ -148,12 +183,13 @@ public:
 	
 public slots:
 	virtual void updateStatus();
+	virtual void reportStatus();
 
 protected:
 	virtual bool fileExists();
 	virtual QString displayString() const;
 	
-	k_UnclickableLabel mk_IconLabel;
+	QToolButton mk_IconLabel;
 	k_UnclickableLabel mk_Label;
 	QString ms_Filename;
 };
@@ -187,7 +223,7 @@ class k_OutputFileBox: public k_InputFileBox
 {
 	Q_OBJECT
 public:
-	k_OutputFileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	k_OutputFileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_ScriptBox& ak_ScriptBox);
 	virtual ~k_OutputFileBox();
 	
 	virtual QStringList fileNames();
@@ -199,6 +235,7 @@ public slots:
 	void setDirectory(const QString& as_Directory);
 	void setPrefix(const QString& as_Prefix);
 	virtual void updateStatus();
+	virtual void reportStatus();
 	
 protected:
 	virtual bool fileExists();
@@ -206,4 +243,5 @@ protected:
 	
 	QString ms_Directory;
 	QString ms_Prefix;
+	k_ScriptBox& mk_ScriptBox;
 };

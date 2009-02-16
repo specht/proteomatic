@@ -49,6 +49,7 @@ public:
 	typedef QPair<k_DesktopBox*, k_DesktopBox*> tk_BoxPair;
 	typedef QSet<k_DesktopBox*> tk_DesktopBoxSet;
 	typedef QSet<k_FileBox*> tk_FileBoxSet;
+	typedef QSet<tk_BoxPair> tk_BoxPairSet;
 	
 	void addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_ = NULL, QPoint* ak_Location_ = NULL);
 	void removeBox(k_DesktopBox* ak_Box_, bool ab_DoSomeChecks = true);
@@ -56,8 +57,13 @@ public:
 	void disconnectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_);
 	void arrowClick(k_DesktopBox* ak_Box_);
 	bool boxSelected(k_DesktopBox* ak_Box_) const;
+	bool arrowSelected(tk_BoxPair ak_BoxPair) const;
+	tk_DesktopBoxSet selectedBoxes() const;
 	tk_FileBoxSet fileBoxesForScriptBox(k_ScriptBox* ak_ScriptBox_) const;
 	k_PipelineMainWindow& pipelineMainWindow();
+	void start();
+	void toggleUi();
+	bool running();
 
 public slots:
 	void setMouseMode(r_MouseMode::Enumeration ae_MouseMode);
@@ -66,6 +72,11 @@ public slots:
 	void fileBoxArrowPressed();
 	void fileBoxArrowReleased();
 	void boxClicked(Qt::KeyboardModifiers ae_Modifiers);
+	void forceRefresh();
+	void forceReset();
+	
+protected slots:
+	void scriptFinished();
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* ak_Event_);
@@ -80,8 +91,6 @@ protected:
 	
 	inline QPoint boxLocation(k_DesktopBox* ak_Box_) const;
 	
-	virtual void drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_);
-	virtual void drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, QPoint ak_Point);
 	double intersect(QPointF p0, QPointF d0, QPointF p1, QPointF d1);
 	virtual void boxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_, QPointF& ak_Point0, QPointF& ak_Point1);
 	QPointF intersectLineWithBox(const QPointF& ak_Point0, const QPointF& ak_Point1, k_DesktopBox* ak_Widget_);
@@ -89,9 +98,13 @@ protected:
 	void updateBoxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_);
 	void updateUserArrow();
 	void clearSelection();
-	void deselectArrow();
 	void addBoxToSelection(k_DesktopBox* ak_Box_);
 	void removeBoxFromSelection(k_DesktopBox* ak_Box_);
+	void addArrowToSelection(tk_BoxPair ak_BoxPair);
+	void removeArrowFromSelection(tk_BoxPair ak_BoxPair);
+	void resetScriptBoxes();
+	void updateAllBoxes();
+	void startNextScriptBox();
 
 	QList<k_DesktopBox*> mk_Boxes;
 	QHash<tk_BoxPair, RefPtr<QGraphicsPathItem> > mk_BoxConnections;
@@ -108,17 +121,17 @@ protected:
 	QPointF mk_CurrentMousePosition;
 
 	tk_DesktopBoxSet mk_SelectedBoxes;
+	tk_BoxPairSet mk_SelectedArrows;
 
 	r_MouseMode::Enumeration me_MouseMode;
-	QPainterPath mk_Lasso;
-	QPainterPath mk_ActualLasso;
-	QPoint mk_LastLassoPoint;
-	
-	RefPtr<tk_BoxPair> mk_pSelectedArrow;
 	
 	k_Proteomatic& mk_Proteomatic;
 	k_PipelineMainWindow& mk_PipelineMainWindow;
 	RefPtr<QGraphicsScene> mk_pGraphicsScene;
+	
+	double md_Scale;
+	
+	QSet<k_ScriptBox*> mk_RunningScriptBoxQueue;
 };
 
 

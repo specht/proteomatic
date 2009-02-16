@@ -85,7 +85,8 @@ public:
 	// checkInputFiles doesn't care whether files are actually there,
 	// it just checks whether all min/max requirements are fulfilled.
 	// files are filenames for input file key
-	bool checkInputFiles(QHash<QString, QSet<QString> > ak_Files);
+	bool checkInputFiles(QHash<QString, QSet<QString> > ak_Files, QString& as_InputFilesErrorMessage);
+	
 	
 	virtual void start(QStringList ak_Parameters) = 0;
 	virtual void kill() = 0;

@@ -23,6 +23,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "FileList.h"
 #include "HintLineEdit.h"
 #include "LocalScript.h"
+#include "PipelineMainWindow.h"
 #include "ScriptFactory.h"
 
 
@@ -35,6 +36,8 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	, mb_Moving(false)
 	, mb_KeepSmall(true)
 	, mk_SizeGripLabel_(NULL)
+	, mi_GridSize(20)
+	, me_Status(r_BoxStatus::Ready)
 {
 }
 
@@ -44,8 +47,34 @@ k_DesktopBox::~k_DesktopBox()
 }
 
 
+r_BoxStatus::Enumeration k_DesktopBox::status() const
+{
+	return me_Status;
+}
+
+
 void k_DesktopBox::updateStatus()
 {
+}
+
+
+void k_DesktopBox::reportStatus()
+{
+}
+
+
+void k_DesktopBox::snapToGrid()
+{
+	/*
+	int li_X = this->pos().x() + this->width() / 2;
+	int li_Y = this->pos().y() + this->height() / 2;
+	if (((li_X % mi_GridSize) != 0) || ((li_Y % mi_GridSize) != 0))
+	{
+		li_X = (li_X / mi_GridSize) * mi_GridSize;
+		li_Y = (li_Y / mi_GridSize) * mi_GridSize;
+		this->move(li_X - this->width() / 2, li_Y - this->height() / 2);
+	}
+	*/
 }
 
 
@@ -83,6 +112,10 @@ void k_DesktopBox::mousePressEvent(QMouseEvent* ak_Event_)
 	{
 		mb_Moving = true;
 		mk_OldPosition = this->pos();
+		mk_OtherBoxesOldPosition.clear();
+		foreach (k_DesktopBox* lk_Box_, mk_Desktop_->selectedBoxes())
+			if (lk_Box_ != this)
+				mk_OtherBoxesOldPosition[lk_Box_] = lk_Box_->pos();
 	}
 	mk_OldMousePosition = ak_Event_->globalPos();
 }
@@ -92,6 +125,7 @@ void k_DesktopBox::mouseReleaseEvent(QMouseEvent* ak_Event_)
 {
 	mb_Moving = false;
 	mb_Resizing = false;
+	mk_OtherBoxesOldPosition.clear();
 }
 
 
@@ -108,7 +142,13 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* ak_Event_)
 		this->resize(mk_OldSize + QSize(lk_Delta.x(), lk_Delta.y()));
 	}
 	else if (mb_Moving)
+	{
 		this->move(mk_OldPosition + ak_Event_->globalPos() - mk_OldMousePosition);
+		
+		// move all other selected boxes as well
+		foreach (k_DesktopBox* lk_Box_, mk_OtherBoxesOldPosition.keys())
+			lk_Box_->move(mk_OtherBoxesOldPosition[lk_Box_] + ak_Event_->globalPos() - mk_OldMousePosition);
+	}
 }
 
 
@@ -156,6 +196,14 @@ k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteom
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
 	, mk_Script_(k_ScriptFactory::makeScript(as_ScriptName, ak_Proteomatic, false))
 {
+	k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_Script_);
+	if (lk_LocalScript_)
+	{
+		connect(lk_LocalScript_, SIGNAL(started()), this, SLOT(scriptStarted()));
+		connect(lk_LocalScript_, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(scriptFinished(int, QProcess::ExitStatus)));
+		connect(lk_LocalScript_, SIGNAL(readyRead()), this, SLOT(scriptReadyRead()));
+	}
+	
 	this->setLayout(&mk_Layout);
 	
 	QHBoxLayout* lk_HLayout_ = new QHBoxLayout(this);
@@ -168,6 +216,8 @@ k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteom
 	lk_HLayout_->addStretch();
 	
 	lk_HLayout_->addWidget(&mk_StatusLabel);
+	mk_StatusLabel.setIconSize(QSize(16, 16));
+	connect(&mk_StatusLabel, SIGNAL(clicked()), this, SLOT(reportStatus()));
 	
 	mk_Layout.addLayout(lk_HLayout_);
 	
@@ -249,14 +299,9 @@ k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteom
 	{
 		QHash<QString, QString> lk_OutFile = mk_Script_->outFileDetails(ls_Key);
 		QCheckBox* lk_CheckBox_ = new QCheckBox(lk_OutFile["label"], this);
+		mk_Layout.addWidget(lk_CheckBox_);
 		lk_CheckBox_->setObjectName(ls_Key);
 		connect(lk_CheckBox_, SIGNAL(toggled(bool)), this, SLOT(toggleOutput(bool)));
-		if (lk_OutFile.contains("force"))
-		{
-			lk_CheckBox_->setChecked((lk_OutFile["force"] == "true" || lk_OutFile["force"] == "yes") ? true : false);
-			lk_CheckBox_->setEnabled(false);
-		}
-		mk_Layout.addWidget(lk_CheckBox_);
 	}
 	this->updateStatus();
 }
@@ -274,6 +319,26 @@ QList<k_OutputFileBox*> k_ScriptBox::outputFileBoxes()
 }
 
 
+k_Script* k_ScriptBox::script()
+{
+	return mk_Script_;
+}
+
+
+bool k_ScriptBox::allInputFilesExist()
+{
+	foreach (tk_StringStringHash lk_Hash, mk_InputFileBoxes.values())
+	{
+		foreach (QString ls_Path, lk_Hash.keys())
+		{
+			if (!QFileInfo(ls_Path).exists())
+				return false;
+		}
+	}
+	return true;
+}
+
+
 void k_ScriptBox::toggleOutput(bool ab_Enabled)
 {
 	QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(sender());
@@ -281,27 +346,7 @@ void k_ScriptBox::toggleOutput(bool ab_Enabled)
 		return;
 	
 	QString ls_Key = lk_CheckBox_->objectName();
-	QHash<QString, QString> lk_OutFile = mk_Script_->outFileDetails(ls_Key);
-	if (ab_Enabled)
-	{
-		k_OutputFileBox* lk_FileBox_ = new k_OutputFileBox(mk_Desktop_, mk_Proteomatic);
-		lk_FileBox_->setFilename(lk_OutFile["filename"]);
-		mk_Desktop_->addBox(lk_FileBox_, this);
-		mk_Desktop_->connectBoxes(this, lk_FileBox_);
-		mk_OutputFileBoxes[ls_Key] = lk_FileBox_;
-		QString ls_Prefix = mk_PrefixWidget.text();
-		lk_FileBox_->setPrefix(ls_Prefix);
-		mk_CheckBoxForOutputFileBox[lk_FileBox_] = lk_CheckBox_;
-	}
-	else
-	{
-		if (mk_OutputFileBoxes.contains(ls_Key))
-		{
-			mk_Desktop_->removeBox(mk_OutputFileBoxes[ls_Key]);
-			mk_CheckBoxForOutputFileBox.remove(mk_OutputFileBoxes[ls_Key]);
-			mk_OutputFileBoxes.remove(ls_Key);
-		}
-	}
+	this->toggleOutputFile(ls_Key, ab_Enabled, false);
 }
 
 
@@ -319,6 +364,30 @@ void k_ScriptBox::removeOutputFileBox(k_OutputFileBox* ak_OutputFileBox_)
 				mk_OutputFileBoxes.remove(ls_Key);
 		}
 	}
+}
+
+
+// this doesn't reset script parameters but clear the finished/failed state
+void k_ScriptBox::resetScript()
+{
+	me_Status = r_BoxStatus::Ready;
+	this->updateStatus();
+}
+
+
+void k_ScriptBox::start()
+{
+	// collect input files
+	QStringList lk_Arguments;
+	foreach (tk_StringStringHash lk_Hash, mk_InputFileBoxes.values())
+		lk_Arguments << lk_Hash.keys();
+
+	lk_Arguments << "-outputDirectory" << mk_Desktop_->pipelineMainWindow().outputDirectory();
+	lk_Arguments << "-outputPrefix" << mk_PrefixWidget.text();
+	foreach (QString ls_Key, mk_OutputFileBoxes.keys())
+		lk_Arguments << "-" + ls_Key << "yes";
+	
+	mk_Script_->start(lk_Arguments);
 }
 
 
@@ -412,12 +481,79 @@ void k_ScriptBox::updateStatus()
 		}
 	}
 	
-	bool lb_StatusOk = mk_Script_->checkInputFiles(lk_Files);
+	// update status unless finished or failed
+	if ((me_Status != r_BoxStatus::Finished) && (me_Status != r_BoxStatus::Failed) && (me_Status != r_BoxStatus::Running))
+	{
+		if (mk_Script_->checkInputFiles(lk_Files, ms_InputFilesErrorMessage))
+			me_Status = r_BoxStatus::Ready;
+		else
+			me_Status = r_BoxStatus::InputFilesMissing;
+	}
 	
-	if (lb_StatusOk)
+	/*
+	if (me_Status == r_BoxStatus::Ready)
 		mk_StatusLabel.setPixmap(QPixmap(":icons/appointment.png").scaledToWidth(16, Qt::SmoothTransformation));
 	else
 		mk_StatusLabel.setPixmap(QPixmap(":icons/dialog-warning.png").scaledToWidth(16, Qt::SmoothTransformation));
+	*/
+	if (me_Status == r_BoxStatus::Ready)
+		mk_StatusLabel.setIcon(QIcon(":icons/appointment.png"));
+	else if (me_Status == r_BoxStatus::InputFilesMissing)
+		mk_StatusLabel.setIcon(QIcon(":icons/dialog-warning.png"));
+	else if (me_Status == r_BoxStatus::Running)
+		mk_StatusLabel.setIcon(QIcon(":icons/applications-system.png"));
+	else if (me_Status == r_BoxStatus::Finished)
+		mk_StatusLabel.setIcon(QIcon(":icons/dialog-ok.png"));
+	else if (me_Status == r_BoxStatus::Failed)
+		mk_StatusLabel.setIcon(QIcon(":icons/process-stop.png"));
+}
+
+
+void k_ScriptBox::reportStatus()
+{
+	if (me_Status == r_BoxStatus::Ready)
+		mk_Proteomatic.showMessageBox("Script status", "The script is ready to go.", ":icons/appointment.png");
+	else if (me_Status == r_BoxStatus::InputFilesMissing)
+		mk_Proteomatic.showMessageBox("Script status", QString("The script is not ready because of the following problems:<br />%1").arg(ms_InputFilesErrorMessage), ":icons/dialog-warning.png");
+	else if (me_Status == r_BoxStatus::Running)
+		mk_Proteomatic.showMessageBox("Script status", "The script is currently running.", ":icons/applications-system.png");
+	else if (me_Status == r_BoxStatus::Finished)
+		mk_Proteomatic.showMessageBox("Script status", "The script has finished successfully.", ":icons/dialog-ok.png");
+	else if (me_Status == r_BoxStatus::Failed)
+		mk_Proteomatic.showMessageBox("Script status", "The script has failed.", ":icons/process-stop.png");
+}
+
+
+void k_ScriptBox::toggleOutputFile(QString as_Key, bool ab_Enabled, bool ab_ToggleCheckBox)
+{
+	QHash<QString, QString> lk_OutFile = mk_Script_->outFileDetails(as_Key);
+	if (ab_Enabled)
+	{
+		if (!mk_OutputFileBoxes.contains(as_Key))
+		{
+			k_OutputFileBox* lk_FileBox_ = new k_OutputFileBox(mk_Desktop_, mk_Proteomatic, *this);
+			lk_FileBox_->setFilename(lk_OutFile["filename"]);
+			mk_Desktop_->addBox(lk_FileBox_, this);
+			mk_Desktop_->connectBoxes(this, lk_FileBox_);
+			mk_OutputFileBoxes[as_Key] = lk_FileBox_;
+			QString ls_Prefix = mk_PrefixWidget.text();
+			lk_FileBox_->setPrefix(ls_Prefix);
+			mk_CheckBoxForOutputFileBox[lk_FileBox_] = this->findChild<QCheckBox*>(as_Key);
+			if (ab_ToggleCheckBox)
+				this->findChild<QCheckBox*>(as_Key)->setCheckState(Qt::Checked);
+		}
+	}
+	else
+	{
+		if (mk_OutputFileBoxes.contains(as_Key))
+		{
+			mk_Desktop_->removeBox(mk_OutputFileBoxes[as_Key]);
+			mk_CheckBoxForOutputFileBox.remove(mk_OutputFileBoxes[as_Key]);
+			mk_OutputFileBoxes.remove(as_Key);
+			if (ab_ToggleCheckBox)
+				this->findChild<QCheckBox*>(as_Key)->setCheckState(Qt::Unchecked);
+		}
+	}
 }
 
 
@@ -449,6 +585,30 @@ void k_ScriptBox::showProfileManager()
 }
 
 
+void k_ScriptBox::scriptStarted()
+{
+	me_Status = r_BoxStatus::Running;
+	this->updateStatus();
+}
+
+
+void k_ScriptBox::scriptFinished(int ai_ExitCode, QProcess::ExitStatus ae_Status)
+{
+	if ((ae_Status == QProcess::CrashExit) || (ai_ExitCode != 0))
+		me_Status = r_BoxStatus::Failed;
+	else
+		me_Status = r_BoxStatus::Finished;
+	
+	this->updateStatus();
+	
+	emit scriptFinished();
+}
+
+
+void k_ScriptBox::scriptReadyRead()
+{
+}
+
 
 k_FileBox::k_FileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
@@ -468,6 +628,8 @@ k_InputFileBox::k_InputFileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteoma
 	QHBoxLayout* lk_Layout_ = new QHBoxLayout(this);
 	lk_Layout_->setContentsMargins(0, 0, 0, 0);
 	lk_Layout_->addWidget(&mk_IconLabel);
+	connect(&mk_IconLabel, SIGNAL(clicked()), this, SLOT(reportStatus()));
+	mk_IconLabel.setIconSize(QSize(16, 16));
 	mk_IconLabel.setVisible(false);
 	lk_Layout_->addWidget(&mk_Label);
 	lk_Layout_->setContentsMargins(8, 8, 8, 8);
@@ -514,6 +676,11 @@ void k_InputFileBox::updateStatus()
 		mk_Label.setStyleSheet("color: #000");
 	else
 		mk_Label.setStyleSheet("color: #888");
+}
+
+
+void k_InputFileBox::reportStatus()
+{
 }
 
 
@@ -645,10 +812,11 @@ void k_InputFileListBox::dropEvent(QDropEvent* ak_Event_)
 }
 
 
-k_OutputFileBox::k_OutputFileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_OutputFileBox::k_OutputFileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_ScriptBox& ak_ScriptBox)
 	: k_InputFileBox(ak_Parent_, ak_Proteomatic)
+	, mk_ScriptBox(ak_ScriptBox)
 {
-	mk_IconLabel.setPixmap(QPixmap(":icons/dialog-warning.png").scaledToWidth(16, Qt::SmoothTransformation));
+	mk_IconLabel.setIcon(QIcon(":icons/dialog-warning.png"));
 }
 
 
@@ -714,12 +882,36 @@ void k_OutputFileBox::updateStatus()
 	mk_Label.setText(this->displayString());
 	if (this->fileExists())
 	{
-		mk_Label.setStyleSheet("color: #000");
+		if (mk_ScriptBox.status() == r_BoxStatus::Finished)
+			me_Status = r_BoxStatus::Ready;
+		else
+			me_Status = r_BoxStatus::OutputFileExists;
+	}
+	else
+		me_Status = r_BoxStatus::Ready;
+
+	if (me_Status == r_BoxStatus::OutputFileExists)
+	{
+		mk_Label.setStyleSheet("color: #888");
 		mk_IconLabel.setVisible(true);
 	}
 	else
 	{
-		mk_Label.setStyleSheet("color: #888");
 		mk_IconLabel.setVisible(false);
+		if ((mk_ScriptBox.status() == r_BoxStatus::Finished) && (this->fileExists()))
+		{
+			mk_Label.setStyleSheet("color: #000");
+		}
+		else
+		{
+			mk_Label.setStyleSheet("color: #888");
+		}
 	}
+}
+
+
+void k_OutputFileBox::reportStatus()
+{
+	if (me_Status == r_BoxStatus::OutputFileExists)
+		mk_Proteomatic.showMessageBox("Output file status", "The output file already exists. Please specify a filename prefix or choose a different output directory. Alternatively, you can delete the file.", ":icons/dialog-warning.png");
 }

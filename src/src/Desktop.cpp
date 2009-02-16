@@ -30,6 +30,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, me_MouseMode(r_MouseMode::Move)
 	, mk_Proteomatic(ak_Proteomatic)
 	, mk_PipelineMainWindow(ak_PipelineMainWindow)
+	, md_Scale(1.0)
 {
 	setAcceptDrops(true);
 	mk_pGraphicsScene = RefPtr<QGraphicsScene>(new QGraphicsScene(ak_Parent_));
@@ -41,6 +42,8 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	this->setSceneRect(-10000.0, -10000.0, 20000.0, 20000.0);
 	this->setDragMode(QGraphicsView::ScrollHandDrag);
 	this->translate(0.5, 0.5);
+	
+	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(forceReset()));
 }
 
 
@@ -54,8 +57,6 @@ k_Desktop::~k_Desktop()
 void k_Desktop::addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_, QPoint* ak_Location_)
 {
 	mk_Boxes.push_back(ak_Box_);
-	if (ak_CloseTo_)
-		ak_Box_->move(ak_CloseTo_->pos() + QPoint(ak_CloseTo_->width() / 2, ak_CloseTo_->height() + 64));
 	if (ak_Location_)
 		ak_Box_->move(*ak_Location_);
 	
@@ -65,7 +66,11 @@ void k_Desktop::addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_, QPoint*
 		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box_)] = tk_FileBoxSet();
 	
 	mk_pGraphicsScene->addWidget(ak_Box_);
-	ak_Box_->move(ak_Box_->pos() - QPoint(ak_Box_->size().width(), ak_Box_->size().height()) / 2);
+	if (ak_CloseTo_)
+		ak_Box_->move(ak_CloseTo_->pos() + QPoint(ak_CloseTo_->width() / 2 - ak_Box_->width() / 2, ak_CloseTo_->height() + 64));
+	else
+		ak_Box_->move(ak_Box_->pos() - QPoint(ak_Box_->size().width(), ak_Box_->size().height()) / 2);
+	
 	connect(ak_Box_, SIGNAL(moved()), this, SLOT(boxMoved()));
 	connect(ak_Box_, SIGNAL(resized()), this, SLOT(boxMoved()));
 	k_FileBox* lk_FileBox_ = dynamic_cast<k_FileBox*>(ak_Box_);
@@ -81,7 +86,7 @@ void k_Desktop::addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_, QPoint*
 		connect(&mk_PipelineMainWindow, SIGNAL(outputDirectoryChanged(const QString&)), lk_OutputFileBox_, SLOT(setDirectory(const QString&)));
 	}
 	connect(ak_Box_, SIGNAL(mousePressed(Qt::KeyboardModifiers)), this, SLOT(boxClicked(Qt::KeyboardModifiers)));
-	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), ak_Box_, SLOT(updateStatus()));
+	ak_Box_->snapToGrid();
 }
 
 
@@ -120,6 +125,7 @@ void k_Desktop::removeBox(k_DesktopBox* ak_Box_, bool ab_DoSomeChecks)
 		}
 	}
 	
+	// disconnect all signals and slots (this is not arrow disconnection!)
 	ak_Box_->disconnect();
 		
 	QList<tk_BoxPair> lk_DeletePairs;
@@ -159,8 +165,10 @@ void k_Desktop::connectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 	QPen lk_ProxyPen(QColor("#f8f8f8"));
 	lk_ProxyPen.setWidth(10);
 	
+	QPointF lk_Point0, lk_Point1;
+	this->boxConnector(ak_Box0_, ak_Box1_, lk_Point0, lk_Point1);
 	QGraphicsLineItem* lk_GraphicsLineItem_ =
-		mk_pGraphicsScene->addLine(QLineF(boxLocation(ak_Box0_), boxLocation(ak_Box1_)), lk_ProxyPen);
+		mk_pGraphicsScene->addLine(QLineF(lk_Point0, lk_Point1), lk_ProxyPen);
 	lk_GraphicsLineItem_->setZValue(-2.0);
 	mk_ProxyLineForArrow[lk_GraphicsPathItem_] = RefPtr<QGraphicsLineItem>(lk_GraphicsLineItem_);
 	mk_ArrowForProxyLine[lk_GraphicsLineItem_] = lk_GraphicsPathItem_;
@@ -181,6 +189,7 @@ void k_Desktop::disconnectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 {
 	if (ak_Box0_ == ak_Box1_)
 		return;
+	
 	QGraphicsLineItem* lk_ProxyLine_ = mk_ProxyLineForArrow[mk_BoxConnections[tk_BoxPair(ak_Box0_, ak_Box1_)].get_Pointer()].get_Pointer();
 	mk_ProxyLineForArrow.remove(mk_BoxConnections[tk_BoxPair(ak_Box0_, ak_Box1_)].get_Pointer());
 	mk_ArrowForProxyLine.remove(lk_ProxyLine_);
@@ -195,6 +204,7 @@ void k_Desktop::disconnectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].remove(dynamic_cast<k_FileBox*>(ak_Box0_));
 		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxDisconnected(dynamic_cast<k_FileBox*>(ak_Box0_));
 	}
+	mk_SelectedArrows.remove(tk_BoxPair(ak_Box0_, ak_Box1_));
 }
 
 
@@ -218,6 +228,18 @@ bool k_Desktop::boxSelected(k_DesktopBox* ak_Box_) const
 }
 
 
+bool k_Desktop::arrowSelected(tk_BoxPair ak_BoxPair) const
+{
+	return mk_SelectedArrows.contains(ak_BoxPair);
+}
+
+
+k_Desktop::tk_DesktopBoxSet k_Desktop::selectedBoxes() const
+{
+	return mk_SelectedBoxes;
+}
+
+
 k_Desktop::tk_FileBoxSet k_Desktop::fileBoxesForScriptBox(k_ScriptBox* ak_ScriptBox_) const
 {
 	if (!mk_FileBoxesForScriptBox.contains(ak_ScriptBox_))
@@ -232,6 +254,49 @@ k_PipelineMainWindow& k_Desktop::pipelineMainWindow()
 }
 
 
+void k_Desktop::start()
+{
+	this->resetScriptBoxes();
+	this->updateAllBoxes();
+	
+	// see if all boxes are ready...
+	
+	bool lb_Errors = false;
+	foreach (k_DesktopBox* lk_Box_, mk_Boxes)
+		if (lk_Box_->status() != r_BoxStatus::Ready)
+			lb_Errors = true;
+
+	if (lb_Errors)
+	{
+		mk_Proteomatic.showMessageBox("Error", "There are problems with some scripts or files. Please solve these problems and try again. For a description of each problem, click on the warning sign icon in each box.", ":icons/emblem-important.png");
+		return;
+	}
+	
+	// now look for script boxes that are ready to go!
+	foreach (k_DesktopBox* lk_Box_, mk_Boxes)
+	{
+		k_ScriptBox* lk_ScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
+		if (lk_ScriptBox_)
+			mk_RunningScriptBoxQueue.insert(lk_ScriptBox_);
+	}
+	
+	this->startNextScriptBox();
+	this->toggleUi();
+}
+
+
+void k_Desktop::toggleUi()
+{
+	mk_PipelineMainWindow.toggleUi();
+}
+
+
+bool k_Desktop::running()
+{
+	return !mk_RunningScriptBoxQueue.empty();
+}
+
+
 void k_Desktop::setMouseMode(r_MouseMode::Enumeration ae_MouseMode)
 {
 	me_MouseMode = ae_MouseMode;
@@ -242,6 +307,23 @@ void k_Desktop::addScriptBox(QAction* ak_Action_)
 {
 	k_ScriptBox* lk_ScriptBox_ = new k_ScriptBox(ak_Action_->data().toString(), this, mk_Proteomatic);
 	this->addBox(lk_ScriptBox_);
+	
+	connect(lk_ScriptBox_, SIGNAL(scriptFinished()), this, SLOT(scriptFinished()));
+	
+	// activate default output files after the script box has been constructed
+	k_Script* lk_Script_ = lk_ScriptBox_->script();
+	foreach (QString ls_Key, lk_Script_->outFiles())
+	{
+		QHash<QString, QString> lk_OutFile = lk_Script_->outFileDetails(ls_Key);
+		if (lk_OutFile.contains("default"))
+			lk_ScriptBox_->toggleOutputFile(ls_Key, lk_OutFile["default"] == "true" || lk_OutFile["default"] == "yes");
+	}
+	
+	// select script box plus auto output file boxe
+	this->clearSelection();
+	this->addBoxToSelection(lk_ScriptBox_);
+	foreach (k_OutputFileBox* lk_Box_, lk_ScriptBox_->outputFileBoxes())
+		this->addBoxToSelection(lk_Box_);
 }
 
 
@@ -295,12 +377,11 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 	if (!lk_Box_)
 		return;
 	
-	this->deselectArrow();
-	
 	if ((ae_Modifiers & Qt::ControlModifier) == 0)
 	{
 		// no ctrl pressed
-		this->clearSelection();
+		if (!this->boxSelected(lk_Box_))
+			this->clearSelection();
 		this->addBoxToSelection(lk_Box_);
 	}
 	else
@@ -314,11 +395,33 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 }
 
 
+void k_Desktop::forceRefresh()
+{
+	this->updateAllBoxes();
+}
+
+
+void k_Desktop::forceReset()
+{
+	this->resetScriptBoxes();
+	this->updateAllBoxes();
+}
+
+
+void k_Desktop::scriptFinished()
+{
+	this->startNextScriptBox();
+	this->updateAllBoxes();
+}
+
+
 void k_Desktop::mousePressEvent(QMouseEvent* ak_Event_)
 {
-	if ((ak_Event_->modifiers() & Qt::ControlModifier) == 0)
-		this->clearSelection();
-	
+	// click on background without ctrl clears selection
+	if (mk_pGraphicsScene->items(this->mapToScene(ak_Event_->pos())).empty())
+		if ((ak_Event_->modifiers() & Qt::ControlModifier) == 0)
+			this->clearSelection();
+
 	QList<QGraphicsItem*> lk_Items = mk_pGraphicsScene->items(this->mapToScene(ak_Event_->pos()));
 	if (!lk_Items.empty())
 	{
@@ -326,100 +429,34 @@ void k_Desktop::mousePressEvent(QMouseEvent* ak_Event_)
 		QGraphicsLineItem* lk_LineItem_ = dynamic_cast<QGraphicsLineItem*>(lk_Items.last());
 		if (lk_LineItem_)
 		{
-			this->deselectArrow();
-			mk_pSelectedArrow = RefPtr<tk_BoxPair>(new tk_BoxPair(mk_BoxPairForProxyLine[lk_LineItem_]));
-			// clear box selection
-			this->clearSelection();
-			this->updateBoxConnector(mk_BoxPairForProxyLine[lk_LineItem_].first, mk_BoxPairForProxyLine[lk_LineItem_].second);
+			tk_BoxPair lk_BoxPair = mk_BoxPairForProxyLine[lk_LineItem_];
+			if ((ak_Event_->modifiers() & Qt::ControlModifier) != 0)
+			{
+				// ctrl pressed
+				if (!this->arrowSelected(lk_BoxPair))
+					this->addArrowToSelection(lk_BoxPair);
+				else
+					this->removeArrowFromSelection(lk_BoxPair);
+			}
+			else
+			{
+				// no ctrl pressed
+				this->clearSelection();
+				this->addArrowToSelection(lk_BoxPair); 
+			}
+			// return to avoid mouse panning
 			return;
 		}
 	}
 	
-	this->deselectArrow();
 	QGraphicsView::mousePressEvent(ak_Event_);
 	return;
-	
-	/*
-	ak_Event_->accept();
-	k_DesktopBox* lk_Box_ = boxAt(ak_Event_->pos());
-	if (lk_Box_ != NULL)
-	{
-		if (me_MouseMode == r_MouseMode::Move)
-		{
-			mb_Moving = true;
-			mk_MoveStart = ak_Event_->pos();
-			if ((ak_Event_->modifiers() & Qt::ControlModifier) != Qt::ControlModifier)
-			{
-				if (!mk_SelectedBoxes.contains(lk_Box_))
-				{
-					mk_SelectedBoxes.clear();
-					mk_SelectedBoxes.insert(lk_Box_);
-				}
-			}
-			else
-			{
-				if (boxSelected(lk_Box_))
-					mk_SelectedBoxes.remove(lk_Box_);
-				else
-					mk_SelectedBoxes.insert(lk_Box_);
-			}
-		}
-		else if (me_MouseMode == r_MouseMode::Arrow)
-		{
-			mk_ArrowStartBox_ = lk_Box_;
-			mk_ArrowEndBox_ = NULL;
-		}
-	}
-	else
-	{
-		if (me_MouseMode == r_MouseMode::Move)
-		{
-			mk_SelectedBoxes.clear();
-			mk_Lasso = QPainterPath();
-			mk_Lasso.moveTo(ak_Event_->pos());
-			mk_LastLassoPoint = ak_Event_->pos();
-			mk_ActualLasso = mk_Lasso;
-			mk_ActualLasso.lineTo(mapFromGlobal(QCursor::pos()));
-			mk_ActualLasso.closeSubpath();
-		}
-	}
-	animate();
-	*/
 }
 
 
 void k_Desktop::mouseReleaseEvent(QMouseEvent* ak_Event_)
 {
-	/*
-	if (mk_ArrowStartBox_ != NULL)
-	{
-		if (mk_ArrowEndBox_ != NULL)
-			this->connectBoxes(mk_ArrowStartBox_, mk_ArrowEndBox_);
-		mk_ArrowStartBox_ = NULL;
-		mk_ArrowEndBox_ = NULL;
-		if (mk_ArrowPathItem_)
-			delete mk_ArrowPathItem_;
-	}
-	*/
-
 	QGraphicsView::mouseReleaseEvent(ak_Event_);
-	/*
-	ak_Event_->accept();
-	k_DesktopBox* lk_Box_ = boxAt(ak_Event_->pos());
-	if (lk_Box_ != NULL)
-	{
-		mb_Moving = false;
-		if (me_MouseMode == r_MouseMode::Arrow)
-		{
-			if (mk_ArrowStartBox_ != NULL && mk_ArrowEndBox_ != NULL)
-				connectBoxes(mk_ArrowStartBox_, mk_ArrowEndBox_);
-		}
-	}
-	mk_ArrowStartBox_ = NULL;
-	mk_ArrowEndBox_ = NULL;
-	mk_Lasso = QPainterPath();
-	animate();
-	*/
 }
 
 
@@ -453,48 +490,6 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* ak_Event_)
 	} 
 	else
 		QGraphicsView::mouseMoveEvent(ak_Event_);
-
-	/*
-	ak_Event_->accept();
-	if (me_MouseMode == r_MouseMode::Move)
-	{
-		if (mb_Moving)
-		{
-			QPoint lk_Delta = ak_Event_->pos() - mk_MoveStart;
-			foreach (k_DesktopBox* lk_Box_, mk_SelectedBoxes)
-				lk_Box_->move(lk_Box_->pos() + lk_Delta);
-			mk_MoveStart = ak_Event_->pos();
-		}
-		else
-		{
-			if ((mk_LastLassoPoint - ak_Event_->pos()).manhattanLength() > 8)
-			{
-				mk_Lasso.lineTo(ak_Event_->pos());
-				mk_LastLassoPoint = ak_Event_->pos();
-			}
-			mk_ActualLasso = mk_Lasso;
-			mk_ActualLasso.lineTo(mapFromGlobal(QCursor::pos()));
-			mk_ActualLasso.closeSubpath();
-			mk_SelectedBoxes.clear();
-			foreach (k_DesktopBox* lk_Box_, mk_Boxes)
-			{
-				if (mk_ActualLasso.intersects(lk_Box_->frameGeometry()))
-					mk_SelectedBoxes.insert(lk_Box_);
-			}
-		}
-	}
-	else if (me_MouseMode == r_MouseMode::Arrow)
-	{
-		if (mk_ArrowStartBox_ != NULL)
-		{
-			k_DesktopBox* lk_Box_ = boxAt(ak_Event_->pos());
-			if (lk_Box_ == mk_ArrowStartBox_)
-				lk_Box_ = NULL;
-			mk_ArrowEndBox_ = lk_Box_;
-		}
-	}
-	animate();
-	*/
 }
 
 
@@ -534,35 +529,6 @@ void k_Desktop::dropEvent(QDropEvent* ak_Event_)
 void k_Desktop::paintEvent(QPaintEvent* ak_Event_)
 {
 	QGraphicsView::paintEvent(ak_Event_);
-	return;
-	
-	/*
-	QPainter lk_Painter(this);
-	lk_Painter.fillRect(0, 0, width(), height(), QBrush(QColor("#eeeeec")));
-	lk_Painter.setRenderHints(QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform | QPainter::Antialiasing, true);
-
-	if (!mk_Lasso.isEmpty())
-	{
-		lk_Painter.setPen(Qt::SolidLine);
-		lk_Painter.setPen(QColor("#888a85"));
-		lk_Painter.setBrush(QBrush(QColor("#d3d7cf")));
-		lk_Painter.drawPath(mk_ActualLasso);
-	}
-
-	lk_Painter.setPen(Qt::SolidLine);
-	lk_Painter.setPen(QColor::fromRgb(128, 128, 128));
-	QObjectList lk_Objects = this->children();
-	foreach (tk_BoxPair lk_Pair, mk_BoxConnections.keys())
-		drawArrow(&lk_Painter, lk_Pair.first, lk_Pair.second);
-
-	if (me_MouseMode == r_MouseMode::Arrow && mk_ArrowStartBox_ != NULL)
-	{
-		if (mk_ArrowEndBox_ == NULL)
-			drawArrow(&lk_Painter, mk_ArrowStartBox_, mapFromGlobal(QCursor::pos()));
-		else
-			drawArrow(&lk_Painter, mk_ArrowStartBox_, mk_ArrowEndBox_);
-	}
-	*/
 }
 
 
@@ -573,7 +539,12 @@ void k_Desktop::wheelEvent(QWheelEvent* ak_Event_)
 		double ld_ScaleDelta = pow(1.1, fabs(ak_Event_->delta() / 100.0));
 		if (ak_Event_->delta() < 0)
 			ld_ScaleDelta = 1.0 / ld_ScaleDelta;
-		this->scale(ld_ScaleDelta, ld_ScaleDelta);
+		md_Scale *= ld_ScaleDelta;
+		md_Scale = std::max<double>(md_Scale, 0.3);
+		md_Scale = std::min<double>(md_Scale, 1.0);
+		QMatrix lk_Matrix = this->matrix();
+		lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
+		this->setMatrix(lk_Matrix);
 	}
 }
 
@@ -582,19 +553,21 @@ void k_Desktop::keyPressEvent(QKeyEvent* ak_Event_)
 {
 	if (ak_Event_->key() == Qt::Key_Delete)
 	{
-		foreach (k_DesktopBox* lk_Box_, mk_SelectedBoxes)
-			this->removeBox(lk_Box_);
-		if (mk_pSelectedArrow)
+		foreach (tk_BoxPair lk_BoxPair, mk_SelectedArrows)
 		{
 			// if its an arrow that connects a script box with an output file box,
 			// remove the output file box entirely
-			if (dynamic_cast<k_ScriptBox*>(mk_pSelectedArrow->first) &&
-				dynamic_cast<k_OutputFileBox*>(mk_pSelectedArrow->second))
-				this->removeBox(mk_pSelectedArrow->second);
+			if (dynamic_cast<k_ScriptBox*>(lk_BoxPair.first) &&
+				dynamic_cast<k_OutputFileBox*>(lk_BoxPair.second))
+				this->removeBox(lk_BoxPair.second);
 			else
-				this->disconnectBoxes(mk_pSelectedArrow->first, mk_pSelectedArrow->second);
-			this->deselectArrow();
+				this->disconnectBoxes(lk_BoxPair.first, lk_BoxPair.second);
 		}
+
+		foreach (k_DesktopBox* lk_Box_, mk_SelectedBoxes)
+			this->removeBox(lk_Box_);
+		
+		this->clearSelection();
 	}
 	QGraphicsView::keyPressEvent(ak_Event_);
 }
@@ -603,52 +576,6 @@ void k_Desktop::keyPressEvent(QKeyEvent* ak_Event_)
 inline QPoint k_Desktop::boxLocation(k_DesktopBox* ak_Box_) const
 {
 	return ak_Box_->pos() + QPoint(ak_Box_->width(), ak_Box_->height()) / 2;
-}
-
-
-void k_Desktop::drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
-{
-	/*
-	QPointF lk_Point0, lk_Point1;
-	QPointF lk_Dir = mk_BoxLocation[ak_Box1_] - mk_BoxLocation[ak_Box0_];
-	double ld_Length = sqrt(lk_Dir.x() * lk_Dir.x() + lk_Dir.y() * lk_Dir.y());
-	lk_Dir /= ld_Length;
-	QPointF lk_Normal = QPointF(-lk_Dir.y(), lk_Dir.x());
-	boxConnector(ak_Box0_, ak_Box1_, lk_Point0, lk_Point1);
-	ak_Painter_->drawLine(lk_Point0, lk_Point1);
-	QPolygonF lk_Arrow;
-	lk_Arrow << lk_Point1;
-	lk_Arrow << lk_Point1 - lk_Dir * 10.0 + lk_Normal * 3.5;
-	lk_Arrow << lk_Point1 - lk_Dir * 7.0;
-	lk_Arrow << lk_Point1 - lk_Dir * 10.0 - lk_Normal * 3.5;
-	lk_Arrow << lk_Point1;
-	ak_Painter_->setBrush(QBrush(ak_Painter_->pen().color()));
-	ak_Painter_->drawPolygon(lk_Arrow);
-	*/
-}
-
-
-void k_Desktop::drawArrow(QPainter* ak_Painter_, k_DesktopBox* ak_Box0_, QPoint ak_Point)
-{
-	/*
-	QPointF lk_Point0 = mk_BoxLocation[ak_Box0_];
-	QPointF lk_Point1(ak_Point);
-	QPointF lk_Dir = lk_Point1 - lk_Point0;
-	double ld_Length = sqrt(lk_Dir.x() * lk_Dir.x() + lk_Dir.y() * lk_Dir.y());
-	if (fabs(ld_Length) < 0.0001)
-		return;
-	lk_Dir /= ld_Length;
-	QPointF lk_Normal = QPointF(-lk_Dir.y(), lk_Dir.x());
-	ak_Painter_->drawLine(lk_Point0, lk_Point1);
-	QPolygonF lk_Arrow;
-	lk_Arrow << lk_Point1;
-	lk_Arrow << lk_Point1 - lk_Dir * 10.0 + lk_Normal * 3.5;
-	lk_Arrow << lk_Point1 - lk_Dir * 7.0;
-	lk_Arrow << lk_Point1 - lk_Dir * 10.0 - lk_Normal * 3.5;
-	lk_Arrow << lk_Point1;
-	ak_Painter_->setBrush(QBrush(ak_Painter_->pen().color()));
-	ak_Painter_->drawPolygon(lk_Arrow);
-	*/
 }
 
 
@@ -746,14 +673,14 @@ void k_Desktop::updateBoxConnector(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1
 	
 	lk_PathItem_->setPath(lk_Path);
 	QPen lk_Pen = lk_PathItem_->pen();
-	if (mk_pSelectedArrow && *(mk_pSelectedArrow.get_Pointer()) == lk_BoxPair)
+	if (mk_SelectedArrows.contains(lk_BoxPair))
 		lk_Pen.setWidthF(2.0);
 	else
 		lk_Pen.setWidthF(1.0);
 	lk_Pen.setJoinStyle(Qt::MiterJoin);
 	lk_PathItem_->setPen(lk_Pen);
 	
-	mk_ProxyLineForArrow[lk_PathItem_]->setLine(QLineF(boxLocation(ak_Box0_), boxLocation(ak_Box1_)));
+	mk_ProxyLineForArrow[lk_PathItem_]->setLine(QLineF(lk_Start, lk_End));
 }
 
 
@@ -797,17 +724,8 @@ void k_Desktop::clearSelection()
 {
 	foreach (k_DesktopBox* lk_Box_, mk_SelectedBoxes)
 		this->removeBoxFromSelection(lk_Box_);
-}
-
-
-void k_Desktop::deselectArrow()
-{
-	if (!mk_pSelectedArrow)
-		return;
-	
-	RefPtr<tk_BoxPair> lk_pBoxPair = mk_pSelectedArrow;
-	mk_pSelectedArrow = RefPtr<tk_BoxPair>();
-	this->updateBoxConnector(lk_pBoxPair->first, lk_pBoxPair->second);
+	foreach (tk_BoxPair lk_BoxPair, mk_SelectedArrows)
+		this->removeArrowFromSelection(lk_BoxPair);
 }
 
 
@@ -822,4 +740,59 @@ void k_Desktop::removeBoxFromSelection(k_DesktopBox* ak_Box_)
 {
 	mk_SelectedBoxes.remove(ak_Box_);
 	ak_Box_->update();
+}
+
+
+void k_Desktop::addArrowToSelection(tk_BoxPair ak_BoxPair)
+{
+	mk_SelectedArrows.insert(ak_BoxPair);
+	this->updateBoxConnector(ak_BoxPair.first, ak_BoxPair.second);
+}
+
+
+void k_Desktop::removeArrowFromSelection(tk_BoxPair ak_BoxPair)
+{
+	mk_SelectedArrows.remove(ak_BoxPair);
+	this->updateBoxConnector(ak_BoxPair.first, ak_BoxPair.second);
+}
+
+
+void k_Desktop::resetScriptBoxes()
+{
+	foreach (k_DesktopBox* lk_Box_, mk_Boxes)
+	{
+		k_ScriptBox* lk_ScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
+		if (lk_ScriptBox_)
+			lk_ScriptBox_->resetScript();
+	}
+}
+
+
+void k_Desktop::updateAllBoxes()
+{
+	foreach (k_DesktopBox* lk_Box_, mk_Boxes)
+		lk_Box_->updateStatus();
+}
+
+
+void k_Desktop::startNextScriptBox()
+{
+	if (mk_RunningScriptBoxQueue.empty())
+	{
+		this->toggleUi();
+		return;
+	}
+	
+	foreach (k_ScriptBox* lk_Box_, mk_RunningScriptBoxQueue)
+	{
+		if (lk_Box_->status() == r_BoxStatus::Ready && lk_Box_->allInputFilesExist())
+		{
+			lk_Box_->start();
+			return;
+		}
+	}
+	
+	// if we came here, there was no box to start!
+	mk_RunningScriptBoxQueue.clear();
+	this->toggleUi();
 }

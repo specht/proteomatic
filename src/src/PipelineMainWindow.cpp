@@ -47,14 +47,15 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	lk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_AddToolBar_->addWidget(lk_AddScriptButton_);
 	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), &mk_Desktop, SLOT(addScriptBox(QAction*)));
+	mk_AddScriptAction_ = lk_AddScriptButton_;
 
-	lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add files");
-	lk_AddToolBar_->addAction(QIcon(":/icons/document-open-multiple.png"), "Add file list", this, SLOT(addFileListBox()));
+	mk_AddFilesAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add files");
+	mk_AddFileListAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open-multiple.png"), "Add file list", this, SLOT(addFileListBox()));
 
 	lk_AddToolBar_->addSeparator();
 
-	lk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
-	lk_AddToolBar_->addAction(QIcon(":icons/dialog-ok.png"), "Start", this, SLOT(start()));
+	mk_RefreshAction_ = lk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
+	mk_StartAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-ok.png"), "Start", this, SLOT(start()));
 
 	lk_AddToolBar_->addSeparator();
 	
@@ -67,11 +68,13 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_OutputDirectory.setReadOnly(true);
 	
 	lk_AddToolBar_->addWidget(&mk_OutputDirectory);
-	lk_AddToolBar_->addAction(QIcon(":icons/folder.png"), "", this, SLOT(chooseOutputDirectory()));
+	mk_ChooseOutputDirectoryAction_ = lk_AddToolBar_->addAction(QIcon(":icons/folder.png"), "", this, SLOT(chooseOutputDirectory()));
 	
 	lk_AddToolBar_->addSeparator();
 
 	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
+	
+	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), &mk_Desktop, SLOT(forceRefresh()));
 
 	show();
 }
@@ -90,7 +93,7 @@ QString k_PipelineMainWindow::outputDirectory()
 
 void k_PipelineMainWindow::start()
 {
-	
+	mk_Desktop.start();
 }
 
 
@@ -114,6 +117,22 @@ void k_PipelineMainWindow::chooseOutputDirectory()
 
 void k_PipelineMainWindow::setOutputDirectory(QString as_Path)
 {
+	if (!mk_OutputDirectory.text().isEmpty())
+		mk_FileSystemWatcher.removePath(mk_OutputDirectory.text());
+
 	mk_OutputDirectory.setText(as_Path);
+	mk_FileSystemWatcher.addPath(mk_OutputDirectory.text());
+
 	emit outputDirectoryChanged(as_Path);
+}
+
+
+void k_PipelineMainWindow::toggleUi()
+{
+	mk_AddScriptAction_->setEnabled(!mk_Desktop.running());
+	mk_AddFilesAction_->setEnabled(!mk_Desktop.running());
+	mk_AddFileListAction_->setEnabled(!mk_Desktop.running());
+	mk_StartAction_->setEnabled(!mk_Desktop.running());
+	mk_RefreshAction_->setEnabled(!mk_Desktop.running());
+	mk_ChooseOutputDirectoryAction_->setEnabled(!mk_Desktop.running());
 }

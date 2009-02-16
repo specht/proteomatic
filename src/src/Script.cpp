@@ -117,7 +117,8 @@ void k_Script::resetUnchecked()
 
 void k_Script::setPrefix(QString as_Prefix)
 {
-	mk_OutputPrefix_->setText(as_Prefix);
+	if (mk_OutputPrefix_)
+		mk_OutputPrefix_->setText(as_Prefix);
 }
 
 
@@ -199,23 +200,31 @@ void k_Script::setOutputDirectory(QString as_Path)
 }
 
 
-bool k_Script::checkInputFiles(QHash<QString, QSet<QString> > ak_Files)
+bool k_Script::checkInputFiles(QHash<QString, QSet<QString> > ak_Files, QString& as_ErrorMessage)
 {
+	as_ErrorMessage = "";
+	bool lb_Result = true;
 	// check minimum counts
 	foreach (QString ls_Key, mk_InputFileMinimum.keys())
 	{
 		int li_Minimum = mk_InputFileMinimum[ls_Key];
 		if (!ak_Files.contains(ls_Key) || ak_Files[ls_Key].size() < li_Minimum)
-			return false;
+		{
+			lb_Result = false;
+			as_ErrorMessage += QString("At least %1 %2 %3 required.<br />").arg(li_Minimum).arg(mk_InputFileLabels[ls_Key]).arg(li_Minimum == 1 ? "file is" : "files are");
+		}
 	}
 	// check maximum counts
 	foreach (QString ls_Key, mk_InputFileMaximum.keys())
 	{
 		int li_Maximum = mk_InputFileMaximum[ls_Key];
 		if (ak_Files.contains(ls_Key) && ak_Files[ls_Key].size() > li_Maximum)
-			return false;
+		{
+			lb_Result = false;
+			as_ErrorMessage += QString("At most %1 %2 %3 allowed.<br />").arg(li_Maximum).arg(mk_InputFileLabels[ls_Key]).arg(li_Maximum == 1 ? "file is" : "files are");
+		}
 	}
-	return true;
+	return lb_Result;
 }
 
 
