@@ -500,6 +500,7 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(false);
 		mk_AddFilesButton.setEnabled(false);
+		mk_FileList.setEnabled(false);
 	}
 	else
 	{
@@ -511,6 +512,7 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(mk_Script_);
 		mk_SaveParametersAction_->setEnabled(mk_Script_);
 		mk_AddFilesButton.setEnabled(mk_Script_);
+		mk_FileList.setEnabled(mk_Script_);
 	}
 
 	if (mb_VersionChanged)
@@ -526,6 +528,7 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(mk_Script_);
 		mk_AddFilesButton.setEnabled(false);
+		mk_FileList.setEnabled(false);
 	}
 }
 
