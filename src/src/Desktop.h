@@ -48,7 +48,7 @@ public:
 
 	typedef QPair<k_DesktopBox*, k_DesktopBox*> tk_BoxPair;
 	typedef QSet<k_DesktopBox*> tk_DesktopBoxSet;
-	typedef QSet<k_FileBox*> tk_FileBoxSet;
+	typedef QSet<IFileBox*> tk_FileBoxSet;
 	typedef QSet<tk_BoxPair> tk_BoxPairSet;
 	
 	void addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_ = NULL, QPoint* ak_Location_ = NULL);

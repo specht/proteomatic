@@ -28,7 +28,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Yaml.h"
 
 
-struct r_ScriptType
+struct r_ScriptLocation
 {
 	enum Enumeration
 	{
@@ -38,19 +38,29 @@ struct r_ScriptType
 };
 
 
+struct r_ScriptType
+{
+	enum Enumeration
+	{
+		Processor = 0,
+		Converter
+	};
+};
+
+
 class k_Script: public QObject
 {
 	Q_OBJECT
 
 public:
-	k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+	k_Script(r_ScriptLocation::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_Script();
 	bool isGood() const;
 	
 	// hasParameters is true if there are any parameters except output parameters
 	bool hasParameters() const;
 	
-	r_ScriptType::Enumeration type() const;
+	r_ScriptLocation::Enumeration type() const;
 	k_SizeWatchWidget* parameterWidget() const;
 	QString uri() const;
 	virtual QString title() const;
@@ -117,7 +127,7 @@ protected:
 	void createParameterWidget(QStringList ak_Definition);
 	void adjustDependentParameters();
 
-	r_ScriptType::Enumeration me_Type;
+	r_ScriptLocation::Enumeration me_Type;
 	QString ms_ScriptUri;
 	QString ms_Title;
 	QString ms_Description;

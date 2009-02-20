@@ -33,7 +33,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_Desktop;
 class k_ScriptBox;
-class k_FileBox;
+class IFileBox;
 class k_InputFileBox;
 class k_InputFileListBox;
 class k_OutputFileBox;
@@ -68,6 +68,9 @@ signals:
 	void moved();
 	void resized();
 	void mousePressed(Qt::KeyboardModifiers ae_Modifiers);
+	void arrowPressed();
+	void arrowReleased();
+	void changed();
 	
 public slots:
 	virtual void updateStatus();
@@ -120,8 +123,8 @@ public slots:
 	virtual void updateStatus();
 	virtual void reportStatus();
 	void toggleOutputFile(QString as_Key, bool ab_Enabled, bool ab_ToggleCheckBox = true);
-	void fileBoxConnected(k_FileBox* ak_FileBox_);
-	void fileBoxDisconnected(k_FileBox* ak_FileBox_);
+	void fileBoxConnected(IFileBox* ak_FileBox_);
+	void fileBoxDisconnected(IFileBox* ak_FileBox_);
 	void removeOutputFileBox(k_OutputFileBox* ak_OutputFileBox_);
 	void resetScript();
 	void start();
@@ -147,7 +150,7 @@ protected:
 	QHash<k_OutputFileBox*, QCheckBox*> mk_CheckBoxForOutputFileBox;
 	
 	// for each file box, keep a hash of filename -> input group key
-	QHash<k_FileBox*, tk_StringStringHash> mk_InputFileBoxes;
+	QHash<IFileBox*, tk_StringStringHash> mk_InputFileBoxes;
 	
 	QVBoxLayout mk_Layout;
 	QToolButton mk_StatusLabel;
@@ -159,23 +162,30 @@ protected:
 };
 
 
-class k_FileBox: public k_DesktopBox
+struct IFileBox
 {
-	Q_OBJECT
-public:
-	k_FileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
-	virtual ~k_FileBox();
+	IFileBox() {};
+	virtual ~IFileBox() {};
 	
 	virtual QStringList fileNames() = 0;
-	
-signals:
-	void arrowPressed();
-	void arrowReleased();
-	void changed();
 };
 
 
-class k_InputFileBox: public k_FileBox
+// converter scripts convert each input file of a specific type into an output file
+// therefore, output files are not optional, but are defined by the list of input files
+// converter output files appear in the converter script box itself, so this is a 
+// script box with file box properties (arrow and file list)
+class k_ConverterScriptBox: public k_ScriptBox, public IFileBox
+{
+public:
+	k_ConverterScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	virtual ~k_ConverterScriptBox();
+	
+	virtual QStringList fileNames();
+};
+
+
+class k_InputFileBox: public k_DesktopBox, public IFileBox
 {
 	Q_OBJECT
 public:
@@ -200,7 +210,7 @@ protected:
 };
 
 
-class k_InputFileListBox: public k_FileBox
+class k_InputFileListBox: public k_DesktopBox, public IFileBox
 {
 	Q_OBJECT
 public:

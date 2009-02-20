@@ -22,7 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
-	: k_Script(r_ScriptType::Local, as_ScriptPath, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
+	: k_Script(r_ScriptLocation::Local, as_ScriptPath, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
 {
 	mk_Process.setProcessChannelMode(QProcess::MergedChannels);
 	connect(&mk_Process, SIGNAL(started()), this, SIGNAL(started()));

@@ -29,12 +29,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <float.h>
 
 
-k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
+k_Script::k_Script(r_ScriptLocation::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
 	: me_Type(ae_Type)
 	, ms_ScriptUri(as_ScriptUri)
 	, mk_Proteomatic(ak_Proteomatic)
-	, mb_IsGood(false)
 	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
+	, mb_IsGood(false)
 	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
 	, mk_OutputDirectory_(NULL)
 	, mk_OutputPrefix_(NULL)
@@ -63,7 +63,7 @@ bool k_Script::hasParameters() const
 }
 
 
-r_ScriptType::Enumeration k_Script::type() const
+r_ScriptLocation::Enumeration k_Script::type() const
 {
 	return me_Type;
 }

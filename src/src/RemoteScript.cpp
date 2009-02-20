@@ -21,7 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_RemoteScript::k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
-	: k_Script(r_ScriptType::Remote, as_ScriptUri, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
+	: k_Script(r_ScriptLocation::Remote, as_ScriptUri, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
 	, ms_Host("")
 {
 	QStringList lk_Response = ak_Proteomatic.scriptInfo(as_ScriptUri, "parameters").split(QChar('\n'));

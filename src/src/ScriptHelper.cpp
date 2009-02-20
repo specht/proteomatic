@@ -329,7 +329,7 @@ void k_ScriptHelper::activateScript()
 		foreach (QString ls_Key, mk_Script_->inputFileKeys())
 			mk_FileList.addInputFileGroup(ls_Key, mk_Script_->inputFileLabel(ls_Key), mk_Script_->inputFileExtensions(ls_Key));
 	
-		if (mk_Script_->type() == r_ScriptType::Local)
+		if (mk_Script_->type() == r_ScriptLocation::Local)
 		{
 			k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_Script_);
 			connect(lk_LocalScript_, SIGNAL(started()), this, SLOT(processStarted()));
@@ -369,7 +369,7 @@ void k_ScriptHelper::start()
 	for (int i = 0; i < mk_FileList.files().count(); ++i)
 		lk_Arguments.push_back(mk_FileList.files()[i]);
 
-	if (mk_Script_->type() == r_ScriptType::Local)
+	if (mk_Script_->type() == r_ScriptLocation::Local)
 		mk_Script_->start(lk_Arguments);
 	else
 		mk_RemoteRequests[mk_Proteomatic.queryRemoteHub(mk_Script_->uri(), (QStringList() << "---gui") + mk_Script_->commandLineArguments() + lk_Arguments)] = r_RemoteRequest(r_RemoteRequestType::SubmitJob);
@@ -478,7 +478,7 @@ void k_ScriptHelper::toggleUi()
 	this->setEnabled(mk_RemoteRequests.empty());
 
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
-	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptType::Remote;
+	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptLocation::Remote;
 
 	mk_ProfilesAction_->setEnabled(!lb_ProcessRunning);
 	
@@ -787,7 +787,7 @@ void k_ScriptHelper::proposePrefix()
 	for (int i = 0; i < mk_FileList.files().size(); ++i)
 		lk_Arguments.push_back(mk_FileList.files()[i]);
 
-	if (mk_Script_->type() == r_ScriptType::Local)
+	if (mk_Script_->type() == r_ScriptLocation::Local)
 	{
 		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_Script_))->proposePrefix(lk_Arguments);
 		if (ls_Result.startsWith("--proposePrefix"))

@@ -73,14 +73,14 @@ void k_Desktop::addBox(k_DesktopBox* ak_Box_, k_DesktopBox* ak_CloseTo_, QPoint*
 	
 	connect(ak_Box_, SIGNAL(moved()), this, SLOT(boxMoved()));
 	connect(ak_Box_, SIGNAL(resized()), this, SLOT(boxMoved()));
-	k_FileBox* lk_FileBox_ = dynamic_cast<k_FileBox*>(ak_Box_);
-	if (lk_FileBox_ != NULL)
+	IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(ak_Box_);
+	if (lk_FileBox_)
 	{
-		connect(lk_FileBox_, SIGNAL(arrowPressed()), this, SLOT(fileBoxArrowPressed()));
-		connect(lk_FileBox_, SIGNAL(arrowReleased()), this, SLOT(fileBoxArrowReleased()));
+		connect(ak_Box_, SIGNAL(arrowPressed()), this, SLOT(fileBoxArrowPressed()));
+		connect(ak_Box_, SIGNAL(arrowReleased()), this, SLOT(fileBoxArrowReleased()));
 	}
 	k_OutputFileBox* lk_OutputFileBox_ = dynamic_cast<k_OutputFileBox*>(ak_Box_);
-	if (lk_OutputFileBox_ != NULL)
+	if (lk_OutputFileBox_)
 	{
 		lk_OutputFileBox_->setDirectory(mk_PipelineMainWindow.outputDirectory());
 		connect(&mk_PipelineMainWindow, SIGNAL(outputDirectoryChanged(const QString&)), lk_OutputFileBox_, SLOT(setDirectory(const QString&)));
@@ -174,11 +174,11 @@ void k_Desktop::connectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 	mk_ArrowForProxyLine[lk_GraphicsLineItem_] = lk_GraphicsPathItem_;
 	mk_BoxPairForProxyLine[lk_GraphicsLineItem_] = tk_BoxPair(ak_Box0_, ak_Box1_);
 	
-	if (dynamic_cast<k_FileBox*>(ak_Box0_) != NULL &&
+	if (dynamic_cast<IFileBox*>(ak_Box0_) != NULL &&
 		dynamic_cast<k_ScriptBox*>(ak_Box1_) != NULL)
 	{
-		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].insert(dynamic_cast<k_FileBox*>(ak_Box0_));
-		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxConnected(dynamic_cast<k_FileBox*>(ak_Box0_));
+		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].insert(dynamic_cast<IFileBox*>(ak_Box0_));
+		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxConnected(dynamic_cast<IFileBox*>(ak_Box0_));
 	}
 	
 	this->updateBoxConnector(ak_Box0_, ak_Box1_);
@@ -199,10 +199,10 @@ void k_Desktop::disconnectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 	mk_BoxConnectionsForBox[ak_Box1_].remove(ak_Box0_);
 	
 	if (dynamic_cast<k_ScriptBox*>(ak_Box1_) != NULL &&
-		dynamic_cast<k_FileBox*>(ak_Box0_) != NULL)
+		dynamic_cast<IFileBox*>(ak_Box0_) != NULL)
 	{
-		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].remove(dynamic_cast<k_FileBox*>(ak_Box0_));
-		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxDisconnected(dynamic_cast<k_FileBox*>(ak_Box0_));
+		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].remove(dynamic_cast<IFileBox*>(ak_Box0_));
+		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxDisconnected(dynamic_cast<IFileBox*>(ak_Box0_));
 	}
 	mk_SelectedArrows.remove(tk_BoxPair(ak_Box0_, ak_Box1_));
 }
@@ -353,11 +353,15 @@ void k_Desktop::boxMoved()
 
 void k_Desktop::fileBoxArrowPressed()
 {
-	k_FileBox* lk_FileBox_ = dynamic_cast<k_FileBox*>(sender());
-	if (lk_FileBox_ == NULL)
+	IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(sender());
+	if (!lk_FileBox_)
 		return;
 	
-	mk_ArrowStartBox_ = lk_FileBox_;
+	k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(sender());
+	if (!lk_DesktopBox_)
+		return;
+	
+	mk_ArrowStartBox_ = lk_DesktopBox_;
 	mk_ArrowEndBox_ = NULL;
 	QPen lk_Pen(QColor("#888a85"));
 	lk_Pen.setWidth(1);
@@ -369,7 +373,7 @@ void k_Desktop::fileBoxArrowPressed()
 
 void k_Desktop::fileBoxArrowReleased()
 {
-	k_FileBox* lk_FileBox_ = dynamic_cast<k_FileBox*>(sender());
+	IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(sender());
 	if (lk_FileBox_ == NULL)
 		return;
 	

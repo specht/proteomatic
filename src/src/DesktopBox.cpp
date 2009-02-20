@@ -441,7 +441,7 @@ void k_ScriptBox::proposePrefixButtonClicked()
 	foreach (tk_StringStringHash lk_BoxFiles, mk_InputFileBoxes.values())
 		lk_Arguments << lk_BoxFiles.keys();
 
-	if (mk_Script_->type() == r_ScriptType::Local)
+	if (mk_Script_->type() == r_ScriptLocation::Local)
 	{
 		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_Script_))->proposePrefix(lk_Arguments);
 		if (ls_Result.startsWith("--proposePrefix"))
@@ -459,7 +459,7 @@ void k_ScriptBox::proposePrefixButtonClicked()
 }
 
 
-void k_ScriptBox::fileBoxConnected(k_FileBox* ak_FileBox_)
+void k_ScriptBox::fileBoxConnected(IFileBox* ak_FileBox_)
 {
 	// this is about input file boxes here
 	// ak_FileBox_ may be a k_InputFileBox, a k_InputFileListBox, or a k_OutputFileBox
@@ -468,7 +468,7 @@ void k_ScriptBox::fileBoxConnected(k_FileBox* ak_FileBox_)
 	k_OutputFileBox* lk_OutputFileBox_ = dynamic_cast<k_OutputFileBox*>(ak_FileBox_);
 
 	// watch the file box for changes
-	connect(ak_FileBox_, SIGNAL(changed()), this, SLOT(fileBoxChanged()));
+	connect(dynamic_cast<k_DesktopBox*>(ak_FileBox_), SIGNAL(changed()), this, SLOT(fileBoxChanged()));
 	
 	mk_InputFileBoxes[ak_FileBox_] = QHash<QString, QString>();
 
@@ -483,7 +483,7 @@ void k_ScriptBox::fileBoxConnected(k_FileBox* ak_FileBox_)
 }
 
 
-void k_ScriptBox::fileBoxDisconnected(k_FileBox* ak_FileBox_)
+void k_ScriptBox::fileBoxDisconnected(IFileBox* ak_FileBox_)
 {
 	mk_InputFileBoxes.remove(ak_FileBox_);
 	this->updateStatus();
@@ -583,7 +583,7 @@ void k_ScriptBox::toggleOutputFile(QString as_Key, bool ab_Enabled, bool ab_Togg
 
 void k_ScriptBox::fileBoxChanged()
 {
-	k_FileBox* lk_Box_ = dynamic_cast<k_FileBox*>(sender());
+	IFileBox* lk_Box_ = dynamic_cast<IFileBox*>(sender());
 	if (!lk_Box_)
 		return;
 	
@@ -644,19 +644,25 @@ void k_ScriptBox::addOutput(QString as_Text)
 }
 
 
-k_FileBox::k_FileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
+k_ConverterScriptBox::k_ConverterScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+	: k_ScriptBox(as_ScriptName, ak_Parent_, ak_Proteomatic)
 {
 }
 
 
-k_FileBox::~k_FileBox()
+k_ConverterScriptBox::~k_ConverterScriptBox()
 {
+}
+
+
+QStringList k_ConverterScriptBox::fileNames()
+{
+	return QStringList();
 }
 
 
 k_InputFileBox::k_InputFileBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: k_FileBox(ak_Parent_, ak_Proteomatic)
+	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
 	, mk_Label("")
 {
 	QHBoxLayout* lk_Layout_ = new QHBoxLayout(this);
@@ -731,7 +737,7 @@ bool k_InputFileBox::fileExists()
 
 
 k_InputFileListBox::k_InputFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: k_FileBox(ak_Parent_, ak_Proteomatic)
+	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
 	, mk_FileList(this, true, true)
 {
 	this->setKeepSmall(false);
