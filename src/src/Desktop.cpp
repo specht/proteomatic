@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Desktop.h"
 #include "PipelineMainWindow.h"
+#include "ScriptFactory.h"
 #include <math.h>
 
 
@@ -305,13 +306,19 @@ void k_Desktop::setMouseMode(r_MouseMode::Enumeration ae_MouseMode)
 
 void k_Desktop::addScriptBox(QAction* ak_Action_)
 {
-	k_ScriptBox* lk_ScriptBox_ = new k_ScriptBox(ak_Action_->data().toString(), this, mk_Proteomatic);
+	k_Script* lk_Script_ = k_ScriptFactory::makeScript(ak_Action_->data().toString(), mk_Proteomatic, false, false);
+	
+	k_ScriptBox* lk_ScriptBox_ = NULL;
+	if (lk_Script_->type() == r_ScriptType::Processor)
+		lk_ScriptBox_ = new k_ScriptBox(lk_Script_, this, mk_Proteomatic);
+	else
+		lk_ScriptBox_ = new k_ConverterScriptBox(lk_Script_, this, mk_Proteomatic);
+		
 	this->addBox(lk_ScriptBox_);
 	
 	connect(lk_ScriptBox_, SIGNAL(scriptFinished()), this, SLOT(scriptFinished()));
 	
 	// activate default output files after the script box has been constructed
-	k_Script* lk_Script_ = lk_ScriptBox_->script();
 	foreach (QString ls_Key, lk_Script_->outFiles())
 	{
 		QHash<QString, QString> lk_OutFile = lk_Script_->outFileDetails(ls_Key);

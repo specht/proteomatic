@@ -109,7 +109,7 @@ class k_ScriptBox: public k_DesktopBox
 {
 	Q_OBJECT
 public:
-	k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_ScriptBox();
 	
 	QList<k_OutputFileBox*> outputFileBoxes();
@@ -178,10 +178,13 @@ struct IFileBox
 class k_ConverterScriptBox: public k_ScriptBox, public IFileBox
 {
 public:
-	k_ConverterScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	k_ConverterScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_ConverterScriptBox();
 	
 	virtual QStringList fileNames();
+	
+protected:
+	QListWidget mk_FileList;
 };
 
 

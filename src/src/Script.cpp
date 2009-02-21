@@ -29,8 +29,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <float.h>
 
 
-k_Script::k_Script(r_ScriptLocation::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
-	: me_Type(ae_Type)
+k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
+	: me_Location(ae_Location)
+	, me_Type(r_ScriptType::Processor)
 	, ms_ScriptUri(as_ScriptUri)
 	, mk_Proteomatic(ak_Proteomatic)
 	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
@@ -63,9 +64,21 @@ bool k_Script::hasParameters() const
 }
 
 
-r_ScriptLocation::Enumeration k_Script::type() const
+r_ScriptLocation::Enumeration k_Script::location() const
+{
+	return me_Location;
+}
+
+
+r_ScriptType::Enumeration k_Script::type() const
 {
 	return me_Type;
+}
+
+
+QHash<QString, QString> k_Script::info() const
+{
+	return mk_Info;
 }
 
 
@@ -609,6 +622,20 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		ls_Parameter = ak_Definition.takeFirst().trimmed();
 		QHash<QString, QString> lk_Parameter;
 		QList<QString> lk_EnumValues;
+		if (ls_Parameter == "!!!begin info")
+		{
+			// collect key/value pairs
+			while (true)
+			{
+				QString ls_Key = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "!!!end info")
+					break;
+				QString ls_Value = ak_Definition.takeFirst().trimmed();
+				mk_Info[ls_Key] = ls_Value;
+				if (ls_Key == "type")
+					me_Type = ls_Value == "processor" ? r_ScriptType::Processor : r_ScriptType::Converter;
+			}
+		}
 		if (ls_Parameter == "!!!begin parameter")
 		{
 			// collect key/value pairs

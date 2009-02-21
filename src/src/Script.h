@@ -53,14 +53,17 @@ class k_Script: public QObject
 	Q_OBJECT
 
 public:
-	k_Script(r_ScriptLocation::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+	k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_Script();
 	bool isGood() const;
 	
 	// hasParameters is true if there are any parameters except output parameters
 	bool hasParameters() const;
 	
-	r_ScriptLocation::Enumeration type() const;
+	r_ScriptLocation::Enumeration location() const;
+	r_ScriptType::Enumeration type() const;
+	
+	QHash<QString, QString> info() const;
 	k_SizeWatchWidget* parameterWidget() const;
 	QString uri() const;
 	virtual QString title() const;
@@ -127,7 +130,8 @@ protected:
 	void createParameterWidget(QStringList ak_Definition);
 	void adjustDependentParameters();
 
-	r_ScriptLocation::Enumeration me_Type;
+	r_ScriptLocation::Enumeration me_Location;
+	r_ScriptType::Enumeration me_Type;
 	QString ms_ScriptUri;
 	QString ms_Title;
 	QString ms_Description;
@@ -146,6 +150,7 @@ protected:
 	QHash<QString, bool> mk_ParametersAtDefault;
 	QHash<QString, QStringList> mk_GroupParameters;
 	QHash<QString, QString> mk_DefaultConfiguration;
+	QHash<QString, QString> mk_Info;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_IsGood;
 	bool mb_HasParameters;

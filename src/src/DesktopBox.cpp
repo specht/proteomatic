@@ -25,13 +25,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "LocalScript.h"
 #include "PipelineMainWindow.h"
 #include "ScriptFactory.h"
+#include "Tango.h"
 
 
 k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: QWidget(NULL)
 	, mk_Desktop_(ak_Parent_)
-	, mk_Background(QColor("#eeeeec"))
-	, mk_Border(QColor("#888a85"))
+	, mk_Background(QColor(TANGO_ALUMINIUM_0))
+	, mk_Border(QColor(TANGO_ALUMINIUM_3))
 	, mk_Proteomatic(ak_Proteomatic)
 	, mb_Moving(false)
 	, mb_KeepSmall(true)
@@ -192,9 +193,9 @@ bool k_DesktopBox::cursorWithinSizeGrip(QPoint ak_Position)
 }
 
 
-k_ScriptBox::k_ScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
-	, mk_Script_(k_ScriptFactory::makeScript(as_ScriptName, ak_Proteomatic, false))
+	, mk_Script_(ak_Script_)
 {
 	k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_Script_);
 	if (lk_LocalScript_)
@@ -441,7 +442,7 @@ void k_ScriptBox::proposePrefixButtonClicked()
 	foreach (tk_StringStringHash lk_BoxFiles, mk_InputFileBoxes.values())
 		lk_Arguments << lk_BoxFiles.keys();
 
-	if (mk_Script_->type() == r_ScriptLocation::Local)
+	if (mk_Script_->location() == r_ScriptLocation::Local)
 	{
 		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_Script_))->proposePrefix(lk_Arguments);
 		if (ls_Result.startsWith("--proposePrefix"))
@@ -644,9 +645,27 @@ void k_ScriptBox::addOutput(QString as_Text)
 }
 
 
-k_ConverterScriptBox::k_ConverterScriptBox(QString as_ScriptName, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: k_ScriptBox(as_ScriptName, ak_Parent_, ak_Proteomatic)
+k_ConverterScriptBox::k_ConverterScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+	: k_ScriptBox(ak_Script_, ak_Parent_, ak_Proteomatic)
 {
+	QBoxLayout* lk_HBoxLayout_ = new QHBoxLayout(this);
+	lk_HBoxLayout_->addWidget(&mk_FileList);
+	
+	QBoxLayout* lk_VBoxLayout_ = new QVBoxLayout(this);
+	
+	k_ClickableLabel* lk_ArrowLabel_ = new k_ClickableLabel(this);
+	lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation));
+	lk_ArrowLabel_->setContentsMargins(0, 0, 4, 0);
+	lk_VBoxLayout_->addStretch();
+	lk_VBoxLayout_->addWidget(lk_ArrowLabel_);
+	connect(lk_ArrowLabel_, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
+	connect(lk_ArrowLabel_, SIGNAL(released()), this, SIGNAL(arrowReleased()));
+	lk_HBoxLayout_->addLayout(lk_VBoxLayout_);
+	
+	mk_Layout.addLayout(lk_HBoxLayout_);
+
+	this->setKeepSmall(false);
+	this->resize(1, 1);
 }
 
 

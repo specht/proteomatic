@@ -63,6 +63,7 @@ HEADERS += \
 	../../src/ScriptFactory.h \
 	../../src/SizeWatchWidget.h \
     ../../src/StopWatch.h \
+	../../src/Tango.h \
 	../../src/TicketWindow.h \
 	../../src/UnclickableLabel.h \
 	../../src/Yaml.h \
