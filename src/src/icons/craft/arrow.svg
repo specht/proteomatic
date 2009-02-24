@@ -2,7 +2,7 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
@@ -12,7 +12,7 @@
    height="32"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.45.1"
+   inkscape:version="0.46"
    version="1.0"
    inkscape:export-filename="D:\Programming\Proteomatic\Proteomatic\icons\arrow.png"
    inkscape:export-xdpi="135"
@@ -22,6 +22,13 @@
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 16 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="32 : 16 : 1"
+       inkscape:persp3d-origin="16 : 10.666667 : 1"
+       id="perspective10" />
     <marker
        inkscape:stockid="Arrow2Mend"
        orient="auto"
@@ -51,13 +58,25 @@
      width="32px"
      height="32px"
      showgrid="true"
-     gridempspacing="4"
      inkscape:grid-points="true"
      gridtolerance="10000"
      inkscape:window-width="1280"
-     inkscape:window-height="968"
-     inkscape:window-x="-4"
-     inkscape:window-y="-4" />
+     inkscape:window-height="821"
+     inkscape:window-x="150"
+     inkscape:window-y="25">
+    <inkscape:grid
+       id="GridFromPre046Settings"
+       type="xygrid"
+       originx="0px"
+       originy="0px"
+       spacingx="1px"
+       spacingy="1px"
+       color="#0000ff"
+       empcolor="#0000ff"
+       opacity="0.2"
+       empopacity="0.4"
+       empspacing="4" />
+  </sodipodi:namedview>
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -74,7 +93,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;marker-end:url(#Arrow2Mend);stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;marker-end:url(#Arrow2Mend);stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;opacity:0.5"
        d="M 6,28 L 25.809497,4.198123"
        id="path2160"
        sodipodi:nodetypes="cc" />

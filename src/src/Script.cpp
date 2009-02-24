@@ -29,12 +29,13 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <float.h>
 
 
-k_Script::k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
-	: me_Type(ae_Type)
+k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
+	: me_Location(ae_Location)
+	, me_Type(r_ScriptType::Processor)
 	, ms_ScriptUri(as_ScriptUri)
 	, mk_Proteomatic(ak_Proteomatic)
-	, mb_IsGood(false)
 	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
+	, mb_IsGood(false)
 	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
 	, mk_OutputDirectory_(NULL)
 	, mk_OutputPrefix_(NULL)
@@ -63,9 +64,21 @@ bool k_Script::hasParameters() const
 }
 
 
+r_ScriptLocation::Enumeration k_Script::location() const
+{
+	return me_Location;
+}
+
+
 r_ScriptType::Enumeration k_Script::type() const
 {
 	return me_Type;
+}
+
+
+QHash<QString, QString> k_Script::info() const
+{
+	return mk_Info;
 }
 
 
@@ -117,7 +130,8 @@ void k_Script::resetUnchecked()
 
 void k_Script::setPrefix(QString as_Prefix)
 {
-	mk_OutputPrefix_->setText(as_Prefix);
+	if (mk_OutputPrefix_)
+		mk_OutputPrefix_->setText(as_Prefix);
 }
 
 
@@ -172,6 +186,58 @@ QString k_Script::profileDescription() const
 		ls_Description = lk_ProfileDescription.join("<br />");
 		
 	return ls_Description;
+}
+
+
+QStringList k_Script::inputFileKeys() const
+{
+	return mk_InputFileKeys;
+}
+
+
+QString k_Script::inputFileLabel(QString as_Key) const
+{
+	return mk_InputFileLabels[as_Key];
+}
+
+
+QStringList k_Script::inputFileExtensions(QString as_Key) const
+{
+	return mk_InputFileExtensions[as_Key];
+}
+
+
+void k_Script::setOutputDirectory(QString as_Path)
+{
+	mk_OutputDirectory_->setText(as_Path);
+}
+
+
+bool k_Script::checkInputFiles(QHash<QString, QSet<QString> > ak_Files, QString& as_ErrorMessage)
+{
+	as_ErrorMessage = "";
+	bool lb_Result = true;
+	// check minimum counts
+	foreach (QString ls_Key, mk_InputFileMinimum.keys())
+	{
+		int li_Minimum = mk_InputFileMinimum[ls_Key];
+		if (!ak_Files.contains(ls_Key) || ak_Files[ls_Key].size() < li_Minimum)
+		{
+			lb_Result = false;
+			as_ErrorMessage += QString("At least %1 %2 %3 required.<br />").arg(li_Minimum).arg(mk_InputFileLabels[ls_Key]).arg(li_Minimum == 1 ? "file is" : "files are");
+		}
+	}
+	// check maximum counts
+	foreach (QString ls_Key, mk_InputFileMaximum.keys())
+	{
+		int li_Maximum = mk_InputFileMaximum[ls_Key];
+		if (ak_Files.contains(ls_Key) && ak_Files[ls_Key].size() > li_Maximum)
+		{
+			lb_Result = false;
+			as_ErrorMessage += QString("At most %1 %2 %3 allowed.<br />").arg(li_Maximum).arg(mk_InputFileLabels[ls_Key]).arg(li_Maximum == 1 ? "file is" : "files are");
+		}
+	}
+	return lb_Result;
 }
 
 
@@ -483,6 +549,21 @@ void k_Script::clearOutputDirectoryButtonClicked()
 }
 
 
+QString k_Script::inputKeyForFilename(QString as_Path)
+{
+	QString ls_Path = as_Path.toLower();
+	foreach (QString ls_Key, mk_InputFileKeys)
+	{
+		foreach (QString ls_Extension, mk_InputFileExtensions[ls_Key])
+		{
+			if (ls_Path.endsWith(ls_Extension.toLower()))
+				return ls_Key;
+		}
+	}
+	return "";
+}
+
+
 void k_Script::setOutputDirectoryButtonClicked()
 {
 	if (mk_OutputDirectory_ == NULL)
@@ -491,7 +572,7 @@ void k_Script::setOutputDirectoryButtonClicked()
 	QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
 	if (ls_Path.length() > 0)
 	{
-		mk_OutputDirectory_->setText(ls_Path);
+		this->setOutputDirectory(ls_Path);
 		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_OUTPUT_PATH] = ls_Path;
 	}
 }
@@ -523,7 +604,10 @@ void k_Script::resetDialog()
 void k_Script::createParameterWidget(QStringList ak_Definition)
 {
 	ms_DefaultOutputDirectory.clear();
-	mk_InputFileDescriptionList.clear();
+	mk_InputFileKeys.clear();
+	mk_InputFileLabels.clear();
+	mk_InputFileDescriptions.clear();
+	mk_InputFileExtensions.clear();
 	mk_OutputDirectory_ = NULL;
 	mk_ClearOutputDirectory_ = NULL;
 	mk_pParameterWidget = RefPtr<k_SizeWatchWidget>(new k_SizeWatchWidget());
@@ -538,6 +622,20 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		ls_Parameter = ak_Definition.takeFirst().trimmed();
 		QHash<QString, QString> lk_Parameter;
 		QList<QString> lk_EnumValues;
+		if (ls_Parameter == "!!!begin info")
+		{
+			// collect key/value pairs
+			while (true)
+			{
+				QString ls_Key = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "!!!end info")
+					break;
+				QString ls_Value = ak_Definition.takeFirst().trimmed();
+				mk_Info[ls_Key] = ls_Value;
+				if (ls_Key == "type")
+					me_Type = ls_Value == "processor" ? r_ScriptType::Processor : r_ScriptType::Converter;
+			}
+		}
 		if (ls_Parameter == "!!!begin parameter")
 		{
 			// collect key/value pairs
@@ -565,12 +663,30 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 		if (ls_Parameter == "!!!begin input")
 		{
+			// collect key/value pairs
+			QString ls_InputFileKey;
 			while (true)
 			{
 				QString ls_Key = ak_Definition.takeFirst().trimmed();
 				if (ls_Key == "!!!end input")
 					break;
-				mk_InputFileDescriptionList.push_back(ls_Key);
+				
+				QString ls_Value = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "key")
+				{
+					ls_InputFileKey = ls_Value;
+					mk_InputFileKeys.push_back(ls_InputFileKey);
+				}
+				else if (ls_Key == "label")
+					mk_InputFileLabels[ls_InputFileKey] = ls_Value;
+				else if (ls_Key == "description")
+					mk_InputFileDescriptions[ls_InputFileKey] = ls_Value;
+				else if (ls_Key == "extensions")
+					mk_InputFileExtensions[ls_InputFileKey] = ls_Value.split("/");
+				else if (ls_Key == "min")
+					mk_InputFileMinimum[ls_InputFileKey] = ls_Value.toInt();
+				else if (ls_Key == "max")
+					mk_InputFileMaximum[ls_InputFileKey] = ls_Value.toInt();
 			}
 		}
 		if (ls_Parameter == "!!!begin defaultOutputDirectory")
@@ -656,11 +772,11 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}
-		if (!mk_InputFileDescriptionList.empty())
+		if (!mk_InputFileKeys.empty())
 		{
 			QString ls_List;
-			foreach (QString ls_Item, mk_InputFileDescriptionList)
-				ls_List += "<li>" + ls_Item + "</li>";
+			foreach (QString ls_Item, mk_InputFileKeys)
+				ls_List += "<li>" + mk_InputFileDescriptions[ls_Item] + "</li>";
 			lk_Label_ = new QLabel("Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
@@ -691,10 +807,10 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		mk_ParameterDefs[ls_Key] = lk_Parameters[ls_Key];
 		if (mk_ParameterDefs[ls_Key].contains("enabled"))
 			mk_DependentParameters.push_back(ls_Key);
-		if (ls_Key.startsWith("[output]") && ls_Key != "[output]prefix" && ls_Key != "[output]directory")
+		if (ls_Key.startsWith("output") && ls_Key != "outputPrefix" && ls_Key != "outputDirectory")
 			mk_OutFileDetails[ls_Key] = lk_Parameters[ls_Key];
 
-		if (!mb_IncludeOutputFiles && ls_Key.startsWith("[output]"))
+		if (!mb_IncludeOutputFiles && ls_Key.startsWith("output"))
 			continue;
 
 		QString ls_Group = lk_Parameters[ls_Key]["group"];
@@ -736,7 +852,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 
 	foreach (QString ls_Key, lk_ParametersOrder)
 	{
-		if (!mb_IncludeOutputFiles && ls_Key.startsWith("[output]"))
+		if (!mb_IncludeOutputFiles && ls_Key.startsWith("output"))
 			continue;
 
 		QHash<QString, QString> lk_Parameter = lk_Parameters[ls_Key];
@@ -844,13 +960,13 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			QLineEdit* lk_LineEdit_ = new QLineEdit(lk_Container_);
 			lk_Widget_ = lk_LineEdit_;
 			lk_LineEdit_->setText(lk_Parameter["default"]);
-			if (!ls_Key.startsWith("[output]"))
+			if (!ls_Key.startsWith("output"))
 			{
 				lk_LineEdit_->setProperty("key", QVariant(ls_Key));
 				connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(parameterChanged()));
 			}
 			
-			if (ls_Key == "[output]directory")
+			if (ls_Key == "outputDirectory")
 			{
 				mk_OutputDirectory_ = lk_LineEdit_;
 				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
@@ -873,7 +989,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				lk_Widget_ = lk_SubContainer_;
 				lk_ValueWidget_ = lk_LineEdit_;
 			}
-			else if (ls_Key == "[output]prefix")
+			else if (ls_Key == "outputPrefix")
 			{
 				mk_OutputPrefix_ = lk_LineEdit_;
 				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
@@ -896,20 +1012,20 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		{
 		/*
 			QString ls_Label = lk_Parameter["label"];
-			if (ls_Key.startsWith("[output]"))
+			if (ls_Key.startsWith("output"))
 				ls_Label += QString(" (%1)").arg(lk_Parameter["filename"]);
 			QCheckBox* lk_CheckBox_ = new QCheckBox(ls_Label, lk_Container_);
 			lk_Widget_ = lk_CheckBox_;
 			lk_CheckBox_->setChecked((lk_Parameter["default"] == "true") || (lk_Parameter["default"] == "yes"));
 			if (lk_Parameter.contains("force"))
 				lk_CheckBox_->setEnabled(false);
-			if (!ls_Description.isEmpty() && !ls_Key.startsWith("[output]"))
+			if (!ls_Description.isEmpty() && !ls_Key.startsWith("output"))
 				lk_CheckBox_->setToolTip(ls_Description);
 			lb_AddLabel = false;
 			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_CheckBox_;
 				
 			lk_CheckBox_->setProperty("key", QVariant(ls_Key));
-			if (!ls_Key.startsWith("[output]"))
+			if (!ls_Key.startsWith("output"))
 				connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
 		*/
 			if (mb_ProfileMode)
@@ -930,7 +1046,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				lk_Widget_ = lk_CheckBox_;
 				lk_CheckBox_->setChecked((lk_Parameter["default"] == "true") || (lk_Parameter["default"] == "yes"));
 				lk_CheckBox_->setProperty("key", QVariant(ls_Key));
-				if (!ls_Key.startsWith("[output]"))
+				if (!ls_Key.startsWith("output"))
 					connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
 			}
 		}
@@ -1078,7 +1194,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		if (lb_AddLabel)
 		{
 			QString ls_Label = lk_Parameter["label"];
-			if (ls_Key.startsWith("[output]") && !lk_Parameter["filename"].isEmpty())
+			if (ls_Key.startsWith("output") && !lk_Parameter["filename"].isEmpty())
 				ls_Label += QString(" (%1)").arg(lk_Parameter["filename"]);
 			if (!lb_WidgetFirst)
 				ls_Label += ":";
@@ -1097,19 +1213,19 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				
 			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_Label_;
 				
-			if (!ls_Description.isEmpty() && !ls_Key.startsWith("[output]"))
+			if (!ls_Description.isEmpty() && !ls_Key.startsWith("output"))
 				lk_Label_->setToolTip(ls_Description);
 		}
 		if (lk_Widget_ != NULL)
 		{
-			if (!ls_Description.isEmpty() && !ls_Key.startsWith("[output]"))
+			if (!ls_Description.isEmpty() && !ls_Key.startsWith("output"))
 				lk_Widget_->setToolTip(ls_Description);
 			
 			mk_ParameterDisplayWidgets[ls_Key] = lk_Widget_;
 			if (lk_ValueWidget_ == NULL)
 				lk_ValueWidget_ = lk_Widget_;
 			mk_ParameterValueWidgets[ls_Key] = lk_ValueWidget_;
-			if (!ls_Key.startsWith("[output]"))
+			if (!ls_Key.startsWith("output"))
 				mb_HasParameters = true;
 		}
 		if (lb_WidgetFirst)

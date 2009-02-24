@@ -32,7 +32,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: QMainWindow(ak_Parent_)
-	, mk_FileList(NULL, true)
+	, mk_FileList(NULL, true, true)
 	, mk_MainLayout(this)
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
@@ -101,8 +101,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_LoadScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_ToolBar_->addWidget(mk_LoadScriptButton_);
 	
-	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles");
-	connect(mk_ProfilesAction_, SIGNAL(triggered()), this, SLOT(showProfileManager()));
+	mk_ProfilesAction_ = lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
 	/*
 	mk_ProfilesAction_->setEnabled(false);
 	mk_ProfilesAction_->setVisible(false);
@@ -111,8 +110,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	//connect(mk_LoadScriptButton_, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuScriptClicked(QAction*)), this, SLOT(scriptMenuScriptClicked(QAction*)));
 	mk_ReloadScriptAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
-	mk_ReloadScriptAction_->setToolTip("Reset all manual settings.");
-
 	
 	lk_ToolBar_->addSeparator();
 	
@@ -178,8 +175,8 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_VSplitter_->addWidget(lk_LowerLayoutWidget_);
 
 	mk_VSplitter_->setChildrenCollapsible(false);
-	mk_VSplitter_->setStretchFactor(0, 1);
-	mk_VSplitter_->setStretchFactor(1, 3);
+	mk_VSplitter_->setStretchFactor(0, 3);
+	mk_VSplitter_->setStretchFactor(1, 6);
 	mk_HSplitter_->setChildrenCollapsible(false);
 	mk_HSplitter_->setStretchFactor(0, 1);
 	mk_HSplitter_->setStretchFactor(1, 1);
@@ -279,7 +276,12 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 		if (ls_Path != "" && mk_Script_)
 		{
 			QFileInfo lk_FileInfo(ls_Path);
-			if (!lk_FileInfo.isDir())
+			if (lk_FileInfo.isDir())
+			{
+				if (mk_Script_)
+					mk_Script_->setOutputDirectory(ls_Path);
+			}
+			else
 				addInputFile(ls_Path);
 		}
 	}
@@ -323,8 +325,11 @@ void k_ScriptHelper::activateScript()
 		mk_ScrollArea_->resize(300, 10);
 		mk_HSplitter_->setStretchFactor(0, 1);
 		mk_HSplitter_->setStretchFactor(1, 1);
+		
+		foreach (QString ls_Key, mk_Script_->inputFileKeys())
+			mk_FileList.addInputFileGroup(ls_Key, mk_Script_->inputFileLabel(ls_Key), mk_Script_->inputFileExtensions(ls_Key));
 	
-		if (mk_Script_->type() == r_ScriptType::Local)
+		if (mk_Script_->location() == r_ScriptLocation::Local)
 		{
 			k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_Script_);
 			connect(lk_LocalScript_, SIGNAL(started()), this, SLOT(processStarted()));
@@ -361,10 +366,10 @@ void k_ScriptHelper::start()
 
 	QStringList lk_Arguments;
 
-	for (int i = 0; i < mk_FileList.count(); ++i)
-		lk_Arguments.push_back(mk_FileList.item(i)->text());
+	for (int i = 0; i < mk_FileList.files().count(); ++i)
+		lk_Arguments.push_back(mk_FileList.files()[i]);
 
-	if (mk_Script_->type() == r_ScriptType::Local)
+	if (mk_Script_->location() == r_ScriptLocation::Local)
 		mk_Script_->start(lk_Arguments);
 	else
 		mk_RemoteRequests[mk_Proteomatic.queryRemoteHub(mk_Script_->uri(), (QStringList() << "---gui") + mk_Script_->commandLineArguments() + lk_Arguments)] = r_RemoteRequest(r_RemoteRequestType::SubmitJob);
@@ -414,13 +419,17 @@ void k_ScriptHelper::addOutput(QString as_Text)
 void k_ScriptHelper::reset()
 {
 	setAcceptDrops(false);
+	
 	if (mk_Script_)
 		delete mk_Script_;
 	mk_Script_ = NULL;
+	
 	//mk_Program.setText("(no script loaded)");
-	mk_FileList.clear();
+	mk_FileList.resetAll();
+
 	ms_Output.clear();
 	mk_Output.clear();
+	
 	toggleUi();
 }
 
@@ -448,10 +457,15 @@ void k_ScriptHelper::loadFilesButtonClicked()
 
 void k_ScriptHelper::resetParameters()
 {
-	if (mk_Script_)
-		mk_Script_->reset();
+	mk_FileList.resetAll();
 
-	mk_FileList.clear();
+	if (mk_Script_)
+	{
+		mk_Script_->reset();
+		foreach (QString ls_Key, mk_Script_->inputFileKeys())
+			mk_FileList.addInputFileGroup(ls_Key, mk_Script_->inputFileLabel(ls_Key), mk_Script_->inputFileExtensions(ls_Key));
+	}
+
 	ms_Output.clear();
 	mk_Output.clear();
 	toggleUi();
@@ -464,7 +478,7 @@ void k_ScriptHelper::toggleUi()
 	this->setEnabled(mk_RemoteRequests.empty());
 
 	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
-	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->type() == r_ScriptType::Remote;
+	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->location() == r_ScriptLocation::Remote;
 
 	mk_ProfilesAction_->setEnabled(!lb_ProcessRunning);
 	
@@ -486,6 +500,7 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(false);
 		mk_AddFilesButton.setEnabled(false);
+		mk_FileList.setEnabled(false);
 	}
 	else
 	{
@@ -497,6 +512,7 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(mk_Script_);
 		mk_SaveParametersAction_->setEnabled(mk_Script_);
 		mk_AddFilesButton.setEnabled(mk_Script_);
+		mk_FileList.setEnabled(mk_Script_);
 	}
 
 	if (mb_VersionChanged)
@@ -512,6 +528,7 @@ void k_ScriptHelper::toggleUi()
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(mk_Script_);
 		mk_AddFilesButton.setEnabled(false);
+		mk_FileList.setEnabled(false);
 	}
 }
 
@@ -685,35 +702,7 @@ void k_ScriptHelper::scriptMenuChanged()
 
 void k_ScriptHelper::addInputFile(QString as_Path)
 {
-	mk_FileList.addItem(as_Path);
-	return;
-
-/*
-	if (mk_Program.text().isEmpty())
-		return;
-		*/
-
-/*
-	QProcess lk_QueryProcess;
-	QFileInfo lk_FileInfo(mk_Program.text());
-	lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
-	QStringList lk_Arguments;
-	lk_Arguments << mk_Program.text() << "---detectInput" << as_Path;
-	lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-	lk_QueryProcess.start(mk_Proteomatic.rubyPath(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
-	if (lk_QueryProcess.waitForFinished())
-	{
-		QString ls_Response = lk_QueryProcess.readAll();
-		QStringList lk_Response = ls_Response.split(QChar('\n'));
-		if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---detectInput")
-		{
-			if (!lk_Response.empty() && !lk_Response.takeFirst().trimmed().isEmpty())
-			{
-				mk_FileList.addItem(as_Path);
-			}
-		}
-	}
-	*/
+	mk_FileList.addInputFile(as_Path);
 }
 
 
@@ -795,10 +784,10 @@ void k_ScriptHelper::proposePrefix()
 
 	QStringList lk_Arguments;
 
-	for (int i = 0; i < mk_FileList.count(); ++i)
-		lk_Arguments.push_back(mk_FileList.item(i)->text());
+	for (int i = 0; i < mk_FileList.files().size(); ++i)
+		lk_Arguments.push_back(mk_FileList.files()[i]);
 
-	if (mk_Script_->type() == r_ScriptType::Local)
+	if (mk_Script_->location() == r_ScriptLocation::Local)
 	{
 		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_Script_))->proposePrefix(lk_Arguments);
 		if (ls_Result.startsWith("--proposePrefix"))
@@ -810,7 +799,7 @@ void k_ScriptHelper::proposePrefix()
 		{
 			mk_Proteomatic.showMessageBox("Propose prefix", 
 				"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
-				":/icons/dialog-warning.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
+				":/icons/emblem-important.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
 		}
 	}
 }

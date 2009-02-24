@@ -23,26 +23,21 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 
 
-class k_ClickableLabel: public QLabel
+class k_HintLineEdit: public QLineEdit
 {
 	Q_OBJECT
 public:
-	k_ClickableLabel(QWidget* parent = 0, Qt::WindowFlags f = 0);
-	k_ClickableLabel(const QString& text, QWidget* parent = 0, Qt::WindowFlags f = 0);
-	~k_ClickableLabel();
-
-signals:
-	void clicked();
-	void pressed();
-	void released();
-	void enter();
-	void leave();
+	k_HintLineEdit(QWidget* parent = 0);
+	k_HintLineEdit(const QString& contents, QWidget* parent = 0);
+	~k_HintLineEdit();
+	
+	void setHint(const QString& as_Hint);
+	virtual QString text() const;
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
-	virtual void mouseReleaseEvent(QMouseEvent* event);
-	virtual void enterEvent(QMouseEvent* event);
-	virtual void leaveEvent(QMouseEvent* event);
-	virtual void focusInEvent(QFocusEvent* event);
-	virtual void focusOutEvent(QFocusEvent* event);
+	void updateStatus();
+	
+	QString ms_Hint;
+	QString ms_Text;
 };

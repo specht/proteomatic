@@ -28,7 +28,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Yaml.h"
 
 
-struct r_ScriptType
+struct r_ScriptLocation
 {
 	enum Enumeration
 	{
@@ -38,19 +38,32 @@ struct r_ScriptType
 };
 
 
+struct r_ScriptType
+{
+	enum Enumeration
+	{
+		Processor = 0,
+		Converter
+	};
+};
+
+
 class k_Script: public QObject
 {
 	Q_OBJECT
 
 public:
-	k_Script(r_ScriptType::Enumeration ae_Type, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+	k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_Script();
 	bool isGood() const;
 	
-	// hasParameters is true if there are any parameters except [output] parameters
+	// hasParameters is true if there are any parameters except output parameters
 	bool hasParameters() const;
 	
+	r_ScriptLocation::Enumeration location() const;
 	r_ScriptType::Enumeration type() const;
+	
+	QHash<QString, QString> info() const;
 	k_SizeWatchWidget* parameterWidget() const;
 	QString uri() const;
 	virtual QString title() const;
@@ -77,6 +90,16 @@ public:
 
 	QStringList commandLineArguments() const;
 	QString profileDescription() const;
+	QStringList inputFileKeys() const;
+	QString inputFileLabel(QString as_Key) const;
+	QStringList inputFileExtensions(QString as_Key) const;
+	QString inputKeyForFilename(QString as_Path);
+	void setOutputDirectory(QString as_Path);
+	// checkInputFiles doesn't care whether files are actually there,
+	// it just checks whether all min/max requirements are fulfilled.
+	// files are filenames for input file key
+	bool checkInputFiles(QHash<QString, QSet<QString> > ak_Files, QString& as_InputFilesErrorMessage);
+	
 	
 	virtual void start(QStringList ak_Parameters) = 0;
 	virtual void kill() = 0;
@@ -107,6 +130,7 @@ protected:
 	void createParameterWidget(QStringList ak_Definition);
 	void adjustDependentParameters();
 
+	r_ScriptLocation::Enumeration me_Location;
 	r_ScriptType::Enumeration me_Type;
 	QString ms_ScriptUri;
 	QString ms_Title;
@@ -126,6 +150,7 @@ protected:
 	QHash<QString, bool> mk_ParametersAtDefault;
 	QHash<QString, QStringList> mk_GroupParameters;
 	QHash<QString, QString> mk_DefaultConfiguration;
+	QHash<QString, QString> mk_Info;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_IsGood;
 	bool mb_HasParameters;
@@ -135,6 +160,15 @@ protected:
 	QLineEdit* mk_OutputPrefix_;
 	QToolButton* mk_ClearOutputDirectory_;
 	QToolButton* mk_ProposePrefix_;
-	QStringList mk_InputFileDescriptionList;
+	QStringList mk_InputFileKeys;
+	QHash<QString, QString> mk_InputFileLabels;
+	QHash<QString, QStringList> mk_InputFileExtensions;
+	QHash<QString, QString> mk_InputFileDescriptions;
+	// these two hashes contain the optional input file min/max counts
+	// if a min/max value has not been defined, there will be no entry
+	// in the hashes. simple as that.
+	QHash<QString, int> mk_InputFileMinimum;
+	QHash<QString, int> mk_InputFileMaximum;
+	
 	QStringList mk_DependentParameters;
 };

@@ -30,13 +30,29 @@ class k_PipelineMainWindow: public QMainWindow
 public:
 	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_PipelineMainWindow();
+	QString outputDirectory();
+	
+signals:
+	void outputDirectoryChanged(const QString& as_Path);
+	void forceRefresh();
 
 public slots:
-	void mouseModeButtonClicked();
+	void start();
+	void addFiles();
+	void addFileListBox();
+	void chooseOutputDirectory();
+	void setOutputDirectory(QString as_Path);
+	void toggleUi();
 
 protected:
 	k_Desktop mk_Desktop;
-	QToolButton* mk_MouseMoveButton_;
-	QToolButton* mk_MouseArrowButton_;
+	QToolButton* mk_AddScriptAction_;
+	QAction* mk_AddFilesAction_;
+	QAction* mk_AddFileListAction_;
+	QAction* mk_StartAction_;
+	QAction* mk_RefreshAction_;
+	QLineEdit mk_OutputDirectory;
+	QAction* mk_ChooseOutputDirectoryAction_;
 	k_Proteomatic& mk_Proteomatic;
+	QFileSystemWatcher mk_FileSystemWatcher;
 };
