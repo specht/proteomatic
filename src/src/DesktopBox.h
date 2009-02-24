@@ -53,6 +53,16 @@ struct r_BoxStatus
 };
 
 
+struct r_InputFileListBoxType
+{
+	enum Enumeration
+	{
+		List = 0,
+		Batch
+	};
+};
+
+
 class k_DesktopBox: public QWidget
 {
 	Q_OBJECT
@@ -76,6 +86,9 @@ public slots:
 	virtual void updateStatus();
 	virtual void reportStatus();
 	virtual void snapToGrid();
+	
+protected slots:
+	void setSpecialFrame(bool ab_Flag);
 
 protected:
 	virtual void paintEvent(QPaintEvent* ak_Event_);
@@ -100,6 +113,7 @@ protected:
 	QHash<k_DesktopBox*, QPoint> mk_OtherBoxesOldPosition;
 	QSize mk_OldSize;
 	bool mb_KeepSmall;
+	bool mb_SpecialFrame;
 	int mi_GridSize;
 	r_BoxStatus::Enumeration me_Status;
 };
@@ -223,6 +237,8 @@ public:
 	virtual QStringList fileNames();
 	void addFilename(const QString& as_Filename);
 	
+	bool isFileBatch();
+	
 protected slots:
 	void addFilesButtonClicked();
 	void updateStatus();
@@ -236,6 +252,8 @@ protected:
 	k_FileList mk_FileList;
 	k_UnclickableLabel mk_Label;
 	QToolButton mk_RemoveFilesButton;
+	QToolButton mk_BatchModeButton;
+	r_InputFileListBoxType::Enumeration me_Type;
 };
 
 

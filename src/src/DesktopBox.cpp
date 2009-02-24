@@ -36,6 +36,7 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	, mk_Proteomatic(ak_Proteomatic)
 	, mb_Moving(false)
 	, mb_KeepSmall(true)
+	, mb_SpecialFrame(false)
 	, mk_SizeGripLabel_(NULL)
 	, mi_GridSize(20)
 	, me_Status(r_BoxStatus::Ready)
@@ -86,7 +87,10 @@ void k_DesktopBox::paintEvent(QPaintEvent* ak_Event_)
 		this->resize(1, 1);
 	
 	QPainter lk_Painter(this);
-	lk_Painter.fillRect(0, 0, width(), height(), mk_Background);
+	QBrush lk_Brush(mk_Background);
+	if (mb_SpecialFrame)
+		lk_Brush.setColor(QColor(TANGO_BUTTER_0));
+	lk_Painter.fillRect(0, 0, width(), height(), lk_Brush);
 	QPen lk_Pen(mk_Border);
 	float lf_PenWidth = 1.0;
 	if (mk_Desktop_->boxSelected(this))
@@ -94,10 +98,15 @@ void k_DesktopBox::paintEvent(QPaintEvent* ak_Event_)
 	lk_Pen.setWidthF(lf_PenWidth);
 	lk_Painter.setPen(lk_Pen);
 	lk_Painter.drawRect(QRectF(lf_PenWidth * 0.5, lf_PenWidth * 0.5, (qreal)width() - lf_PenWidth, (qreal)height() - lf_PenWidth));
-	/*
-	if (mk_Desktop_->boxSelected(this))
-		lk_Painter.drawRect(2, 2, width() - 5, height() - 5);
-	*/
+	
+	if (mb_SpecialFrame)
+	{
+		lf_PenWidth = 1.0;
+		lk_Pen.setWidthF(lf_PenWidth);
+		lk_Pen.setColor(QColor(TANGO_BUTTER_2));
+		lk_Painter.setPen(lk_Pen);
+		lk_Painter.drawRect(QRectF(lf_PenWidth * 0.5 + 1.0, lf_PenWidth * 0.5 + 1.0, (qreal)width() - lf_PenWidth - 2.0, (qreal)height() - lf_PenWidth - 2.0));
+	}
 }
 
 
@@ -186,6 +195,13 @@ void k_DesktopBox::setKeepSmall(bool ab_Flag)
 }
 
 
+void k_DesktopBox::setSpecialFrame(bool ab_Flag)
+{
+	mb_SpecialFrame = ab_Flag;
+	this->repaint();
+}
+
+
 bool k_DesktopBox::cursorWithinSizeGrip(QPoint ak_Position)
 {
 	QPoint lk_Point = (ak_Position - QPoint(this->width(), this->height()));
@@ -223,10 +239,10 @@ k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteoma
 	mk_Layout.addLayout(lk_HLayout_);
 	
 	QFrame* lk_Frame_ = new QFrame(this);
-    lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Plain);
+	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Plain);
 	lk_Frame_->setLineWidth(1);
 	lk_Frame_->setStyleSheet("color: #888a85;");
-    mk_Layout.addWidget(lk_Frame_);
+	mk_Layout.addWidget(lk_Frame_);
 
 	QHBoxLayout* lk_ButtonLayout_ = new QHBoxLayout();
 	
@@ -463,7 +479,6 @@ void k_ScriptBox::proposePrefixButtonClicked()
 void k_ScriptBox::fileBoxConnected(IFileBox* ak_FileBox_)
 {
 	// this is about input file boxes here
-	// ak_FileBox_ may be a k_InputFileBox, a k_InputFileListBox, or a k_OutputFileBox
 	k_InputFileBox* lk_InputFileBox_ = dynamic_cast<k_InputFileBox*>(ak_FileBox_);
 	k_InputFileListBox* lk_InputFileListBox_ = dynamic_cast<k_InputFileListBox*>(ak_FileBox_);
 	k_OutputFileBox* lk_OutputFileBox_ = dynamic_cast<k_OutputFileBox*>(ak_FileBox_);
@@ -486,6 +501,8 @@ void k_ScriptBox::fileBoxConnected(IFileBox* ak_FileBox_)
 
 void k_ScriptBox::fileBoxDisconnected(IFileBox* ak_FileBox_)
 {
+	// don't watch this file box for changes anymore
+	dynamic_cast<k_DesktopBox*>(ak_FileBox_)->disconnect(SIGNAL(changed()), this, SLOT(fileBoxChanged()));
 	mk_InputFileBoxes.remove(ak_FileBox_);
 	this->updateStatus();
 }
@@ -596,6 +613,11 @@ void k_ScriptBox::fileBoxChanged()
 	{
 		QString ls_Key = mk_Script_->inputKeyForFilename(ls_Filename);
 		mk_InputFileBoxes[lk_Box_][ls_Filename] = ls_Key;
+	}
+	
+	if (dynamic_cast<k_InputFileListBox*>(lk_Box_))
+	{
+		this->setSpecialFrame(dynamic_cast<k_InputFileListBox*>(lk_Box_)->isFileBatch());
 	}
 	this->updateStatus();
 }
@@ -758,11 +780,19 @@ bool k_InputFileBox::fileExists()
 k_InputFileListBox::k_InputFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
 	, mk_FileList(this, true, true)
+	, me_Type(r_InputFileListBoxType::List)
 {
 	this->setKeepSmall(false);
 	QBoxLayout* lk_MainLayout_ = new QVBoxLayout(this);
-	lk_MainLayout_->addWidget(&mk_Label);
 	QBoxLayout* lk_HLayout_ = new QHBoxLayout(this);
+	lk_HLayout_->addWidget(&mk_Label);
+	lk_HLayout_->addStretch();
+	mk_BatchModeButton.setIcon(QIcon(":icons/cycle.png"));
+	mk_BatchModeButton.setCheckable(true);
+	mk_BatchModeButton.setChecked(false);
+	lk_HLayout_->addWidget(&mk_BatchModeButton);
+	lk_MainLayout_->addLayout(lk_HLayout_);
+	lk_HLayout_ = new QHBoxLayout(this);
 	lk_MainLayout_->addLayout(lk_HLayout_);
 	lk_HLayout_->addWidget(&mk_FileList);
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(this);
@@ -786,6 +816,9 @@ k_InputFileListBox::k_InputFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_
 	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(updateStatus()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
 	connect(&mk_FileList, SIGNAL(itemSelectionChanged()), this, SLOT(toggleUi()));
+	connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(setSpecialFrame(bool)));
+	connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(updateStatus()));
+	connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SIGNAL(changed()));
 	
 	lk_HLayout_->addLayout(lk_VLayout_);
 	this->resize(300, 1);
@@ -811,6 +844,12 @@ void k_InputFileListBox::addFilename(const QString& as_Filename)
 	QString ls_Path = as_Filename;
 	mk_FileList.addInputFile(ls_Path);
 	emit changed();
+}
+
+
+bool k_InputFileListBox::isFileBatch()
+{
+	return mk_BatchModeButton.isChecked();
 }
 
 
@@ -840,7 +879,7 @@ void k_InputFileListBox::updateStatus()
 	else
 		ls_Count = QString("%1 files").arg(li_Count);
 	
-	mk_Label.setText(QString("<b>File list</b> (%1)").arg(ls_Count));
+	mk_Label.setText(QString("<b>File %1</b> (%2)").arg(mk_BatchModeButton.isChecked() ? "batch" : "list").arg(ls_Count));
 }
 
 

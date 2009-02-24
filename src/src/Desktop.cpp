@@ -175,8 +175,8 @@ void k_Desktop::connectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 	mk_ArrowForProxyLine[lk_GraphicsLineItem_] = lk_GraphicsPathItem_;
 	mk_BoxPairForProxyLine[lk_GraphicsLineItem_] = tk_BoxPair(ak_Box0_, ak_Box1_);
 	
-	if (dynamic_cast<IFileBox*>(ak_Box0_) != NULL &&
-		dynamic_cast<k_ScriptBox*>(ak_Box1_) != NULL)
+	if (dynamic_cast<IFileBox*>(ak_Box0_) &&
+		dynamic_cast<k_ScriptBox*>(ak_Box1_))
 	{
 		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].insert(dynamic_cast<IFileBox*>(ak_Box0_));
 		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxConnected(dynamic_cast<IFileBox*>(ak_Box0_));
@@ -199,8 +199,8 @@ void k_Desktop::disconnectBoxes(k_DesktopBox* ak_Box0_, k_DesktopBox* ak_Box1_)
 	mk_BoxConnectionsForBox[ak_Box0_].remove(ak_Box1_);
 	mk_BoxConnectionsForBox[ak_Box1_].remove(ak_Box0_);
 	
-	if (dynamic_cast<k_ScriptBox*>(ak_Box1_) != NULL &&
-		dynamic_cast<IFileBox*>(ak_Box0_) != NULL)
+	if (dynamic_cast<k_ScriptBox*>(ak_Box1_) &&
+		dynamic_cast<IFileBox*>(ak_Box0_))
 	{
 		mk_FileBoxesForScriptBox[dynamic_cast<k_ScriptBox*>(ak_Box1_)].remove(dynamic_cast<IFileBox*>(ak_Box0_));
 		dynamic_cast<k_ScriptBox*>(ak_Box1_)->fileBoxDisconnected(dynamic_cast<IFileBox*>(ak_Box0_));

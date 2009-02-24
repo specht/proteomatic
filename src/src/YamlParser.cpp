@@ -91,8 +91,14 @@ void k_YamlParser::fetchNextEvent()
 	if (!yaml_parser_parse(&mk_Parser, &mk_Event))
 	{
 		mb_Error = true;
+		return;
 	}
 	mi_Type = mk_Event.type;
+	if (mi_Type == YAML_NO_EVENT)
+	{
+		mb_Error = true;
+		return;
+	}
 	ms_Value = mi_Type == YAML_SCALAR_EVENT ? QString((char*)mk_Event.data.scalar.value) : QString();
 	yaml_event_delete(&mk_Event);
 }
