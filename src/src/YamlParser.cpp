@@ -109,7 +109,6 @@ QVariant k_YamlParser::parseAny()
 	switch (mi_Type)
 	{
 		case YAML_ALIAS_EVENT:
-			printf("YAML_ALIAS_EVENT\n");
 			break;
 		case YAML_SCALAR_EVENT:
 			return QVariant(ms_Value);
@@ -118,7 +117,6 @@ QVariant k_YamlParser::parseAny()
 		case YAML_MAPPING_START_EVENT:
 			return this->parseMapping();
 		default:
-			printf("oops! it's a %d\n", mi_Type);
 			break;
 	}
 	return QVariant();

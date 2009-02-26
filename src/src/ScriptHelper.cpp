@@ -32,13 +32,13 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: QMainWindow(ak_Parent_)
+	, ms_WindowTitle("Proteomatic")
 	, mk_FileList(NULL, true, true)
 	, mk_MainLayout(this)
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
 	, mk_Script_(NULL)
 	, mk_pProfileManager(new k_ProfileManager(ak_Proteomatic, NULL, this))
-	, ms_WindowTitle("Proteomatic")
 	, mk_ProgressDialog_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
@@ -84,7 +84,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_UpperLayout_->addWidget(lk_Container_);
 	mk_UpperLayout_->addWidget(lk_Frame_);
 */
-	QFrame* lk_Frame_;
 	QWidget* lk_Container_;
 	QBoxLayout* lk_GroupBoxLayout_;
 	
@@ -148,7 +147,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_RemoveInputFileButton.setIcon(QIcon(":/icons/list-remove.png"));
 	connect(&mk_RemoveInputFileButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
 	connect(&mk_FileList, SIGNAL(itemSelectionChanged()), this, SLOT(toggleUi()));
-	QBoxLayout* lk_SubLayout_ = new QVBoxLayout(this);
+	QBoxLayout* lk_SubLayout_ = new QVBoxLayout();
 	lk_SubLayout_->addWidget(&mk_AddFilesButton);
 	lk_SubLayout_->addWidget(&mk_RemoveInputFileButton);
 	lk_SubLayout_->addStretch();
@@ -156,7 +155,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_Container_->setLayout(lk_GroupBoxLayout_);
 	mk_UpperLayout_->addWidget(lk_Container_);
 
-	lk_UpperLayoutWidget_->setLayout(mk_UpperLayout_);
 	mk_VSplitter_->addWidget(lk_UpperLayoutWidget_);
 	
 	lk_Label_ = new QLabel("<b>Output</b>", this);
@@ -168,10 +166,10 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_GroupBoxLayout_ = new QVBoxLayout(lk_Container_);
 	lk_GroupBoxLayout_->setMargin(0);
 	lk_GroupBoxLayout_->addWidget(&mk_Output);
+
 	lk_Container_->setLayout(lk_GroupBoxLayout_);
 	mk_LowerLayout_->addWidget(lk_Container_);
 
-	lk_LowerLayoutWidget_->setLayout(mk_LowerLayout_);
 	mk_VSplitter_->addWidget(lk_LowerLayoutWidget_);
 
 	mk_VSplitter_->setChildrenCollapsible(false);
@@ -180,6 +178,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_HSplitter_->setChildrenCollapsible(false);
 	mk_HSplitter_->setStretchFactor(0, 1);
 	mk_HSplitter_->setStretchFactor(1, 1);
+
 
 	mk_MainLayout.addWidget(mk_VSplitter_);
 	//mk_TopLevelLayout_->addLayout(&mk_MainLayout);
@@ -190,7 +189,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	mk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
 	mk_HSplitter_->addWidget(mk_ScrollArea_);
 	mk_HSplitter_->addWidget(lk_RightLayoutWidget_);
-	mk_ParameterLayout_ = new QVBoxLayout(this);
+	mk_ParameterLayout_ = new QVBoxLayout();
 	mk_ParameterLayoutWidget_ = new QWidget(this);
 	mk_ParameterLayoutWidget_->setLayout(mk_ParameterLayout_);
 	mk_ParameterLayout_->setContentsMargins(8, 8, 8, 8);
@@ -316,7 +315,6 @@ void k_ScriptHelper::activateScript()
 		if (mk_Script_->description().length() > 0)
 			ls_Text += "<br /><br />" + mk_Script_->description();
 		mk_Script_->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
-		connect(mk_Script_->parameterWidget(), SIGNAL(widgetResized()), this, SLOT(parameterWidgetResized()));
 		connect(mk_Script_, SIGNAL(proposePrefixButtonClicked()), this, SLOT(proposePrefix()));
 		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
 		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
@@ -384,7 +382,7 @@ void k_ScriptHelper::processStarted()
 }
 
 
-void k_ScriptHelper::processFinished(int ai_ExitCode, QProcess::ExitStatus ak_ExitStatus)
+void k_ScriptHelper::processFinished(int ai_ExitCode, QProcess::ExitStatus /*ak_ExitStatus*/)
 {
 	processReadyRead();
 	toggleUi();
@@ -533,7 +531,7 @@ void k_ScriptHelper::toggleUi()
 }
 
 
-void k_ScriptHelper::remoteHubRequestFinished(int ai_SocketId, bool ab_Error, QString as_Response)
+void k_ScriptHelper::remoteHubRequestFinished(int ai_SocketId, bool /*ab_Error*/, QString as_Response)
 {
 	if (mk_RemoteRequests.contains(ai_SocketId))
 	{
@@ -604,20 +602,20 @@ void k_ScriptHelper::checkTicket()
 	lk_pDialog->setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	lk_pDialog->setWindowTitle("Check ticket");
 	QBoxLayout* lk_MainLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
-	QBoxLayout* lk_Layout_ = new QHBoxLayout(lk_pDialog.get_Pointer());
-	QBoxLayout* lk_SubLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
+	QBoxLayout* lk_Layout_ = new QHBoxLayout();
+	QBoxLayout* lk_SubLayout_ = new QVBoxLayout();
 	QLabel* lk_Icon_ = new QLabel();
 	lk_Icon_->setPixmap(QPixmap(":/icons/ticket.png"));
 	lk_SubLayout_->addWidget(lk_Icon_);
 	lk_SubLayout_->addStretch();
 	lk_Layout_->addLayout(lk_SubLayout_);
-	lk_SubLayout_ = new QHBoxLayout(lk_pDialog.get_Pointer());
+	lk_SubLayout_ = new QHBoxLayout();
 	lk_SubLayout_->addWidget(new QLabel("Ticket:", lk_pDialog.get_Pointer()));
 	QLineEdit* lk_LineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
 	lk_SubLayout_->addWidget(lk_LineEdit_);
 	lk_Layout_->addLayout(lk_SubLayout_);
 	lk_MainLayout_->addLayout(lk_Layout_);
-	lk_Layout_ = new QHBoxLayout(lk_pDialog.get_Pointer());
+	lk_Layout_ = new QHBoxLayout();
 	lk_Layout_->addStretch();
 	QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "Cancel", lk_pDialog.get_Pointer());
 	QPushButton* lk_CheckButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "Check", lk_pDialog.get_Pointer());
@@ -628,7 +626,6 @@ void k_ScriptHelper::checkTicket()
 	connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(reject()));
 	connect(lk_CheckButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(accept()));
 	lk_MainLayout_->addLayout(lk_Layout_);
-	lk_pDialog->setLayout(lk_MainLayout_);
 	lk_pDialog->resize(300, 10);
 	if (lk_pDialog->exec() == QDialog::Accepted)
 		checkTicket(lk_LineEdit_->text());
@@ -732,37 +729,6 @@ void k_ScriptHelper::updateWindowTitle()
 	if (mk_Script_)
 		ms_WindowTitle = mk_Script_->title() + " - " + ms_WindowTitle;
 	setWindowTitle(ms_WindowTitle);
-}
-
-
-void k_ScriptHelper::parameterWidgetResized()
-{
-	/*
-	int li_Width = mk_Script_->parameterWidget()->width();
-	int li_Difference = mk_ScrollArea_->width() - li_Width;
-	if (mk_ScrollArea_->verticalScrollBar())
-		li_Difference -= mk_ScrollArea_->verticalScrollBar()->width();
-	if (li_Difference < 0)
-		mk_ScrollArea_->resize(mk_ScrollArea_->width() - li_Difference, mk_ScrollArea_->height());
-		*/
-		/*
-	mk_Proteomatic.showMessageBox("Info", QString("width: %1, size hint: %2x%3")
-		.arg(mk_Script_->parameterWidget()->width())
-		.arg(mk_ScrollArea_->sizeHint().width())
-		.arg(mk_ScrollArea_->sizeHint().height()));
-		*/
-	/*
-	int li_Width = mk_Script_->parameterWidget()->width() + mk_ScrollArea_->verticalScrollBar()->width();
-	if (mk_ScrollArea_->width() < li_Width)
-		mk_ScrollArea_->setMinimumWidth(li_Width);
-	*/
-	/*
-	if (mk_ScrollArea_->horizontalScrollBar()->isVisible())
-	{
-		int li_Width = mk_Script_->parameterWidget()->width() + mk_ScrollArea_->verticalScrollBar()->width();
-		mk_ScrollArea_->setMinimumWidth(li_Width + 10);
-	}
-	*/
 }
 
 

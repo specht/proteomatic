@@ -96,6 +96,8 @@ yaml_string_join(
         yaml_char_t **a_start, yaml_char_t **a_pointer, yaml_char_t **a_end,
         yaml_char_t **b_start, yaml_char_t **b_pointer, yaml_char_t **b_end)
 {
+	(void)b_end;
+	
     if (*b_start == *b_pointer)
         return 1;
 

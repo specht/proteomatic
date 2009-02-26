@@ -20,32 +20,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
-#include "RefPtr.h"
+#include "IScript.h"
 #include "FoldedHeader.h"
 #include "Proteomatic.h"
-#include "SizeWatchWidget.h"
 #include "ProfileManager.h"
+#include "RefPtr.h"
 #include "Yaml.h"
-
-
-struct r_ScriptLocation
-{
-	enum Enumeration
-	{
-		Local = 0,
-		Remote
-	};
-};
-
-
-struct r_ScriptType
-{
-	enum Enumeration
-	{
-		Processor = 0,
-		Converter
-	};
-};
 
 
 class k_Script: public QObject
@@ -64,7 +44,7 @@ public:
 	r_ScriptType::Enumeration type() const;
 	
 	QHash<QString, QString> info() const;
-	k_SizeWatchWidget* parameterWidget() const;
+	QWidget* parameterWidget() const;
 	QString uri() const;
 	virtual QString title() const;
 	virtual QString description() const;
@@ -100,7 +80,6 @@ public:
 	// files are filenames for input file key
 	bool checkInputFiles(QHash<QString, QSet<QString> > ak_Files, QString& as_InputFilesErrorMessage);
 	
-	
 	virtual void start(QStringList ak_Parameters) = 0;
 	virtual void kill() = 0;
 	virtual bool running() = 0;
@@ -133,10 +112,12 @@ protected:
 	r_ScriptLocation::Enumeration me_Location;
 	r_ScriptType::Enumeration me_Type;
 	QString ms_ScriptUri;
+	k_Proteomatic& mk_Proteomatic;
 	QString ms_Title;
+	bool mb_IsGood;
 	QString ms_Description;
 	QString ms_DefaultOutputDirectory;
-	RefPtr<k_SizeWatchWidget> mk_pParameterWidget;
+	RefPtr<QWidget> mk_pParameterWidget;
 	QHash<QString, QWidget* > mk_ParameterValueWidgets;
 	QHash<QString, QWidget* > mk_ParameterDisplayWidgets;
 	QHash<QString, QList<QWidget*> > mk_ParameterMultiChoiceWidgets;
@@ -151,14 +132,12 @@ protected:
 	QHash<QString, QStringList> mk_GroupParameters;
 	QHash<QString, QString> mk_DefaultConfiguration;
 	QHash<QString, QString> mk_Info;
-	k_Proteomatic& mk_Proteomatic;
-	bool mb_IsGood;
-	bool mb_HasParameters;
-	bool mb_IncludeOutputFiles;
-	bool mb_ProfileMode;
 	QLineEdit* mk_OutputDirectory_;
 	QLineEdit* mk_OutputPrefix_;
 	QToolButton* mk_ClearOutputDirectory_;
+	bool mb_HasParameters;
+	bool mb_IncludeOutputFiles;
+	bool mb_ProfileMode;
 	QToolButton* mk_ProposePrefix_;
 	QStringList mk_InputFileKeys;
 	QHash<QString, QString> mk_InputFileLabels;

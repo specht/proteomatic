@@ -191,7 +191,10 @@ void k_FileList::refresh()
 	if (mk_Keys.empty())
 	{
 		foreach (QString ls_Path, mk_Files[""])
+		{
 			QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
+			(void)lk_Item_;
+		}
 	}
 	else
 	{
@@ -205,6 +208,7 @@ void k_FileList::refresh()
 			foreach (QString ls_Path, mk_Files[ls_Key])
 			{
 				QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
+				(void)lk_Item_;
 			}
 		}
 	}

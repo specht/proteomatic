@@ -96,7 +96,7 @@ void k_RubyWindow::processStarted()
 }
 
 
-void k_RubyWindow::processFinished(int ai_ExitCode, QProcess::ExitStatus ak_ExitStatus)
+void k_RubyWindow::processFinished(int ai_ExitCode, QProcess::ExitStatus /*ak_ExitStatus*/)
 {
 	processReadyRead();
 	addOutput("-----------------------------------\n");

@@ -34,10 +34,10 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	, mk_Background(QColor(TANGO_ALUMINIUM_0))
 	, mk_Border(QColor(TANGO_ALUMINIUM_3))
 	, mk_Proteomatic(ak_Proteomatic)
+	, mk_SizeGripLabel_(NULL)
 	, mb_Moving(false)
 	, mb_KeepSmall(true)
 	, mb_SpecialFrame(false)
-	, mk_SizeGripLabel_(NULL)
 	, mi_GridSize(20)
 	, me_Status(r_BoxStatus::Ready)
 {
@@ -80,7 +80,7 @@ void k_DesktopBox::snapToGrid()
 }
 
 
-void k_DesktopBox::paintEvent(QPaintEvent* ak_Event_)
+void k_DesktopBox::paintEvent(QPaintEvent* /*ak_Event_*/)
 {
 	// TODO: is this safe? this is a workaround to achieve a compact desktop box
 	if (mb_KeepSmall)
@@ -131,7 +131,7 @@ void k_DesktopBox::mousePressEvent(QMouseEvent* ak_Event_)
 }
 
 
-void k_DesktopBox::mouseReleaseEvent(QMouseEvent* ak_Event_)
+void k_DesktopBox::mouseReleaseEvent(QMouseEvent* /*ak_Event_*/)
 {
 	mb_Moving = false;
 	mb_Resizing = false;
@@ -479,9 +479,6 @@ void k_ScriptBox::proposePrefixButtonClicked()
 void k_ScriptBox::fileBoxConnected(IFileBox* ak_FileBox_)
 {
 	// this is about input file boxes here
-	k_InputFileBox* lk_InputFileBox_ = dynamic_cast<k_InputFileBox*>(ak_FileBox_);
-	k_InputFileListBox* lk_InputFileListBox_ = dynamic_cast<k_InputFileListBox*>(ak_FileBox_);
-	k_OutputFileBox* lk_OutputFileBox_ = dynamic_cast<k_OutputFileBox*>(ak_FileBox_);
 
 	// watch the file box for changes
 	connect(dynamic_cast<k_DesktopBox*>(ak_FileBox_), SIGNAL(changed()), this, SLOT(fileBoxChanged()));

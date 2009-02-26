@@ -100,12 +100,14 @@ void k_FoldedHeader::mousePressEvent(QMouseEvent* event)
 
 void k_FoldedHeader::enterEvent(QMouseEvent* event)
 {
+	(void)event;
 	emit enter();
 }
 
 
 void k_FoldedHeader::leaveEvent(QMouseEvent* event)
 {
+	(void)event;
 	emit leave();
 }
 

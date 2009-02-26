@@ -59,7 +59,6 @@ protected slots:
 	void checkTicket();
 	void checkTicket(QString as_Ticket);
 	void ticketWindowClosed();
-	void parameterWidgetResized();
 	void showProfileManager();
 	void proposePrefix();
 
@@ -81,7 +80,6 @@ protected:
 	QToolButton mk_AddFilesButton;
 	QTextEdit mk_Output;
 	k_ConsoleString ms_Output;
-	bool mb_VersionChanged;
 
 	QVBoxLayout mk_MainLayout;
 	QVBoxLayout* mk_UpperLayout_;
@@ -92,11 +90,13 @@ protected:
 	QWidget* mk_ParameterLayoutWidget_;
 	QScrollArea* mk_ScrollArea_;
 	
+	bool mb_VersionChanged;
+
+	k_Proteomatic& mk_Proteomatic;
+
 	// should be a RefPtr, but not possible with VC on win32... (sigh!)
 	k_Script* mk_Script_;
 	RefPtr<k_ProfileManager> mk_pProfileManager;
-	
-	k_Proteomatic& mk_Proteomatic;
 	
 	QAction* mk_ProfilesAction_;
 	QAction* mk_StartAction_;

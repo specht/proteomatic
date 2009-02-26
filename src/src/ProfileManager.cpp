@@ -70,7 +70,7 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	
 	// Attention: we are overwriting the outer vertical layout here!
 	QBoxLayout* lk_OuterLayout_ = lk_VLayout_;
-	lk_VLayout_ = new QVBoxLayout(this);
+	lk_VLayout_ = new QVBoxLayout();
 	lk_VLayout_->setContentsMargins(8, 8, 8, 8);
 	lk_OuterLayout_->addLayout(lk_VLayout_);
 	
@@ -138,15 +138,17 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	//mk_DescriptionLabel_->setStyleSheet("QTextEdit { background-color: none; }");
 	mk_DescriptionLabel_->setContentsMargins(8, 0, 0, 0);
 	
+	/*
 	if (!mk_CurrentScript_)
 		mk_DescriptionLabel_->hide();
 	else
+		*/
 	{
 		QScrollArea* lk_ScrollArea_ = new QScrollArea(this);
 		lk_ScrollArea_->setWidgetResizable(true);
 		lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
 		QWidget* lk_LabelVLayoutWidget_ = new QWidget(this);
-		QBoxLayout* lk_LabelVLayout_ = new QVBoxLayout(this);
+		QBoxLayout* lk_LabelVLayout_ = new QVBoxLayout(lk_LabelVLayoutWidget_);
 		lk_LabelVLayout_->addWidget(mk_DescriptionLabel_);
 		lk_LabelVLayout_->addStretch();
 		lk_LabelVLayoutWidget_->setLayout(lk_LabelVLayout_);
@@ -156,7 +158,7 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 		lk_VSplitter_->addWidget(lk_ScrollArea_);
 	}
 	
-	QBoxLayout* lk_HLayout_ = new QHBoxLayout(this);
+	QBoxLayout* lk_HLayout_ = new QHBoxLayout();
 	lk_HLayout_->setSpacing(10);
 	lk_HLayout_->addStretch();
 	mk_ApplyButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "Apply", this);
@@ -179,12 +181,9 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	else if (mk_PartlyApplicableProfilesWidget_->count() != 0)
 		mk_NonApplicableProfilesHeader_->hideBuddy();
 		
-	if (mk_CurrentScript_)
-	{
-		lk_VSplitter_->setStretchFactor(0, 1);
-		lk_VSplitter_->setStretchFactor(1, 1);
-		lk_VSplitter_->setSizes(QList<int>() << 350 << 350);
-	}
+	lk_VSplitter_->setStretchFactor(0, 1);
+	lk_VSplitter_->setStretchFactor(1, 1);
+	lk_VSplitter_->setSizes(QList<int>() << 350 << 350);
 }
 
 

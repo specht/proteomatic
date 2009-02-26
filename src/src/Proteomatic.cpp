@@ -566,8 +566,8 @@ void k_Proteomatic::addRemoteScriptDialog()
 	lk_pDialog->setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	lk_pDialog->setWindowTitle("Add remote script");
 	QBoxLayout* lk_MainLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
-	QBoxLayout* lk_Layout_ = new QHBoxLayout(lk_pDialog.get_Pointer());
-	QBoxLayout* lk_SubLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
+	QBoxLayout* lk_Layout_ = new QHBoxLayout();
+	QBoxLayout* lk_SubLayout_ = new QVBoxLayout();
 	QLabel* lk_Icon_ = new QLabel();
 	lk_Icon_->setPixmap(QPixmap(":/icons/applications-internet.png"));
 	lk_SubLayout_->addWidget(lk_Icon_);
@@ -738,7 +738,7 @@ void k_Proteomatic::checkRuby()
 	mk_CheckRubyDialog.setMaximumWidth(300);
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(&mk_CheckRubyDialog);
 	
-	QBoxLayout* lk_HLayout_ = new QHBoxLayout(&mk_CheckRubyDialog);
+	QBoxLayout* lk_HLayout_ = new QHBoxLayout();
 	QLabel* lk_IconLabel_ = new QLabel(&mk_CheckRubyDialog);
 	lk_IconLabel_ ->setPixmap(QPixmap(":/icons/dialog-warning.png"));
 	lk_HLayout_->addWidget(lk_IconLabel_);
@@ -746,7 +746,7 @@ void k_Proteomatic::checkRuby()
 	lk_HLayout_->addWidget(lk_ErrorLabel_);
 	lk_VLayout_->addLayout(lk_HLayout_);
 	
-	lk_HLayout_ = new QHBoxLayout(&mk_CheckRubyDialog);
+	lk_HLayout_ = new QHBoxLayout();
 	lk_HLayout_->addWidget(new QLabel("Path to Ruby:", &mk_CheckRubyDialog));
 	mk_CheckRubyLocation_ = new QLineEdit(&mk_CheckRubyDialog);
 	mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
@@ -756,7 +756,7 @@ void k_Proteomatic::checkRuby()
 	lk_HLayout_->addWidget(lk_FindRubyButton_);
 	lk_VLayout_->addLayout(lk_HLayout_);
 	
-	lk_HLayout_ = new QHBoxLayout(&mk_CheckRubyDialog);
+	lk_HLayout_ = new QHBoxLayout();
 	lk_HLayout_->addStretch();
 	QPushButton* lk_QuitButton_ = new QPushButton(QIcon(":/icons/system-log-out.png"), "Quit", &mk_CheckRubyDialog);
 	lk_HLayout_->addWidget(lk_QuitButton_);

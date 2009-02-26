@@ -46,7 +46,7 @@ k_RemoteScript::~k_RemoteScript()
 }
 
 
-void k_RemoteScript::start(QStringList ak_Parameters)
+void k_RemoteScript::start(QStringList /*ak_Parameters*/)
 {
 }
 

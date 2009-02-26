@@ -68,13 +68,13 @@ void k_ClickableLabel::leaveEvent(QMouseEvent* event)
 }
 
 
-void k_ClickableLabel::focusInEvent(QFocusEvent* event)
+void k_ClickableLabel::focusInEvent(QFocusEvent* /*event*/)
 {
 	//this->setBackgroundRole(QPalette::AlternateBase);
 }
 
 
-void k_ClickableLabel::focusOutEvent(QFocusEvent* event)
+void k_ClickableLabel::focusOutEvent(QFocusEvent* /*event*/)
 {
 	//this->setBackgroundRole(QPalette::NoRole);
 }

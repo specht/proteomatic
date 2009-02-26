@@ -25,8 +25,8 @@ k_TicketWindow::k_TicketWindow(k_Proteomatic& ak_Proteomatic, QString as_ScriptU
 	, mk_Proteomatic(ak_Proteomatic)
 	, ms_ScriptUri(as_ScriptUri)
 	, ms_Ticket(as_Ticket)
-	, mi_Delay(1)
 	, mb_GotStandardOutput(false)
+	, mi_Delay(1)
 {
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	setWindowTitle(QString("Check ticket: %1").arg(ms_Ticket));
@@ -101,7 +101,7 @@ k_TicketWindow::~k_TicketWindow()
 }
 
 
-void k_TicketWindow::closeEvent(QCloseEvent* ak_Event_)
+void k_TicketWindow::closeEvent(QCloseEvent* /*ak_Event_*/)
 {
 	emit closed();
 }
@@ -113,7 +113,7 @@ void k_TicketWindow::queryTicket()
 }
 
 
-void k_TicketWindow::remoteRequestFinished(int ai_SocketId, bool ab_Error, QString as_Result)
+void k_TicketWindow::remoteRequestFinished(int ai_SocketId, bool /*ab_Error*/, QString as_Result)
 {
 	if (mk_RemoteRequests.contains(ai_SocketId))
 	{

@@ -247,6 +247,7 @@ yaml_emitter_anchor_node(yaml_emitter_t *emitter, int index)
 static yaml_char_t *
 yaml_emitter_generate_anchor(yaml_emitter_t *emitter, int anchor_id)
 {
+	(void)emitter;
     yaml_char_t *anchor = yaml_malloc(ANCHOR_TEMPLATE_LENGTH);
 
     if (!anchor) return NULL;

@@ -82,7 +82,7 @@ QHash<QString, QString> k_Script::info() const
 }
 
 
-k_SizeWatchWidget* k_Script::parameterWidget() const
+QWidget* k_Script::parameterWidget() const
 {
 	return mk_pParameterWidget.get_Pointer();
 }
@@ -610,7 +610,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 	mk_InputFileExtensions.clear();
 	mk_OutputDirectory_ = NULL;
 	mk_ClearOutputDirectory_ = NULL;
-	mk_pParameterWidget = RefPtr<k_SizeWatchWidget>(new k_SizeWatchWidget());
+	mk_pParameterWidget = RefPtr<QWidget>(new QWidget());
 
 	QList<QString> lk_ParametersOrder;
 	QHash<QString, QHash<QString, QString> > lk_Parameters;

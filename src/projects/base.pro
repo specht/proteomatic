@@ -52,6 +52,7 @@ HEADERS += \
 	../../src/FileList.h \
 	../../src/FoldedHeader.h \
 	../../src/HintLineEdit.h \
+	../../src/IScript.h \
 	../../src/LocalScript.h \
 	../../src/ProfileManager.h \
 	../../src/Proteomatic.h \
@@ -59,9 +60,7 @@ HEADERS += \
 	../../src/RemoteScript.h \
 	../../src/RubyWindow.h \
 	../../src/Script.h \
-	../../src/ScriptHelper.h \
 	../../src/ScriptFactory.h \
-	../../src/SizeWatchWidget.h \
     ../../src/StopWatch.h \
 	../../src/Tango.h \
 	../../src/TicketWindow.h \
@@ -84,7 +83,6 @@ SOURCES += \
 	../../src/RubyWindow.cpp \
 	../../src/Script.cpp \
 	../../src/ScriptFactory.cpp \
-	../../src/ScriptHelper.cpp \
     ../../src/StopWatch.cpp \
 	../../src/TicketWindow.cpp \
 	../../src/UnclickableLabel.cpp \

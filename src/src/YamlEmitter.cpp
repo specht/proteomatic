@@ -30,11 +30,6 @@ k_YamlEmitter::~k_YamlEmitter()
 }
 
 
-QString k_YamlEmitter::emitToString(QVariant ak_Node)
-{
-}
-
-
 void k_YamlEmitter::emitToFile(QVariant ak_Node, QString as_Path)
 {
 	FILE* lk_File_ = fopen(as_Path.toStdString().c_str(), "wb");
@@ -44,12 +39,12 @@ void k_YamlEmitter::emitToFile(QVariant ak_Node, QString as_Path)
 	yaml_stream_start_event_initialize(&mk_Event, YAML_UTF8_ENCODING);
 	yaml_emitter_emit(&mk_Emitter, &mk_Event);
 	
-	printf("%d ", yaml_document_start_event_initialize(&mk_Event, NULL, NULL, NULL, 0));
+	yaml_document_start_event_initialize(&mk_Event, NULL, NULL, NULL, 0);
 	yaml_emitter_emit(&mk_Emitter, &mk_Event);
 	
 	this->emitAny(ak_Node);
 	
-	printf("%d ", yaml_document_end_event_initialize(&mk_Event, 0));
+	yaml_document_end_event_initialize(&mk_Event, 0);
 	yaml_emitter_emit(&mk_Emitter, &mk_Event);
 
 	yaml_stream_end_event_initialize(&mk_Event);

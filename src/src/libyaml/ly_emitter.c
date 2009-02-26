@@ -985,6 +985,7 @@ yaml_emitter_emit_node(yaml_emitter_t *emitter, yaml_event_t *event,
 static int
 yaml_emitter_emit_alias(yaml_emitter_t *emitter, yaml_event_t *event)
 {
+	(void)event;
     if (!yaml_emitter_process_anchor(emitter))
         return 0;
     emitter->state = POP(emitter, emitter->states);
@@ -1070,6 +1071,7 @@ yaml_emitter_emit_mapping_start(yaml_emitter_t *emitter, yaml_event_t *event)
 static int
 yaml_emitter_check_empty_document(yaml_emitter_t *emitter)
 {
+	(void)emitter;
     return 0;
 }
 
@@ -2165,6 +2167,7 @@ static int
 yaml_emitter_determine_chomping(yaml_emitter_t *emitter,
         yaml_string_t string)
 {
+	(void)emitter;
     string.pointer = string.end;
     if (string.start == string.pointer)
         return -1;
