@@ -26,7 +26,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic, 
-								   k_Script* ak_CurrentScript_,
+								   IScript* ak_CurrentScript_,
 								   QWidget * parent, Qt::WindowFlags f)
 	: QDialog(parent, f)
 	, mk_Proteomatic(ak_Proteomatic)
@@ -38,7 +38,7 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	if (mk_CurrentScript_)
 	{
 		ms_TargetScriptUri = mk_CurrentScript_->uri();
-		mk_TargetScriptParameterKeys = mk_CurrentScript_->getParameterKeys();
+		mk_TargetScriptParameterKeys = mk_CurrentScript_->parameterKeys();
 	}
 	
 	setWindowTitle("Profile Manager");
@@ -585,10 +585,10 @@ void k_ProfileManager::updateProfileMix()
 			// fetch both human readable key and value from the currently loaded script, if possible
 			// else use fallback verbose values from profile, if possible
 			// if everything fails, just report the plain non-human readable value
-			if (mk_CurrentScript_ && mk_CurrentScript_->getParameterKeys().contains(ls_Key))
+			if (mk_CurrentScript_ && mk_CurrentScript_->parameterKeys().contains(ls_Key))
 			{
-				ls_HumanReadableKey = mk_CurrentScript_->getHumanReadableParameterKey(ls_Key);
-				ls_HumanReadableValue = mk_CurrentScript_->getHumanReadableParameterValue(ls_Key, ls_Value);
+				ls_HumanReadableKey = mk_CurrentScript_->parameterLabel(ls_Key);
+				ls_HumanReadableValue = mk_CurrentScript_->humanReadableParameterValue(ls_Key, ls_Value);
 			}
 			else
 			{
@@ -617,7 +617,7 @@ void k_ProfileManager::updateProfileMix()
 	if (mk_CurrentScript_)
 	{
 		// first come the script keys, if there is a script - sort as intended by the script
-		foreach (QString ls_Key, mk_CurrentScript_->getParameterKeys())
+		foreach (QString ls_Key, mk_CurrentScript_->parameterKeys())
 		{
 			if (mk_ProfileKeysSet.contains(ls_Key))
 			{

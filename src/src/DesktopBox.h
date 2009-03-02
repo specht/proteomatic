@@ -25,7 +25,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "FileList.h"
 #include "Proteomatic.h"
 #include "StopWatch.h"
-#include "Script.h"
+#include "IScript.h"
 #include "UnclickableLabel.h"
 #include <math.h>
 #include <stdlib.h>
@@ -123,11 +123,11 @@ class k_ScriptBox: public k_DesktopBox
 {
 	Q_OBJECT
 public:
-	k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_ScriptBox();
 	
 	QList<k_OutputFileBox*> outputFileBoxes();
-	k_Script* script();
+	RefPtr<IScript> script();
 	bool allInputFilesExist();
 	
 signals:
@@ -157,7 +157,7 @@ protected slots:
 	void addOutput(QString as_Text);
 
 protected:
-	k_Script* mk_Script_;
+	RefPtr<IScript> mk_pScript;
 	RefPtr<QWidget> mk_pParameterWidget;
 	QHash<QString, k_OutputFileBox*> mk_OutputFileBoxes;
 	// remember the checkbox that activated an output file box
@@ -192,7 +192,7 @@ struct IFileBox
 class k_ConverterScriptBox: public k_ScriptBox, public IFileBox
 {
 public:
-	k_ConverterScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	k_ConverterScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_ConverterScriptBox();
 	
 	virtual QStringList fileNames();

@@ -31,15 +31,20 @@ public:
 	k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_LocalScript();
 	
-	virtual void start(QStringList ak_Parameters = QStringList());
-	virtual void kill();
-	virtual bool running();
 	virtual QString readAll();
 	virtual QString proposePrefix(QStringList ak_Parameters = QStringList());
+	
+public slots:
+	virtual QString start(const QStringList& ak_InputFiles);
+	virtual void kill(const QString& as_Ticket = QString());
+	
+protected slots:
+	virtual void scriptStartedSlot();
+	virtual void scriptFinishedSlot(int ae_ExitCode, QProcess::ExitStatus ae_Status);
 
 signals:
-	virtual void started();
-	virtual void finished(int, QProcess::ExitStatus);
+	virtual void scriptStarted();
+	virtual void scriptFinished(int);
 	virtual void readyRead();
 
 protected:

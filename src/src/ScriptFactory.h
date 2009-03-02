@@ -21,11 +21,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtCore>
 #include "Proteomatic.h"
-#include "Script.h"
+#include "RefPtr.h"
+#include "IScript.h"
 
 
 class k_ScriptFactory
 {
 public:
-	static k_Script* makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+	static RefPtr<IScript> makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 };

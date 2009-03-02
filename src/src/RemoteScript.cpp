@@ -31,7 +31,7 @@ k_RemoteScript::k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomat
 		if (ls_FirstLine == "---getParameters")
 		{
 			createParameterWidget(lk_Response);
-			mk_DefaultConfiguration = getConfiguration();
+			mk_DefaultConfiguration = configuration();
 			mb_IsGood = true;
 		}
 	}

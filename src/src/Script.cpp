@@ -30,19 +30,17 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
-	: me_Location(ae_Location)
+	: mk_Proteomatic(ak_Proteomatic)
+	, ms_Uri(as_ScriptUri)
+	, me_Location(ae_Location)
 	, me_Type(r_ScriptType::Processor)
-	, ms_ScriptUri(as_ScriptUri)
-	, mk_Proteomatic(ak_Proteomatic)
-	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
-	, mb_IsGood(false)
-	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
-	, mk_OutputDirectory_(NULL)
-	, mk_OutputPrefix_(NULL)
-	, mk_ClearOutputDirectory_(NULL)
-	, mb_HasParameters(false)
+	, me_Status(r_ScriptStatus::Idle)
 	, mb_IncludeOutputFiles(ab_IncludeOutputFiles)
 	, mb_ProfileMode(ab_ProfileMode)
+	, mb_IsGood(false)
+	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
+	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
+	, mb_HasParameters(false)
 {
 }
 
@@ -76,21 +74,27 @@ r_ScriptType::Enumeration k_Script::type() const
 }
 
 
+r_ScriptStatus::Enumeration k_Script::status() const
+{
+	return me_Status;
+}
+
+
 QHash<QString, QString> k_Script::info() const
 {
 	return mk_Info;
 }
 
 
-QWidget* k_Script::parameterWidget() const
+QWidget& k_Script::parameterWidget() const
 {
-	return mk_pParameterWidget.get_Pointer();
+	return *(mk_pParameterWidget.get_Pointer());
 }
 
 
 QString k_Script::uri() const
 {
-	return ms_ScriptUri;
+	return ms_Uri;
 }
 
 
@@ -112,7 +116,7 @@ void k_Script::reset()
 }
 
 
-void k_Script::resetUnchecked()
+void k_Script::resetAndUncheck()
 {
 	this->reset();
 	// uncheck all checkboxes, if any
@@ -128,26 +132,38 @@ void k_Script::resetUnchecked()
 }
 
 
-void k_Script::setPrefix(QString as_Prefix)
+void k_Script::setOutputFilePrefix(const QString& as_Prefix)
 {
-	if (mk_OutputPrefix_)
-		mk_OutputPrefix_->setText(as_Prefix);
+	if (mk_pOutputPrefix)
+		mk_pOutputPrefix->setText(as_Prefix);
 }
 
 
-QString k_Script::prefix() const
+QString k_Script::outputDirectory() const
 {
-	return mk_OutputPrefix_->text();
+	if (mk_pOutputDirectory)
+		return mk_pOutputDirectory->text();
+	else
+		return QString();
 }
 
 
-QList<QString> k_Script::outFiles() const
+QString k_Script::outputFilePrefix() const
+{
+	if (mk_pOutputPrefix)
+		return mk_pOutputPrefix->text();
+	else
+		return QString();
+}
+
+
+QStringList k_Script::outputFileKeys() const
 {
 	return mk_OutFileDetails.keys();
 }
 
 
-QHash<QString, QString> k_Script::outFileDetails(QString as_Key) const
+QHash<QString, QString> k_Script::outputFileDetails(const QString& as_Key) const
 {
 	return mk_OutFileDetails[as_Key];
 }
@@ -159,7 +175,7 @@ QStringList k_Script::commandLineArguments() const
 	foreach (QString ls_Key, mk_ParameterValueWidgets.keys())
 	{
 		lk_Result.push_back("-" + ls_Key);
-		lk_Result.push_back(getParameterValue(ls_Key));
+		lk_Result.push_back(this->parameterValue(ls_Key));
 	}
 	return lk_Result;
 }
@@ -168,80 +184,77 @@ QStringList k_Script::commandLineArguments() const
 QString k_Script::profileDescription() const
 {
 	QStringList lk_ProfileDescription;
-	foreach (QString ls_Key, mk_ParametersOrder)
+	foreach (QString ls_Key, mk_ParameterKeys)
 	{
 		QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[ls_Key];
 		QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
-		if (lk_CheckBox_ != NULL)
-		{
-			if (lk_CheckBox_->checkState() == Qt::Checked)
-				lk_ProfileDescription.push_back(QString("%1: %2").arg(mk_ParameterDefs[ls_Key]["label"]).arg(getHumanReadableParameterValue(ls_Key, getParameterValue(ls_Key))));
-		}
+		if (lk_CheckBox_ && (lk_CheckBox_->checkState() == Qt::Checked))
+			lk_ProfileDescription.push_back(QString("%1: %2").arg(parameterLabel(ls_Key)).arg(humanReadableParameterValue(ls_Key, parameterValue(ls_Key))));
 	}
 	
 	QString ls_Description;
 	if (lk_ProfileDescription.isEmpty())
-		ls_Description = "<i>No parameters have been specified.</i>";
-	else
-		ls_Description = lk_ProfileDescription.join("<br />");
+		lk_ProfileDescription << "<i>No parameters have been specified.</i>";
+
+	ls_Description = lk_ProfileDescription.join("<br />");
 		
 	return ls_Description;
 }
 
 
-QStringList k_Script::inputFileKeys() const
+QStringList k_Script::inputGroupKeys() const
 {
-	return mk_InputFileKeys;
+	return mk_InputGroupKeys;
 }
 
 
-QString k_Script::inputFileLabel(QString as_Key) const
+QString k_Script::inputGroupLabel(const QString& as_Key) const
 {
-	return mk_InputFileLabels[as_Key];
+	return mk_InputGroupLabels[as_Key];
 }
 
 
-QStringList k_Script::inputFileExtensions(QString as_Key) const
+QStringList k_Script::inputGroupExtensions(const QString& as_Key) const
 {
-	return mk_InputFileExtensions[as_Key];
+	return mk_InputGroupExtensions[as_Key];
 }
 
 
-void k_Script::setOutputDirectory(QString as_Path)
+void k_Script::setOutputDirectory(const QString& as_Path)
 {
-	mk_OutputDirectory_->setText(as_Path);
+	mk_pOutputDirectory->setText(as_Path);
 }
 
 
-bool k_Script::checkInputFiles(QHash<QString, QSet<QString> > ak_Files, QString& as_ErrorMessage)
+bool k_Script::checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, QString& as_ErrorMessage) const
 {
 	as_ErrorMessage = "";
 	bool lb_Result = true;
 	// check minimum counts
-	foreach (QString ls_Key, mk_InputFileMinimum.keys())
+	foreach (QString ls_Key, mk_InputGroupMinimum.keys())
 	{
-		int li_Minimum = mk_InputFileMinimum[ls_Key];
+		int li_Minimum = mk_InputGroupMinimum[ls_Key];
 		if (!ak_Files.contains(ls_Key) || ak_Files[ls_Key].size() < li_Minimum)
 		{
 			lb_Result = false;
-			as_ErrorMessage += QString("At least %1 %2 %3 required.<br />").arg(li_Minimum).arg(mk_InputFileLabels[ls_Key]).arg(li_Minimum == 1 ? "file is" : "files are");
+			as_ErrorMessage += QString("At least %1 %2 %3 required.<br />").arg(li_Minimum).arg(mk_InputGroupLabels[ls_Key]).arg(li_Minimum == 1 ? "file is" : "files are");
 		}
 	}
 	// check maximum counts
-	foreach (QString ls_Key, mk_InputFileMaximum.keys())
+	foreach (QString ls_Key, mk_InputGroupMaximum.keys())
 	{
-		int li_Maximum = mk_InputFileMaximum[ls_Key];
+		int li_Maximum = mk_InputGroupMaximum[ls_Key];
 		if (ak_Files.contains(ls_Key) && ak_Files[ls_Key].size() > li_Maximum)
 		{
 			lb_Result = false;
-			as_ErrorMessage += QString("At most %1 %2 %3 allowed.<br />").arg(li_Maximum).arg(mk_InputFileLabels[ls_Key]).arg(li_Maximum == 1 ? "file is" : "files are");
+			as_ErrorMessage += QString("At most %1 %2 %3 allowed.<br />").arg(li_Maximum).arg(mk_InputGroupLabels[ls_Key]).arg(li_Maximum == 1 ? "file is" : "files are");
 		}
 	}
 	return lb_Result;
 }
 
 
-QString k_Script::getParameterValue(QString as_Key) const
+QString k_Script::parameterValue(const QString& as_Key) const
 {
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
 	if (mk_ParameterMultiChoiceWidgets.contains(as_Key))
@@ -290,7 +303,13 @@ QString k_Script::getParameterValue(QString as_Key) const
 }
 
 
-QString k_Script::getHumanReadableParameterValue(QString as_Key, QString as_Value) const
+QString k_Script::parameterDefault(const QString& as_Key) const
+{
+	return mk_DefaultConfiguration[as_Key];
+}
+
+
+QString k_Script::humanReadableParameterValue(const QString& as_Key, const QString& as_Value) const
 {
 	QString ls_Result;
 	QString ls_Type = mk_ParameterDefs[as_Key]["type"];
@@ -332,10 +351,11 @@ QString k_Script::getHumanReadableParameterValue(QString as_Key, QString as_Valu
 }
 
 
-void k_Script::setParameterValue(QString as_Key, QString as_Value)
+void k_Script::setParameter(const QString& as_Key, const QString& as_Value)
 {
 	if (!mk_ParameterValueWidgets.contains(as_Key))
 		return;
+	
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
 	
 	if (mb_ProfileMode)
@@ -381,86 +401,92 @@ void k_Script::setParameterValue(QString as_Key, QString as_Value)
 }
 
 
-QStringList k_Script::getParameterKeys() const
+QStringList k_Script::parameterKeys() const
 {
-	return mk_ParametersOrder;
+	return mk_ParameterKeys;
 }
 
 
-QString k_Script::getHumanReadableParameterKey(QString as_Key) const
+QString k_Script::parameterLabel(const QString& as_Key) const
 {
 	return mk_ParameterDefs[as_Key]["label"];
 }
 
 
-QString k_Script::getHumanReadableParameterValue(QString as_Key) const
+QString k_Script::humanReadableParameterValue(const QString& as_Key) const
 {
-	return getHumanReadableParameterValue(as_Key, getParameterValue(as_Key));
+	return this->humanReadableParameterValue(as_Key, this->parameterValue(as_Key));
 }
 
 
-QHash<QString, QString> k_Script::getConfiguration() const
+QHash<QString, QString> k_Script::configuration() const
 {
 	QHash<QString, QString> lk_Result;
 
 	foreach (QString ls_Key, mk_ParameterValueWidgets.keys())
-		lk_Result[ls_Key] = getParameterValue(ls_Key);
+		lk_Result[ls_Key] = parameterValue(ls_Key);
 
 	return lk_Result;
 }
 
 
-QHash<QString, QString> k_Script::getNonDefaultConfiguration()
+QHash<QString, QString> k_Script::defaultConfiguration() const
+{
+	return mk_DefaultConfiguration;
+}
+
+
+QHash<QString, QString> k_Script::nonDefaultConfiguration() const
 {
 	QHash<QString, QString> lk_Result;
 
 	foreach (QString ls_Key, mk_ParameterValueWidgets.keys())
 	{
-		if (mk_DefaultConfiguration[ls_Key] != getParameterValue(ls_Key))
-			lk_Result[ls_Key] = getParameterValue(ls_Key);
+		if (mk_DefaultConfiguration[ls_Key] != parameterValue(ls_Key))
+			lk_Result[ls_Key] = parameterValue(ls_Key);
 	}
 
 	return lk_Result;
 }
 
 
-void k_Script::setConfiguration(QHash<QString, QString> ak_Configuration)
+void k_Script::setConfiguration(const QHash<QString, QString>& ak_Configuration)
 {
 	// for files, include version number and script URI basename!!
 	QHash<QString, QString>::const_iterator lk_Iter = ak_Configuration.constBegin();
 	while (lk_Iter != ak_Configuration.constEnd()) 
 	{
-		setParameterValue(lk_Iter.key(), lk_Iter.value());
+		this->setParameter(lk_Iter.key(), lk_Iter.value());
 		++lk_Iter;
 	}
 }
 
 
-tk_YamlMap k_Script::getProfile() const
+tk_YamlMap k_Script::profile() const
 {
 	tk_YamlMap lk_Profile;
 	if (!mb_ProfileMode)
 		return lk_Profile;
 		
-	foreach (QString ls_Key, mk_ParametersOrder)
+	foreach (QString ls_Key, mk_ParameterKeys)
 	{
 		QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[ls_Key];
 		QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
 		if (lk_CheckBox_ != NULL)
 		{
 			if (lk_CheckBox_->checkState() == Qt::Checked)
-				lk_Profile[ls_Key] = getParameterValue(ls_Key);
+				lk_Profile[ls_Key] = this->parameterValue(ls_Key);
 		}
 	}
 	return lk_Profile;
 }
 
 
-void k_Script::applyProfile(tk_YamlMap ak_Profile)
+void k_Script::applyProfile(const tk_YamlMap& ak_Profile)
 {
-	foreach (QString ls_Key, mk_ParametersOrder)
+	foreach (QString ls_Key, mk_ParameterKeys)
 		if (ak_Profile.contains(ls_Key))
-			setParameterValue(ls_Key, ak_Profile[ls_Key].toString());
+			this->setParameter(ls_Key, ak_Profile[ls_Key].toString());
 }
 
 
@@ -542,19 +568,17 @@ void k_Script::removeChoiceItems(QList<QListWidgetItem *> ak_Items)
 
 void k_Script::clearOutputDirectoryButtonClicked()
 {
-	if (mk_OutputDirectory_ == NULL)
-		return;
-	
-	mk_OutputDirectory_->clear();
+	if (mk_pOutputDirectory)
+		mk_pOutputDirectory->clear();
 }
 
 
-QString k_Script::inputKeyForFilename(QString as_Path)
+QString k_Script::inputGroupForFilename(const QString& as_Path) const
 {
 	QString ls_Path = as_Path.toLower();
-	foreach (QString ls_Key, mk_InputFileKeys)
+	foreach (QString ls_Key, mk_InputGroupKeys)
 	{
-		foreach (QString ls_Extension, mk_InputFileExtensions[ls_Key])
+		foreach (QString ls_Extension, mk_InputGroupExtensions[ls_Key])
 		{
 			if (ls_Path.endsWith(ls_Extension.toLower()))
 				return ls_Key;
@@ -566,7 +590,7 @@ QString k_Script::inputKeyForFilename(QString as_Path)
 
 void k_Script::setOutputDirectoryButtonClicked()
 {
-	if (mk_OutputDirectory_ == NULL)
+	if (!mk_pOutputDirectory)
 		return;
 	
 	QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
@@ -581,8 +605,8 @@ void k_Script::setOutputDirectoryButtonClicked()
 void k_Script::toggleUi()
 {
 	this->adjustDependentParameters();
-	if (mk_ClearOutputDirectory_ != NULL)
-		mk_ClearOutputDirectory_->setEnabled(!mk_OutputDirectory_->text().isEmpty());
+	if (mk_pClearOutputDirectoryButton)
+		mk_pClearOutputDirectoryButton->setEnabled(!mk_pOutputDirectory->text().isEmpty());
 }
 
 
@@ -604,12 +628,10 @@ void k_Script::resetDialog()
 void k_Script::createParameterWidget(QStringList ak_Definition)
 {
 	ms_DefaultOutputDirectory.clear();
-	mk_InputFileKeys.clear();
-	mk_InputFileLabels.clear();
-	mk_InputFileDescriptions.clear();
-	mk_InputFileExtensions.clear();
-	mk_OutputDirectory_ = NULL;
-	mk_ClearOutputDirectory_ = NULL;
+	mk_InputGroupKeys.clear();
+	mk_InputGroupLabels.clear();
+	mk_InputGroupDescriptions.clear();
+	mk_InputGroupExtensions.clear();
 	mk_pParameterWidget = RefPtr<QWidget>(new QWidget());
 
 	QList<QString> lk_ParametersOrder;
@@ -675,18 +697,18 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				if (ls_Key == "key")
 				{
 					ls_InputFileKey = ls_Value;
-					mk_InputFileKeys.push_back(ls_InputFileKey);
+					mk_InputGroupKeys.push_back(ls_InputFileKey);
 				}
 				else if (ls_Key == "label")
-					mk_InputFileLabels[ls_InputFileKey] = ls_Value;
+					mk_InputGroupLabels[ls_InputFileKey] = ls_Value;
 				else if (ls_Key == "description")
-					mk_InputFileDescriptions[ls_InputFileKey] = ls_Value;
+					mk_InputGroupDescriptions[ls_InputFileKey] = ls_Value;
 				else if (ls_Key == "extensions")
-					mk_InputFileExtensions[ls_InputFileKey] = ls_Value.split("/");
+					mk_InputGroupExtensions[ls_InputFileKey] = ls_Value.split("/");
 				else if (ls_Key == "min")
-					mk_InputFileMinimum[ls_InputFileKey] = ls_Value.toInt();
+					mk_InputGroupMinimum[ls_InputFileKey] = ls_Value.toInt();
 				else if (ls_Key == "max")
-					mk_InputFileMaximum[ls_InputFileKey] = ls_Value.toInt();
+					mk_InputGroupMaximum[ls_InputFileKey] = ls_Value.toInt();
 			}
 		}
 		if (ls_Parameter == "!!!begin defaultOutputDirectory")
@@ -749,7 +771,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			lk_Parameters[ls_Key]["group"] = ls_Group;
 		}
 	}
-	mk_ParametersOrder = lk_ParametersOrder;
+	mk_ParameterKeys = lk_ParametersOrder;
 
 	QHash<QString, QWidget* > lk_Containers;
 	QHash<QString, QGridLayout* > lk_GridLayouts;
@@ -772,11 +794,11 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}
-		if (!mk_InputFileKeys.empty())
+		if (!mk_InputGroupKeys.empty())
 		{
 			QString ls_List;
-			foreach (QString ls_Item, mk_InputFileKeys)
-				ls_List += "<li>" + mk_InputFileDescriptions[ls_Item] + "</li>";
+			foreach (QString ls_Item, mk_InputGroupKeys)
+				ls_List += "<li>" + mk_InputGroupDescriptions[ls_Item] + "</li>";
 			lk_Label_ = new QLabel("Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
@@ -803,7 +825,6 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 
 	foreach (QString ls_Key, lk_ParametersOrder)
 	{
-		mk_ParametersAtDefault[ls_Key] = true;
 		mk_ParameterDefs[ls_Key] = lk_Parameters[ls_Key];
 		if (mk_ParameterDefs[ls_Key].contains("enabled"))
 			mk_DependentParameters.push_back(ls_Key);
@@ -905,7 +926,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		QString ls_Description = "";
 		if (lk_Parameter.contains("description"))
 			ls_Description = lk_Parameter["description"] + " ";
-		ls_Description += QString("(default: %1)").arg(getHumanReadableParameterValue(ls_Key, lk_Parameter["default"]));
+		ls_Description += QString("(default: %1)").arg(humanReadableParameterValue(ls_Key, lk_Parameter["default"]));
 		
 		if (ls_Type == "float")
 		{
@@ -968,7 +989,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			
 			if (ls_Key == "outputDirectory")
 			{
-				mk_OutputDirectory_ = lk_LineEdit_;
+				mk_pOutputDirectory = RefPtr<QLineEdit>(lk_LineEdit_);
 				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
 				lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
 				QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
@@ -976,7 +997,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
 				QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
 				lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
-				mk_ClearOutputDirectory_ = lk_ClearOutputDirectoryButton_;
+				mk_pClearOutputDirectoryButton = RefPtr<QToolButton>(lk_ClearOutputDirectoryButton_);
 				connect(lk_ClearOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(clearOutputDirectoryButtonClicked()));
 				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ClearOutputDirectoryButton_, 0, Qt::AlignTop);
 				QToolButton* lk_SetOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
@@ -991,7 +1012,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			}
 			else if (ls_Key == "outputPrefix")
 			{
-				mk_OutputPrefix_ = lk_LineEdit_;
+				mk_pOutputPrefix = RefPtr<QLineEdit>(lk_LineEdit_);
 				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
 				lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
 				QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
@@ -1000,7 +1021,6 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				QToolButton* lk_ProposePrefixButton_ = new QToolButton(lk_SubContainer_);
 				lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
 				//lk_ProposePrefixButton_->setHint("Let Proteomatic propose a prefix");
-				mk_ProposePrefix_ = lk_ProposePrefixButton_;
 				connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SIGNAL(proposePrefixButtonClicked()));
 				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ProposePrefixButton_, 0, Qt::AlignTop);
 				lk_Container_->setLayout(lk_GroupBoxLayout_);
@@ -1269,8 +1289,7 @@ void k_Script::parameterChanged()
 
 void k_Script::parameterChangedWithKey(QString as_Key)
 {
-	bool lb_Default = mk_DefaultConfiguration[as_Key] == getParameterValue(as_Key);
-	mk_ParametersAtDefault[as_Key] = lb_Default;
+	bool lb_Default = (mk_DefaultConfiguration[as_Key] == this->parameterValue(as_Key));
 	QWidget* lk_Widget_ = mk_WidgetLabelsOrCheckBoxes[as_Key];
 	QLabel* lk_Label_ = dynamic_cast<QLabel*>(lk_Widget_);
 	QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(lk_Widget_);
@@ -1304,7 +1323,7 @@ void k_Script::parameterChangedWithKey(QString as_Key)
 	{
 		foreach (QString ls_Key, mk_GroupParameters[ls_Group])
 		{
-			if (!mk_ParametersAtDefault[ls_Key])
+			if (this->parameterValue(ls_Key) != this->parameterDefault(ls_Key))
 				li_Count += 1;
 		}
 	}

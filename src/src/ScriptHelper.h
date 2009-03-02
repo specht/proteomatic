@@ -21,9 +21,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "ClickableLabel.h"
 #include "ConsoleString.h"
 #include "FileList.h"
+#include "IScript.h"
 #include "Proteomatic.h"
 #include "RefPtr.h"
-#include "Script.h"
 #include "TicketWindow.h"
 #include "ProfileManager.h"
 
@@ -43,7 +43,7 @@ protected slots:
 	void reset();
 	void start();
 	void processStarted();
-	void processFinished(int ai_ExitCode, QProcess::ExitStatus ak_ExitStatus);
+	void processFinished(int ai_ExitCode);
 	void processReadyRead();
 	void parameterLabelClicked(const QString& as_Id);
 	void loadFilesButtonClicked();
@@ -94,8 +94,7 @@ protected:
 
 	k_Proteomatic& mk_Proteomatic;
 
-	// should be a RefPtr, but not possible with VC on win32... (sigh!)
-	k_Script* mk_Script_;
+	RefPtr<IScript> mk_pScript;
 	RefPtr<k_ProfileManager> mk_pProfileManager;
 	
 	QAction* mk_ProfilesAction_;

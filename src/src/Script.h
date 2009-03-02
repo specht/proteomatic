@@ -28,70 +28,92 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Yaml.h"
 
 
-class k_Script: public QObject
+class k_Script: public QObject, public IScript
 {
 	Q_OBJECT
 
 public:
 	k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_Script();
+
 	bool isGood() const;
 	
-	// hasParameters is true if there are any parameters except output parameters
-	bool hasParameters() const;
+	// ---------------------------------------------------------
+	// IScript
+	// ---------------------------------------------------------
 	
-	r_ScriptLocation::Enumeration location() const;
-	r_ScriptType::Enumeration type() const;
-	
-	QHash<QString, QString> info() const;
-	QWidget* parameterWidget() const;
-	QString uri() const;
+	// general script properties
+	virtual QString uri() const;
+	virtual r_ScriptLocation::Enumeration location() const;
+	virtual r_ScriptType::Enumeration type() const;
+	virtual r_ScriptStatus::Enumeration status() const;
+
+	// script information
 	virtual QString title() const;
 	virtual QString description() const;
-
-	void setPrefix(QString as_Prefix);
-	QString prefix() const;
-	QList<QString> outFiles() const;
-	QHash<QString, QString> outFileDetails(QString as_Key) const;
-
-	QString getParameterValue(QString as_Key) const;
-	QString getHumanReadableParameterValue(QString as_Key, QString as_Value) const;
-	void setParameterValue(QString as_Key, QString as_Value);
-	QStringList getParameterKeys() const;
-	QString getHumanReadableParameterKey(QString as_Key) const;
-	QString getHumanReadableParameterValue(QString as_Key) const;
-
-	QHash<QString, QString> getConfiguration() const;
-	QHash<QString, QString> getNonDefaultConfiguration();
-	void setConfiguration(QHash<QString, QString> ak_Configuration);
+	virtual bool hasParameters() const;
+	virtual QHash<QString, QString> info() const;
 	
-	tk_YamlMap getProfile() const;
-	void applyProfile(tk_YamlMap ak_Profile);
-
-	QStringList commandLineArguments() const;
-	QString profileDescription() const;
-	QStringList inputFileKeys() const;
-	QString inputFileLabel(QString as_Key) const;
-	QStringList inputFileExtensions(QString as_Key) const;
-	QString inputKeyForFilename(QString as_Path);
-	void setOutputDirectory(QString as_Path);
+	// parameter widget
+	virtual QWidget& parameterWidget() const;
+	
+	// script parameters
+	virtual QStringList parameterKeys() const;
+	virtual QString parameterLabel(const QString& as_Key) const;
+	virtual QString parameterValue(const QString& as_Key) const;
+	virtual QString parameterDefault(const QString& as_Key) const;
+	virtual QString humanReadableParameterValue(const QString& as_Key, const QString& as_Value) const;
+	virtual QString humanReadableParameterValue(const QString& as_Key) const;
+	virtual void setParameter(const QString& as_Key, const QString& as_Value);
+	
+	// script configuration
+	
+	// get all parameter key/value pairs
+	virtual QHash<QString, QString> configuration() const;
+	// get all parameter key/default value pairs
+	virtual QHash<QString, QString> defaultConfiguration() const;
+	// get all parameter key/value pairs that have been 'set',
+	// that is, whose values are non-default
+	virtual QHash<QString, QString> nonDefaultConfiguration() const;
+	virtual void setConfiguration(const QHash<QString, QString>& ak_Configuration);
+	
+	// profiles
+	virtual tk_YamlMap profile() const;
+	virtual QString profileDescription() const;
+	virtual void applyProfile(const tk_YamlMap& ak_Profile);
+	
+	// input files
+	virtual QStringList inputGroupKeys() const;
+	virtual QString inputGroupLabel(const QString& as_Key) const;
+	virtual QStringList inputGroupExtensions(const QString& as_Key) const;
+	virtual QString inputGroupForFilename(const QString& as_Path) const;
 	// checkInputFiles doesn't care whether files are actually there,
 	// it just checks whether all min/max requirements are fulfilled.
-	// files are filenames for input file key
-	bool checkInputFiles(QHash<QString, QSet<QString> > ak_Files, QString& as_InputFilesErrorMessage);
+	// ak_Files is a hash {group => set of filenames}
+	virtual bool checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, QString& as_InputFilesErrorMessage) const;
+
+	// output files
+	virtual QString outputDirectory() const;
+	virtual void setOutputDirectory(const QString& as_Path);
+	virtual QString outputFilePrefix() const;
+	virtual void setOutputFilePrefix(const QString& as_Prefix);
+	virtual QStringList outputFileKeys() const;
+	virtual QHash<QString, QString> outputFileDetails(const QString& as_Key) const;
 	
-	virtual void start(QStringList ak_Parameters) = 0;
-	virtual void kill() = 0;
-	virtual bool running() = 0;
 	virtual QString readAll() = 0;
 	
 signals:
+	virtual void scriptStarted();
+	virtual void scriptFinished(int ai_ExitCode);
+	virtual void parameterChanged(const QString& as_Key);
 	void profileDescriptionChanged(const QString&);
 	void proposePrefixButtonClicked();
 	
 public slots:
-	void reset();
-	void resetUnchecked();
+	virtual void reset();
+	virtual void resetAndUncheck();
+	virtual QString start(const QStringList& ak_InputFiles) = 0;
+	virtual void kill(const QString& as_Ticket = QString()) = 0;
 
 protected slots:
 	void addChoiceItems();
@@ -108,46 +130,57 @@ protected:
 	void addChoiceItems(QString as_Key, QStringList ak_Choices);
 	void createParameterWidget(QStringList ak_Definition);
 	void adjustDependentParameters();
+	QStringList commandLineArguments() const;
 
+	k_Proteomatic& mk_Proteomatic;
+
+	QString ms_Uri;
 	r_ScriptLocation::Enumeration me_Location;
 	r_ScriptType::Enumeration me_Type;
-	QString ms_ScriptUri;
-	k_Proteomatic& mk_Proteomatic;
-	QString ms_Title;
+	r_ScriptStatus::Enumeration me_Status;
+	bool mb_IncludeOutputFiles;
+	bool mb_ProfileMode;
 	bool mb_IsGood;
+	
+	QString ms_Title;
 	QString ms_Description;
+	bool mb_HasParameters;
 	QString ms_DefaultOutputDirectory;
+
 	RefPtr<QWidget> mk_pParameterWidget;
-	QHash<QString, QWidget* > mk_ParameterValueWidgets;
-	QHash<QString, QWidget* > mk_ParameterDisplayWidgets;
+	
+	QStringList mk_ParameterKeys;
+	QHash<QString, QStringList> mk_GroupParameters;
+	
+	QHash<QString, QString> mk_Configuration;
+	QHash<QString, QString> mk_DefaultConfiguration;
+	
+	QHash<QString, QWidget*> mk_ParameterValueWidgets;
+	QHash<QString, QWidget*> mk_ParameterDisplayWidgets;
 	QHash<QString, QList<QWidget*> > mk_ParameterMultiChoiceWidgets;
-	QHash<QString, QDialog* > mk_ParameterMultiChoiceDialogs;
+	QHash<QString, QDialog*> mk_ParameterMultiChoiceDialogs;
 	QHash<QString, k_FoldedHeader*> mk_FoldedHeaders;
+	
 	QHash<QString, QHash<QString, QString> > mk_OutFileDetails;
 	QHash<QString, QWidget*> mk_WidgetLabelsOrCheckBoxes;
 	QHash<QString, QHash<QString, QString> > mk_ParameterDefs;
 	QHash<QString, QHash<QString, QString> > mk_ParameterValueLabels;
-	QStringList mk_ParametersOrder;
-	QHash<QString, bool> mk_ParametersAtDefault;
-	QHash<QString, QStringList> mk_GroupParameters;
-	QHash<QString, QString> mk_DefaultConfiguration;
+	
 	QHash<QString, QString> mk_Info;
-	QLineEdit* mk_OutputDirectory_;
-	QLineEdit* mk_OutputPrefix_;
-	QToolButton* mk_ClearOutputDirectory_;
-	bool mb_HasParameters;
-	bool mb_IncludeOutputFiles;
-	bool mb_ProfileMode;
-	QToolButton* mk_ProposePrefix_;
-	QStringList mk_InputFileKeys;
-	QHash<QString, QString> mk_InputFileLabels;
-	QHash<QString, QStringList> mk_InputFileExtensions;
-	QHash<QString, QString> mk_InputFileDescriptions;
+	
+	QStringList mk_InputGroupKeys;
+	QHash<QString, QString> mk_InputGroupLabels;
+	QHash<QString, QStringList> mk_InputGroupExtensions;
+	QHash<QString, QString> mk_InputGroupDescriptions;
 	// these two hashes contain the optional input file min/max counts
 	// if a min/max value has not been defined, there will be no entry
 	// in the hashes. simple as that.
-	QHash<QString, int> mk_InputFileMinimum;
-	QHash<QString, int> mk_InputFileMaximum;
+	QHash<QString, int> mk_InputGroupMinimum;
+	QHash<QString, int> mk_InputGroupMaximum;
 	
 	QStringList mk_DependentParameters;
+	
+	RefPtr<QLineEdit> mk_pOutputDirectory;
+	RefPtr<QLineEdit> mk_pOutputPrefix;
+	RefPtr<QToolButton> mk_pClearOutputDirectoryButton;
 };

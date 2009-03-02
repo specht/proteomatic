@@ -24,7 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "FoldedHeader.h"
 #include "Proteomatic.h"
 
-class k_Script;
+struct IScript;
 
 
 struct r_ProfileState
@@ -52,7 +52,7 @@ class k_ProfileManager: public QDialog
 	Q_OBJECT
 	
 public:
-	k_ProfileManager(k_Proteomatic& ak_Proteomatic, k_Script* ak_CurrentScript_ = NULL, QWidget * parent = 0, Qt::WindowFlags f = 0);
+	k_ProfileManager(k_Proteomatic& ak_Proteomatic, IScript* ak_CurrentScript_ = NULL, QWidget * parent = 0, Qt::WindowFlags f = 0);
 	virtual ~k_ProfileManager();
 	
 	virtual void reset();
@@ -76,7 +76,7 @@ protected:
 	r_ProfileState::Enumeration classifyProfile(tk_YamlMap ak_Profile);
 
 	k_Proteomatic& mk_Proteomatic;
-	k_Script* mk_CurrentScript_;
+	IScript* mk_CurrentScript_;
 	QString ms_TargetScriptUri;
 	QStringList mk_TargetScriptParameterKeys;
 	QPushButton* mk_ApplyButton_;

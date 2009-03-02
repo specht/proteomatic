@@ -306,22 +306,22 @@ void k_Desktop::setMouseMode(r_MouseMode::Enumeration ae_MouseMode)
 
 void k_Desktop::addScriptBox(QAction* ak_Action_)
 {
-	k_Script* lk_Script_ = k_ScriptFactory::makeScript(ak_Action_->data().toString(), mk_Proteomatic, false, false);
+	RefPtr<IScript> lk_pScript = k_ScriptFactory::makeScript(ak_Action_->data().toString(), mk_Proteomatic, false, false);
 	
 	k_ScriptBox* lk_ScriptBox_ = NULL;
-	if (lk_Script_->type() == r_ScriptType::Processor)
-		lk_ScriptBox_ = new k_ScriptBox(lk_Script_, this, mk_Proteomatic);
+	if (lk_pScript->type() == r_ScriptType::Processor)
+		lk_ScriptBox_ = new k_ScriptBox(lk_pScript, this, mk_Proteomatic);
 	else
-		lk_ScriptBox_ = new k_ConverterScriptBox(lk_Script_, this, mk_Proteomatic);
+		lk_ScriptBox_ = new k_ConverterScriptBox(lk_pScript, this, mk_Proteomatic);
 		
 	this->addBox(lk_ScriptBox_);
 	
 	connect(lk_ScriptBox_, SIGNAL(scriptFinished()), this, SLOT(scriptFinished()));
 	
 	// activate default output files after the script box has been constructed
-	foreach (QString ls_Key, lk_Script_->outFiles())
+	foreach (QString ls_Key, lk_pScript->outputFileKeys())
 	{
-		QHash<QString, QString> lk_OutFile = lk_Script_->outFileDetails(ls_Key);
+		QHash<QString, QString> lk_OutFile = lk_pScript->outputFileDetails(ls_Key);
 		if (lk_OutFile.contains("default"))
 			lk_ScriptBox_->toggleOutputFile(ls_Key, lk_OutFile["default"] == "true" || lk_OutFile["default"] == "yes");
 	}

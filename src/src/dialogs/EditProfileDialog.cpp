@@ -18,11 +18,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "EditProfileDialog.h"
+#include "FoldedHeader.h"
 #include "ScriptFactory.h"
 
 
 k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, 
-										 k_Script* ak_CurrentScript_, 
+										 IScript* ak_CurrentScript_, 
 										 tk_YamlMap ak_OldProfile, 
 										 QWidget * parent, Qt::WindowFlags f)
 	: QDialog(parent, f)
@@ -34,10 +35,9 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	, mk_ProfileTitle_(NULL)
 	, mk_ProfileDescription_(NULL)
 {
-	mk_pScript = RefPtr<k_Script>(k_ScriptFactory::makeScript(ms_TargetScriptUri, mk_Proteomatic, false, true));
+	mk_pScript = k_ScriptFactory::makeScript(ms_TargetScriptUri, mk_Proteomatic, false, true);
 	this->setWindowTitle(ms_WindowTitle);
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
-
 	
 	QToolBar* lk_ToolBar_ = new QToolBar("Actions", this);
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -58,10 +58,10 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	lk_CopyFromButton_->setMenu(lk_CopyFromMenu_);
 	
 	QAction* lk_ClearAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "&Reset");
-	connect(lk_ClearAction_, SIGNAL(triggered()), mk_pScript.get_Pointer(), SLOT(resetUnchecked()));
+	connect(lk_ClearAction_, SIGNAL(triggered()), dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SLOT(resetAndUncheck()));
 	
 	// determine incoming parameters that are non-applicable to the current script
-	QStringList lk_ScriptKeys = mk_pScript->getParameterKeys();
+	QStringList lk_ScriptKeys = mk_pScript->parameterKeys();
 	foreach (QString ls_OldProfileKey, ak_OldProfile["settings"].toMap().uniqueKeys())
 	{
 		if (!lk_ScriptKeys.contains(ls_OldProfileKey))
@@ -160,7 +160,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	lk_MainLayout_->addWidget(lk_Frame_);
 	
 	lk_MainLayout_->addWidget(lk_HSplitter_);
-	lk_ScrollArea_->setWidget(mk_pScript->parameterWidget());
+	lk_ScrollArea_->setWidget(&mk_pScript->parameterWidget());
 	lk_HSplitter_->addWidget(lk_ScrollArea_);
 	lk_HLayout_ = new QHBoxLayout(this);
 	lk_HLayout_->addStretch();
@@ -176,7 +176,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	lk_MainLayout_->addLayout(lk_HLayout_);
 	this->setLayout(lk_MainLayout_);
 	mk_ProfileDescriptionText_->setText(mk_pScript->profileDescription());
-	connect(mk_pScript.get_Pointer(), SIGNAL(profileDescriptionChanged(const QString&)), mk_ProfileDescriptionText_, SLOT(setText(const QString&)));
+	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(profileDescriptionChanged(const QString&)), mk_ProfileDescriptionText_, SLOT(setText(const QString&)));
 
 	lk_HSplitter_->setStretchFactor(0, 4);
 	lk_HSplitter_->setStretchFactor(1, 5);
@@ -195,7 +195,7 @@ tk_YamlMap k_EditProfileDialog::getProfile()
 	lk_Profile["title"] = mk_ProfileTitle_->text();
 	lk_Profile["description"] = mk_ProfileDescription_->text();
 	
-	tk_YamlMap lk_Settings = mk_pScript->getProfile();
+	tk_YamlMap lk_Settings = mk_pScript->profile();
 	// add all non-applicable parameters that came in, so that they are not lost
 	foreach (QString ls_Key, mk_NonApplicableParameters.uniqueKeys())
 		lk_Settings[ls_Key] = mk_NonApplicableParameters[ls_Key];
@@ -207,8 +207,8 @@ tk_YamlMap k_EditProfileDialog::getProfile()
 	foreach (QString ls_Key, lk_Profile["settings"].toMap().uniqueKeys())
 	{
 		tk_YamlMap lk_Entry;
-		lk_Entry["key"] = mk_pScript->getHumanReadableParameterKey(ls_Key);
-		lk_Entry["value"] = mk_pScript->getHumanReadableParameterValue(ls_Key);
+		lk_Entry["key"] = mk_pScript->parameterLabel(ls_Key);
+		lk_Entry["value"] = mk_pScript->humanReadableParameterValue(ls_Key);
 		lk_Verbose[ls_Key] = lk_Entry;
 	}
 	// add all non-applicable parameters that came in, so that they are not lost
@@ -249,5 +249,5 @@ void k_EditProfileDialog::copyFromCurrentScript()
 	if (!mk_CurrentScript_)
 		return;
 		
-	mk_pScript->setConfiguration(mk_CurrentScript_->getNonDefaultConfiguration());
+	mk_pScript->setConfiguration(mk_CurrentScript_->nonDefaultConfiguration());
 }

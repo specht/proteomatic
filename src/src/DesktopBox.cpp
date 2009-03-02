@@ -209,11 +209,11 @@ bool k_DesktopBox::cursorWithinSizeGrip(QPoint ak_Position)
 }
 
 
-k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
-	, mk_Script_(ak_Script_)
+	, mk_pScript(ak_pScript)
 {
-	k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_Script_);
+	k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer());
 	if (lk_LocalScript_)
 	{
 		connect(lk_LocalScript_, SIGNAL(started()), this, SLOT(scriptStarted()));
@@ -225,7 +225,7 @@ k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteoma
 	
 	QHBoxLayout* lk_HLayout_ = new QHBoxLayout(this);
 	
-    QLabel* lk_Label_ = new QLabel(mk_Script_->title(), this);
+    QLabel* lk_Label_ = new QLabel(mk_pScript->title(), this);
     QFont lk_Font(lk_Label_->font());
     lk_Font.setBold(true);
     lk_Label_->setFont(lk_Font);
@@ -247,7 +247,7 @@ k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteoma
 	QHBoxLayout* lk_ButtonLayout_ = new QHBoxLayout();
 	
 	QScrollArea* lk_ScrollArea_ = new QScrollArea();
-	lk_ScrollArea_->setWidget(mk_Script_->parameterWidget());
+	lk_ScrollArea_->setWidget(&mk_pScript->parameterWidget());
 	lk_ScrollArea_->setWidgetResizable(true);
 	
 	QDialog* lk_ParameterWidget_ = new QDialog();
@@ -255,7 +255,7 @@ k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteoma
 	mk_pParameterWidget = RefPtr<QWidget>(lk_ParameterWidget_);
 	
 	mk_pParameterWidget->resize(500, 600);
-	mk_pParameterWidget->setWindowTitle(mk_Script_->title());
+	mk_pParameterWidget->setWindowTitle(mk_pScript->title());
 	mk_pParameterWidget->setWindowIcon(QIcon(":icons/proteomatic.png"));
 	
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_ParameterWidget_);
@@ -266,7 +266,7 @@ k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteoma
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
 	lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
-	lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", mk_Script_, SLOT(reset()));
+	lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SLOT(reset()));
 	QWidget* lk_StretchLabel_ = new QWidget(lk_ParameterWidget_);
 	lk_StretchLabel_->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
 	lk_StretchLabel_->setContentsMargins(0, 0, 0, 0);
@@ -298,7 +298,7 @@ k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteoma
 	lk_SHLayout_->addWidget(lk_CloseButton_);
 	lk_SVLayout_->addLayout(lk_SHLayout_);
 	mk_pOutputWidget->setWindowIcon(QIcon(":icons/proteomatic.png"));
-	mk_pOutputWidget->setWindowTitle(mk_Script_->title());
+	mk_pOutputWidget->setWindowTitle(mk_pScript->title());
 	connect(lk_ShowOutputButton_, SIGNAL(clicked()), mk_pOutputWidget.get_Pointer(), SLOT(show()));
 	connect(lk_ShowOutputButton_, SIGNAL(clicked()), mk_pOutputWidget.get_Pointer(), SLOT(raise()));
 	
@@ -317,22 +317,15 @@ k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteoma
 	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
 
 
-/*
-	QPushButton* lk_ShowInfoButton_ = new QPushButton(this);
-	lk_ShowInfoButton_->setIcon(QIcon(":/icons/info.png"));
-	lk_ButtonLayout_->addWidget(lk_ShowInfoButton_);
-	*/
-	//connect(lk_ShowInfoButton_, SIGNAL(clicked()), mk_Script.parameterWidget(), SLOT(show()));
-
 	mk_Layout.addLayout(lk_ButtonLayout_);
 
 	mk_Layout.addWidget(&mk_PrefixWidget);
 	connect(&mk_PrefixWidget, SIGNAL(textChanged(const QString&)), this, SLOT(prefixChanged(const QString&)));
 
-	QStringList lk_OutKeys = mk_Script_->outFiles();
+	QStringList lk_OutKeys = mk_pScript->outputFileKeys();
 	foreach (QString ls_Key, lk_OutKeys)
 	{
-		QHash<QString, QString> lk_OutFile = mk_Script_->outFileDetails(ls_Key);
+		QHash<QString, QString> lk_OutFile = mk_pScript->outputFileDetails(ls_Key);
 		QCheckBox* lk_CheckBox_ = new QCheckBox(lk_OutFile["label"], this);
 		mk_Layout.addWidget(lk_CheckBox_);
 		lk_CheckBox_->setObjectName(ls_Key);
@@ -345,7 +338,6 @@ k_ScriptBox::k_ScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteoma
 
 k_ScriptBox::~k_ScriptBox() 
 { 
-	delete mk_Script_;
 }
 
 
@@ -355,9 +347,9 @@ QList<k_OutputFileBox*> k_ScriptBox::outputFileBoxes()
 }
 
 
-k_Script* k_ScriptBox::script()
+RefPtr<IScript> k_ScriptBox::script()
 {
-	return mk_Script_;
+	return mk_pScript;
 }
 
 
@@ -428,7 +420,7 @@ void k_ScriptBox::start()
 	foreach (QString ls_Key, mk_OutputFileBoxes.keys())
 		lk_Arguments << "-" + ls_Key << "yes";
 	
-	mk_Script_->start(lk_Arguments);
+	mk_pScript->start(lk_Arguments);
 }
 
 
@@ -447,10 +439,10 @@ void k_ScriptBox::prefixChanged(const QString& as_Prefix)
 
 void k_ScriptBox::proposePrefixButtonClicked()
 {
-	if (!mk_Script_)
+	if (!mk_pScript)
 		return;
 
-	if (mk_Script_->running())
+	if (mk_pScript->status() == r_ScriptStatus::Running)
 		return;
 
 	QStringList lk_Arguments;
@@ -458,9 +450,9 @@ void k_ScriptBox::proposePrefixButtonClicked()
 	foreach (tk_StringStringHash lk_BoxFiles, mk_InputFileBoxes.values())
 		lk_Arguments << lk_BoxFiles.keys();
 
-	if (mk_Script_->location() == r_ScriptLocation::Local)
+	if (mk_pScript->location() == r_ScriptLocation::Local)
 	{
-		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_Script_))->proposePrefix(lk_Arguments);
+		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer()))->proposePrefix(lk_Arguments);
 		if (ls_Result.startsWith("--proposePrefix"))
 		{
 			QStringList lk_Result = ls_Result.split("\n");
@@ -488,7 +480,7 @@ void k_ScriptBox::fileBoxConnected(IFileBox* ak_FileBox_)
 	// for each file name, determine the input file group
 	foreach (QString ls_Filename, ak_FileBox_->fileNames())
 	{
-		QString ls_Key = mk_Script_->inputKeyForFilename(ls_Filename);
+		QString ls_Key = mk_pScript->inputGroupForFilename(ls_Filename);
 		mk_InputFileBoxes[ak_FileBox_][ls_Filename] = ls_Key;
 	}
 
@@ -523,7 +515,7 @@ void k_ScriptBox::updateStatus()
 	// update status unless finished or failed
 	if ((me_Status != r_BoxStatus::Finished) && (me_Status != r_BoxStatus::Failed) && (me_Status != r_BoxStatus::Running))
 	{
-		if (mk_Script_->checkInputFiles(lk_Files, ms_InputFilesErrorMessage))
+		if (mk_pScript->checkInputFiles(lk_Files, ms_InputFilesErrorMessage))
 			me_Status = r_BoxStatus::Ready;
 		else
 			me_Status = r_BoxStatus::InputFilesMissing;
@@ -565,7 +557,7 @@ void k_ScriptBox::reportStatus()
 
 void k_ScriptBox::toggleOutputFile(QString as_Key, bool ab_Enabled, bool ab_ToggleCheckBox)
 {
-	QHash<QString, QString> lk_OutFile = mk_Script_->outFileDetails(as_Key);
+	QHash<QString, QString> lk_OutFile = mk_pScript->outputFileDetails(as_Key);
 	if (ab_Enabled)
 	{
 		if (!mk_OutputFileBoxes.contains(as_Key))
@@ -608,7 +600,7 @@ void k_ScriptBox::fileBoxChanged()
 	// for each file name, determine the input file group
 	foreach (QString ls_Filename, lk_Box_->fileNames())
 	{
-		QString ls_Key = mk_Script_->inputKeyForFilename(ls_Filename);
+		QString ls_Key = mk_pScript->inputGroupForFilename(ls_Filename);
 		mk_InputFileBoxes[lk_Box_][ls_Filename] = ls_Key;
 	}
 	
@@ -622,10 +614,10 @@ void k_ScriptBox::fileBoxChanged()
 
 void k_ScriptBox::showProfileManager()
 {
-	RefPtr<k_ProfileManager> lk_pProfileManager(new k_ProfileManager(mk_Proteomatic, mk_Script_));
+	RefPtr<k_ProfileManager> lk_pProfileManager(new k_ProfileManager(mk_Proteomatic, mk_pScript.get_Pointer()));
 	lk_pProfileManager->reset();
 	if (lk_pProfileManager->exec())
-		mk_Script_->setConfiguration(lk_pProfileManager->getGoodProfileMix());
+		mk_pScript->setConfiguration(lk_pProfileManager->getGoodProfileMix());
 }
 
 
@@ -651,7 +643,7 @@ void k_ScriptBox::scriptFinished(int ai_ExitCode, QProcess::ExitStatus ae_Status
 
 void k_ScriptBox::scriptReadyRead()
 {
-	addOutput(mk_Script_->readAll());
+	addOutput(mk_pScript->readAll());
 }
 
 
@@ -664,8 +656,8 @@ void k_ScriptBox::addOutput(QString as_Text)
 }
 
 
-k_ConverterScriptBox::k_ConverterScriptBox(k_Script* ak_Script_, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: k_ScriptBox(ak_Script_, ak_Parent_, ak_Proteomatic)
+k_ConverterScriptBox::k_ConverterScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+	: k_ScriptBox(ak_pScript, ak_Parent_, ak_Proteomatic)
 {
 	QBoxLayout* lk_HBoxLayout_ = new QHBoxLayout(this);
 	lk_HBoxLayout_->addWidget(&mk_FileList);

@@ -18,17 +18,26 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "ScriptFactory.h"
+#include "IScript.h"
+#include "Script.h"
 #include "LocalScript.h"
 #include "RemoteScript.h"
 
 
-k_Script* k_ScriptFactory::makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
+RefPtr<IScript> k_ScriptFactory::makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
 {
 	k_Script* lk_Script_ = NULL;
 	if (as_ScriptUri.startsWith("druby://"))
-		lk_Script_ = new k_RemoteScript(as_ScriptUri, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode);
+		//lk_Script_ = new k_RemoteScript(as_ScriptUri, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode);
+		lk_Script_ = NULL;
 	else
 		lk_Script_ = new k_LocalScript(as_ScriptUri, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode);
+	
+	if (lk_Script_ && (!lk_Script_->isGood()))
+	{
+		delete lk_Script_;
+		lk_Script_ = NULL;
+	}
 		
-	return lk_Script_;
+	return RefPtr<IScript>(lk_Script_);
 }

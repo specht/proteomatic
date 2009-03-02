@@ -21,8 +21,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtCore>
 #include <QtGui>
+#include "IScript.h"
 #include "Proteomatic.h"
-#include "Script.h"
 #include "Yaml.h"
 
 
@@ -31,7 +31,7 @@ class k_EditProfileDialog: public QDialog
 	Q_OBJECT
 	
 public:
-	k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, k_Script* ak_CurrentScript_, tk_YamlMap ak_OldProfile = tk_YamlMap(), QWidget * parent = 0, Qt::WindowFlags f = 0);
+	k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, IScript* ak_CurrentScript_, tk_YamlMap ak_OldProfile = tk_YamlMap(), QWidget * parent = 0, Qt::WindowFlags f = 0);
 	virtual ~k_EditProfileDialog();
 	
 	tk_YamlMap getProfile();
@@ -43,9 +43,9 @@ protected slots:
 protected:
 	bool mb_CreateNewMode;
 	k_Proteomatic& mk_Proteomatic;
-	k_Script* mk_CurrentScript_;
+	IScript* mk_CurrentScript_;
 	QString ms_TargetScriptUri;
-	RefPtr<k_Script> mk_pScript;
+	RefPtr<IScript> mk_pScript;
 	QString ms_WindowTitle;
 	QLineEdit* mk_ProfileTitle_;
 	QLineEdit* mk_ProfileDescription_;

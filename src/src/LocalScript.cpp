@@ -25,8 +25,8 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 	: k_Script(r_ScriptLocation::Local, as_ScriptPath, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
 {
 	mk_Process.setProcessChannelMode(QProcess::MergedChannels);
-	connect(&mk_Process, SIGNAL(started()), this, SIGNAL(started()));
-	connect(&mk_Process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SIGNAL(finished(int, QProcess::ExitStatus)));
+	connect(&mk_Process, SIGNAL(started()), this, SLOT(scriptStartedSlot()));
+	connect(&mk_Process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(scriptFinishedSlot(int, QProcess::ExitStatus)));
 	connect(&mk_Process, SIGNAL(readyReadStandardError()), this, SIGNAL(readyRead()));
 	connect(&mk_Process, SIGNAL(readyReadStandardOutput()), this, SIGNAL(readyRead()));
 
@@ -122,7 +122,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 			if (ls_FirstLine == "---getParameters")
 			{
 				createParameterWidget(lk_Response);
-				mk_DefaultConfiguration = getConfiguration();
+				mk_DefaultConfiguration = configuration();
 				mb_IsGood = true;
 			}
 		}
@@ -135,27 +135,36 @@ k_LocalScript::~k_LocalScript()
 }
 
 
-void k_LocalScript::start(QStringList ak_Parameters)
+QString k_LocalScript::start(const QStringList& ak_Files)
 {
-	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << ms_ScriptUri) + commandLineArguments() + ak_Parameters, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << this->uri()) + commandLineArguments() + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	return QString();
 }
 
 
 QString k_LocalScript::proposePrefix(QStringList ak_Parameters)
 {
-	return mk_Proteomatic.syncRuby((QStringList() << ms_ScriptUri) << commandLineArguments() << "--proposePrefix" << ak_Parameters);
+	return mk_Proteomatic.syncRuby((QStringList() << this->uri()) << this->commandLineArguments() << "--proposePrefix" << ak_Parameters);
 }
 
 
-void k_LocalScript::kill()
+void k_LocalScript::kill(const QString& /*as_Ticket*/)
 {
 	mk_Process.kill();
 }
 
 
-bool k_LocalScript::running()
+void k_LocalScript::scriptStartedSlot()
 {
-	return mk_Process.state() != QProcess::NotRunning;
+	me_Status = r_ScriptStatus::Running;
+	emit scriptStarted();
+}
+
+
+void k_LocalScript::scriptFinishedSlot(int ai_ExitCode, QProcess::ExitStatus ae_Status)
+{
+	me_Status = r_ScriptStatus::Idle;
+	emit scriptFinished(ae_Status == QProcess::CrashExit ? 1 : ai_ExitCode);
 }
 
 

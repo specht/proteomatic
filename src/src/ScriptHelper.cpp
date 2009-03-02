@@ -21,8 +21,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScriptFactory.h"
 #include "ClickableLabel.h"
 #include "CiListWidgetItem.h"
+#include "IScript.h"
 #include "Proteomatic.h"
-#include "Script.h"
 #include "LocalScript.h"
 #include "RemoteScript.h"
 #include "TicketWindow.h"
@@ -37,7 +37,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mk_MainLayout(this)
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
-	, mk_Script_(NULL)
 	, mk_pProfileManager(new k_ProfileManager(ak_Proteomatic, NULL, this))
 	, mk_ProgressDialog_(NULL)
 {
@@ -254,9 +253,6 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 
 k_ScriptHelper::~k_ScriptHelper()
 {
-	if (mk_Script_)
-		delete mk_Script_;
-	mk_Script_ = NULL;
 }
 
 
@@ -272,13 +268,13 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 	foreach (QUrl lk_Url, ak_Event_->mimeData()->urls())
 	{
 		QString ls_Path = lk_Url.toLocalFile();
-		if (ls_Path != "" && mk_Script_)
+		if (ls_Path != "" && mk_pScript)
 		{
 			QFileInfo lk_FileInfo(ls_Path);
 			if (lk_FileInfo.isDir())
 			{
-				if (mk_Script_)
-					mk_Script_->setOutputDirectory(ls_Path);
+				if (mk_pScript)
+					mk_pScript->setOutputDirectory(ls_Path);
 			}
 			else
 				addInputFile(ls_Path);
@@ -293,15 +289,17 @@ void k_ScriptHelper::setScript(QString as_Filename)
 	resetDialog();
 	if (checkVersionChanged())
 		return;
-
-	if (mk_Script_)
-		delete mk_Script_;
-	mk_Script_ = NULL;
 	
-	mk_Script_ = k_ScriptFactory::makeScript(as_Filename, mk_Proteomatic, true);
-	mk_pProfileManager = RefPtr<k_ProfileManager>(new k_ProfileManager(mk_Proteomatic, mk_Script_, this));
-		
-	activateScript();
+	mk_pProfileManager = RefPtr<k_ProfileManager>(NULL);
+	mk_pScript = RefPtr<IScript>(NULL);
+
+	mk_pScript = k_ScriptFactory::makeScript(as_Filename, mk_Proteomatic, true);
+	
+	if (mk_pScript)
+	{
+		mk_pProfileManager = RefPtr<k_ProfileManager>(new k_ProfileManager(mk_Proteomatic, mk_pScript.get_Pointer(), this));
+		activateScript();
+	}
 	
 	toggleUi();
 }
@@ -309,40 +307,36 @@ void k_ScriptHelper::setScript(QString as_Filename)
 
 void k_ScriptHelper::activateScript()
 {
-	if (mk_Script_->isGood())
+	if (mk_pScript)
 	{
-		QString ls_Text = "<b>" + mk_Script_->title() + "</b>";
-		if (mk_Script_->description().length() > 0)
-			ls_Text += "<br /><br />" + mk_Script_->description();
-		mk_Script_->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
-		connect(mk_Script_, SIGNAL(proposePrefixButtonClicked()), this, SLOT(proposePrefix()));
-		//mk_UpperLayout_->insertWidget(0, mk_Script_->parameterWidget());
-		//mk_HSplitter_->insertWidget(0, mk_Script_->parameterWidget());
-		mk_ParameterLayout_->addWidget(mk_Script_->parameterWidget());
+		QString ls_Text = "<b>" + mk_pScript->title() + "</b>";
+		if (mk_pScript->description().length() > 0)
+			ls_Text += "<br /><br />" + mk_pScript->description();
+		mk_pScript->parameterWidget().layout()->setContentsMargins(0, 0, 0, 0);
+		connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(proposePrefixButtonClicked()), this, SLOT(proposePrefix()));
+		//mk_UpperLayout_->insertWidget(0, mk_pScript->parameterWidget());
+		//mk_HSplitter_->insertWidget(0, mk_pScript->parameterWidget());
+		mk_ParameterLayout_->addWidget(&mk_pScript->parameterWidget());
 		mk_ScrollArea_->setVisible(true);
 		mk_ScrollArea_->resize(300, 10);
 		mk_HSplitter_->setStretchFactor(0, 1);
 		mk_HSplitter_->setStretchFactor(1, 1);
 		
-		foreach (QString ls_Key, mk_Script_->inputFileKeys())
-			mk_FileList.addInputFileGroup(ls_Key, mk_Script_->inputFileLabel(ls_Key), mk_Script_->inputFileExtensions(ls_Key));
+		foreach (QString ls_Key, mk_pScript->inputGroupKeys())
+			mk_FileList.addInputFileGroup(ls_Key, mk_pScript->inputGroupLabel(ls_Key), mk_pScript->inputGroupExtensions(ls_Key));
 	
-		if (mk_Script_->location() == r_ScriptLocation::Local)
+		if (mk_pScript->location() == r_ScriptLocation::Local)
 		{
-			k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_Script_);
-			connect(lk_LocalScript_, SIGNAL(started()), this, SLOT(processStarted()));
-			connect(lk_LocalScript_, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
+			k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer());
+			connect(lk_LocalScript_, SIGNAL(scriptStarted()), this, SLOT(processStarted()));
+			connect(lk_LocalScript_, SIGNAL(scriptFinished(int)), this, SLOT(processFinished(int)));
 			connect(lk_LocalScript_, SIGNAL(readyRead()), this, SLOT(processReadyRead()));
 		}
 	
 		setAcceptDrops(true);
 	}
 	else
-	{
-		if (mk_Script_)
-			delete mk_Script_;
-		mk_Script_ = NULL;
-	}
+		mk_pScript = RefPtr<IScript>(NULL);
 	
 	toggleUi();
 }
@@ -350,10 +344,10 @@ void k_ScriptHelper::activateScript()
 
 void k_ScriptHelper::start()
 {
-	if (!mk_Script_)
+	if (!mk_pScript)
 		return;
 
-	if (mk_Script_->running())
+	if (mk_pScript->status() == r_ScriptStatus::Running)
 		return;
 
 	if (checkVersionChanged())
@@ -367,22 +361,22 @@ void k_ScriptHelper::start()
 	for (int i = 0; i < mk_FileList.files().count(); ++i)
 		lk_Arguments.push_back(mk_FileList.files()[i]);
 
-	if (mk_Script_->location() == r_ScriptLocation::Local)
-		mk_Script_->start(lk_Arguments);
-	else
-		mk_RemoteRequests[mk_Proteomatic.queryRemoteHub(mk_Script_->uri(), (QStringList() << "---gui") + mk_Script_->commandLineArguments() + lk_Arguments)] = r_RemoteRequest(r_RemoteRequestType::SubmitJob);
+	if (mk_pScript->location() == r_ScriptLocation::Local)
+		mk_pScript->start(lk_Arguments);
+	//else
+		//mk_RemoteRequests[mk_Proteomatic.queryRemoteHub(mk_pScript->uri(), (QStringList() << "---gui") + mk_pScript->commandLineArguments() + lk_Arguments)] = r_RemoteRequest(r_RemoteRequestType::SubmitJob);
 }
 
 
 void k_ScriptHelper::processStarted()
 {
-	addOutput(mk_Script_->title() + ":\n");
+	addOutput(mk_pScript->title() + ":\n");
 	processReadyRead();
 	toggleUi();
 }
 
 
-void k_ScriptHelper::processFinished(int ai_ExitCode, QProcess::ExitStatus /*ak_ExitStatus*/)
+void k_ScriptHelper::processFinished(int ai_ExitCode)
 {
 	processReadyRead();
 	toggleUi();
@@ -401,7 +395,7 @@ void k_ScriptHelper::processFinished(int ai_ExitCode, QProcess::ExitStatus /*ak_
 
 void k_ScriptHelper::processReadyRead()
 {
-	addOutput(mk_Script_->readAll());
+	addOutput(mk_pScript->readAll());
 }
 
 
@@ -417,12 +411,10 @@ void k_ScriptHelper::addOutput(QString as_Text)
 void k_ScriptHelper::reset()
 {
 	setAcceptDrops(false);
+
+	mk_pScript = RefPtr<IScript>(NULL);
+	mk_pProfileManager = RefPtr<k_ProfileManager>(NULL);
 	
-	if (mk_Script_)
-		delete mk_Script_;
-	mk_Script_ = NULL;
-	
-	//mk_Program.setText("(no script loaded)");
 	mk_FileList.resetAll();
 
 	ms_Output.clear();
@@ -457,11 +449,11 @@ void k_ScriptHelper::resetParameters()
 {
 	mk_FileList.resetAll();
 
-	if (mk_Script_)
+	if (mk_pScript)
 	{
-		mk_Script_->reset();
-		foreach (QString ls_Key, mk_Script_->inputFileKeys())
-			mk_FileList.addInputFileGroup(ls_Key, mk_Script_->inputFileLabel(ls_Key), mk_Script_->inputFileExtensions(ls_Key));
+		mk_pScript->reset();
+		foreach (QString ls_Key, mk_pScript->inputGroupKeys())
+			mk_FileList.addInputFileGroup(ls_Key, mk_pScript->inputGroupLabel(ls_Key), mk_pScript->inputGroupExtensions(ls_Key));
 	}
 
 	ms_Output.clear();
@@ -472,11 +464,11 @@ void k_ScriptHelper::resetParameters()
 
 void k_ScriptHelper::toggleUi()
 {
-	mk_ScrollArea_->setVisible(mk_Script_);
+	mk_ScrollArea_->setVisible(mk_pScript);
 	this->setEnabled(mk_RemoteRequests.empty());
 
-	bool lb_ProcessRunning = mk_Script_ && mk_Script_->running();
-	bool lb_RemoteScriptLoaded = mk_Script_ && mk_Script_->location() == r_ScriptLocation::Remote;
+	bool lb_ProcessRunning = mk_pScript && mk_pScript->status() == r_ScriptStatus::Running;
+	bool lb_RemoteScriptLoaded = mk_pScript && mk_pScript->location() == r_ScriptLocation::Remote;
 
 	mk_ProfilesAction_->setEnabled(!lb_ProcessRunning);
 	
@@ -485,8 +477,8 @@ void k_ScriptHelper::toggleUi()
 	//mk_CheckTicketAction_->setEnabled(mk_Proteomatic.remoteHub().isReady());
 
 	mk_AbortAction_->setEnabled(lb_ProcessRunning);
-	if (mk_Script_)
-		mk_Script_->parameterWidget()->setEnabled(!lb_ProcessRunning);
+	if (mk_pScript)
+		mk_pScript->parameterWidget().setEnabled(!lb_ProcessRunning);
 	mk_LoadScriptButton_->setEnabled(!lb_ProcessRunning);
 	if (lb_ProcessRunning)
 	{
@@ -503,14 +495,14 @@ void k_ScriptHelper::toggleUi()
 	else
 	{
 		mk_RemoveInputFileButton.setEnabled(mk_FileList.selectedItems().count() != 0);
-		mk_ResetAction_->setEnabled(mk_Script_);
-		mk_ReloadScriptAction_->setEnabled(mk_Script_);
-		mk_StartAction_->setEnabled(mk_Script_);
+		mk_ResetAction_->setEnabled(mk_pScript);
+		mk_ReloadScriptAction_->setEnabled(mk_pScript);
+		mk_StartAction_->setEnabled(mk_pScript);
 		mk_CheckTicketAction_->setEnabled(lb_RemoteScriptLoaded);
-		mk_LoadParametersAction_->setEnabled(mk_Script_);
-		mk_SaveParametersAction_->setEnabled(mk_Script_);
-		mk_AddFilesButton.setEnabled(mk_Script_);
-		mk_FileList.setEnabled(mk_Script_);
+		mk_LoadParametersAction_->setEnabled(mk_pScript);
+		mk_SaveParametersAction_->setEnabled(mk_pScript);
+		mk_AddFilesButton.setEnabled(mk_pScript);
+		mk_FileList.setEnabled(mk_pScript);
 	}
 
 	if (mb_VersionChanged)
@@ -524,7 +516,7 @@ void k_ScriptHelper::toggleUi()
 		mk_StartAction_->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
-		mk_SaveParametersAction_->setEnabled(mk_Script_);
+		mk_SaveParametersAction_->setEnabled(mk_pScript);
 		mk_AddFilesButton.setEnabled(false);
 		mk_FileList.setEnabled(false);
 	}
@@ -634,7 +626,7 @@ void k_ScriptHelper::checkTicket()
 
 void k_ScriptHelper::checkTicket(QString as_Ticket)
 {
-	k_TicketWindow* lk_TicketWindow_ = new k_TicketWindow(mk_Proteomatic, mk_Script_->uri(), as_Ticket); 
+	k_TicketWindow* lk_TicketWindow_ = new k_TicketWindow(mk_Proteomatic, mk_pScript->uri(), as_Ticket); 
 	mk_TicketWindows[lk_TicketWindow_] = RefPtr<k_TicketWindow>(lk_TicketWindow_);
 	connect(lk_TicketWindow_, SIGNAL(closed()), this, SLOT(ticketWindowClosed()));
 }
@@ -650,13 +642,13 @@ void k_ScriptHelper::ticketWindowClosed()
 
 void k_ScriptHelper::abortScript()
 {
-	if (!mk_Script_->running())
+	if (mk_pScript->status() != r_ScriptStatus::Running)
 		return;
 
 	if (mk_Proteomatic.showMessageBox("Abort script", "Are you sure you want to abort the current script?", ":/icons/dialog-warning.png", 
 		QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
 	{
-		mk_Script_->kill();
+		mk_pScript->kill();
 		addOutput("\nScript aborted by user.");
 	}
 }
@@ -726,8 +718,8 @@ void k_ScriptHelper::updateWindowTitle()
 		ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion() + ")";
 	}
 	ms_WindowTitle = "Proteomatic " + mk_Proteomatic.version() + " " + ls_ScriptsVersion;
-	if (mk_Script_)
-		ms_WindowTitle = mk_Script_->title() + " - " + ms_WindowTitle;
+	if (mk_pScript)
+		ms_WindowTitle = mk_pScript->title() + " - " + ms_WindowTitle;
 	setWindowTitle(ms_WindowTitle);
 }
 
@@ -736,16 +728,16 @@ void k_ScriptHelper::showProfileManager()
 {
 	mk_pProfileManager->reset();
 	if (mk_pProfileManager->exec())
-		mk_Script_->setConfiguration(mk_pProfileManager->getGoodProfileMix());
+		mk_pScript->setConfiguration(mk_pProfileManager->getGoodProfileMix());
 }
 
 
 void k_ScriptHelper::proposePrefix()
 {
-	if (!mk_Script_)
+	if (!mk_pScript)
 		return;
 
-	if (mk_Script_->running())
+	if (mk_pScript->status() == r_ScriptStatus::Running)
 		return;
 
 	QStringList lk_Arguments;
@@ -753,13 +745,13 @@ void k_ScriptHelper::proposePrefix()
 	for (int i = 0; i < mk_FileList.files().size(); ++i)
 		lk_Arguments.push_back(mk_FileList.files()[i]);
 
-	if (mk_Script_->location() == r_ScriptLocation::Local)
+	if (mk_pScript->location() == r_ScriptLocation::Local)
 	{
-		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_Script_))->proposePrefix(lk_Arguments);
+		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer()))->proposePrefix(lk_Arguments);
 		if (ls_Result.startsWith("--proposePrefix"))
 		{
 			QStringList lk_Result = ls_Result.split("\n");
-			mk_Script_->setPrefix(lk_Result[1].trimmed());
+			mk_pScript->setOutputFilePrefix(lk_Result[1].trimmed());
 		}
 		else
 		{
