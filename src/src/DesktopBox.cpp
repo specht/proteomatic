@@ -247,16 +247,16 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 	QHBoxLayout* lk_ButtonLayout_ = new QHBoxLayout();
 	
 	QScrollArea* lk_ScrollArea_ = new QScrollArea();
-	lk_ScrollArea_->setWidget(&mk_pScript->parameterWidget());
+	lk_ScrollArea_->setWidget(mk_pScript->parameterWidget());
 	lk_ScrollArea_->setWidgetResizable(true);
 	
 	QDialog* lk_ParameterWidget_ = new QDialog();
 	
-	mk_pParameterWidget = RefPtr<QWidget>(lk_ParameterWidget_);
+	mk_pParameterWidgetProxy = RefPtr<QWidget>(lk_ParameterWidget_);
 	
-	mk_pParameterWidget->resize(500, 600);
-	mk_pParameterWidget->setWindowTitle(mk_pScript->title());
-	mk_pParameterWidget->setWindowIcon(QIcon(":icons/proteomatic.png"));
+	mk_pParameterWidgetProxy->resize(500, 600);
+	mk_pParameterWidgetProxy->setWindowTitle(mk_pScript->title());
+	mk_pParameterWidgetProxy->setWindowIcon(QIcon(":icons/proteomatic.png"));
 	
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_ParameterWidget_);
 	lk_VLayout_->setContentsMargins(0, 0, 0, 0);
@@ -320,6 +320,7 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 	mk_Layout.addLayout(lk_ButtonLayout_);
 
 	mk_Layout.addWidget(&mk_PrefixWidget);
+	mk_PrefixWidget.setHint("no prefix");
 	connect(&mk_PrefixWidget, SIGNAL(textChanged(const QString&)), this, SLOT(prefixChanged(const QString&)));
 
 	QStringList lk_OutKeys = mk_pScript->outputFileKeys();
@@ -337,7 +338,12 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 
 
 k_ScriptBox::~k_ScriptBox() 
-{ 
+{
+	// Why do we have to set the parameter widget's parent to NULL?
+	// Because if we don't, the widget will be deleted when the
+	// script box is deleted. And after that, when the last RefPtr
+	// goes out of scope, the script will be DOUBLE FREED.
+	mk_pScript->parameterWidget()->setParent(NULL);
 }
 
 
@@ -426,7 +432,7 @@ void k_ScriptBox::start()
 
 void k_ScriptBox::showParameterWidget()
 {
-	mk_pParameterWidget->show();
+	mk_pParameterWidgetProxy->show();
 }
 
 

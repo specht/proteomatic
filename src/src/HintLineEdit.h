@@ -32,12 +32,9 @@ public:
 	~k_HintLineEdit();
 	
 	void setHint(const QString& as_Hint);
-	virtual QString text() const;
 
 protected:
-	virtual void mousePressEvent(QMouseEvent* event);
-	void updateStatus();
+	virtual void paintEvent(QPaintEvent* event);
 	
 	QString ms_Hint;
-	QString ms_Text;
 };

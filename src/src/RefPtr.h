@@ -35,6 +35,14 @@ public:
 	inline TClass* get_Pointer() const;
 	inline TClass operator*() const;
 	inline operator bool() const;
+	void print() const
+	{
+		printf("RefPtr[%p]: pointer: %p, count:", this, mk_Object_);
+		if (mi_RefCount_)
+			printf("%d\n", *mi_RefCount_);
+		else
+			printf("[NULL]\n");
+	}
 
 private:
 	void unref();

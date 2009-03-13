@@ -112,7 +112,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 							lk_Stream << ls_Response;
 							lk_Stream.flush();
 							lk_File.close();
-						}
+ 						}
 					}
 					lk_Response = ls_Response.split(QChar('\n'));
 					ls_FirstLine = lk_Response.takeFirst().trimmed();
@@ -132,6 +132,9 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 
 k_LocalScript::~k_LocalScript()
 {
+#ifdef DEBUG
+	printf("k_LocalScript::~k_LocalScript()\n");
+#endif
 }
 
 

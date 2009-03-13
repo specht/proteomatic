@@ -312,11 +312,11 @@ void k_ScriptHelper::activateScript()
 		QString ls_Text = "<b>" + mk_pScript->title() + "</b>";
 		if (mk_pScript->description().length() > 0)
 			ls_Text += "<br /><br />" + mk_pScript->description();
-		mk_pScript->parameterWidget().layout()->setContentsMargins(0, 0, 0, 0);
+		mk_pScript->parameterWidget()->layout()->setContentsMargins(0, 0, 0, 0);
 		connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(proposePrefixButtonClicked()), this, SLOT(proposePrefix()));
 		//mk_UpperLayout_->insertWidget(0, mk_pScript->parameterWidget());
 		//mk_HSplitter_->insertWidget(0, mk_pScript->parameterWidget());
-		mk_ParameterLayout_->addWidget(&mk_pScript->parameterWidget());
+		mk_ParameterLayout_->addWidget(mk_pScript->parameterWidget());
 		mk_ScrollArea_->setVisible(true);
 		mk_ScrollArea_->resize(300, 10);
 		mk_HSplitter_->setStretchFactor(0, 1);
@@ -478,7 +478,7 @@ void k_ScriptHelper::toggleUi()
 
 	mk_AbortAction_->setEnabled(lb_ProcessRunning);
 	if (mk_pScript)
-		mk_pScript->parameterWidget().setEnabled(!lb_ProcessRunning);
+		mk_pScript->parameterWidget()->setEnabled(!lb_ProcessRunning);
 	mk_LoadScriptButton_->setEnabled(!lb_ProcessRunning);
 	if (lb_ProcessRunning)
 	{

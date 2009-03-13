@@ -313,7 +313,7 @@ void k_Desktop::addScriptBox(QAction* ak_Action_)
 		lk_ScriptBox_ = new k_ScriptBox(lk_pScript, this, mk_Proteomatic);
 	else
 		lk_ScriptBox_ = new k_ConverterScriptBox(lk_pScript, this, mk_Proteomatic);
-		
+	
 	this->addBox(lk_ScriptBox_);
 	
 	connect(lk_ScriptBox_, SIGNAL(scriptFinished()), this, SLOT(scriptFinished()));

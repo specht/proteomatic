@@ -47,6 +47,9 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
 
 k_Script::~k_Script()
 {
+#ifdef DEBUG
+	printf("k_Script::~k_Script()\n");
+#endif
 }
 
 
@@ -86,9 +89,9 @@ QHash<QString, QString> k_Script::info() const
 }
 
 
-QWidget& k_Script::parameterWidget() const
+QWidget* k_Script::parameterWidget() const
 {
-	return *(mk_pParameterWidget.get_Pointer());
+	return mk_pParameterWidget.get_Pointer();
 }
 
 
@@ -633,6 +636,10 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 	mk_InputGroupDescriptions.clear();
 	mk_InputGroupExtensions.clear();
 	mk_pParameterWidget = RefPtr<QWidget>(new QWidget());
+#ifdef DEBUG	
+	printf("yay!\n");
+	mk_pParameterWidget.print();
+#endif
 
 	QList<QString> lk_ParametersOrder;
 	QHash<QString, QHash<QString, QString> > lk_Parameters;

@@ -23,6 +23,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "ClickableLabel.h"
 #include "ConsoleString.h"
 #include "FileList.h"
+#include "HintLineEdit.h"
 #include "Proteomatic.h"
 #include "StopWatch.h"
 #include "IScript.h"
@@ -158,7 +159,7 @@ protected slots:
 
 protected:
 	RefPtr<IScript> mk_pScript;
-	RefPtr<QWidget> mk_pParameterWidget;
+	RefPtr<QWidget> mk_pParameterWidgetProxy;
 	QHash<QString, k_OutputFileBox*> mk_OutputFileBoxes;
 	// remember the checkbox that activated an output file box
 	QHash<k_OutputFileBox*, QCheckBox*> mk_CheckBoxForOutputFileBox;
@@ -168,7 +169,7 @@ protected:
 	
 	QVBoxLayout mk_Layout;
 	QToolButton mk_StatusLabel;
-	QLineEdit mk_PrefixWidget;
+	k_HintLineEdit mk_PrefixWidget;
 	QString ms_InputFilesErrorMessage;
 	k_ConsoleString ms_Output;
 	RefPtr<QWidget> mk_pOutputWidget;

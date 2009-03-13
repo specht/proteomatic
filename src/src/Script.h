@@ -55,7 +55,7 @@ public:
 	virtual QHash<QString, QString> info() const;
 	
 	// parameter widget
-	virtual QWidget& parameterWidget() const;
+	virtual QWidget* parameterWidget() const;
 	
 	// script parameters
 	virtual QStringList parameterKeys() const;

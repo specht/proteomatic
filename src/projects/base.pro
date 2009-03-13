@@ -17,6 +17,7 @@ CONFIG(debug, debug|release) {
 	MOC_DIR = ../../obj/debug/
 	RCC_DIR = ../../obj/debug/
 	TARGET = $$join(TARGET,,,_debug)
+	DEFINES += DEBUG
 }
 else {
 	OBJECTS_DIR = ../../obj/release/

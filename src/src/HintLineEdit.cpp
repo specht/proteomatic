@@ -23,18 +23,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_HintLineEdit::k_HintLineEdit(QWidget* parent)
 	: QLineEdit(parent)
 {
-	this->updateStatus();
-	connect(this, SIGNAL(textEdited(QString&)), this, SLOT(updateStatus()));
+	ms_Hint = "";
 }
 
 
 k_HintLineEdit::k_HintLineEdit(const QString& contents, QWidget* parent)
 	: QLineEdit(contents, parent)
-	, ms_Text(contents)
 {
 	this->setText(contents);
-	this->updateStatus();
-	connect(this, SIGNAL(textEdited(QString&)), this, SLOT(updateStatus()));
+	ms_Hint = "";
 }
 
 
@@ -46,32 +43,17 @@ k_HintLineEdit::~k_HintLineEdit()
 void k_HintLineEdit::setHint(const QString& as_Hint)
 {
 	ms_Hint = as_Hint;
-	this->updateStatus();
+	this->repaint();
 }
 
 
-QString k_HintLineEdit::text() const
+void k_HintLineEdit::paintEvent(QPaintEvent* event)
 {
-	return ms_Text;
-}
-
-
-void k_HintLineEdit::mousePressEvent(QMouseEvent* event)
-{
-	QLineEdit::mousePressEvent(event);
-}
-
-
-void k_HintLineEdit::updateStatus()
-{
-	if (ms_Text.isEmpty())
+	QLineEdit::paintEvent(event);
+	if (this->text().isEmpty() && (!this->hasFocus()))
 	{
-		this->setStyleSheet("color: #888;");
-		this->setText(ms_Hint);
-	}
-	else
-	{
-		this->setStyleSheet("color: #000;");
-		this->setText(ms_Text);
+		QPainter lk_Painter(this);
+		lk_Painter.setPen(QColor("#888"));
+		lk_Painter.drawText(4, 17, ms_Hint);
 	}
 }
