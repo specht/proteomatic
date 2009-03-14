@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <QtGui>
 #include "PipelineMainWindow.h"
 #include "Desktop.h"
+#include <QtGui>
 #include "Proteomatic.h"
 
 
@@ -46,7 +46,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	lk_AddScriptButton_->setPopupMode(QToolButton::InstantPopup);
 	lk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_AddToolBar_->addWidget(lk_AddScriptButton_);
-	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), this, SLOT(addScript(QAction*)));
+	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), &mk_Desktop, SLOT(addScriptBox(QAction*)));
 	mk_AddScriptAction_ = lk_AddScriptButton_;
 
 	mk_AddFilesAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add files", this, SLOT(addFiles()));
@@ -91,16 +91,9 @@ QString k_PipelineMainWindow::outputDirectory()
 }
 
 
-void k_PipelineMainWindow::addScript(QAction* ak_Action_)
-{
-	QString ls_ScriptUri = ak_Action_->data().toString();
-	mk_Desktop.addScriptBox(ls_ScriptUri);
-}
-
-
 void k_PipelineMainWindow::start()
 {
-	//mk_Desktop.start();
+	mk_Desktop.start();
 }
 
 
@@ -111,13 +104,14 @@ void k_PipelineMainWindow::addFiles()
 		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_INPUT_FILES_PATH] = QFileInfo(lk_Files[0]).absolutePath();
 
 	foreach (QString ls_Path, lk_Files)
-		mk_Desktop.addInputFileBox(ls_Path);
+		mk_Desktop.addFileBox(ls_Path);
 }
 
 
 void k_PipelineMainWindow::addFileListBox()
 {
-	mk_Desktop.addInputFileListBox();
+	k_InputFileListBox* lk_InputFileListBox_ = new k_InputFileListBox(&mk_Desktop, mk_Proteomatic);
+	mk_Desktop.addBox(lk_InputFileListBox_);
 }
 
 
@@ -146,12 +140,10 @@ void k_PipelineMainWindow::setOutputDirectory(QString as_Path)
 
 void k_PipelineMainWindow::toggleUi()
 {
-	/*
 	mk_AddScriptAction_->setEnabled(!mk_Desktop.running());
 	mk_AddFilesAction_->setEnabled(!mk_Desktop.running());
 	mk_AddFileListAction_->setEnabled(!mk_Desktop.running());
 	mk_StartAction_->setEnabled(!mk_Desktop.running());
 	mk_RefreshAction_->setEnabled(!mk_Desktop.running());
 	mk_ChooseOutputDirectoryAction_->setEnabled(!mk_Desktop.running());
-	*/
 }

@@ -6,13 +6,20 @@ include(../base.pro)
 HEADERS += \
     ../../src/Desktop.h \
     ../../src/DesktopBox.h \
+    ../../src/DesktopBoxFactory.h \
+	../../src/IDesktopBox.h \
+	../../src/IFileBox.h \
+	../../src/IScriptBox.h \
 	../../src/PipelineMainWindow.h \
+	../../src/ScriptBox.h \
 
 SOURCES += \
     ../../src/Desktop.cpp \
     ../../src/DesktopBox.cpp \
+    ../../src/DesktopBoxFactory.cpp \
 	../../src/PipelineMainWindow.cpp \
 	../../src/ProteomaticPipelineMain.cpp \
+	../../src/ScriptBox.cpp \
 	
 RESOURCES += \
 	../../src/Proteomatic.qrc \

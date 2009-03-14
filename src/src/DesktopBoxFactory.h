@@ -19,15 +19,18 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "IDesktopBox.h"
 #include <QtCore>
+#include <QtGui>
 #include "RefPtr.h"
-#include "IScript.h"
 
+
+class k_Desktop;
 class k_Proteomatic;
 
 
-class k_ScriptFactory
+class k_DesktopBoxFactory
 {
 public:
-	static RefPtr<IScript> makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+	static RefPtr<IDesktopBox> makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 };

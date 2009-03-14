@@ -20,14 +20,24 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtCore>
-#include "RefPtr.h"
-#include "IScript.h"
 
-class k_Proteomatic;
-
-
-class k_ScriptFactory
+struct IDesktopBox
 {
-public:
-	static RefPtr<IScript> makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+	virtual ~IDesktopBox() {};
+	
+	virtual bool batchMode() const = 0;
+	virtual QList<IDesktopBox*> incomingBoxes() const = 0;
+	virtual QList<IDesktopBox*> outgoingBoxes() const = 0;
+	
+	// slots
+	virtual void setBatchMode(bool ab_Enabled) = 0;
+	virtual void connectIncomingBox(IDesktopBox* ak_Other_) = 0;
+	virtual void connectOutgoingBox(IDesktopBox* ak_Other_) = 0;
+	virtual void disconnectBox(IDesktopBox* ak_Other_) = 0;
+	virtual void handleIncomingBoxesChanged() = 0;
+	
+	// signals
+	virtual void batchModeChanged(bool) = 0;
+	virtual void moved() = 0;
+	virtual void resized() = 0;
 };

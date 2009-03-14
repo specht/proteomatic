@@ -19,15 +19,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <QtCore>
-#include "RefPtr.h"
 #include "IScript.h"
 
-class k_Proteomatic;
 
-
-class k_ScriptFactory
+struct IScriptBox
 {
-public:
-	static RefPtr<IScript> makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+	virtual ~IScriptBox() {};
+	
+	virtual IScript* script() = 0;
 };

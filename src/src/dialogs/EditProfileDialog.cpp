@@ -160,7 +160,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	lk_MainLayout_->addWidget(lk_Frame_);
 	
 	lk_MainLayout_->addWidget(lk_HSplitter_);
-	lk_ScrollArea_->setWidget(&mk_pScript->parameterWidget());
+	lk_ScrollArea_->setWidget(mk_pScript->parameterWidget());
 	lk_HSplitter_->addWidget(lk_ScrollArea_);
 	lk_HLayout_ = new QHBoxLayout(this);
 	lk_HLayout_->addStretch();
@@ -186,6 +186,11 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 
 k_EditProfileDialog::~k_EditProfileDialog()
 {
+	// Why do we have to set the parameter widget's parent to NULL?
+	// Because if we don't, the widget will be deleted when the
+	// script box is deleted. And after that, when the last RefPtr
+	// goes out of scope, the script will be DOUBLE FREED.
+	mk_pScript->parameterWidget()->setParent(NULL);
 }
 
 

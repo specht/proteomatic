@@ -17,17 +17,12 @@ You should have received a copy of the GNU General Public License
 along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include <QtCore>
-#include "RefPtr.h"
-#include "IScript.h"
-
-class k_Proteomatic;
+#include "DesktopBoxFactory.h"
+#include "ScriptBox.h"
 
 
-class k_ScriptFactory
+RefPtr<IDesktopBox> 
+k_DesktopBoxFactory::makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 {
-public:
-	static RefPtr<IScript> makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
-};
+	return RefPtr<IDesktopBox>(new k_ScriptBox(as_ScriptUri, ak_Parent_, ak_Proteomatic));
+}

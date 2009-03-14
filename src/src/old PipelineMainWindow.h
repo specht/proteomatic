@@ -36,8 +36,7 @@ signals:
 	void outputDirectoryChanged(const QString& as_Path);
 	void forceRefresh();
 
-protected slots:
-	void addScript(QAction* ak_Action_);
+public slots:
 	void start();
 	void addFiles();
 	void addFileListBox();
