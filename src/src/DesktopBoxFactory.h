@@ -33,4 +33,5 @@ class k_DesktopBoxFactory
 {
 public:
 	static RefPtr<IDesktopBox> makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	static RefPtr<IDesktopBox> makeFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 };

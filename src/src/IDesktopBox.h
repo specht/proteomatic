@@ -34,7 +34,6 @@ struct IDesktopBox
 	virtual void connectIncomingBox(IDesktopBox* ak_Other_) = 0;
 	virtual void connectOutgoingBox(IDesktopBox* ak_Other_) = 0;
 	virtual void disconnectBox(IDesktopBox* ak_Other_) = 0;
-	virtual void handleIncomingBoxesChanged() = 0;
 	
 	// signals
 	virtual void batchModeChanged(bool) = 0;

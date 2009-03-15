@@ -22,10 +22,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tango.h"
 
 
-k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, bool ab_Resizable)
 	: QWidget(NULL)
 	, mk_Desktop_(ak_Parent_)
 	, mk_Proteomatic(ak_Proteomatic)
+	, mb_Resizable(ab_Resizable)
+	, mk_ResizeGripPixmap(QPixmap(":icons/size-grip.png"))
 	, mb_BatchMode(false)
 {
 }
@@ -86,7 +88,7 @@ void k_DesktopBox::disconnectBox(IDesktopBox* ak_Other_)
 
 void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
 {
-	//if (mb_KeepSmall)
+	if (!mb_Resizable)
 		this->resize(1, 1);
 	
 	QPainter lk_Painter(this);
@@ -112,4 +114,43 @@ void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
 		lk_Painter.drawRect(QRectF(lf_PenWidth * 0.5 + 1.0, lf_PenWidth * 0.5 + 1.0, (qreal)width() - lf_PenWidth - 2.0, (qreal)height() - lf_PenWidth - 2.0));
 	}
 	*/
+	if (mb_Resizable)
+		lk_Painter.drawPixmap(width() - mk_ResizeGripPixmap.width() - 2, 
+							  height() - mk_ResizeGripPixmap.height() - 2, 
+							  mk_ResizeGripPixmap);
+}
+
+
+void k_DesktopBox::mousePressEvent(QMouseEvent* event)
+{
+	if (mb_Resizable && (event->pos() - QPoint(width(), height())).manhattanLength() <= 16)
+	{
+		mb_Resizing = true;
+		mk_OldSize = this->size();
+	}
+	else
+	{
+		mb_Moving = true;
+		mk_OldPosition = this->pos();
+	}
+	mk_MousePressPosition = event->globalPos();
+}
+
+
+void k_DesktopBox::mouseReleaseEvent(QMouseEvent* event)
+{
+	mb_Moving = false;
+	mb_Resizing = false;
+}
+
+
+void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
+{
+	if (mb_Moving)
+		this->move(event->globalPos() - mk_MousePressPosition + mk_OldPosition);
+	if (mb_Resizing)
+	{
+		QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;
+		this->resize(mk_OldSize + QSize(lk_Delta.x(), lk_Delta.y()));
+	}
 }

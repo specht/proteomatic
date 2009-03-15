@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include "IDesktopBox.h"
 #include "IScriptBox.h"
 #include "DesktopBox.h"
 
@@ -34,7 +35,6 @@ public:
 	virtual ~k_ScriptBox();
 	
 	virtual IScript* script();
-	virtual void handleIncomingBoxesChanged();
 	
 protected:
 	virtual void setupLayout();

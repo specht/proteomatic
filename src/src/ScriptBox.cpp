@@ -24,7 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_ScriptBox::k_ScriptBox(const QString& as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: k_DesktopBox(ak_Parent_, ak_Proteomatic)
+	: k_DesktopBox(ak_Parent_, ak_Proteomatic, false)
 	, mk_Proteomatic(ak_Proteomatic) // GCC wants this, although it already happens one line above
 	, mk_pScript(k_ScriptFactory::makeScript(as_ScriptUri, ak_Proteomatic, false, false))
 {
@@ -42,11 +42,6 @@ k_ScriptBox::~k_ScriptBox()
 IScript* k_ScriptBox::script()
 {
 	return mk_pScript.get_Pointer();
-}
-
-
-void k_ScriptBox::handleIncomingBoxesChanged()
-{
 }
 
 
