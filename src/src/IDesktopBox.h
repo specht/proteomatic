@@ -33,10 +33,17 @@ struct IDesktopBox
 	virtual void setBatchMode(bool ab_Enabled) = 0;
 	virtual void connectIncomingBox(IDesktopBox* ak_Other_) = 0;
 	virtual void connectOutgoingBox(IDesktopBox* ak_Other_) = 0;
-	virtual void disconnectBox(IDesktopBox* ak_Other_) = 0;
+	virtual void disconnectIncomingBox(IDesktopBox* ak_Other_, bool ab_EmitSignal = true) = 0;
+	virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_, bool ab_EmitSignal = true) = 0;
+	virtual void disconnectAll() = 0;
+	virtual void setResizable(bool ab_Enabled) = 0;
 	
 	// signals
+	virtual void deleted() = 0;
 	virtual void batchModeChanged(bool) = 0;
-	virtual void moved() = 0;
+	virtual void moved(QPoint ak_Delta) = 0;
 	virtual void resized() = 0;
+	virtual void clicked(Qt::KeyboardModifiers ae_Modifiers) = 0;
+	virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming) = 0;
+	virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming) = 0;
 };

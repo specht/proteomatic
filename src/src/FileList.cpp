@@ -128,6 +128,15 @@ QStringList k_FileList::files() const
 }
 
 
+int k_FileList::fileCount() const
+{
+	int li_Count = 0;
+	foreach (QStringList lk_Paths, mk_Files.values())
+		li_Count += lk_Paths.size();
+	return li_Count;
+}
+
+
 void k_FileList::removeSelection()
 {
 	if (mb_FileMode)

@@ -11,6 +11,7 @@ HEADERS += \
 	../../src/IFileBox.h \
 	../../src/IScriptBox.h \
 	../../src/FileListBox.h \
+	../../src/OutFileListBox.h \
 	../../src/PipelineMainWindow.h \
 	../../src/ScriptBox.h \
 
@@ -19,6 +20,7 @@ SOURCES += \
     ../../src/DesktopBox.cpp \
     ../../src/DesktopBoxFactory.cpp \
 	../../src/FileListBox.cpp \
+	../../src/OutFileListBox.cpp \
 	../../src/PipelineMainWindow.cpp \
 	../../src/ProteomaticPipelineMain.cpp \
 	../../src/ScriptBox.cpp \

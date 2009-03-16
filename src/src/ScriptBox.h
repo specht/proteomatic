@@ -23,6 +23,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
 #include "DesktopBox.h"
+#include "HintLineEdit.h"
 
 
 class k_Proteomatic;
@@ -36,10 +37,21 @@ public:
 	
 	virtual IScript* script();
 	
+protected slots:
+	virtual void outFileCheckboxClicked();
+	virtual void outFileBoxDeleted();
+	virtual void handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
+	virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
+	virtual void inputFileBoxBatchModeChanged(bool ab_Enabled);
+	virtual void updateBatchOutputFilenames();
+	
 protected:
 	virtual void setupLayout();
 	
-	k_Proteomatic& mk_Proteomatic;
 	RefPtr<IScript> mk_pScript;
 	RefPtr<QWidget> mk_pParameterProxyWidget;
+	QHash<QString, IDesktopBox*> mk_OutputFileBoxes;
+	QHash<QString, QCheckBox*> mk_Checkboxes;
+	
+	k_HintLineEdit mk_Prefix;
 };

@@ -32,6 +32,7 @@ class k_Proteomatic;
 class k_DesktopBoxFactory
 {
 public:
-	static RefPtr<IDesktopBox> makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
-	static RefPtr<IDesktopBox> makeFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	static IDesktopBox* makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	static IDesktopBox* makeFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	static IDesktopBox* makeOutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label, QString as_Filename);
 };

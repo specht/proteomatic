@@ -26,7 +26,6 @@ struct IFileBox
 	virtual QStringList filenames() const = 0;
 	
 	// slots
-	virtual void setFilenames(const QStringList& ak_Filenames) = 0;
 	
 	// signals
 	virtual void arrowPressed() = 0;

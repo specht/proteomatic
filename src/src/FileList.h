@@ -34,6 +34,7 @@ public:
 	void addInputFile(QString as_Path);
 	// TODO: tell files sorted by key to solve ambiguous cases
 	QStringList files() const;
+	int fileCount() const;
 	void refresh();
 
 signals:

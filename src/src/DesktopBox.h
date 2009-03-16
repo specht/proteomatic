@@ -55,12 +55,19 @@ public slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void connectIncomingBox(IDesktopBox* ak_Other_);
 	virtual void connectOutgoingBox(IDesktopBox* ak_Other_);
-	virtual void disconnectBox(IDesktopBox* ak_Other_);
+	virtual void disconnectIncomingBox(IDesktopBox* ak_Other_, bool ab_EmitSignal = true);
+	virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_, bool ab_EmitSignal = true);
+	virtual void disconnectAll();
+	virtual void setResizable(bool ab_Enabled);
 	
 signals:
+	virtual void deleted();
 	virtual void batchModeChanged(bool);
-	virtual void moved();
+	virtual void moved(QPoint ak_Delta);
 	virtual void resized();
+	virtual void clicked(Qt::KeyboardModifiers ae_Modifiers);
+	virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
+	virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	
 protected:
 	virtual void paintEvent(QPaintEvent* event);
@@ -71,6 +78,7 @@ protected:
 	k_Desktop* mk_Desktop_;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_Resizable;
+	bool mb_LastResizable;
 	QPixmap mk_ResizeGripPixmap;
 	
 	bool mb_BatchMode;

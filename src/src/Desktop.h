@@ -21,14 +21,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
 #include "IDesktopBox.h"
-#include "RefPtr.h"
 
 
 class k_PipelineMainWindow;
 class k_Proteomatic;
 
+
+typedef QPair<IDesktopBox*, IDesktopBox*> tk_BoxPair;
 /*
-	typedef QPair<IDesktopBox*, IDesktopBox*> tk_BoxPair;
 	typedef QSet<IDesktopBox*> tk_DesktopBoxSet;
 	typedef QSet<IFileBox*> tk_FileBoxSet;
 	typedef QSet<tk_BoxPair> tk_BoxPairSet;
@@ -45,28 +45,66 @@ public:
 	virtual void addInputFileBox(const QString& as_Path);
 	virtual void addInputFileListBox();
 	virtual void addScriptBox(const QString& as_ScriptUri);
+	virtual void addBox(IDesktopBox* ak_Box_);
+	virtual void removeBox(IDesktopBox* ak_Box_);
+	
+public slots:
+	virtual void redraw();
 	
 protected slots:
+	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());
+	virtual void boxClicked(Qt::KeyboardModifiers ae_Modifiers);
 	virtual void arrowPressed();
 	virtual void arrowReleased();
+	virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
+	virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
+	virtual void boxBatchModeChanged(bool ab_Enabled);
+	virtual void updateArrow(QGraphicsPathItem* ak_Arrow_);
+	virtual void redrawSelection();
+	virtual void deleteSelected();
+	virtual void redrawBatchFrame();
+	virtual void clearSelection();
 	
 protected:
+	virtual void keyPressEvent(QKeyEvent* event);
+	virtual void mousePressEvent(QMouseEvent* event);
 	virtual void mouseMoveEvent(QMouseEvent* event);
-	virtual void addBox(RefPtr<IDesktopBox> ak_pBox);
+	virtual void wheelEvent(QWheelEvent* event);
 	virtual void updateUserArrow(QPointF ak_MousePosition);
 	virtual QPoint boxLocation(IDesktopBox* ak_Box_) const;
+	virtual IDesktopBox* boxAt(QPointF ak_Point) const;
 	virtual double intersect(QPointF p0, QPointF d0, QPointF p1, QPointF d1);
 	virtual void boxConnector(IDesktopBox* ak_Box0_, IDesktopBox* ak_Box1_, QPointF& ak_Point0, QPointF& ak_Point1);
 	virtual QPointF intersectLineWithBox(const QPointF& ak_Point0, const QPointF& ak_Point1, IDesktopBox* ak_Box_);
+	virtual void updateArrowInternal(QGraphicsPathItem* ak_Arrow_, QPointF ak_Start, QPointF ak_End);
+	virtual QPainterPath grownPathForBox(IDesktopBox* ak_Box_, int ai_Grow);
+	virtual QPainterPath grownPathForArrow(QGraphicsPathItem* ak_Arrow_, int ai_Grow);
 	
 	k_Proteomatic& mk_Proteomatic;
 	k_PipelineMainWindow& mk_PipelineMainWindow;
-
-	QList<RefPtr<IDesktopBox> > mk_Boxes;
-	QHash<IDesktopBox*, QGraphicsProxyWidget*> mk_ProxyWidgetForDesktopBox;
-	RefPtr<QGraphicsScene> mk_pGraphicsScene;
+	QGraphicsScene mk_GraphicsScene;
 	
+	double md_Scale;
+
+	// an arrow in the making!
 	IDesktopBox* mk_ArrowStartBox_;
 	IDesktopBox* mk_ArrowEndBox_;
-	QGraphicsPathItem* mk_ArrowPathItem_;
+	QGraphicsPathItem* mk_UserArrowPathItem_;
+	
+	// all arrows are kept in this hash
+	QHash<QGraphicsPathItem*, tk_BoxPair> mk_Arrows;
+	// secondary hash, reverse
+	QHash<tk_BoxPair, QGraphicsPathItem*> mk_ArrowForBoxPair;
+	// secondary hash, all arrows for each box
+	QHash<IDesktopBox*, QSet<QGraphicsPathItem* > > mk_ArrowsForBox;
+	// and a think invisible line under each arrow for picking!
+	QHash<QGraphicsPathItem*, QGraphicsLineItem*> mk_ArrowProxy;
+	QHash<QGraphicsLineItem*, QGraphicsPathItem*> mk_ArrowForProxy;
+	
+	QSet<IDesktopBox*> mk_SelectedBoxes;
+	QSet<QGraphicsPathItem*> mk_SelectedArrows;
+	QGraphicsPathItem* mk_SelectionGraphicsPathItem_;
+
+	QSet<IDesktopBox*> mk_BatchBoxes;
+	QGraphicsPathItem* mk_BatchGraphicsPathItem_;
 };

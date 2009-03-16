@@ -20,18 +20,29 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesktopBoxFactory.h"
 #include "ScriptBox.h"
 #include "FileListBox.h"
+#include "OutFileListBox.h"
 
 
-RefPtr<IDesktopBox> 
+IDesktopBox*
 k_DesktopBoxFactory::makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, 
-								   k_Proteomatic& ak_Proteomatic)
+									k_Proteomatic& ak_Proteomatic)
 {
-	return RefPtr<IDesktopBox>(new k_ScriptBox(as_ScriptUri, ak_Parent_, ak_Proteomatic));
+	return new k_ScriptBox(as_ScriptUri, ak_Parent_, ak_Proteomatic);
 }
 
 
-RefPtr<IDesktopBox> 
-k_DesktopBoxFactory::makeFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+IDesktopBox*
+k_DesktopBoxFactory::makeFileListBox(k_Desktop* ak_Parent_, 
+									  k_Proteomatic& ak_Proteomatic)
 {
-	return RefPtr<IDesktopBox>(new k_FileListBox(ak_Parent_, ak_Proteomatic));
+	return new k_FileListBox(ak_Parent_, ak_Proteomatic);
+}
+
+
+IDesktopBox*
+k_DesktopBoxFactory::makeOutFileListBox(k_Desktop* ak_Parent_, 
+										 k_Proteomatic& ak_Proteomatic,
+										 QString as_Label, QString as_Filename)
+{
+	return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Label, as_Filename);
 }
