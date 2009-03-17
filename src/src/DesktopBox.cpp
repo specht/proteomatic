@@ -27,7 +27,6 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
 	, mk_Desktop_(ak_Parent_)
 	, mk_Proteomatic(ak_Proteomatic)
 	, mb_Resizable(ab_Resizable)
-	, mb_LastResizable(!ab_Resizable)
 	, mk_ResizeGripPixmap(QPixmap(":icons/size-grip.png"))
 	, mb_BatchMode(false)
 	, mb_Moving(false)
@@ -40,7 +39,6 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
 
 k_DesktopBox::~k_DesktopBox()
 {
-	emit deleted();
 }
 
 
@@ -50,17 +48,15 @@ bool k_DesktopBox::batchMode() const
 }
 
 
-QList<IDesktopBox*> k_DesktopBox::incomingBoxes() const
+QSet<IDesktopBox*> k_DesktopBox::incomingBoxes() const
 {
-	QSet<IDesktopBox*> lk_Set = this->mk_ConnectedIncomingBoxes;
-	return lk_Set.toList();
+	return mk_ConnectedIncomingBoxes;
 }
 
 
-QList<IDesktopBox*> k_DesktopBox::outgoingBoxes() const
+QSet<IDesktopBox*> k_DesktopBox::outgoingBoxes() const
 {
-	QSet<IDesktopBox*> lk_Set = this->mk_ConnectedOutgoingBoxes;
-	return lk_Set.toList();
+	return mk_ConnectedOutgoingBoxes;
 }
 
 
@@ -96,27 +92,25 @@ void k_DesktopBox::connectOutgoingBox(IDesktopBox* ak_Other_)
 }
 
 
-void k_DesktopBox::disconnectIncomingBox(IDesktopBox* ak_Other_, bool ab_EmitSignal)
+void k_DesktopBox::disconnectIncomingBox(IDesktopBox* ak_Other_)
 {
 	if (!mk_ConnectedIncomingBoxes.contains(ak_Other_))
 		return;
 	
 	mk_ConnectedIncomingBoxes.remove(ak_Other_);
 	ak_Other_->disconnectOutgoingBox(this);
-	if (ab_EmitSignal)
-		emit boxDisconnected(ak_Other_, true);
+	emit boxDisconnected(ak_Other_, true);
 }
 
 
-void k_DesktopBox::disconnectOutgoingBox(IDesktopBox* ak_Other_, bool ab_EmitSignal)
+void k_DesktopBox::disconnectOutgoingBox(IDesktopBox* ak_Other_)
 {
 	if (!mk_ConnectedOutgoingBoxes.contains(ak_Other_))
 		return;
 
 	mk_ConnectedOutgoingBoxes.remove(ak_Other_);
 	ak_Other_->disconnectIncomingBox(this);
-	if (ab_EmitSignal)
-		emit boxDisconnected(ak_Other_, false);
+	emit boxDisconnected(ak_Other_, false);
 }
 
 
@@ -132,7 +126,21 @@ void k_DesktopBox::disconnectAll()
 void k_DesktopBox::setResizable(bool ab_Enabled)
 {
 	mb_Resizable = ab_Enabled;
+	if (!mb_Resizable)
+		resize(1, 1);
 	repaint();
+}
+
+
+void k_DesktopBox::resizeEvent(QResizeEvent* /*event*/)
+{
+	emit resized();
+}
+
+
+void k_DesktopBox::moveEvent(QMoveEvent* event)
+{
+	emit moved(event->pos() - event->oldPos());
 }
 
 
@@ -140,10 +148,6 @@ void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
 {
 	if (!mb_Resizable)
 		this->resize(1, 1);
-	
-	if (mb_LastResizable != mb_Resizable)
-		emit resized();
-	mb_LastResizable = mb_Resizable;
 	
 	QPainter lk_Painter(this);
 	
@@ -155,6 +159,7 @@ void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
 	lk_Painter.setBrush(lk_Brush);
 	lk_Painter.drawRoundedRect(QRectF(lf_PenWidth * 0.5, lf_PenWidth * 0.5, (qreal)width() - lf_PenWidth, (qreal)height() - lf_PenWidth), 8.0, 8.0);
 
+	// draw resize grip
 	if (mb_Resizable)
 		lk_Painter.drawPixmap(width() - mk_ResizeGripPixmap.width() - 2, 
 							  height() - mk_ResizeGripPixmap.height() - 2, 
@@ -191,14 +196,12 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 	if (mb_Moving)
 	{
 		QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;
-		QPoint lk_BeforePos = this->pos();
-		this->move(lk_Delta + mk_OldPosition);
-		emit moved(this->pos() - lk_BeforePos);
+		mk_MousePressPosition = event->globalPos();
+		mk_Desktop_->moveBox(this, lk_Delta);
 	}
 	if (mb_Resizing)
 	{
 		QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;
 		this->resize(mk_OldSize + QSize(lk_Delta.x(), lk_Delta.y()));
-		emit resized();
 	}
 }

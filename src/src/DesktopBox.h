@@ -48,20 +48,19 @@ public:
 	// IDesktopBox
 	
 	virtual bool batchMode() const;
-	virtual QList<IDesktopBox*> incomingBoxes() const;
-	virtual QList<IDesktopBox*> outgoingBoxes() const;
+	virtual QSet<IDesktopBox*> incomingBoxes() const;
+	virtual QSet<IDesktopBox*> outgoingBoxes() const;
 	
 public slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void connectIncomingBox(IDesktopBox* ak_Other_);
 	virtual void connectOutgoingBox(IDesktopBox* ak_Other_);
-	virtual void disconnectIncomingBox(IDesktopBox* ak_Other_, bool ab_EmitSignal = true);
-	virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_, bool ab_EmitSignal = true);
+	virtual void disconnectIncomingBox(IDesktopBox* ak_Other_);
+	virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_);
 	virtual void disconnectAll();
 	virtual void setResizable(bool ab_Enabled);
 	
 signals:
-	virtual void deleted();
 	virtual void batchModeChanged(bool);
 	virtual void moved(QPoint ak_Delta);
 	virtual void resized();
@@ -70,6 +69,8 @@ signals:
 	virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	
 protected:
+	virtual void resizeEvent(QResizeEvent* event);
+	virtual void moveEvent(QMoveEvent* event);
 	virtual void paintEvent(QPaintEvent* event);
 	virtual void mousePressEvent(QMouseEvent* event);
 	virtual void mouseReleaseEvent(QMouseEvent* event);
@@ -78,7 +79,6 @@ protected:
 	k_Desktop* mk_Desktop_;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_Resizable;
-	bool mb_LastResizable;
 	QPixmap mk_ResizeGripPixmap;
 	
 	bool mb_BatchMode;

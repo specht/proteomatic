@@ -64,11 +64,11 @@ void k_ScriptBox::outFileCheckboxClicked()
 			mk_pScript->outputFileDetails(ls_Key)["label"],
 			mk_pScript->outputFileDetails(ls_Key)["filename"]);
 		dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
-		connect(dynamic_cast<QObject*>(lk_Box_), SIGNAL(deleted()), this, SLOT(outFileBoxDeleted()));
 		mk_OutputFileBoxes[ls_Key] = lk_Box_;
 		mk_Desktop_->addBox(lk_Box_);
-		this->connectOutgoingBox(lk_Box_);
+		mk_Desktop_->connectBoxes(this, lk_Box_);
 		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(batchMode());
+		updateOutputFilenames();
 	}
 	else
 	{
@@ -81,63 +81,25 @@ void k_ScriptBox::outFileCheckboxClicked()
 }
 
 
-void k_ScriptBox::outFileBoxDeleted()
-{
-	QString ls_Key = sender()->property("key").toString();
-	if (mk_Checkboxes.contains(ls_Key))
-	{
-		// remove this output file box so that outFileCheckboxClicked won't
-		// try to delete the box a second time
-		IDesktopBox* lk_Box_ = mk_OutputFileBoxes[ls_Key];
-		mk_OutputFileBoxes.remove(ls_Key);
-		mk_Checkboxes[ls_Key]->setChecked(false);
-	}
-}
-
-
 void k_ScriptBox::handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming)
 {
 	if (ab_Incoming)
 	{
-		// enter batch mode if source box is in batch mode...
-		if (ak_Other_->batchMode())
-			setBatchMode(true);
-		// if this box is in batch mode, put all output boxes in list mode
-		foreach (IDesktopBox* lk_Box_, mk_OutputFileBoxes.values())
-			dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(batchMode());
-		// ...and watch future changes
-		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(batchModeChanged(bool)), this, SLOT(inputFileBoxBatchModeChanged(bool)));
-		updateBatchOutputFilenames();
-		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(filenamesChanged()), this, SLOT(updateBatchOutputFilenames()));
+		updateBatchMode();
+		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(batchModeChanged(bool)), this, SLOT(updateBatchMode()));
+		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(filenamesChanged()), this, SLOT(updateOutputFilenames()));
 	}
 }
 
 
 void k_ScriptBox::handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming)
 {
-	/*
-	if (!ab_Incoming)
-	{
-		k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(ak_Other_);
-		if (lk_Box_)
-		{
-			QString ls_Key = lk_Box_->property("key").toString();
-			if (mk_Checkboxes.contains(ls_Key))
-			{
-				delete mk_OutputFileBoxes[ls_Key];
-				// remove this output file box so that outFileCheckboxClicked won't
-				// try to delete the box a second time
-				mk_OutputFileBoxes.remove(ls_Key);
-				mk_Checkboxes[ls_Key]->setChecked(false);
-			}
-		}
-	}
-	*/
-	// TODO: update batch mode and output file boxes list mode
+	updateBatchMode();
+	updateOutputFilenames();
 }
 
 
-void k_ScriptBox::inputFileBoxBatchModeChanged(bool ab_Enabled)
+void k_ScriptBox::updateBatchMode()
 {
 	// batch mode this box if at least one incoming box is in batch mode
 	bool lb_BatchMode = false;
@@ -150,13 +112,16 @@ void k_ScriptBox::inputFileBoxBatchModeChanged(bool ab_Enabled)
 		}
 	}
 	setBatchMode(lb_BatchMode);
+	
 	// if this box is in batch mode, put all output boxes in list mode
 	foreach (IDesktopBox* lk_Box_, mk_OutputFileBoxes.values())
 		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(lb_BatchMode);
+	
+	updateOutputFilenames();
 }
 
 
-void k_ScriptBox::updateBatchOutputFilenames()
+void k_ScriptBox::updateOutputFilenames()
 {
 	if (batchMode())
 	{
@@ -172,16 +137,18 @@ void k_ScriptBox::updateBatchOutputFilenames()
 					IFileBox* lk_SourceBox_ = dynamic_cast<IFileBox*>(lk_Box_);
 					foreach (QString ls_Path, lk_SourceBox_->filenames())
 					{
-						QString ls_OutFilename = lk_OutBox_->filename();
+						QString ls_OutFilename = mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"];
 						QString ls_OutPath;
+						/*
 						if (ls_OutFilename.contains("."))
 						{
 							QStringList lk_OutFilename = ls_OutFilename.split(".");
 							QString ls_Base = lk_OutFilename.takeFirst();
-							ls_OutPath = ls_Base + "-" + QFileInfo(ls_Path).baseName() + lk_OutFilename.join(".");
+							ls_OutPath = ls_Base + "-" + QFileInfo(ls_Path).baseName() + "." + lk_OutFilename.join(".");
 						}
 						else
-							ls_OutPath = ls_OutFilename + "-" + QFileInfo(ls_Path).baseName(); 
+							*/
+							ls_OutPath = QFileInfo(ls_Path).baseName() + "-" + ls_OutFilename; 
 						
 						lk_Filenames.append(ls_OutPath);
 					}
@@ -193,6 +160,13 @@ void k_ScriptBox::updateBatchOutputFilenames()
 	else
 	{
 		// use original filename
+		foreach (QString ls_Key, mk_OutputFileBoxes.keys())
+		{
+			k_OutFileListBox* lk_OutBox_ = dynamic_cast<k_OutFileListBox*>(mk_OutputFileBoxes[ls_Key]);
+			QStringList lk_Filenames;
+			lk_Filenames.append(mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
+			lk_OutBox_->setFilenames(lk_Filenames);
+		}
 	}
 }
 
@@ -259,6 +233,7 @@ void k_ScriptBox::setupLayout()
 	
 	mk_Prefix.setHint("output file prefix");
 	lk_VLayout_->addWidget(&mk_Prefix);
+	connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 	
 	/*
 	// horizontal rule

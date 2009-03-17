@@ -47,6 +47,9 @@ public:
 	virtual void addScriptBox(const QString& as_ScriptUri);
 	virtual void addBox(IDesktopBox* ak_Box_);
 	virtual void removeBox(IDesktopBox* ak_Box_);
+	virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
+	virtual void disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
+	virtual void moveBox(IDesktopBox* ak_Box_, QPoint ak_Delta);
 	
 public slots:
 	virtual void redraw();
@@ -56,8 +59,6 @@ protected slots:
 	virtual void boxClicked(Qt::KeyboardModifiers ae_Modifiers);
 	virtual void arrowPressed();
 	virtual void arrowReleased();
-	virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
-	virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void boxBatchModeChanged(bool ab_Enabled);
 	virtual void updateArrow(QGraphicsPathItem* ak_Arrow_);
 	virtual void redrawSelection();
@@ -79,12 +80,15 @@ protected:
 	virtual void updateArrowInternal(QGraphicsPathItem* ak_Arrow_, QPointF ak_Start, QPointF ak_End);
 	virtual QPainterPath grownPathForBox(IDesktopBox* ak_Box_, int ai_Grow);
 	virtual QPainterPath grownPathForArrow(QGraphicsPathItem* ak_Arrow_, int ai_Grow);
+	virtual QPointF findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, IDesktopBox* ak_Box_);
 	
 	k_Proteomatic& mk_Proteomatic;
 	k_PipelineMainWindow& mk_PipelineMainWindow;
 	QGraphicsScene mk_GraphicsScene;
 	
 	double md_Scale;
+	
+	QSet<IDesktopBox*> mk_Boxes;
 
 	// an arrow in the making!
 	IDesktopBox* mk_ArrowStartBox_;

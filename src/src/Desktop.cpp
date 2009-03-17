@@ -61,6 +61,8 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 
 k_Desktop::~k_Desktop()
 {
+	while (!mk_Boxes.empty())
+		removeBox(mk_Boxes.toList().first());
 }
 
 
@@ -71,7 +73,10 @@ void k_Desktop::addInputFileBox(const QString& as_Path)
 
 void k_Desktop::addInputFileListBox()
 {
-	addBox(k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic));
+	IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
+	k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
+	addBox(lk_Box_);
+	lk_DesktopBox_->resize(300, 10);
 }
 
 
@@ -93,6 +98,7 @@ void k_Desktop::addScriptBox(const QString& as_ScriptUri)
 void k_Desktop::addBox(IDesktopBox* ak_Box_)
 {
 	k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
+	QRectF lk_BoundingRect = mk_GraphicsScene.itemsBoundingRect();
 	mk_GraphicsScene.addWidget(lk_DesktopBox_);
 	IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(ak_Box_);
 	if (lk_FileBox_)
@@ -100,23 +106,86 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 		connect(dynamic_cast<QObject*>(lk_FileBox_), SIGNAL(arrowPressed()), this, SLOT(arrowPressed()));
 		connect(dynamic_cast<QObject*>(lk_FileBox_), SIGNAL(arrowReleased()), this, SLOT(arrowReleased()));
 	}
-	connect(lk_DesktopBox_, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(boxConnected(IDesktopBox*, bool)));
-	connect(lk_DesktopBox_, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(boxDisconnected(IDesktopBox*, bool)));
 	connect(lk_DesktopBox_, SIGNAL(moved(QPoint)), this, SLOT(boxMovedOrResized(QPoint)));
 	connect(lk_DesktopBox_, SIGNAL(resized()), this, SLOT(boxMovedOrResized()));
 	connect(lk_DesktopBox_, SIGNAL(clicked(Qt::KeyboardModifiers)), this, SLOT(boxClicked(Qt::KeyboardModifiers)));
 	connect(lk_DesktopBox_, SIGNAL(batchModeChanged(bool)), this, SLOT(boxBatchModeChanged(bool)));
+	mk_Boxes.insert(ak_Box_);
+	lk_DesktopBox_->resize(1, 1);
+	QPointF lk_FreeSpace = findFreeSpace(lk_BoundingRect, mk_Boxes.size() - 1, ak_Box_);
+	lk_DesktopBox_->move(QPoint((int)lk_FreeSpace.x(), (int)lk_FreeSpace.y()));
+	redraw();
 }
 
 
 void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 {
-	ak_Box_->disconnectAll();
+	if (!mk_Boxes.contains(ak_Box_))
+		return;
+	
+	foreach (IDesktopBox* lk_Box_, ak_Box_->incomingBoxes())
+		disconnectBoxes(lk_Box_, ak_Box_);
+	foreach (IDesktopBox* lk_Box_, ak_Box_->outgoingBoxes())
+		disconnectBoxes(ak_Box_, lk_Box_);
 	delete ak_Box_;
+	mk_Boxes.remove(ak_Box_);
 	mk_SelectedBoxes.remove(ak_Box_);
 	mk_BatchBoxes.remove(ak_Box_);
 	redrawSelection();
 	redrawBatchFrame();
+}
+
+
+void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_)
+{
+	ak_Source_->connectOutgoingBox(ak_Destination_);
+	QGraphicsPathItem* lk_GraphicsPathItem_ = 
+		mk_GraphicsScene.addPath(QPainterPath(), QPen(QColor(TANGO_ALUMINIUM_3)), QBrush(QColor(TANGO_ALUMINIUM_3)));
+	lk_GraphicsPathItem_->setZValue(-1.0);
+	QPen lk_Pen("#f8f8f8");
+	lk_Pen.setWidthF(10.0);
+	QGraphicsLineItem* lk_ArrowProxy_ = 
+		mk_GraphicsScene.addLine(QLineF(), lk_Pen);
+	lk_ArrowProxy_->setZValue(-1000.0);
+	mk_ArrowForProxy[lk_ArrowProxy_] = lk_GraphicsPathItem_;
+	mk_Arrows[lk_GraphicsPathItem_] = tk_BoxPair(ak_Source_, ak_Destination_);
+	mk_ArrowForBoxPair[tk_BoxPair(ak_Source_, ak_Destination_)] = lk_GraphicsPathItem_;
+	mk_ArrowsForBox[ak_Source_].insert(lk_GraphicsPathItem_);
+	mk_ArrowsForBox[ak_Destination_].insert(lk_GraphicsPathItem_);
+	mk_ArrowProxy[lk_GraphicsPathItem_] = lk_ArrowProxy_;
+	this->updateArrow(lk_GraphicsPathItem_);
+}
+
+
+void k_Desktop::disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_)
+{
+	ak_Source_->disconnectOutgoingBox(ak_Destination_);
+	tk_BoxPair lk_BoxPair(ak_Source_, ak_Destination_);
+	QGraphicsPathItem* lk_GraphicsPathItem_ = mk_ArrowForBoxPair[lk_BoxPair];
+	mk_Arrows.remove(lk_GraphicsPathItem_);
+	mk_ArrowForBoxPair.remove(lk_BoxPair);
+	mk_ArrowsForBox[ak_Source_].remove(lk_GraphicsPathItem_);
+	mk_ArrowsForBox[ak_Destination_].remove(lk_GraphicsPathItem_);
+	mk_ArrowForProxy.remove(mk_ArrowProxy[lk_GraphicsPathItem_]);
+	delete mk_ArrowProxy[lk_GraphicsPathItem_];
+	mk_ArrowProxy.remove(lk_GraphicsPathItem_);
+	delete lk_GraphicsPathItem_;
+}
+
+
+void k_Desktop::moveBox(IDesktopBox* ak_Box_, QPoint ak_Delta)
+{
+	k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
+	if (mk_SelectedBoxes.contains(ak_Box_))
+	{
+		foreach (IDesktopBox* lk_SetBox_, mk_SelectedBoxes)
+		{
+			k_DesktopBox* lk_SetDesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_SetBox_);
+			lk_SetDesktopBox_->move(lk_SetDesktopBox_->pos() + ak_Delta);
+		}
+	}
+	else
+		lk_Box_->move(lk_Box_->pos() + ak_Delta);
 }
 
 
@@ -132,22 +201,13 @@ void k_Desktop::redraw()
 void k_Desktop::boxMovedOrResized(QPoint ak_Delta)
 {
 	IDesktopBox* lk_Sender_ = dynamic_cast<IDesktopBox*>(sender());
-	foreach (IDesktopBox* lk_Other_, mk_SelectedBoxes)
-	{
-		if (lk_Other_ != lk_Sender_)
-		{
-			k_DesktopBox* lk_OtherBox_ = dynamic_cast<k_DesktopBox*>(lk_Other_);
-			lk_OtherBox_->move(lk_OtherBox_->pos() + ak_Delta);
-		}
-	}
 	if (lk_Sender_ && mk_ArrowsForBox.contains(lk_Sender_))
 		foreach (QGraphicsPathItem* lk_Arrow_, mk_ArrowsForBox[lk_Sender_])
 			updateArrow(lk_Arrow_);
 	foreach (IDesktopBox* lk_Box_, mk_SelectedBoxes)
 		foreach (QGraphicsPathItem* lk_Arrow_, mk_ArrowsForBox[lk_Box_])
 			updateArrow(lk_Arrow_);
-	redrawSelection();
-	redrawBatchFrame();
+	redraw();
 }
 
 
@@ -186,7 +246,7 @@ void k_Desktop::arrowPressed()
 void k_Desktop::arrowReleased()
 {
 	if (mk_ArrowStartBox_ && mk_ArrowEndBox_)
-		mk_ArrowStartBox_->connectOutgoingBox(mk_ArrowEndBox_);
+		connectBoxes(mk_ArrowStartBox_, mk_ArrowEndBox_);
 	
 	mk_ArrowStartBox_ = NULL;
 	mk_ArrowEndBox_ = NULL;
@@ -194,54 +254,6 @@ void k_Desktop::arrowReleased()
 	{
 		delete mk_UserArrowPathItem_;
 		mk_UserArrowPathItem_ = NULL;
-	}
-}
-
-
-void k_Desktop::boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming)
-{
-	// only watch the incoming connections, because these events come as twins!
-	if (ab_Incoming)
-	{
-		IDesktopBox* lk_Source_ = ak_Other_;
-		IDesktopBox* lk_Destination_ = dynamic_cast<IDesktopBox*>(sender());
-		
-		QGraphicsPathItem* lk_GraphicsPathItem_ = 
-			mk_GraphicsScene.addPath(QPainterPath(), QPen(QColor(TANGO_ALUMINIUM_3)), QBrush(QColor(TANGO_ALUMINIUM_3)));
-		lk_GraphicsPathItem_->setZValue(-1.0);
-		QPen lk_Pen("#f8f8f8");
-		lk_Pen.setWidthF(10.0);
-		QGraphicsLineItem* lk_ArrowProxy_ = 
-			mk_GraphicsScene.addLine(QLineF(), lk_Pen);
-		lk_ArrowProxy_->setZValue(-1000.0);
-		mk_ArrowForProxy[lk_ArrowProxy_] = lk_GraphicsPathItem_;
-		mk_Arrows[lk_GraphicsPathItem_] = tk_BoxPair(lk_Source_, lk_Destination_);
-		mk_ArrowForBoxPair[tk_BoxPair(lk_Source_, lk_Destination_)] = lk_GraphicsPathItem_;
-		mk_ArrowsForBox[lk_Source_].insert(lk_GraphicsPathItem_);
-		mk_ArrowsForBox[lk_Destination_].insert(lk_GraphicsPathItem_);
-		mk_ArrowProxy[lk_GraphicsPathItem_] = lk_ArrowProxy_;
-		this->updateArrow(lk_GraphicsPathItem_);
-	}
-}
-
-
-void k_Desktop::boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming)
-{
-	// only watch the incoming disconnections, because these events come as twins!
-	if (ab_Incoming)
-	{
-		IDesktopBox* lk_Source_ = ak_Other_;
-		IDesktopBox* lk_Destination_ = dynamic_cast<IDesktopBox*>(sender());
-
-		QGraphicsPathItem* lk_GraphicsPathItem_ = mk_ArrowForBoxPair[tk_BoxPair(lk_Source_, lk_Destination_)];
-		mk_Arrows.remove(lk_GraphicsPathItem_);
-		mk_ArrowForBoxPair.remove(tk_BoxPair(lk_Source_, lk_Destination_));
-		mk_ArrowsForBox[lk_Source_].remove(lk_GraphicsPathItem_);
-		mk_ArrowsForBox[lk_Destination_].remove(lk_GraphicsPathItem_);
-		mk_ArrowForProxy.remove(mk_ArrowProxy[lk_GraphicsPathItem_]);
-		delete mk_ArrowProxy[lk_GraphicsPathItem_];
-		mk_ArrowProxy.remove(lk_GraphicsPathItem_);
-		delete lk_GraphicsPathItem_;
 	}
 }
 
@@ -319,13 +331,13 @@ void k_Desktop::deleteSelected()
 {
 	QList<IDesktopBox*> lk_BoxDeleteList = mk_SelectedBoxes.toList();
 	QList<QGraphicsPathItem*> lk_ArrowDeleteList = mk_SelectedArrows.toList();
-	clearSelection();
 
 	foreach (QGraphicsPathItem* lk_Arrow_, lk_ArrowDeleteList)
-		mk_Arrows[lk_Arrow_].first->disconnectOutgoingBox(mk_Arrows[lk_Arrow_].second);
+		disconnectBoxes(mk_Arrows[lk_Arrow_].first, mk_Arrows[lk_Arrow_].second);
 	
-	foreach (IDesktopBox* lk_Box_, lk_BoxDeleteList)
-		removeBox(lk_Box_);
+	while (!mk_SelectedBoxes.empty())
+		removeBox(mk_SelectedBoxes.toList().first());
+	
 	redrawSelection();
 	redrawBatchFrame();
 }
@@ -454,6 +466,7 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* event)
 		updateUserArrow(mapToScene(event->pos()));
 	}
 }
+
 
 void k_Desktop::wheelEvent(QWheelEvent* event)
 {
@@ -620,4 +633,38 @@ QPainterPath k_Desktop::grownPathForArrow(QGraphicsPathItem* ak_Arrow_, int ai_G
 		lk_Path.lineTo(p0 + lk_Normal * ai_Grow);
 	}
 	return lk_Path;
+}
+
+
+QPointF k_Desktop::findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, IDesktopBox* ak_Box_)
+{
+	QPointF lk_HalfSize = 
+		QPointF((double)(dynamic_cast<k_DesktopBox*>(ak_Box_)->width()) * 0.5,
+				 (double)(dynamic_cast<k_DesktopBox*>(ak_Box_)->height()) * 0.5);
+				 
+	if (ai_BoxCount == 0)
+		return QPointF() - lk_HalfSize;
+
+	QRectF lk_Rect = ak_BoundRect.adjusted(-8.0, -8.0, 8.0, 8.0);
+	double p[4] = {lk_Rect.top(), lk_Rect.right(), lk_Rect.bottom(), lk_Rect.left()};
+	int best = 0;
+	double bestd = fabs(p[0]);
+	for (int i = 1; i < 4; ++i)
+	{
+		double d = fabs(p[i]);
+		if (d < bestd)
+		{
+			bestd = d;
+			best = i;
+		}
+	}
+	if (best == 0)
+		return QPointF(0.0, lk_Rect.top() - lk_HalfSize.y()) - lk_HalfSize;
+	if (best == 1)
+		return QPointF(lk_Rect.right() + lk_HalfSize.x(), 0.0) - lk_HalfSize;
+	if (best == 2)
+		return QPointF(0.0, lk_Rect.bottom() + lk_HalfSize.y()) - lk_HalfSize;
+	if (best == 3)
+		return QPointF(lk_Rect.left() - lk_HalfSize.x(), 0.0) - lk_HalfSize;
+	return QPointF() - lk_HalfSize;
 }

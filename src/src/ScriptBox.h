@@ -39,11 +39,10 @@ public:
 	
 protected slots:
 	virtual void outFileCheckboxClicked();
-	virtual void outFileBoxDeleted();
 	virtual void handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
-	virtual void inputFileBoxBatchModeChanged(bool ab_Enabled);
-	virtual void updateBatchOutputFilenames();
+	virtual void updateBatchMode();
+	virtual void updateOutputFilenames();
 	
 protected:
 	virtual void setupLayout();
