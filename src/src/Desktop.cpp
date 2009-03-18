@@ -42,9 +42,10 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	setRenderHint(QPainter::TextAntialiasing, true);
 	setRenderHint(QPainter::SmoothPixmapTransform, true);
 	setBackgroundBrush(QBrush(QColor("#f8f8f8")));
-	setSceneRect(-10000.0, -10000.0, 20000.0, 20000.0);
+	setSceneRect(0.0, 0.0, 20000.0, 20000.0);
 	setDragMode(QGraphicsView::ScrollHandDrag);
-	translate(0.5, 0.5);
+	setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+	centerOn(10000.5, 10000.5);
 	
 	QPen lk_Pen(QColor(TANGO_ALUMINIUM_3));
 	lk_Pen.setWidthF(1.5);
@@ -643,15 +644,15 @@ QPointF k_Desktop::findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, IDesktopB
 				 (double)(dynamic_cast<k_DesktopBox*>(ak_Box_)->height()) * 0.5);
 				 
 	if (ai_BoxCount == 0)
-		return QPointF() - lk_HalfSize;
+		return QPointF(10000.0, 10000.0) - lk_HalfSize;
 
 	QRectF lk_Rect = ak_BoundRect.adjusted(-8.0, -8.0, 8.0, 8.0);
 	double p[4] = {lk_Rect.top(), lk_Rect.right(), lk_Rect.bottom(), lk_Rect.left()};
 	int best = 0;
-	double bestd = fabs(p[0]);
+	double bestd = fabs(p[0] - 10000.0);
 	for (int i = 1; i < 4; ++i)
 	{
-		double d = fabs(p[i]);
+		double d = fabs(p[i] - 10000.0);
 		if (d < bestd)
 		{
 			bestd = d;
@@ -659,12 +660,12 @@ QPointF k_Desktop::findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, IDesktopB
 		}
 	}
 	if (best == 0)
-		return QPointF(0.0, lk_Rect.top() - lk_HalfSize.y()) - lk_HalfSize;
+		return QPointF(10000.0, lk_Rect.top() - lk_HalfSize.y()) - lk_HalfSize;
 	if (best == 1)
-		return QPointF(lk_Rect.right() + lk_HalfSize.x(), 0.0) - lk_HalfSize;
+		return QPointF(lk_Rect.right() + lk_HalfSize.x(), 10000.0) - lk_HalfSize;
 	if (best == 2)
-		return QPointF(0.0, lk_Rect.bottom() + lk_HalfSize.y()) - lk_HalfSize;
+		return QPointF(10000.0, lk_Rect.bottom() + lk_HalfSize.y()) - lk_HalfSize;
 	if (best == 3)
-		return QPointF(lk_Rect.left() - lk_HalfSize.x(), 0.0) - lk_HalfSize;
+		return QPointF(lk_Rect.left() - lk_HalfSize.x(), 10000.0) - lk_HalfSize;
 	return QPointF() - lk_HalfSize;
 }

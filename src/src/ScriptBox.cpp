@@ -230,6 +230,25 @@ void k_ScriptBox::setupLayout()
 	lk_HLayout_->addWidget(lk_ParametersToolButton_);
 	connect(lk_ParametersToolButton_, SIGNAL(clicked()), mk_pParameterProxyWidget.get_Pointer(), SLOT(show()));
 	lk_HLayout_->addStretch();
+
+	QMenu* lk_OutputFilesMenu_ = new QMenu(this);
+	foreach (QString ls_Key, mk_pScript->outputFileKeys())
+	{
+		QHash<QString, QString> lk_OutputFileDetails = mk_pScript->outputFileDetails(ls_Key);
+		QString ls_Label = lk_OutputFileDetails["label"];
+		ls_Label[0] = ls_Label[0].toUpper();
+		QAction* lk_Action_ = lk_OutputFilesMenu_->addAction(ls_Label);
+		lk_Action_->setCheckable(true);
+		if (lk_OutputFileDetails["default"] == "yes" || lk_OutputFileDetails["default"] == "true")
+			lk_Action_->setChecked(true);
+	}
+	QToolButton* lk_OutputFilesButton_ = new QToolButton(this);
+	lk_OutputFilesButton_->setPopupMode(QToolButton::InstantPopup);
+	lk_OutputFilesButton_->setText("Output files");
+	lk_OutputFilesButton_->setMenu(lk_OutputFilesMenu_);
+	lk_OutputFilesButton_->setIcon(QIcon(":icons/folder.png"));
+	lk_OutputFilesButton_->setToolButtonStyle(Qt::ToolButtonIconOnly);
+	lk_HLayout_->addWidget(lk_OutputFilesButton_);
 	
 	mk_Prefix.setHint("output file prefix");
 	lk_VLayout_->addWidget(&mk_Prefix);
@@ -245,6 +264,7 @@ void k_ScriptBox::setupLayout()
 	*/
 	
 	// output file checkboxes
+	/*
 	foreach (QString ls_Key, mk_pScript->outputFileKeys())
 	{
 		QHash<QString, QString> lk_OutputFileDetails = mk_pScript->outputFileDetails(ls_Key);
@@ -256,4 +276,5 @@ void k_ScriptBox::setupLayout()
 		if (lk_OutputFileDetails["default"] == "yes" || lk_OutputFileDetails["default"] == "true")
 			lk_CheckBox_->setChecked(true);
 	}
+	*/
 }

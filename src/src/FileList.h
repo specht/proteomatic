@@ -54,7 +54,7 @@ protected:
 	QStringList mk_Keys;
 	QHash<QString, QString> mk_Labels;
 	QHash<QString, QStringList> mk_Extensions;
-	QHash<QString, QStringList> mk_Files;
+	QHash<QString, QMap<QString, bool> > mk_Files;
 
 private:
 	bool mb_ReallyRemoveItems;

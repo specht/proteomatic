@@ -67,7 +67,7 @@ void k_FileList::addInputFileGroup(QString as_Key, QString as_Label, QStringList
 	mk_Keys.push_back(as_Key);
 	mk_Labels[as_Key] = ls_Label;
 	mk_Extensions[as_Key] = ak_Extensions;
-	mk_Files[as_Key] = QStringList();
+	mk_Files[as_Key] = QMap<QString, bool>();
 	
 	QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Label + " files (0)", this);
 	lk_Item_->setFlags(Qt::ItemIsEnabled);
@@ -105,7 +105,7 @@ void k_FileList::addInputFile(QString as_Path)
 			}
 		}
 	}
-	mk_Files[ls_MatchingKey].push_back(as_Path);
+	mk_Files[ls_MatchingKey][as_Path] = true;
 	this->refresh();
 	emit changed();
 }
@@ -116,12 +116,12 @@ QStringList k_FileList::files() const
 	QStringList lk_AllFiles;
 	if (mk_Keys.empty())
 	{
-		lk_AllFiles += mk_Files[""];
+		lk_AllFiles += mk_Files[""].keys();
 	}
 	else
 	{
 		foreach (QString ls_Key, mk_Files.keys())
-			lk_AllFiles += mk_Files[ls_Key];
+			lk_AllFiles += mk_Files[ls_Key].keys();
 	}
 	
 	return lk_AllFiles;
@@ -131,8 +131,8 @@ QStringList k_FileList::files() const
 int k_FileList::fileCount() const
 {
 	int li_Count = 0;
-	foreach (QStringList lk_Paths, mk_Files.values())
-		li_Count += lk_Paths.size();
+	foreach (QString ls_Key, mk_Files.keys())
+		li_Count += mk_Files[ls_Key].size();
 	return li_Count;
 }
 
@@ -147,10 +147,10 @@ void k_FileList::removeSelection()
 			if (!mk_Keys.empty())
 			{
 				foreach (QString ls_Key, mk_Keys)
-					mk_Files[ls_Key].removeOne(ls_Path);
+					mk_Files[ls_Key].remove(ls_Path);
 			}
 			else
-				mk_Files[""].removeOne(ls_Path);
+				mk_Files[""].remove(ls_Path);
 		}
 		this->refresh();
 	}
@@ -199,7 +199,7 @@ void k_FileList::refresh()
 	this->clear();
 	if (mk_Keys.empty())
 	{
-		foreach (QString ls_Path, mk_Files[""])
+		foreach (QString ls_Path, mk_Files[""].keys())
 		{
 			QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
 			(void)lk_Item_;
@@ -214,7 +214,7 @@ void k_FileList::refresh()
 			QFont lk_Font = lk_Item_->font();
 			lk_Font.setBold(true);
 			lk_Item_->setFont(lk_Font);
-			foreach (QString ls_Path, mk_Files[ls_Key])
+			foreach (QString ls_Path, mk_Files[ls_Key].keys())
 			{
 				QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
 				(void)lk_Item_;
