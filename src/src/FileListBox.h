@@ -37,6 +37,8 @@ public:
 	virtual ~k_FileListBox();
 
 	virtual QStringList filenames() const;	
+	virtual QString tagForFilename(const QString& as_Filename) const;
+	virtual QString prefixWithoutTags() const;
 	
 signals:
 	virtual void arrowPressed();
@@ -47,6 +49,7 @@ protected slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void addFilesButtonClicked();
 	virtual void toggleUi();
+	virtual void updateFilenameTags();
 	
 protected:
 	virtual void setupLayout();
@@ -55,4 +58,6 @@ protected:
 	k_UnclickableLabel mk_Label;
 	QToolButton mk_RemoveSelectionButton;
 	QToolButton mk_BatchModeButton;
+	QHash<QString, QString> mk_TagForFilename;
+	QString ms_PrefixWithoutTags;
 };

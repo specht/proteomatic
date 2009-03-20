@@ -24,6 +24,8 @@ struct IFileBox
 	virtual ~IFileBox() {};
 	
 	virtual QStringList filenames() const = 0;
+	virtual QString tagForFilename(const QString& as_Filename) const = 0;
+	virtual QString prefixWithoutTags() const = 0;
 	
 	// slots
 	

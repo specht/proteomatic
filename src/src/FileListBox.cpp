@@ -45,12 +45,29 @@ QStringList k_FileListBox::filenames() const
 }
 
 
+QString k_FileListBox::tagForFilename(const QString& as_Filename) const
+{
+	if (mk_TagForFilename.contains(as_Filename))
+		return mk_TagForFilename[as_Filename];
+	else
+		return QFileInfo(as_Filename).baseName();
+}
+
+
+QString k_FileListBox::prefixWithoutTags() const
+{
+	return ms_PrefixWithoutTags;
+}
+
+
 void k_FileListBox::setBatchMode(bool ab_Enabled)
 {
 	k_DesktopBox::setBatchMode(ab_Enabled);
 	if (mk_BatchModeButton.isChecked() != ab_Enabled)
 		mk_BatchModeButton.setChecked(ab_Enabled);
 	toggleUi();
+	if (ab_Enabled)
+		updateFilenameTags();
 }
 
 
@@ -85,6 +102,12 @@ void k_FileListBox::toggleUi()
 }
 
 
+void k_FileListBox::updateFilenameTags()
+{
+	mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
+}
+
+
 void k_FileListBox::setupLayout()
 {
 	QBoxLayout* lk_VLayout_;
@@ -106,6 +129,7 @@ void k_FileListBox::setupLayout()
 	lk_HLayout_->addWidget(&mk_FileList);
 	connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(filenamesChanged()));
+	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(updateFilenameTags()));
 	mk_FileList.resize(100, 100);
 	
 	QBoxLayout* lk_VSubLayout_ = new QVBoxLayout();

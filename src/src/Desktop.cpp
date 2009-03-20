@@ -67,11 +67,18 @@ k_Desktop::~k_Desktop()
 }
 
 
-void k_Desktop::addInputFileBox(const QString& as_Path)
+k_PipelineMainWindow& k_Desktop::pipelineMainWindow() const
 {
+	return mk_PipelineMainWindow;
 }
 
 
+QGraphicsScene& k_Desktop::graphicsScene()
+{
+	return mk_GraphicsScene;
+}
+
+	
 void k_Desktop::addInputFileListBox()
 {
 	IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
@@ -85,14 +92,7 @@ void k_Desktop::addScriptBox(const QString& as_ScriptUri)
 {
 	IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeScriptBox(as_ScriptUri, this, mk_Proteomatic);
 	if (lk_Box_)
-	{
 		addBox(lk_Box_);
-		clearSelection();
-		mk_SelectedBoxes.insert(lk_Box_);
-		foreach (IDesktopBox* lk_ChildBox_, lk_Box_->outgoingBoxes())
-			mk_SelectedBoxes.insert(lk_ChildBox_);
-		redrawSelection();
-	}
 }
 
 
@@ -187,6 +187,89 @@ void k_Desktop::moveBox(IDesktopBox* ak_Box_, QPoint ak_Delta)
 	}
 	else
 		lk_Box_->move(lk_Box_->pos() + ak_Delta);
+}
+
+
+void k_Desktop::createFilenameTags(QStringList ak_Filenames, QHash<QString, QString>& ak_TagForFilename, QString& as_PrefixWithoutTags)
+{
+	QHash<QString, QString> lk_Result;
+	QStringList lk_Files = ak_Filenames;
+	QHash<QString, QSet<QString> > lk_TagInFilenames;
+	QHash<QString, int> lk_MinTagCountInFilenames;
+	QHash<QString, QStringList> lk_AllChopped;
+	foreach (QString ls_Path, lk_Files)
+	{
+		QString ls_Basename = QFileInfo(ls_Path).baseName();
+		// ls_Basename contains MT_Hyd_CPAN_040708_33-no-ms1
+		QStringList lk_Chopped;
+		// chop string
+		int li_LastClass = -1;
+		for (int i = 0; i < ls_Basename.length(); ++i)
+		{
+			int li_ThisClass = 0;
+			QChar lk_Char = ls_Basename.at(i);
+			if (lk_Char >= '0' && lk_Char <= '9')
+				li_ThisClass = 1;
+			else if ((lk_Char >= 'A' && lk_Char <= 'Z') || (lk_Char >= 'a' && lk_Char <= 'z'))
+				li_ThisClass = 2;
+			if (li_ThisClass != li_LastClass)
+				lk_Chopped.append(lk_Char);
+			else
+				lk_Chopped.last().append(lk_Char);
+			li_LastClass = li_ThisClass;
+		}
+		lk_AllChopped[ls_Path] = lk_Chopped;
+		// lk_Chopped contains: MT _ Hyd _ CPAN _ 040708 _ 33 - no - ms 1
+		QHash<QString, int> lk_TagCount;
+		foreach (QString ls_Tag, lk_Chopped)
+		{
+			if (!lk_TagCount.contains(ls_Tag))
+				lk_TagCount[ls_Tag] = 0;
+			lk_TagCount[ls_Tag] += 1;
+		}
+		foreach (QString ls_Tag, lk_TagCount.keys())
+		{
+			if (!lk_TagInFilenames.contains(ls_Tag))
+				lk_TagInFilenames[ls_Tag] = QSet<QString>();
+			lk_TagInFilenames[ls_Tag].insert(ls_Path);
+			if (!lk_MinTagCountInFilenames.contains(ls_Tag))
+				lk_MinTagCountInFilenames[ls_Tag] = lk_TagCount[ls_Tag];
+			lk_MinTagCountInFilenames[ls_Tag] = std::min<int>(lk_MinTagCountInFilenames[ls_Tag], lk_TagCount[ls_Tag]);
+		}
+	}
+	foreach (QString ls_Path, lk_Files)
+	{
+		QStringList lk_Chopped = lk_AllChopped[ls_Path];
+		foreach (QString ls_Tag, lk_TagInFilenames.keys())
+		{
+			if (lk_TagInFilenames[ls_Tag].size() != lk_Files.size())
+				continue;
+			for (int i = 0; i < lk_MinTagCountInFilenames[ls_Tag]; ++i)
+				lk_Chopped.removeOne(ls_Tag);
+		}
+		QString ls_Short = lk_Chopped.join("");
+		lk_Result[ls_Path] = ls_Short;
+	}
+	
+	// determine common prefix without tags
+	QString ls_PrefixWithoutTags;
+	if (!lk_Files.empty())
+	{
+		QStringList lk_Chopped = lk_AllChopped[lk_Files.first()];
+		foreach (QString ls_Tag, lk_Chopped)
+		{
+			if (lk_TagInFilenames[ls_Tag].size() != lk_Files.size())
+				continue;
+			if (lk_MinTagCountInFilenames[ls_Tag] > 0)
+			{
+				ls_PrefixWithoutTags += ls_Tag;
+				lk_MinTagCountInFilenames[ls_Tag] -= 1;
+			}
+		}
+	}
+	
+	ak_TagForFilename = lk_Result;
+	as_PrefixWithoutTags = ls_PrefixWithoutTags;
 }
 
 

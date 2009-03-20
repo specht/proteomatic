@@ -49,7 +49,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), this, SLOT(addScript(QAction*)));
 	mk_AddScriptAction_ = lk_AddScriptButton_;
 
-	mk_AddFilesAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add files", this, SLOT(addFiles()));
 	mk_AddFileListAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open-multiple.png"), "Add file list", this, SLOT(addFileListBox()));
 
 	lk_AddToolBar_->addSeparator();
@@ -104,17 +103,6 @@ void k_PipelineMainWindow::start()
 }
 
 
-void k_PipelineMainWindow::addFiles()
-{
-	QStringList lk_Files = QFileDialog::getOpenFileNames(this, tr("Add files"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_INPUT_FILES_PATH).toString());
-	if (!lk_Files.empty())
-		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_INPUT_FILES_PATH] = QFileInfo(lk_Files[0]).absolutePath();
-
-	foreach (QString ls_Path, lk_Files)
-		mk_Desktop.addInputFileBox(ls_Path);
-}
-
-
 void k_PipelineMainWindow::addFileListBox()
 {
 	mk_Desktop.addInputFileListBox();
@@ -148,7 +136,6 @@ void k_PipelineMainWindow::toggleUi()
 {
 	/*
 	mk_AddScriptAction_->setEnabled(!mk_Desktop.running());
-	mk_AddFilesAction_->setEnabled(!mk_Desktop.running());
 	mk_AddFileListAction_->setEnabled(!mk_Desktop.running());
 	mk_StartAction_->setEnabled(!mk_Desktop.running());
 	mk_RefreshAction_->setEnabled(!mk_Desktop.running());

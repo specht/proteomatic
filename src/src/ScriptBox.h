@@ -38,11 +38,12 @@ public:
 	virtual IScript* script();
 	
 protected slots:
-	virtual void outFileCheckboxClicked();
+	virtual void outputFileActionToggled();
 	virtual void handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void updateBatchMode();
 	virtual void updateOutputFilenames();
+	virtual void proposePrefixButtonClicked();
 	
 protected:
 	virtual void setupLayout();
@@ -53,4 +54,5 @@ protected:
 	QHash<QString, QCheckBox*> mk_Checkboxes;
 	
 	k_HintLineEdit mk_Prefix;
+	k_HintLineEdit mk_OutputDirectory;
 };

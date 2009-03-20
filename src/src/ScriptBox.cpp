@@ -18,10 +18,13 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "ScriptBox.h"
+#include "FoldedHeader.h"
 #include "Desktop.h"
 #include "DesktopBoxFactory.h"
+#include "FileListBox.h"
 #include "HintLineEdit.h"
 #include "OutFileListBox.h"
+#include "PipelineMainWindow.h"
 #include "ScriptFactory.h"
 #include "Tango.h"
 #include "UnclickableLabel.h"
@@ -33,6 +36,7 @@ k_ScriptBox::k_ScriptBox(const QString& as_ScriptUri, k_Desktop* ak_Parent_, k_P
 {
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
+	connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputDirectoryChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 	setupLayout();
 }
 
@@ -52,7 +56,7 @@ IScript* k_ScriptBox::script()
 }
 
 	
-void k_ScriptBox::outFileCheckboxClicked()
+void k_ScriptBox::outputFileActionToggled()
 {
 	QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(sender());
 	QString ls_Key = lk_CheckBox_->property("key").toString();
@@ -61,8 +65,7 @@ void k_ScriptBox::outFileCheckboxClicked()
 		IDesktopBox* lk_Box_ = 
 		k_DesktopBoxFactory::makeOutFileListBox(
 			mk_Desktop_, mk_Proteomatic, 
-			mk_pScript->outputFileDetails(ls_Key)["label"],
-			mk_pScript->outputFileDetails(ls_Key)["filename"]);
+			mk_pScript->outputFileDetails(ls_Key)["label"]);
 		dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
 		mk_OutputFileBoxes[ls_Key] = lk_Box_;
 		mk_Desktop_->addBox(lk_Box_);
@@ -138,19 +141,11 @@ void k_ScriptBox::updateOutputFilenames()
 					foreach (QString ls_Path, lk_SourceBox_->filenames())
 					{
 						QString ls_OutFilename = mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"];
-						QString ls_OutPath;
-						/*
-						if (ls_OutFilename.contains("."))
-						{
-							QStringList lk_OutFilename = ls_OutFilename.split(".");
-							QString ls_Base = lk_OutFilename.takeFirst();
-							ls_OutPath = ls_Base + "-" + QFileInfo(ls_Path).baseName() + "." + lk_OutFilename.join(".");
-						}
-						else
-							*/
-							ls_OutPath = QFileInfo(ls_Path).baseName() + "-" + ls_OutFilename; 
-						
-						lk_Filenames.append(ls_OutPath);
+						QString ls_Suffix = QFileInfo(ls_OutFilename).completeSuffix();
+						ls_OutFilename.remove(ls_OutFilename.length() - ls_Suffix.length() - 1, ls_Suffix.length() + 1);
+						QString ls_OutPath = ls_OutFilename + "-" + lk_SourceBox_->tagForFilename(ls_Path) + "." + ls_Suffix;
+						ls_OutPath = ls_OutPath;
+						lk_Filenames.append(QFileInfo(QDir(mk_Desktop_->pipelineMainWindow().outputDirectory()), ls_OutPath).absoluteFilePath());
 					}
 				}
 			}
@@ -169,6 +164,59 @@ void k_ScriptBox::updateOutputFilenames()
 		}
 	}
 }
+
+
+void k_ScriptBox::proposePrefixButtonClicked()
+{
+	if (mk_pScript->location() == r_ScriptLocation::Local)
+	{
+		// collect all input files
+		QStringList lk_InputFiles;
+		foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+		{
+			IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+			if (lk_FileBox_)
+			{
+				foreach (QString ls_Path, lk_FileBox_->filenames())
+				{
+					QString ls_Group = mk_pScript->inputGroupForFilename(ls_Path);
+					// TODO: only append files that are in the correct group!!
+					lk_InputFiles.append(ls_Path);
+				}
+			}
+		}
+		QHash<QString, QString> lk_Tags;
+		QString ls_CommonPrefix;
+		mk_Desktop_->createFilenameTags(lk_InputFiles, lk_Tags, ls_CommonPrefix);
+		mk_Prefix.setText(ls_CommonPrefix);
+		/*
+		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer()))->proposePrefix(lk_Arguments);
+		if (ls_Result.startsWith("--proposePrefix"))
+		{
+			QStringList lk_Result = ls_Result.split("\n");
+			mk_PrefixWidget.setText(lk_Result[1].trimmed());
+		}
+		else
+		{
+			mk_Proteomatic.showMessageBox("Propose prefix", 
+				"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
+				":/icons/emblem-important.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
+		}
+		*/
+	}
+}
+
+
+/*
+void k_ScriptBox::showPopupMenu()
+{
+	QToolButton* lk_ToolButton_ = dynamic_cast<QToolButton*>(sender());
+	QPoint lk_Point = lk_ToolButton_->pos() + pos() + QPoint(0, lk_ToolButton_->height());
+	mk_PopupMenu_->show();
+	mk_PopupMenu_->raise();
+	mk_PopupMenu_->exec(lk_Point);
+}
+*/
 
 
 void k_ScriptBox::setupLayout()
@@ -225,34 +273,79 @@ void k_ScriptBox::setupLayout()
 	lk_HLayout_ = new QHBoxLayout();
 	lk_VLayout_->addLayout(lk_HLayout_);
 	
-	QToolButton* lk_ParametersToolButton_ = new QToolButton();
+	QToolButton* lk_ParametersToolButton_ = new QToolButton(this);
 	lk_ParametersToolButton_->setIcon(QIcon(":/icons/preferences-system.png"));
 	lk_HLayout_->addWidget(lk_ParametersToolButton_);
 	connect(lk_ParametersToolButton_, SIGNAL(clicked()), mk_pParameterProxyWidget.get_Pointer(), SLOT(show()));
-	lk_HLayout_->addStretch();
 
-	QMenu* lk_OutputFilesMenu_ = new QMenu(this);
+	/*
+	mk_PopupMenu_ = new QMenu(this);
 	foreach (QString ls_Key, mk_pScript->outputFileKeys())
 	{
 		QHash<QString, QString> lk_OutputFileDetails = mk_pScript->outputFileDetails(ls_Key);
 		QString ls_Label = lk_OutputFileDetails["label"];
-		ls_Label[0] = ls_Label[0].toUpper();
-		QAction* lk_Action_ = lk_OutputFilesMenu_->addAction(ls_Label);
+		QAction* lk_Action_ = mk_PopupMenu_->addAction(QIcon(":icons/text-x-generic.png"), "Write " + ls_Label);
+		lk_Action_->setProperty("key", ls_Key);
 		lk_Action_->setCheckable(true);
+		//connect(lk_Action_, SIGNAL(toggled(bool)), this, SLOT(outputFileActionToggled()));
 		if (lk_OutputFileDetails["default"] == "yes" || lk_OutputFileDetails["default"] == "true")
 			lk_Action_->setChecked(true);
 	}
+	mk_PopupMenu_->addSeparator();
+	mk_PopupMenu_->addAction(QIcon(":icons/folder.png"), "Set output directory");
 	QToolButton* lk_OutputFilesButton_ = new QToolButton(this);
-	lk_OutputFilesButton_->setPopupMode(QToolButton::InstantPopup);
 	lk_OutputFilesButton_->setText("Output files");
-	lk_OutputFilesButton_->setMenu(lk_OutputFilesMenu_);
+	//lk_OutputFilesButton_->setPopupMode(QToolButton::InstantPopup);
+	//lk_OutputFilesButton_->setMenu(lk_OutputFilesMenu_);
 	lk_OutputFilesButton_->setIcon(QIcon(":icons/folder.png"));
 	lk_OutputFilesButton_->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	lk_HLayout_->addWidget(lk_OutputFilesButton_);
+	//mk_Desktop_->graphicsScene().addWidget(lk_OutputFilesMenu_);
+	connect(lk_OutputFilesButton_, SIGNAL(clicked()), this, SLOT(showPopupMenu()));
+	*/
 	
+	QToolButton* lk_WatchOutputButton_ = new QToolButton(this);
+	lk_WatchOutputButton_->setIcon(QIcon(":/icons/utilities-terminal.png"));
+	lk_HLayout_->addWidget(lk_WatchOutputButton_);
+	
+	lk_HLayout_->addStretch();
+	
+	QWidget* lk_Container_ = new QWidget(this);
+	
+	k_FoldedHeader* lk_FoldedHeader_ = new k_FoldedHeader("Output files", lk_Container_, this);
+	
+	lk_VLayout_->addWidget(lk_FoldedHeader_);
+	lk_VLayout_->addWidget(lk_Container_);
+	
+	lk_FoldedHeader_->hideBuddy();
+	
+	lk_VLayout_ = new QVBoxLayout(lk_Container_);
+	lk_VLayout_->setContentsMargins(0, 0, 0, 0);
+
+	lk_HLayout_ = new QHBoxLayout();
+	lk_VLayout_->addLayout(lk_HLayout_);
+
 	mk_Prefix.setHint("output file prefix");
-	lk_VLayout_->addWidget(&mk_Prefix);
+	lk_HLayout_->addWidget(&mk_Prefix);
 	connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
+
+	QToolButton* lk_ProposePrefixButton_ = new QToolButton(lk_Container_);
+	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
+	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
+	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
+	
+	lk_HLayout_ = new QHBoxLayout();
+	lk_VLayout_->addLayout(lk_HLayout_);
+
+	mk_OutputDirectory.setHint("output directory");
+	mk_OutputDirectory.setReadOnly(true);
+	lk_HLayout_->addWidget(&mk_OutputDirectory);
+	connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
+
+	QToolButton* lk_SelectOutputDirectory_ = new QToolButton(lk_Container_);
+	lk_SelectOutputDirectory_->setIcon(QIcon(":/icons/folder.png"));
+	lk_HLayout_->addWidget(lk_SelectOutputDirectory_);
+	//connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
 	
 	/*
 	// horizontal rule
@@ -262,19 +355,17 @@ void k_ScriptBox::setupLayout()
 	lk_Frame_->setStyleSheet("color: " + QString(TANGO_ALUMINIUM_3) + ";");
 	lk_VLayout_->addWidget(lk_Frame_);
 	*/
-	
+
 	// output file checkboxes
-	/*
 	foreach (QString ls_Key, mk_pScript->outputFileKeys())
 	{
 		QHash<QString, QString> lk_OutputFileDetails = mk_pScript->outputFileDetails(ls_Key);
-		QCheckBox* lk_CheckBox_ = new QCheckBox("Write " + lk_OutputFileDetails["label"]);
+		QCheckBox* lk_CheckBox_ = new QCheckBox("Write " + lk_OutputFileDetails["label"], lk_Container_);
 		lk_CheckBox_->setProperty("key", ls_Key);
-		connect(lk_CheckBox_, SIGNAL(toggled(bool)), this, SLOT(outFileCheckboxClicked()));
+		connect(lk_CheckBox_, SIGNAL(toggled(bool)), this, SLOT(outputFileActionToggled()));
 		lk_VLayout_->addWidget(lk_CheckBox_);
 		mk_Checkboxes[ls_Key] = lk_CheckBox_;
 		if (lk_OutputFileDetails["default"] == "yes" || lk_OutputFileDetails["default"] == "true")
 			lk_CheckBox_->setChecked(true);
 	}
-	*/
 }

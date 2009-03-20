@@ -42,7 +42,7 @@ k_DesktopBoxFactory::makeFileListBox(k_Desktop* ak_Parent_,
 IDesktopBox*
 k_DesktopBoxFactory::makeOutFileListBox(k_Desktop* ak_Parent_, 
 										 k_Proteomatic& ak_Proteomatic,
-										 QString as_Label, QString as_Filename)
+										 QString as_Label)
 {
-	return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Label, as_Filename);
+	return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Label);
 }

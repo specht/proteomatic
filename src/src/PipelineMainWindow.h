@@ -39,7 +39,6 @@ signals:
 protected slots:
 	void addScript(QAction* ak_Action_);
 	void start();
-	void addFiles();
 	void addFileListBox();
 	void chooseOutputDirectory();
 	void setOutputDirectory(QString as_Path);
@@ -48,7 +47,6 @@ protected slots:
 protected:
 	k_Desktop mk_Desktop;
 	QToolButton* mk_AddScriptAction_;
-	QAction* mk_AddFilesAction_;
 	QAction* mk_AddFileListAction_;
 	QAction* mk_StartAction_;
 	QAction* mk_RefreshAction_;

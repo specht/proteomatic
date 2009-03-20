@@ -19,15 +19,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "OutFileListBox.h"
 #include "ClickableLabel.h"
+#include "Desktop.h"
 #include "Tango.h"
 #include "UnclickableLabel.h"
 
 
 k_OutFileListBox::k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
-									QString as_Label, QString as_Filename)
+									QString as_Label)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic, true)
 	, ms_Label(as_Label)
-	, ms_Filename(as_Filename)
 	, mk_FileList(this, true, true)
 	, mb_ListMode(false)
 {
@@ -48,16 +48,29 @@ QStringList k_OutFileListBox::filenames() const
 }
 
 
+QString k_OutFileListBox::tagForFilename(const QString& as_Filename) const
+{
+	if (mk_TagForFilename.contains(as_Filename))
+		return mk_TagForFilename[as_Filename];
+	else
+		return QFileInfo(as_Filename).baseName();
+}
+
+
+QString k_OutFileListBox::prefixWithoutTags() const
+{
+	return ms_PrefixWithoutTags;
+}
+
+
 void k_OutFileListBox::setFilenames(QStringList ak_Filenames)
 {
 	mk_FileList.resetAll();
 	foreach (QString ls_Path, ak_Filenames)
 		mk_FileList.addInputFile(ls_Path);
-	if (ak_Filenames.empty())
-		ms_Filename = "";
-	else
-		ms_Filename = ak_Filenames.first();
+	
 	toggleUi();
+	updateFilenameTags();
 	emit filenamesChanged();
 }
 
@@ -83,12 +96,6 @@ QString k_OutFileListBox::label() const
 }
 
 
-QString k_OutFileListBox::filename() const
-{
-	return ms_Filename;
-}
-
-
 void k_OutFileListBox::setBatchMode(bool ab_Enabled)
 {
 	k_DesktopBox::setBatchMode(ab_Enabled);
@@ -102,10 +109,16 @@ void k_OutFileListBox::toggleUi()
 	setResizable(mb_ListMode);
 	mk_FileList.setVisible(mb_ListMode);
 	mk_BatchModeButton.setVisible(mb_ListMode);
-	if (mb_ListMode)
-		mk_Label_->setText("<b>" + ms_Label + " files</b>");
-	else
-		mk_Label_->setText(ms_Filename);
+	QString ls_String = "<b>" + ms_Label + "</b>";
+	if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
+		ls_String += "<br />" + QFileInfo(mk_FileList.files().first()).fileName();
+	mk_Label_->setText(ls_String);
+}
+
+
+void k_OutFileListBox::updateFilenameTags()
+{
+	mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
 }
 
 
@@ -118,7 +131,7 @@ void k_OutFileListBox::setupLayout()
 	
 	lk_VLayout_ = new QVBoxLayout();
 	lk_HLayout_->addLayout(lk_VLayout_);
-	mk_Label_ = new k_UnclickableLabel(ms_Filename, this);
+	mk_Label_ = new k_UnclickableLabel("", this);
 	lk_VLayout_->addWidget(mk_Label_);
 	lk_VLayout_->addWidget(&mk_FileList);
 	

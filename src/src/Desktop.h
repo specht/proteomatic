@@ -28,11 +28,6 @@ class k_Proteomatic;
 
 
 typedef QPair<IDesktopBox*, IDesktopBox*> tk_BoxPair;
-/*
-	typedef QSet<IDesktopBox*> tk_DesktopBoxSet;
-	typedef QSet<IFileBox*> tk_FileBoxSet;
-	typedef QSet<tk_BoxPair> tk_BoxPairSet;
-	*/
 
 
 class k_Desktop: public QGraphicsView
@@ -42,7 +37,8 @@ public:
 	k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_PipelineMainWindow& ak_PipelineMainWindow);
 	virtual ~k_Desktop();
 
-	virtual void addInputFileBox(const QString& as_Path);
+	virtual k_PipelineMainWindow& pipelineMainWindow() const;
+	virtual QGraphicsScene& graphicsScene();
 	virtual void addInputFileListBox();
 	virtual void addScriptBox(const QString& as_ScriptUri);
 	virtual void addBox(IDesktopBox* ak_Box_);
@@ -50,6 +46,8 @@ public:
 	virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
 	virtual void disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
 	virtual void moveBox(IDesktopBox* ak_Box_, QPoint ak_Delta);
+	
+	virtual void createFilenameTags(QStringList ak_Filenames, QHash<QString, QString>& ak_TagForFilename, QString& as_PrefixWithoutTags);
 	
 public slots:
 	virtual void redraw();

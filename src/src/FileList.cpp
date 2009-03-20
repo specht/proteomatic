@@ -201,6 +201,7 @@ void k_FileList::refresh()
 	{
 		foreach (QString ls_Path, mk_Files[""].keys())
 		{
+			ls_Path = QFileInfo(ls_Path).fileName();
 			QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
 			(void)lk_Item_;
 		}
@@ -216,6 +217,7 @@ void k_FileList::refresh()
 			lk_Item_->setFont(lk_Font);
 			foreach (QString ls_Path, mk_Files[ls_Key].keys())
 			{
+				ls_Path = QFileInfo(ls_Path).fileName();
 				QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
 				(void)lk_Item_;
 			}

@@ -32,15 +32,17 @@ class k_OutFileListBox: public k_DesktopBox, public IFileBox
 {
 	Q_OBJECT
 public:
-	k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label, QString as_Filename);
+	k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label);
 	virtual ~k_OutFileListBox();
 
 	virtual QStringList filenames() const;
+	virtual QString tagForFilename(const QString& as_Filename) const;
+	virtual QString prefixWithoutTags() const;
+	
 	virtual void setFilenames(QStringList ak_Filenames);
 	virtual void setListMode(bool ab_Enabled);
 	virtual bool listMode() const;
 	virtual QString label() const;
-	virtual QString filename() const;
 	
 signals:
 	virtual void arrowPressed();
@@ -50,14 +52,16 @@ signals:
 protected slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void toggleUi();
+	virtual void updateFilenameTags();
 	
 protected:
 	virtual void setupLayout();
 
 	QString ms_Label;
-	QString ms_Filename;
 	k_FileList mk_FileList;
 	QLabel* mk_Label_;
 	QToolButton mk_BatchModeButton;
 	bool mb_ListMode;
+	QHash<QString, QString> mk_TagForFilename;
+	QString ms_PrefixWithoutTags;
 };
