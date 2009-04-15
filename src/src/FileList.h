@@ -31,11 +31,10 @@ public:
 	void resetAll();
 	void forceRemove(QList<QListWidgetItem *> ak_List);
 	void addInputFileGroup(QString as_Key, QString as_Label, QStringList ak_Extensions);
-	void addInputFile(QString as_Path);
+	void addInputFile(QString as_Path, bool ab_Refresh = true);
 	// TODO: tell files sorted by key to solve ambiguous cases
 	QStringList files() const;
 	int fileCount() const;
-	void refresh();
 
 signals:
 	void remove(QList<QListWidgetItem *>);
@@ -46,6 +45,7 @@ signals:
 public slots:
 	void removeSelection();
 	void selectionChanged();
+	void refresh();
 
 protected:
 	virtual void keyPressEvent(QKeyEvent* ak_Event_);

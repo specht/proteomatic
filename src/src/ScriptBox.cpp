@@ -37,6 +37,7 @@ k_ScriptBox::k_ScriptBox(const QString& as_ScriptUri, k_Desktop* ak_Parent_, k_P
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
 	connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputDirectoryChanged(const QString&)), this, SLOT(updateOutputFilenames()));
+	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(readyRead()), this, SLOT(readyRead()));
 	setupLayout();
 }
 
@@ -55,7 +56,25 @@ IScript* k_ScriptBox::script()
 	return mk_pScript.get_Pointer();
 }
 
-	
+
+bool k_ScriptBox::checkReady(QString& as_Error)
+{
+	return true;
+}
+
+
+bool k_ScriptBox::checkReadyToGo()
+{
+	return true;
+}
+
+
+QStringList k_ScriptBox::iterationKeys()
+{
+	return QStringList() << "";
+}
+
+
 void k_ScriptBox::outputFileActionToggled()
 {
 	QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(sender());
@@ -188,6 +207,8 @@ void k_ScriptBox::proposePrefixButtonClicked()
 		QHash<QString, QString> lk_Tags;
 		QString ls_CommonPrefix;
 		mk_Desktop_->createFilenameTags(lk_InputFiles, lk_Tags, ls_CommonPrefix);
+		if ((!ls_CommonPrefix.isEmpty()) && (ls_CommonPrefix.right(1) != "-"))
+			ls_CommonPrefix += "-";
 		mk_Prefix.setText(ls_CommonPrefix);
 		/*
 		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer()))->proposePrefix(lk_Arguments);
@@ -204,6 +225,55 @@ void k_ScriptBox::proposePrefixButtonClicked()
 		}
 		*/
 	}
+}
+
+
+void k_ScriptBox::start(const QString& as_IterationKey)
+{
+	QHash<QString, QString> lk_Parameters;
+
+	// set output directory
+	if (mk_OutputDirectory.text().isEmpty())
+		lk_Parameters["-outputDirectory"] = mk_Desktop_->pipelineMainWindow().outputDirectory();
+	else
+		lk_Parameters["-outputDirectory"] = mk_OutputDirectory.text();
+
+	// set output prefix
+	lk_Parameters["-outputPrefix"] = mk_Prefix.text();
+	
+	// set output files
+	foreach (QString ls_Key, mk_pScript->outputFileKeys())
+		lk_Parameters["-" + ls_Key] = mk_Checkboxes[ls_Key]->checkState() == Qt::Checked ? "yes" : "no";
+	
+	// collect input files
+	QStringList lk_InputFiles;
+	
+	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+	{
+		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+		if (lk_FileBox_)
+		{
+			lk_InputFiles += lk_FileBox_->filenames();
+		}
+	}
+
+	ms_Output.clear();
+	mk_pScript->start(lk_InputFiles, lk_Parameters);
+}
+
+
+void k_ScriptBox::readyRead()
+{
+	addOutput(mk_pScript->readAll());
+}
+
+
+void k_ScriptBox::addOutput(QString as_Text)
+{
+	ms_Output.append(as_Text);
+	mk_OutputBox.setText(ms_Output.text());
+	mk_OutputBox.moveCursor(QTextCursor::End);
+	mk_OutputBox.ensureCursorVisible();
 }
 
 
@@ -307,9 +377,15 @@ void k_ScriptBox::setupLayout()
 	QToolButton* lk_WatchOutputButton_ = new QToolButton(this);
 	lk_WatchOutputButton_->setIcon(QIcon(":/icons/utilities-terminal.png"));
 	lk_HLayout_->addWidget(lk_WatchOutputButton_);
+	connect(lk_WatchOutputButton_, SIGNAL(clicked()), &mk_OutputBox, SLOT(show()));
 	
 	lk_HLayout_->addStretch();
 	
+	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
+	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
+	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
+	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
+
 	QWidget* lk_Container_ = new QWidget(this);
 	
 	k_FoldedHeader* lk_FoldedHeader_ = new k_FoldedHeader("Output files", lk_Container_, this);
@@ -329,11 +405,6 @@ void k_ScriptBox::setupLayout()
 	lk_HLayout_->addWidget(&mk_Prefix);
 	connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 
-	QToolButton* lk_ProposePrefixButton_ = new QToolButton(lk_Container_);
-	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
-	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
-	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
-	
 	lk_HLayout_ = new QHBoxLayout();
 	lk_VLayout_->addLayout(lk_HLayout_);
 
@@ -368,4 +439,9 @@ void k_ScriptBox::setupLayout()
 		if (lk_OutputFileDetails["default"] == "yes" || lk_OutputFileDetails["default"] == "true")
 			lk_CheckBox_->setChecked(true);
 	}
+	
+	mk_OutputBox.setReadOnly(true);
+	mk_OutputBox.setFont(mk_Proteomatic.consoleFont());
+	mk_OutputBox.setParent(NULL);
+	mk_OutputBox.hide();
 }

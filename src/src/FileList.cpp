@@ -18,6 +18,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "FileList.h"
+#include "Tango.h"
 
 
 k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_FileMode)
@@ -77,7 +78,7 @@ void k_FileList::addInputFileGroup(QString as_Key, QString as_Label, QStringList
 }
 
 
-void k_FileList::addInputFile(QString as_Path)
+void k_FileList::addInputFile(QString as_Path, bool ab_Refresh)
 {
 	if (!mb_FileMode)
 		return;
@@ -106,7 +107,8 @@ void k_FileList::addInputFile(QString as_Path)
 		}
 	}
 	mk_Files[ls_MatchingKey][as_Path] = true;
-	this->refresh();
+	if (ab_Refresh)
+		this->refresh();
 	emit changed();
 }
 
@@ -143,7 +145,7 @@ void k_FileList::removeSelection()
 	{
 		foreach (QListWidgetItem* lk_Item_, selectedItems())
 		{
-			QString ls_Path = lk_Item_->text();
+			QString ls_Path = lk_Item_->data(Qt::UserRole).toString();
 			if (!mk_Keys.empty())
 			{
 				foreach (QString ls_Key, mk_Keys)
@@ -201,9 +203,10 @@ void k_FileList::refresh()
 	{
 		foreach (QString ls_Path, mk_Files[""].keys())
 		{
-			ls_Path = QFileInfo(ls_Path).fileName();
-			QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
-			(void)lk_Item_;
+			QString ls_Filename = QFileInfo(ls_Path).fileName();
+			QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Filename, this);
+			lk_Item_->setData(Qt::UserRole, ls_Path);
+			lk_Item_->setForeground(QFileInfo(ls_Path).exists() ? QBrush("#000") : QBrush(TANGO_ALUMINIUM_3));
 		}
 	}
 	else
@@ -217,9 +220,10 @@ void k_FileList::refresh()
 			lk_Item_->setFont(lk_Font);
 			foreach (QString ls_Path, mk_Files[ls_Key].keys())
 			{
-				ls_Path = QFileInfo(ls_Path).fileName();
-				QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Path, this);
-				(void)lk_Item_;
+				QString ls_Filename = QFileInfo(ls_Path).fileName();
+				QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Filename, this);
+				lk_Item_->setData(Qt::UserRole, ls_Path);
+				lk_Item_->setForeground(QFileInfo(ls_Path).exists() ? QBrush("#000") : QBrush(TANGO_ALUMINIUM_3));
 			}
 		}
 	}

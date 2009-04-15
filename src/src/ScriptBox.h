@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include "ConsoleString.h"
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
 #include "DesktopBox.h"
@@ -36,6 +37,9 @@ public:
 	virtual ~k_ScriptBox();
 	
 	virtual IScript* script();
+	virtual bool checkReady(QString& as_Error);
+	virtual bool checkReadyToGo();
+	virtual QStringList iterationKeys();
 	
 protected slots:
 	virtual void outputFileActionToggled();
@@ -44,6 +48,9 @@ protected slots:
 	virtual void updateBatchMode();
 	virtual void updateOutputFilenames();
 	virtual void proposePrefixButtonClicked();
+	virtual void start(const QString& as_IterationKey);
+	virtual void readyRead();
+	virtual void addOutput(QString as_String);
 	
 protected:
 	virtual void setupLayout();
@@ -55,4 +62,7 @@ protected:
 	
 	k_HintLineEdit mk_Prefix;
 	k_HintLineEdit mk_OutputDirectory;
+
+	k_ConsoleString ms_Output;
+	QTextEdit mk_OutputBox;
 };

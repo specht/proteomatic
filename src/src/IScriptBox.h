@@ -27,4 +27,8 @@ struct IScriptBox
 	virtual ~IScriptBox() {};
 	
 	virtual IScript* script() = 0;
+	virtual bool checkReady(QString& as_Error) = 0;
+	virtual bool checkReadyToGo() = 0;
+	virtual QStringList iterationKeys() = 0;
+	virtual void start(const QString& as_IterationKey) = 0;
 };

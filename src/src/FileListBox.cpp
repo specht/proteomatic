@@ -78,7 +78,8 @@ void k_FileListBox::addFilesButtonClicked()
 	{
 		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_INPUT_FILES_PATH] = QFileInfo(lk_Files[0]).absolutePath();
 		foreach (QString ls_Path, lk_Files)
-			mk_FileList.addInputFile(ls_Path);
+			mk_FileList.addInputFile(ls_Path, false);
+		mk_FileList.refresh();
 		toggleUi();
 	}
 }

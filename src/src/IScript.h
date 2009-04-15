@@ -125,7 +125,7 @@ struct IScript
 	virtual void reset() = 0;
 	// reset all parameters to their default values and uncheck check boxes (profile mode)
 	virtual void resetAndUncheck() = 0;
-	virtual QString start(const QStringList& ak_InputFiles) = 0;
+	virtual QString start(const QStringList& ak_InputFiles, QHash<QString, QString> ak_AdditionalParameters) = 0;
 	virtual void kill(const QString& as_Ticket = QString()) = 0;
 	
 	// signals

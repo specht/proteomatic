@@ -67,7 +67,8 @@ void k_OutFileListBox::setFilenames(QStringList ak_Filenames)
 {
 	mk_FileList.resetAll();
 	foreach (QString ls_Path, ak_Filenames)
-		mk_FileList.addInputFile(ls_Path);
+		mk_FileList.addInputFile(ls_Path, false);
+	mk_FileList.refresh();
 	
 	toggleUi();
 	updateFilenameTags();

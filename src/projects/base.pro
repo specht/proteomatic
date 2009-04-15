@@ -29,21 +29,9 @@ DESTDIR = ../../../
 
 QT = core gui network
 
-# libyaml files
-HEADERS += ../../src/libyaml/ly_config.h \
-           ../../src/libyaml/ly_yaml.h \ 
-           ../../src/libyaml/ly_yaml_private.h \
-           
-SOURCES += ../../src/libyaml/ly_api.c \
-           ../../src/libyaml/ly_dumper.c \
-           ../../src/libyaml/ly_emitter.c \
-           ../../src/libyaml/ly_loader.c \
-           ../../src/libyaml/ly_parser.c \
-           ../../src/libyaml/ly_reader.c \
-           ../../src/libyaml/ly_scanner.c \
-           ../../src/libyaml/ly_writer.c \
+INCLUDEPATH += ../../src/ ../../src/dialogs
 
-INCLUDEPATH += ../../src/libyaml/ ../../src/ ../../src/dialogs
+LIBS += /usr/local/lib/libyaml.a
 
 # Input files
 HEADERS += \

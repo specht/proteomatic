@@ -138,9 +138,15 @@ k_LocalScript::~k_LocalScript()
 }
 
 
-QString k_LocalScript::start(const QStringList& ak_Files)
+QString k_LocalScript::start(const QStringList& ak_Files, QHash<QString, QString> ak_AdditionalParameters)
 {
-	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << this->uri()) + commandLineArguments() + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	QStringList lk_AdditionalParameters;
+	foreach (QString ls_Key, ak_AdditionalParameters.keys())
+	{
+		lk_AdditionalParameters << ls_Key;
+		lk_AdditionalParameters << ak_AdditionalParameters[ls_Key];
+	}
+	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << this->uri()) + commandLineArguments() + lk_AdditionalParameters + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
 	return QString();
 }
 

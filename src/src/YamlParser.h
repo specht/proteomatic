@@ -19,7 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "libyaml/ly_yaml.h"
+#include "yaml.h"
 
 
 class k_YamlParser

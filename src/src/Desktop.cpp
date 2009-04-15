@@ -35,6 +35,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mk_ArrowStartBox_(NULL)
 	, mk_ArrowEndBox_(NULL)
 	, mk_UserArrowPathItem_(NULL)
+	, mb_Running(false)
 {
 	setAcceptDrops(true);
 	setScene(&mk_GraphicsScene);
@@ -92,7 +93,13 @@ void k_Desktop::addScriptBox(const QString& as_ScriptUri)
 {
 	IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeScriptBox(as_ScriptUri, this, mk_Proteomatic);
 	if (lk_Box_)
+	{
+		IScriptBox* lk_ScriptBox = dynamic_cast<IScriptBox*>(lk_Box_);
+		mk_BoxForScript[lk_ScriptBox->script()] = lk_ScriptBox;
 		addBox(lk_Box_);
+		connect(dynamic_cast<QObject*>(lk_ScriptBox->script()), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
+		connect(dynamic_cast<QObject*>(lk_ScriptBox->script()), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
+	}
 }
 
 
@@ -128,6 +135,11 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 		disconnectBoxes(lk_Box_, ak_Box_);
 	foreach (IDesktopBox* lk_Box_, ak_Box_->outgoingBoxes())
 		disconnectBoxes(ak_Box_, lk_Box_);
+	
+	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(ak_Box_);
+	if (lk_ScriptBox_)
+		mk_BoxForScript.remove(lk_ScriptBox_->script());
+	
 	delete ak_Box_;
 	mk_Boxes.remove(ak_Box_);
 	mk_SelectedBoxes.remove(ak_Box_);
@@ -273,12 +285,55 @@ void k_Desktop::createFilenameTags(QStringList ak_Filenames, QHash<QString, QStr
 }
 
 
+bool k_Desktop::running() const
+{
+	return mb_Running;
+}
+
+
 void k_Desktop::redraw()
 {
 	redrawSelection();
 	redrawBatchFrame();
 	foreach (QGraphicsPathItem* lk_Arrow_, mk_Arrows.keys())
 		updateArrow(lk_Arrow_);
+}
+
+
+void k_Desktop::start()
+{
+	// collect all script boxes
+	mk_RemainingScriptBoxes.clear();
+	foreach (IDesktopBox* lk_Box_, mk_Boxes)
+	{
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+		if (lk_ScriptBox_)
+			mk_RemainingScriptBoxes.insert(lk_ScriptBox_);
+	}
+	if (mk_RemainingScriptBoxes.empty())
+	{
+		mk_Proteomatic.showMessageBox("Error", "There are no script boxes.");
+		return;
+	}
+	
+	bool lb_EverythingGravy = true;
+	// simulate a run, check whether everything's gravy
+	foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
+	{
+		QString ls_Error;
+		if (!lk_Box_->checkReady(ls_Error))
+			lb_EverythingGravy = false;
+	}
+	if (!lb_EverythingGravy)
+	{
+		mk_Proteomatic.showMessageBox("Error", "There are script boxes that are not ready.");
+		return;
+	}
+	
+	// pick a box, start it
+	IScriptBox* lk_Box_ = pickNextScriptBox();
+	if (lk_Box_)
+		lk_Box_->start("");
 }
 
 
@@ -484,6 +539,25 @@ void k_Desktop::clearSelection()
 {
 	mk_SelectedBoxes.clear();
 	mk_SelectedArrows.clear();
+}
+
+
+void k_Desktop::scriptStarted()
+{
+	printf("a script was started!\n");
+	IScript* lk_Script_ = dynamic_cast<IScript*>(sender());
+	mk_RemainingScriptBoxes.remove(mk_BoxForScript[lk_Script_]);
+	mb_Running = true;
+}
+
+
+void k_Desktop::scriptFinished(int ai_ExitCode)
+{
+	printf("a script was finished!\n");
+	mb_Running = false;
+	IScriptBox* lk_NextBox_ = pickNextScriptBox();
+	if (lk_NextBox_)
+		lk_NextBox_->start("");
 }
 
 
@@ -751,4 +825,19 @@ QPointF k_Desktop::findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, IDesktopB
 	if (best == 3)
 		return QPointF(lk_Rect.left() - lk_HalfSize.x(), 10000.0) - lk_HalfSize;
 	return QPointF() - lk_HalfSize;
+}
+
+
+IScriptBox* k_Desktop::pickNextScriptBox()
+{
+	foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
+	{
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+		if (lk_ScriptBox_)
+		{
+			if (lk_ScriptBox_->checkReadyToGo())
+				return lk_ScriptBox_;
+		}
+	}
+	return NULL;
 }

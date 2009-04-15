@@ -21,6 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
 #include "IDesktopBox.h"
+#include "IScriptBox.h"
 
 
 class k_PipelineMainWindow;
@@ -48,9 +49,11 @@ public:
 	virtual void moveBox(IDesktopBox* ak_Box_, QPoint ak_Delta);
 	
 	virtual void createFilenameTags(QStringList ak_Filenames, QHash<QString, QString>& ak_TagForFilename, QString& as_PrefixWithoutTags);
+	virtual bool running() const;
 	
 public slots:
 	virtual void redraw();
+	virtual void start();
 	
 protected slots:
 	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());
@@ -63,6 +66,8 @@ protected slots:
 	virtual void deleteSelected();
 	virtual void redrawBatchFrame();
 	virtual void clearSelection();
+	virtual void scriptStarted();
+	virtual void scriptFinished(int ai_ExitCode);
 	
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
@@ -79,6 +84,7 @@ protected:
 	virtual QPainterPath grownPathForBox(IDesktopBox* ak_Box_, int ai_Grow);
 	virtual QPainterPath grownPathForArrow(QGraphicsPathItem* ak_Arrow_, int ai_Grow);
 	virtual QPointF findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, IDesktopBox* ak_Box_);
+	virtual IScriptBox* pickNextScriptBox();
 	
 	k_Proteomatic& mk_Proteomatic;
 	k_PipelineMainWindow& mk_PipelineMainWindow;
@@ -87,6 +93,8 @@ protected:
 	double md_Scale;
 	
 	QSet<IDesktopBox*> mk_Boxes;
+	
+	QHash<IScript*, IScriptBox*> mk_BoxForScript;
 
 	// an arrow in the making!
 	IDesktopBox* mk_ArrowStartBox_;
@@ -109,4 +117,7 @@ protected:
 
 	QSet<IDesktopBox*> mk_BatchBoxes;
 	QGraphicsPathItem* mk_BatchGraphicsPathItem_;
+	
+	bool mb_Running;
+	QSet<IScriptBox*> mk_RemainingScriptBoxes;
 };

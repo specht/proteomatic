@@ -99,7 +99,7 @@ void k_PipelineMainWindow::addScript(QAction* ak_Action_)
 
 void k_PipelineMainWindow::start()
 {
-	//mk_Desktop.start();
+	mk_Desktop.start();
 }
 
 

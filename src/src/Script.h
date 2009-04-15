@@ -112,7 +112,7 @@ signals:
 public slots:
 	virtual void reset();
 	virtual void resetAndUncheck();
-	virtual QString start(const QStringList& ak_InputFiles) = 0;
+	virtual QString start(const QStringList& ak_InputFiles, QHash<QString, QString> ak_Parameters) = 0;
 	virtual void kill(const QString& as_Ticket = QString()) = 0;
 
 protected slots:
