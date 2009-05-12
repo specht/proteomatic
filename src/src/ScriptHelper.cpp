@@ -356,13 +356,13 @@ void k_ScriptHelper::start()
 	ms_Output.clear();
 	mk_Output.clear();
 
-	QStringList lk_Arguments;
+	QStringList lk_Files;
 
 	for (int i = 0; i < mk_FileList.files().count(); ++i)
-		lk_Arguments.push_back(mk_FileList.files()[i]);
+		lk_Files.push_back(mk_FileList.files()[i]);
 
 	if (mk_pScript->location() == r_ScriptLocation::Local)
-		mk_pScript->start(lk_Arguments);
+		mk_pScript->start(lk_Files);
 	//else
 		//mk_RemoteRequests[mk_Proteomatic.queryRemoteHub(mk_pScript->uri(), (QStringList() << "---gui") + mk_pScript->commandLineArguments() + lk_Arguments)] = r_RemoteRequest(r_RemoteRequestType::SubmitJob);
 }

@@ -46,7 +46,7 @@ k_RemoteScript::~k_RemoteScript()
 }
 
 
-QString k_RemoteScript::start(const QStringList& /*ak_Parameters*/, QHash<QString, QString>)
+QString k_RemoteScript::start(const QStringList& /*ak_Parameters*/, tk_StringStringHash)
 {
 	return "";
 }

@@ -35,7 +35,7 @@ public:
 	virtual QString proposePrefix(QStringList ak_Parameters = QStringList());
 	
 public slots:
-	virtual QString start(const QStringList& ak_InputFiles, QHash<QString, QString> ak_AdditionalParameters);
+	virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash());
 	virtual void kill(const QString& as_Ticket = QString());
 	
 protected slots:

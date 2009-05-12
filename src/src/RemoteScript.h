@@ -33,7 +33,7 @@ public:
 	k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 	virtual ~k_RemoteScript();
 	
-	virtual QString start(const QStringList& ak_InputFiles, QHash<QString, QString> ak_AdditionalParameters);
+	virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash());
 	virtual void kill();
 	virtual bool running();
 	virtual QString readAll();

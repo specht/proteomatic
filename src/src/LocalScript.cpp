@@ -138,7 +138,7 @@ k_LocalScript::~k_LocalScript()
 }
 
 
-QString k_LocalScript::start(const QStringList& ak_Files, QHash<QString, QString> ak_AdditionalParameters)
+QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak_AdditionalParameters)
 {
 	QStringList lk_AdditionalParameters;
 	foreach (QString ls_Key, ak_AdditionalParameters.keys())
