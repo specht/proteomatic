@@ -32,7 +32,7 @@ QT = core gui network
 
 INCLUDEPATH += ../../src/ ../../src/dialogs
 
-linux {
+unix {
 	LIBS += /usr/local/lib/libyaml.a
 }
 win32 {
