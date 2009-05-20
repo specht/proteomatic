@@ -20,7 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtCore>
-#include "yaml.h"
+#include <yaml.h>
 
 
 class k_YamlEmitter

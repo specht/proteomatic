@@ -2,6 +2,7 @@ TEMPLATE = app
 
 win32 {
     RC_FILE = Proteomatic.rc
+	INCLUDEPATH += c:/Qt/2009.02/mingw/include
 }
 
 CONFIG += debug_and_release
@@ -31,7 +32,12 @@ QT = core gui network
 
 INCLUDEPATH += ../../src/ ../../src/dialogs
 
-LIBS += /usr/local/lib/libyaml.a
+linux {
+	LIBS += /usr/local/lib/libyaml.a
+}
+win32 {
+	LIBS += c:\Qt\2009.02\mingw\lib\libyaml.a
+}
 
 # Input files
 HEADERS += \
