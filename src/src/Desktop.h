@@ -52,6 +52,7 @@ public:
 	virtual bool running() const;
 	
 public slots:
+	virtual void refresh();
 	virtual void redraw();
 	virtual void start();
 	
@@ -120,4 +121,9 @@ protected:
 	
 	bool mb_Running;
 	QSet<IScriptBox*> mk_RemainingScriptBoxes;
+	
+	// mk_DeleteBoxStackSet is there to prevent recursive
+	// deletion of boxes which might happen when boxes
+	// depend on each other
+	QSet<IDesktopBox*> mk_DeleteBoxStackSet;
 };

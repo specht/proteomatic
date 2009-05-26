@@ -53,6 +53,7 @@ protected slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void toggleUi();
 	virtual void updateFilenameTags();
+	virtual void linkActivated(const QString& as_Url);
 	
 protected:
 	virtual void setupLayout();
@@ -60,6 +61,7 @@ protected:
 	QString ms_Label;
 	k_FileList mk_FileList;
 	QLabel* mk_Label_;
+	QLabel* mk_FileName_;
 	QToolButton mk_BatchModeButton;
 	bool mb_ListMode;
 	QHash<QString, QString> mk_TagForFilename;

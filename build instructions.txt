@@ -1,0 +1,25 @@
+libyaml:
+
+win32 (yaml-0.1.2): 
+
+- include/yaml.h: disable declspec decoration: #define YAML_DECLARE(type)  type
+  (this is done in order to re-enable --export-all-symbols which is disabled when declspec is used)
+- MSYS: 
+	- ./configure
+	- mingw32-make (test should work now)
+	- copy include/yaml.h and src/.libs/libyaml.a and src/.libs/libyaml.la to MinGW include and lib dirs
+
+bzip2/zlib:
+
+win32
+
+- MSYS:
+	- mingw32-make
+	- copy bzip2.h and libbz2.a
+	
+QuaZip:
+- in quazip.pro, change CONFIG to CONFIG += qt warn_on staticlib (add staticlib)
+- qmake
+- make
+- linux: make install
+- win32: copy all .h files to include/quazip/, copy libquazip.a to libs directory

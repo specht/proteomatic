@@ -108,18 +108,31 @@ void k_OutFileListBox::setBatchMode(bool ab_Enabled)
 void k_OutFileListBox::toggleUi()
 {
 	setResizable(mb_ListMode);
+	mk_FileName_->setVisible((!mb_ListMode) && (mk_FileList.fileCount() > 0));
 	mk_FileList.setVisible(mb_ListMode);
 	mk_BatchModeButton.setVisible(mb_ListMode);
 	QString ls_String = "<b>" + ms_Label + "</b>";
-	if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
-		ls_String += "<br />" + QFileInfo(mk_FileList.files().first()).fileName();
 	mk_Label_->setText(ls_String);
+	if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
+	{
+		QString ls_Path = mk_FileList.files().first();
+		if (QFileInfo(ls_Path).exists())
+			mk_FileName_->setText("<a href='file://" + ls_Path + "'>" + QFileInfo(ls_Path).fileName() + "</a>");
+		else
+			mk_FileName_->setText(QFileInfo(ls_Path).fileName());
+	}
 }
 
 
 void k_OutFileListBox::updateFilenameTags()
 {
 	mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
+}
+
+
+void k_OutFileListBox::linkActivated(const QString& as_Url)
+{
+	QDesktopServices::openUrl(as_Url);
 }
 
 
@@ -133,7 +146,10 @@ void k_OutFileListBox::setupLayout()
 	lk_VLayout_ = new QVBoxLayout();
 	lk_HLayout_->addLayout(lk_VLayout_);
 	mk_Label_ = new k_UnclickableLabel("", this);
+	mk_FileName_ = new QLabel("", this);
 	lk_VLayout_->addWidget(mk_Label_);
+	lk_VLayout_->addWidget(mk_FileName_);
+	connect(mk_FileName_, SIGNAL(linkActivated(const QString&)), this, SLOT(linkActivated(const QString&)));
 	lk_VLayout_->addWidget(&mk_FileList);
 	
 	lk_VLayout_ = new QVBoxLayout();

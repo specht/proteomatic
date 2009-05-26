@@ -97,8 +97,8 @@ void k_Desktop::addScriptBox(const QString& as_ScriptUri)
 		IScriptBox* lk_ScriptBox = dynamic_cast<IScriptBox*>(lk_Box_);
 		mk_BoxForScript[lk_ScriptBox->script()] = lk_ScriptBox;
 		addBox(lk_Box_);
-		connect(dynamic_cast<QObject*>(lk_ScriptBox->script()), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
-		connect(dynamic_cast<QObject*>(lk_ScriptBox->script()), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
+		connect(dynamic_cast<QObject*>(lk_ScriptBox), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
+		connect(dynamic_cast<QObject*>(lk_ScriptBox), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
 	}
 }
 
@@ -128,6 +128,10 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 
 void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 {
+	if (mk_DeleteBoxStackSet.contains(ak_Box_))
+		return;
+	
+	mk_DeleteBoxStackSet.insert(ak_Box_);
 	if (!mk_Boxes.contains(ak_Box_))
 		return;
 	
@@ -146,6 +150,7 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	mk_BatchBoxes.remove(ak_Box_);
 	redrawSelection();
 	redrawBatchFrame();
+	mk_DeleteBoxStackSet.remove(ak_Box_);
 }
 
 
@@ -172,7 +177,6 @@ void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destinatio
 
 void k_Desktop::disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_)
 {
-	ak_Source_->disconnectOutgoingBox(ak_Destination_);
 	tk_BoxPair lk_BoxPair(ak_Source_, ak_Destination_);
 	QGraphicsPathItem* lk_GraphicsPathItem_ = mk_ArrowForBoxPair[lk_BoxPair];
 	mk_Arrows.remove(lk_GraphicsPathItem_);
@@ -183,6 +187,7 @@ void k_Desktop::disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destina
 	delete mk_ArrowProxy[lk_GraphicsPathItem_];
 	mk_ArrowProxy.remove(lk_GraphicsPathItem_);
 	delete lk_GraphicsPathItem_;
+	ak_Source_->disconnectOutgoingBox(ak_Destination_);
 }
 
 
@@ -291,6 +296,13 @@ bool k_Desktop::running() const
 }
 
 
+void k_Desktop::refresh()
+{
+	foreach (IDesktopBox* lk_Box_, mk_Boxes)
+		lk_Box_->toggleUi();
+}
+
+
 void k_Desktop::redraw()
 {
 	redrawSelection();
@@ -333,7 +345,11 @@ void k_Desktop::start()
 	// pick a box, start it
 	IScriptBox* lk_Box_ = pickNextScriptBox();
 	if (lk_Box_)
+	{
 		lk_Box_->start("");
+		mk_PipelineMainWindow.clearOutput();
+		mk_PipelineMainWindow.addOutput("Starting pipeline...\n");
+	}
 }
 
 
@@ -544,20 +560,32 @@ void k_Desktop::clearSelection()
 
 void k_Desktop::scriptStarted()
 {
-	printf("a script was started!\n");
-	IScript* lk_Script_ = dynamic_cast<IScript*>(sender());
-	mk_RemainingScriptBoxes.remove(mk_BoxForScript[lk_Script_]);
+	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
+	mk_RemainingScriptBoxes.remove(lk_ScriptBox_);
 	mb_Running = true;
+	mk_PipelineMainWindow.addOutput(QString("%1: ").arg(lk_ScriptBox_->script()->title()));
 }
 
 
 void k_Desktop::scriptFinished(int ai_ExitCode)
 {
-	printf("a script was finished!\n");
+	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
 	mb_Running = false;
-	IScriptBox* lk_NextBox_ = pickNextScriptBox();
-	if (lk_NextBox_)
-		lk_NextBox_->start("");
+	if (ai_ExitCode == 0)
+	{
+		mk_PipelineMainWindow.addOutput("done.\n");
+		IScriptBox* lk_NextBox_ = pickNextScriptBox();
+		if (lk_NextBox_)
+			lk_NextBox_->start("");
+		else
+			mk_PipelineMainWindow.addOutput("Pipeline finished.\n\n");
+	}
+	else
+	{
+		mk_PipelineMainWindow.addOutput("error.\n");
+		mk_PipelineMainWindow.addOutput("The pipeline was aborted after an error occured.\n");
+		lk_ScriptBox_->showOutputBox(true);
+	}
 }
 
 
@@ -833,11 +861,8 @@ IScriptBox* k_Desktop::pickNextScriptBox()
 	foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
 	{
 		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
-		if (lk_ScriptBox_)
-		{
-			if (lk_ScriptBox_->checkReadyToGo())
-				return lk_ScriptBox_;
-		}
+		if (lk_ScriptBox_ && lk_ScriptBox_->checkReadyToGo())
+			return lk_ScriptBox_;
 	}
 	return NULL;
 }

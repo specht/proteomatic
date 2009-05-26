@@ -44,7 +44,8 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 		QString ls_Font = lk_Fonts.takeFirst();
 		if (lk_FontDatabase.families().contains(ls_Font))
 		{
-			mk_ConsoleFont = QFont(ls_Font, 8);
+			mk_ConsoleFont = QFont(ls_Font);
+			mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.8);
 			break;
 		}
 	}

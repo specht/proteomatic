@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "Desktop.h"
 #include "Proteomatic.h"
+#include "ConsoleString.h"
 
 
 class k_PipelineMainWindow: public QMainWindow
@@ -31,6 +32,8 @@ public:
 	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_PipelineMainWindow();
 	QString outputDirectory();
+	virtual void addOutput(QString as_String);
+	virtual void clearOutput();
 	
 signals:
 	void outputDirectoryChanged(const QString& as_Path);
@@ -50,8 +53,10 @@ protected:
 	QAction* mk_AddFileListAction_;
 	QAction* mk_StartAction_;
 	QAction* mk_RefreshAction_;
-	QLineEdit mk_OutputDirectory;
+	QLineEdit* mk_OutputDirectory_;
 	QAction* mk_ChooseOutputDirectoryAction_;
 	k_Proteomatic& mk_Proteomatic;
 	QFileSystemWatcher mk_FileSystemWatcher;
+	QTextEdit* mk_Log_;
+	k_ConsoleString ms_Log;
 };

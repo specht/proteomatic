@@ -31,5 +31,11 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
 	k_Proteomatic lk_Proteomatic(lk_App.applicationDirPath());
 	
 	k_PipelineMainWindow lk_MainWindow(NULL, lk_Proteomatic);
+	lk_MainWindow.show();
+
+	// check for updates on startup
+	if (lk_Proteomatic.getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool())
+		lk_Proteomatic.checkForUpdates();
+
 	return lk_App.exec();
 }

@@ -59,6 +59,7 @@ public slots:
 	virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_);
 	virtual void disconnectAll();
 	virtual void setResizable(bool ab_Enabled);
+	virtual void toggleUi();
 	
 signals:
 	virtual void batchModeChanged(bool);

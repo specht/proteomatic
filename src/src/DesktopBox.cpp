@@ -132,6 +132,11 @@ void k_DesktopBox::setResizable(bool ab_Enabled)
 }
 
 
+void k_DesktopBox::toggleUi()
+{
+}
+
+
 void k_DesktopBox::resizeEvent(QResizeEvent* /*event*/)
 {
 	emit resized();

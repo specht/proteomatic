@@ -40,6 +40,7 @@ public:
 	virtual bool checkReady(QString& as_Error);
 	virtual bool checkReadyToGo();
 	virtual QStringList iterationKeys();
+	virtual QString outputDirectory() const;
 	
 protected slots:
 	virtual void outputFileActionToggled();
@@ -49,8 +50,14 @@ protected slots:
 	virtual void updateOutputFilenames();
 	virtual void proposePrefixButtonClicked();
 	virtual void start(const QString& as_IterationKey);
-	virtual void readyRead();
+	virtual void readyReadSlot();
 	virtual void addOutput(QString as_String);
+	virtual void showOutputBox(bool ab_Flag = true);
+	
+signals:
+	virtual void scriptStarted();
+	virtual void scriptFinished(int ai_ExitCode);
+	virtual void readyRead();
 	
 protected:
 	virtual void setupLayout();

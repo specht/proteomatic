@@ -33,11 +33,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_ScriptBox::k_ScriptBox(const QString& as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic, false)
 	, mk_pScript(k_ScriptFactory::makeScript(as_ScriptUri, ak_Proteomatic, false, false))
+	, mk_OutputBox(this)
 {
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
 	connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputDirectoryChanged(const QString&)), this, SLOT(updateOutputFilenames()));
-	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(readyRead()), this, SLOT(readyRead()));
+	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
+	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
+	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(readyRead()), this, SIGNAL(readyRead()));
+	connect(this, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
 	setupLayout();
 }
 
@@ -65,6 +69,19 @@ bool k_ScriptBox::checkReady(QString& as_Error)
 
 bool k_ScriptBox::checkReadyToGo()
 {
+	// check whether all input files are there
+	QStringList lk_InputFiles;
+	
+	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+	{
+		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+		if (lk_FileBox_)
+		{
+			foreach (QString ls_Path, lk_FileBox_->filenames())
+				if (!QFileInfo(ls_Path).exists())
+					return false;
+		}
+	}
 	return true;
 }
 
@@ -72,6 +89,15 @@ bool k_ScriptBox::checkReadyToGo()
 QStringList k_ScriptBox::iterationKeys()
 {
 	return QStringList() << "";
+}
+
+
+QString k_ScriptBox::outputDirectory() const
+{
+	if (!mk_OutputDirectory.text().isEmpty())
+		return mk_OutputDirectory.text();
+
+	return mk_Desktop_->pipelineMainWindow().outputDirectory();
 }
 
 
@@ -96,7 +122,9 @@ void k_ScriptBox::outputFileActionToggled()
 	{
 		if (mk_OutputFileBoxes.contains(ls_Key))
 		{
-			mk_Desktop_->removeBox(mk_OutputFileBoxes[ls_Key]);
+			// only delete the box if it's really there
+			if (dynamic_cast<IDesktopBox*>(mk_OutputFileBoxes[ls_Key]))
+				mk_Desktop_->removeBox(mk_OutputFileBoxes[ls_Key]);
 			mk_OutputFileBoxes.remove(ls_Key);
 		}
 	}
@@ -116,6 +144,14 @@ void k_ScriptBox::handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming)
 
 void k_ScriptBox::handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming)
 {
+	if (!ab_Incoming)
+	{
+		// check whether it's an output file box and we have to uncheck the checkbox!
+		// :TODO: speed this up, it's slow. maybe another hash?
+		QString ls_Key = mk_OutputFileBoxes.key(ak_Other_);
+		if (!ls_Key.isEmpty())
+			mk_Checkboxes[ls_Key]->setChecked(Qt::Unchecked);
+	}
 	updateBatchMode();
 	updateOutputFilenames();
 }
@@ -178,7 +214,7 @@ void k_ScriptBox::updateOutputFilenames()
 		{
 			k_OutFileListBox* lk_OutBox_ = dynamic_cast<k_OutFileListBox*>(mk_OutputFileBoxes[ls_Key]);
 			QStringList lk_Filenames;
-			lk_Filenames.append(mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
+			lk_Filenames.append(outputDirectory() + "/" + mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
 			lk_OutBox_->setFilenames(lk_Filenames);
 		}
 	}
@@ -233,10 +269,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 	QHash<QString, QString> lk_Parameters;
 
 	// set output directory
-	if (mk_OutputDirectory.text().isEmpty())
-		lk_Parameters["-outputDirectory"] = mk_Desktop_->pipelineMainWindow().outputDirectory();
-	else
-		lk_Parameters["-outputDirectory"] = mk_OutputDirectory.text();
+	lk_Parameters["-outputDirectory"] = this->outputDirectory();
 
 	// set output prefix
 	lk_Parameters["-outputPrefix"] = mk_Prefix.text();
@@ -262,7 +295,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 }
 
 
-void k_ScriptBox::readyRead()
+void k_ScriptBox::readyReadSlot()
 {
 	addOutput(mk_pScript->readAll());
 }
@@ -274,6 +307,12 @@ void k_ScriptBox::addOutput(QString as_Text)
 	mk_OutputBox.setText(ms_Output.text());
 	mk_OutputBox.moveCursor(QTextCursor::End);
 	mk_OutputBox.ensureCursorVisible();
+}
+
+
+void k_ScriptBox::showOutputBox(bool ab_Flag/* = true*/)
+{
+	mk_OutputBox.setVisible(ab_Flag);
 }
 
 
@@ -347,6 +386,7 @@ void k_ScriptBox::setupLayout()
 	lk_ParametersToolButton_->setIcon(QIcon(":/icons/preferences-system.png"));
 	lk_HLayout_->addWidget(lk_ParametersToolButton_);
 	connect(lk_ParametersToolButton_, SIGNAL(clicked()), mk_pParameterProxyWidget.get_Pointer(), SLOT(show()));
+	mk_pParameterProxyWidget->setParent(&(mk_Desktop_->pipelineMainWindow()), Qt::Tool);
 
 	/*
 	mk_PopupMenu_ = new QMenu(this);
@@ -377,7 +417,11 @@ void k_ScriptBox::setupLayout()
 	QToolButton* lk_WatchOutputButton_ = new QToolButton(this);
 	lk_WatchOutputButton_->setIcon(QIcon(":/icons/utilities-terminal.png"));
 	lk_HLayout_->addWidget(lk_WatchOutputButton_);
-	connect(lk_WatchOutputButton_, SIGNAL(clicked()), &mk_OutputBox, SLOT(show()));
+	// make this window auto-close on exit
+	mk_OutputBox.setAttribute(Qt::WA_QuitOnClose, false);
+	mk_OutputBox.setWindowIcon(QIcon(":/icons/utilities-terminal.png"));
+	mk_OutputBox.setWindowTitle(mk_pScript->title());
+	connect(lk_WatchOutputButton_, SIGNAL(clicked()), this, SLOT(showOutputBox()));
 	
 	lk_HLayout_->addStretch();
 	
@@ -442,6 +486,6 @@ void k_ScriptBox::setupLayout()
 	
 	mk_OutputBox.setReadOnly(true);
 	mk_OutputBox.setFont(mk_Proteomatic.consoleFont());
-	mk_OutputBox.setParent(NULL);
+	mk_OutputBox.setParent(&(mk_Desktop_->pipelineMainWindow()), Qt::Tool);
 	mk_OutputBox.hide();
 }

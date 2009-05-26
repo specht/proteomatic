@@ -27,6 +27,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	: QMainWindow(ak_Parent_)
 	, mk_Desktop(this, ak_Proteomatic, *this)
 	, mk_Proteomatic(ak_Proteomatic)
+	, mk_OutputDirectory_(new QLineEdit(this))
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 
@@ -64,16 +65,25 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	if (!QFileInfo(ls_Path).isDir())
 		ls_Path = QDir::homePath();
 	this->setOutputDirectory(ls_Path);
-	mk_OutputDirectory.setReadOnly(true);
+	mk_OutputDirectory_->setReadOnly(true);
 	
-	lk_AddToolBar_->addWidget(&mk_OutputDirectory);
+	lk_AddToolBar_->addWidget(mk_OutputDirectory_);
 	mk_ChooseOutputDirectoryAction_ = lk_AddToolBar_->addAction(QIcon(":icons/folder.png"), "", this, SLOT(chooseOutputDirectory()));
 	
 	lk_AddToolBar_->addSeparator();
 
 	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
 	
-	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), &mk_Desktop, SLOT(forceRefresh()));
+	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), &mk_Desktop, SLOT(refresh()));
+	
+	mk_Log_ = new QTextEdit(this);
+	mk_Log_->setReadOnly(true);
+	mk_Log_->setFont(mk_Proteomatic.consoleFont());
+	QDockWidget* lk_LogDockWidget_ = new QDockWidget("Messages", this);
+	lk_LogDockWidget_->setWidget(mk_Log_);
+	addDockWidget(Qt::RightDockWidgetArea, lk_LogDockWidget_);
+	lk_LogDockWidget_->resize(100, 10);
+	addOutput("Welcome to Proteomatic Pipeline.\n");
 
 	show();
 }
@@ -86,7 +96,7 @@ k_PipelineMainWindow::~k_PipelineMainWindow()
 
 QString k_PipelineMainWindow::outputDirectory()
 {
-	return mk_OutputDirectory.text();
+	return mk_OutputDirectory_->text();
 }
 
 
@@ -122,11 +132,11 @@ void k_PipelineMainWindow::chooseOutputDirectory()
 
 void k_PipelineMainWindow::setOutputDirectory(QString as_Path)
 {
-	if (!mk_OutputDirectory.text().isEmpty())
-		mk_FileSystemWatcher.removePath(mk_OutputDirectory.text());
+	if (!mk_OutputDirectory_->text().isEmpty())
+		mk_FileSystemWatcher.removePath(mk_OutputDirectory_->text());
 
-	mk_OutputDirectory.setText(as_Path);
-	mk_FileSystemWatcher.addPath(mk_OutputDirectory.text());
+	mk_OutputDirectory_->setText(as_Path);
+	mk_FileSystemWatcher.addPath(mk_OutputDirectory_->text());
 
 	emit outputDirectoryChanged(as_Path);
 }
@@ -141,4 +151,22 @@ void k_PipelineMainWindow::toggleUi()
 	mk_RefreshAction_->setEnabled(!mk_Desktop.running());
 	mk_ChooseOutputDirectoryAction_->setEnabled(!mk_Desktop.running());
 	*/
+}
+
+
+void k_PipelineMainWindow::addOutput(QString as_Text)
+{
+	ms_Log.append(as_Text);
+	mk_Log_->setText(ms_Log.text());
+	mk_Log_->moveCursor(QTextCursor::End);
+	mk_Log_->ensureCursorVisible();
+}
+
+
+void k_PipelineMainWindow::clearOutput()
+{
+	ms_Log.clear();
+	mk_Log_->setText(ms_Log.text());
+	mk_Log_->moveCursor(QTextCursor::End);
+	mk_Log_->ensureCursorVisible();
 }

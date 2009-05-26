@@ -37,6 +37,7 @@ struct IDesktopBox
 	virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_) = 0;
 	virtual void disconnectAll() = 0;
 	virtual void setResizable(bool ab_Enabled) = 0;
+	virtual void toggleUi() = 0;
 	
 	// signals
 	virtual void batchModeChanged(bool) = 0;
