@@ -337,9 +337,9 @@ void k_ScriptBox::setupLayout()
 	
 	mk_pParameterProxyWidget = RefPtr<QWidget>(new QDialog());
 	
-	mk_pParameterProxyWidget->resize(500, 600);
-	mk_pParameterProxyWidget->setWindowTitle(mk_pScript->title());
-	mk_pParameterProxyWidget->setWindowIcon(QIcon(":icons/proteomatic.png"));
+	//mk_pParameterProxyWidget->resize(500, 600);
+	//mk_pParameterProxyWidget->setWindowTitle(mk_pScript->title());
+	//mk_pParameterProxyWidget->setWindowIcon(QIcon(":icons/proteomatic.png"));
 	
 	lk_VLayout_ = new QVBoxLayout(mk_pParameterProxyWidget.get_Pointer());
 	lk_VLayout_->setContentsMargins(0, 0, 0, 0);
@@ -382,11 +382,15 @@ void k_ScriptBox::setupLayout()
 	lk_HLayout_ = new QHBoxLayout();
 	lk_VLayout_->addLayout(lk_HLayout_);
 	
-	QToolButton* lk_ParametersToolButton_ = new QToolButton(this);
+/*	QToolButton* lk_ParametersToolButton_ = new QToolButton(this);
 	lk_ParametersToolButton_->setIcon(QIcon(":/icons/preferences-system.png"));
-	lk_HLayout_->addWidget(lk_ParametersToolButton_);
-	connect(lk_ParametersToolButton_, SIGNAL(clicked()), mk_pParameterProxyWidget.get_Pointer(), SLOT(show()));
-	mk_pParameterProxyWidget->setParent(&(mk_Desktop_->pipelineMainWindow()), Qt::Tool);
+	lk_HLayout_->addWidget(lk_ParametersToolButton_);*/
+
+	//mk_Desktop_->pipelineMainWindow().tabWidget()->addTab(mk_pParameterProxyWidget.get_Pointer(), mk_pScript->title());
+	//lk_DockWidget_->hide();
+	//connect(lk_ParametersToolButton_, SIGNAL(clicked()), lk_DockWidget_, SLOT(show()));
+	//mk_pParameterProxyWidget->setParent(&(mk_Desktop_->pipelineMainWindow()), Qt::Tool);
+	//mk_pParameterProxyWidget->hide();
 
 	/*
 	mk_PopupMenu_ = new QMenu(this);
@@ -414,21 +418,22 @@ void k_ScriptBox::setupLayout()
 	connect(lk_OutputFilesButton_, SIGNAL(clicked()), this, SLOT(showPopupMenu()));
 	*/
 	
-	QToolButton* lk_WatchOutputButton_ = new QToolButton(this);
+/*	QToolButton* lk_WatchOutputButton_ = new QToolButton(this);
 	lk_WatchOutputButton_->setIcon(QIcon(":/icons/utilities-terminal.png"));
-	lk_HLayout_->addWidget(lk_WatchOutputButton_);
+	lk_HLayout_->addWidget(lk_WatchOutputButton_);*/
+
 	// make this window auto-close on exit
-	mk_OutputBox.setAttribute(Qt::WA_QuitOnClose, false);
+/*	mk_OutputBox.setAttribute(Qt::WA_QuitOnClose, false);
 	mk_OutputBox.setWindowIcon(QIcon(":/icons/utilities-terminal.png"));
 	mk_OutputBox.setWindowTitle(mk_pScript->title());
-	connect(lk_WatchOutputButton_, SIGNAL(clicked()), this, SLOT(showOutputBox()));
+	connect(lk_WatchOutputButton_, SIGNAL(clicked()), this, SLOT(showOutputBox()));*/
 	
-	lk_HLayout_->addStretch();
+/*	lk_HLayout_->addStretch();*/
 	
-	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
-	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
-	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
-	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
+// 	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
+// 	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
+// 	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
+// 	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
 
 	QWidget* lk_Container_ = new QWidget(this);
 	

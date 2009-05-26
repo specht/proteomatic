@@ -76,13 +76,24 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), &mk_Desktop, SLOT(refresh()));
 	
+	//setDockOptions(dockOptions() | QMainWindow::VerticalTabs);
+	//setDockOptions(dockOptions() | QMainWindow::ForceTabbedDocks);
+	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+
 	mk_Log_ = new QTextEdit(this);
 	mk_Log_->setReadOnly(true);
 	mk_Log_->setFont(mk_Proteomatic.consoleFont());
-	QDockWidget* lk_LogDockWidget_ = new QDockWidget("Messages", this);
+	mk_LogDockWidget_ = new QDockWidget("Script parameters");
+	QLabel* lk_Label_ = new QLabel("<i>(no script selected)</i>", this);
+	mk_LogDockWidget_->setWidget(lk_Label_);
+	//mk_LogDockWidget_->setFeatures(QDockWidget::NoDockWidgetFeatures);
+	addDockWidget(Qt::LeftDockWidgetArea, mk_LogDockWidget_);
+	
+	QDockWidget* lk_LogDockWidget_ = new QDockWidget("Output");
+	//mk_LogDockWidget_->setFeatures(QDockWidget::NoDockWidgetFeatures);
+	//lk_LogDockWidget_->setWidget(mk_Log_);
+	addDockWidget(Qt::LeftDockWidgetArea, lk_LogDockWidget_);
 	lk_LogDockWidget_->setWidget(mk_Log_);
-	addDockWidget(Qt::RightDockWidgetArea, lk_LogDockWidget_);
-	lk_LogDockWidget_->resize(100, 10);
 	addOutput("Welcome to Proteomatic Pipeline.\n");
 
 	show();
@@ -170,3 +181,16 @@ void k_PipelineMainWindow::clearOutput()
 	mk_Log_->moveCursor(QTextCursor::End);
 	mk_Log_->ensureCursorVisible();
 }
+
+
+QDockWidget* k_PipelineMainWindow::logDockWidget()
+{
+	return mk_LogDockWidget_;
+}
+
+
+QTabWidget* k_PipelineMainWindow::tabWidget()
+{
+	return mk_TabWidget_;
+}
+

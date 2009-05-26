@@ -115,6 +115,9 @@ protected:
 	QSet<IDesktopBox*> mk_SelectedBoxes;
 	QSet<QGraphicsPathItem*> mk_SelectedArrows;
 	QGraphicsPathItem* mk_SelectionGraphicsPathItem_;
+	
+	IDesktopBox* mk_CurrentScriptBox_;
+	QGraphicsPathItem* mk_CurrentScriptBoxGraphicsPathItem_;
 
 	QSet<IDesktopBox*> mk_BatchBoxes;
 	QGraphicsPathItem* mk_BatchGraphicsPathItem_;

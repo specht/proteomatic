@@ -36,6 +36,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mk_ArrowEndBox_(NULL)
 	, mk_UserArrowPathItem_(NULL)
 	, mb_Running(false)
+	, mk_CurrentScriptBox_(NULL)
 {
 	setAcceptDrops(true);
 	setScene(&mk_GraphicsScene);
@@ -53,6 +54,11 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	lk_Pen.setStyle(Qt::DashLine);
 	mk_SelectionGraphicsPathItem_ = mk_GraphicsScene.addPath(QPainterPath(), lk_Pen);
 	mk_SelectionGraphicsPathItem_->setZValue(-2.0);
+	
+	lk_Pen.setStyle(Qt::SolidLine);
+	lk_Pen.setColor(QColor(TANGO_SCARLET_RED_2));
+	mk_CurrentScriptBoxGraphicsPathItem_ = mk_GraphicsScene.addPath(QPainterPath(), lk_Pen);
+	mk_CurrentScriptBoxGraphicsPathItem_->setZValue(-2.0);
 
 	lk_Pen = QPen(QColor(TANGO_BUTTER_2));
 	lk_Pen.setWidthF(1.5);
@@ -94,11 +100,12 @@ void k_Desktop::addScriptBox(const QString& as_ScriptUri)
 	IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeScriptBox(as_ScriptUri, this, mk_Proteomatic);
 	if (lk_Box_)
 	{
-		IScriptBox* lk_ScriptBox = dynamic_cast<IScriptBox*>(lk_Box_);
-		mk_BoxForScript[lk_ScriptBox->script()] = lk_ScriptBox;
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+		mk_BoxForScript[lk_ScriptBox_->script()] = lk_ScriptBox_;
 		addBox(lk_Box_);
-		connect(dynamic_cast<QObject*>(lk_ScriptBox), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
-		connect(dynamic_cast<QObject*>(lk_ScriptBox), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
+		connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
+		connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
+		mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(lk_Box_);
 	}
 }
 
@@ -148,6 +155,9 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	mk_Boxes.remove(ak_Box_);
 	mk_SelectedBoxes.remove(ak_Box_);
 	mk_BatchBoxes.remove(ak_Box_);
+	if (mk_CurrentScriptBox_ == ak_Box_)
+		mk_CurrentScriptBox_ = NULL;
+	
 	redrawSelection();
 	redrawBatchFrame();
 	mk_DeleteBoxStackSet.remove(ak_Box_);
@@ -371,6 +381,9 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 	IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
 	if (!lk_Box_)
 		return;
+	if (dynamic_cast<IScriptBox*>(lk_Box_))
+		mk_CurrentScriptBox_ = lk_Box_;
+	
 	if ((ae_Modifiers & Qt::ControlModifier) == Qt::ControlModifier)
 	{
 		if (mk_SelectedBoxes.contains(lk_Box_))
@@ -472,12 +485,23 @@ void k_Desktop::redrawSelection()
 	QPainterPath lk_Path;
 	
 	foreach (IDesktopBox* lk_Box_, mk_SelectedBoxes)
-		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, 3));
+	{
+		if (lk_Box_ != mk_CurrentScriptBox_)
+			lk_Path = lk_Path.united(grownPathForBox(lk_Box_, 3));
+	}
 	
 	foreach (QGraphicsPathItem* lk_Arrow_, mk_SelectedArrows)
 		lk_Path = lk_Path.united(grownPathForArrow(lk_Arrow_, 3));
 	
 	mk_SelectionGraphicsPathItem_->setPath(lk_Path);
+	
+	lk_Path = QPainterPath();
+	
+	if (mk_CurrentScriptBox_)
+		lk_Path = grownPathForBox(mk_CurrentScriptBox_, 3);
+	
+	mk_CurrentScriptBoxGraphicsPathItem_->setPath(lk_Path);
+	
 	redrawBatchFrame();
 }
 
@@ -503,7 +527,7 @@ void k_Desktop::redrawBatchFrame()
 	QPainterPath lk_Path;
 	foreach (IDesktopBox* lk_Box_, mk_BatchBoxes)
 	{
-		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, mk_SelectedBoxes.contains(lk_Box_) ? 7 : 3));
+		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, (mk_SelectedBoxes.contains(lk_Box_) || lk_Box_ == mk_CurrentScriptBox_) ? 7 : 3));
 		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
 		if (lk_FileBox_)
 		{
@@ -608,6 +632,7 @@ void k_Desktop::mousePressEvent(QMouseEvent* event)
 		if ((event->modifiers() & Qt::ControlModifier) == 0)
 		{
 			clearSelection();
+			mk_CurrentScriptBox_ = NULL;
 			redrawSelection();
 		}
 	}
