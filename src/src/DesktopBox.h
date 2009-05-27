@@ -60,6 +60,7 @@ public slots:
 	virtual void disconnectAll();
 	virtual void setResizable(bool ab_Enabled);
 	virtual void toggleUi();
+	virtual QRectF rect();
 	
 signals:
 	virtual void batchModeChanged(bool);

@@ -72,7 +72,11 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_AddFileListAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open-multiple.png"), "Add file list", this, SLOT(addFileListBox()));
 
 	lk_AddToolBar_->addSeparator();
+	
+	lk_AddToolBar_->addAction(QIcon(":icons/system-search.png"), "Show all", &mk_Desktop, SLOT(showAll()));
 
+	lk_AddToolBar_->addSeparator();
+	
 	mk_RefreshAction_ = lk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
 	mk_StartAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-ok.png"), "Start", this, SLOT(start()));
 	mk_AbortAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "Abort", this, SLOT(abort()));

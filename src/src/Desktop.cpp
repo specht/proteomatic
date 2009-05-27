@@ -397,6 +397,18 @@ void k_Desktop::abort()
 }
 
 
+void k_Desktop::showAll()
+{
+	if (mk_Boxes.empty())
+		return;
+	
+	QRectF lk_Rect;
+	foreach (IDesktopBox* lk_Box_, mk_Boxes)
+		lk_Rect = lk_Rect.united(lk_Box_->rect());
+	centerOn(lk_Rect.center());
+}
+
+
 void k_Desktop::boxMovedOrResized(QPoint ak_Delta)
 {
 	IDesktopBox* lk_Sender_ = dynamic_cast<IDesktopBox*>(sender());

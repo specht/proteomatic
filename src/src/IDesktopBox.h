@@ -38,6 +38,7 @@ struct IDesktopBox
 	virtual void disconnectAll() = 0;
 	virtual void setResizable(bool ab_Enabled) = 0;
 	virtual void toggleUi() = 0;
+	virtual QRectF rect() = 0;
 	
 	// signals
 	virtual void batchModeChanged(bool) = 0;

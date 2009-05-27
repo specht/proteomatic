@@ -58,6 +58,7 @@ public slots:
 	virtual void redraw();
 	virtual void start();
 	virtual void abort();
+	virtual void showAll();
 	
 protected slots:
 	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());

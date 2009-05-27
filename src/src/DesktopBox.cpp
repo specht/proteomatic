@@ -137,6 +137,12 @@ void k_DesktopBox::toggleUi()
 }
 
 
+QRectF k_DesktopBox::rect()
+{
+	return frameGeometry();
+}
+
+
 void k_DesktopBox::resizeEvent(QResizeEvent* /*event*/)
 {
 	emit resized();
