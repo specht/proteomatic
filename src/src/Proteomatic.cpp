@@ -271,15 +271,15 @@ void k_Proteomatic::collectScriptInfo()
 	mk_ScriptInfo.clear();
 	QDir lk_Dir(ms_ScriptPath + "/" + ms_ScriptPackage);
 	QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb", QDir::Files);
-/*	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size());
+	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size() - 1);
 	lk_ProgressDialog.setCancelButton(0);
 	lk_ProgressDialog.setWindowTitle("Proteomatic");
 	lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
-	int li_Count = 0;*/
+	int li_Count = 0;
 	foreach (QString ls_Path, lk_Scripts)
 	{
-/*		++li_Count;
-		lk_ProgressDialog.setValue(li_Count);*/
+		++li_Count;
+		lk_ProgressDialog.setValue(li_Count);
 		if (ls_Path.contains(".defunct."))
 			continue;
 		ls_Path = lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));

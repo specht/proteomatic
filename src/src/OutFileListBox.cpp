@@ -23,6 +23,11 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tango.h"
 #include "UnclickableLabel.h"
 
+#define FILE_URL_PREFIX "file://"
+#ifdef WIN32
+	#define FILE_URL_PREFIX "file:///"
+#endif
+
 
 k_OutFileListBox::k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
 									QString as_Label)
@@ -128,7 +133,7 @@ void k_OutFileListBox::toggleUi()
 	{
 		QString ls_Path = mk_FileList.files().first();
 		if (QFileInfo(ls_Path).exists())
-			mk_FileName_->setText(QString("<a style='color: %1' href='file://").arg(TANGO_SKY_BLUE_2) + ls_Path + "'>" + QFileInfo(ls_Path).fileName() + "</a>");
+			mk_FileName_->setText(QString("<a style='color: %1' href='%2").arg(TANGO_SKY_BLUE_2).arg(FILE_URL_PREFIX) + ls_Path + "'>" + QFileInfo(ls_Path).fileName() + "</a>");
 		else
 			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_ALUMINIUM_3) + QFileInfo(ls_Path).fileName() + "</span>");
 	}
@@ -143,7 +148,7 @@ void k_OutFileListBox::updateFilenameTags()
 
 void k_OutFileListBox::linkActivated(const QString& as_Url)
 {
-	QDesktopServices::openUrl(as_Url);
+	QDesktopServices::openUrl(QUrl(as_Url, QUrl::TolerantMode));
 }
 
 
