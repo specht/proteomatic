@@ -2,7 +2,7 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
@@ -12,16 +12,23 @@
    height="32"
    id="svg2198"
    sodipodi:version="0.32"
-   inkscape:version="0.45.1"
+   inkscape:version="0.46"
    version="1.0"
    sodipodi:docbase="/media/FLASH DISK/Files/desktop vista"
    sodipodi:docname="GPF icon.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/michael/Desktop/Proteomatic.png"
-   inkscape:export-xdpi="309.38"
-   inkscape:export-ydpi="309.38">
+   inkscape:export-filename="/home/michael/programming/proteomatic/trunk/src/src/icons/proteomatic.png"
+   inkscape:export-xdpi="135"
+   inkscape:export-ydpi="135">
   <defs
      id="defs2200">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 16 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="32 : 16 : 1"
+       inkscape:persp3d-origin="16 : 10.666667 : 1"
+       id="perspective15" />
     <filter
        inkscape:collect="always"
        id="filter7060">
@@ -38,21 +45,33 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="23.5625"
-     inkscape:cx="20.1658"
-     inkscape:cy="16.473765"
+     inkscape:zoom="18.84375"
+     inkscape:cx="16"
+     inkscape:cy="16"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g3164"
      width="32px"
      height="32px"
      showgrid="true"
-     inkscape:window-width="1280"
-     inkscape:window-height="974"
-     inkscape:window-x="5"
-     inkscape:window-y="49"
-     gridempspacing="4"
+     inkscape:window-width="1440"
+     inkscape:window-height="826"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
      inkscape:grid-points="true"
-     gridtolerance="10000" />
+     gridtolerance="10000">
+    <inkscape:grid
+       id="GridFromPre046Settings"
+       type="xygrid"
+       originx="0px"
+       originy="0px"
+       spacingx="1px"
+       spacingy="1px"
+       color="#0000ff"
+       empcolor="#0000ff"
+       opacity="0.2"
+       empopacity="0.4"
+       empspacing="4" />
+  </sodipodi:namedview>
   <metadata
      id="metadata2203">
     <rdf:RDF>
@@ -121,7 +140,7 @@
          sodipodi:cy="35"
          sodipodi:cx="99.10714"
          id="path4208"
-         style="fill:none;fill-opacity:1;stroke:#648923;stroke-width:7.09987164;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:none;fill-opacity:1;stroke:#648923;stroke-width:3.54993538;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="arc" />
     </g>
   </g>

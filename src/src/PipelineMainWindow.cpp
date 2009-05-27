@@ -227,8 +227,8 @@ void k_PipelineMainWindow::toggleUi()
 	mk_StartAction_->setEnabled((!mk_Desktop.running()) && (mk_Desktop.hasBoxes()));
 	mk_AbortAction_->setEnabled(mk_Desktop.running());
 	mk_RefreshAction_->setEnabled((!mk_Desktop.running()) && (mk_Desktop.hasBoxes()));
-	mk_ProfileManagerAction_->setEnabled(true);
-	mk_ResetParametersAction_->setEnabled(mk_CurrentScriptBox_);
+	mk_ProfileManagerAction_->setEnabled((!mk_Desktop.running()));
+	mk_ResetParametersAction_->setEnabled((!mk_Desktop.running()) && mk_CurrentScriptBox_);
 	mk_ChooseOutputDirectoryAction_->setEnabled(!mk_Desktop.running());
 	mk_Desktop.setEnabled(!mk_Desktop.running());
 }
