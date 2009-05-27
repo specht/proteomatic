@@ -24,6 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IScriptBox.h"
 #include "PipelineMainWindow.h"
 #include "Tango.h"
+#include "Yaml.h"
 
 
 k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_PipelineMainWindow& ak_PipelineMainWindow)
@@ -313,6 +314,39 @@ bool k_Desktop::running() const
 bool k_Desktop::hasBoxes()
 {
 	return !mk_Boxes.empty();
+}
+
+
+tk_YamlMap k_Desktop::pipelineDescription()
+{
+	// collect script boxes
+	tk_YamlMap lk_Description;
+	tk_YamlSequence lk_ScriptBoxes;
+	foreach (IDesktopBox* lk_Box_, mk_Boxes)
+	{
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+		if (lk_ScriptBox_)
+		{
+			tk_YamlMap lk_ScriptBoxDescription;
+			lk_ScriptBoxDescription["id"] = (qint64)lk_ScriptBox_;
+			lk_ScriptBoxDescription["uri"] = QFileInfo(lk_ScriptBox_->script()->uri()).completeBaseName();
+			tk_YamlMap lk_ScriptParameters;
+			QHash<QString, QString> lk_Hash = lk_ScriptBox_->script()->configuration();
+			QHash<QString, QString>::const_iterator lk_Iter = lk_Hash.begin();
+			for (; lk_Iter != lk_Hash.end(); ++lk_Iter)
+				lk_ScriptParameters[lk_Iter.key()] = lk_Iter.value();
+			lk_ScriptBoxDescription["parameters"] = lk_ScriptParameters;
+			tk_YamlSequence lk_Coordinates;
+			lk_Coordinates.push_back(dynamic_cast<QWidget*>(lk_ScriptBox_)->x());
+			lk_Coordinates.push_back(dynamic_cast<QWidget*>(lk_ScriptBox_)->y());
+			lk_ScriptBoxDescription["position"] = lk_Coordinates;
+			// now add active output boxes
+			lk_ScriptBoxes.push_back(lk_ScriptBoxDescription);
+		}
+	}
+	lk_Description["scriptBoxes"] = lk_ScriptBoxes;
+	// continue with connections between output boxes and script boxes
+	return lk_Description;
 }
 
 

@@ -22,11 +22,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Desktop.h"
 #include "ProfileManager.h"
 #include "Proteomatic.h"
+#include "Yaml.h"
 
 
 k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: QMainWindow(ak_Parent_)
-	, mk_Desktop(this, ak_Proteomatic, *this)
+	, mk_Desktop_(new k_Desktop(this, ak_Proteomatic, *this))
 	, mk_Proteomatic(ak_Proteomatic)
 	, mk_OutputPrefix_(new QLineEdit(this))
 	, mk_OutputDirectory_(new QLineEdit(this))
@@ -48,13 +49,13 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	setCentralWidget(mk_HSplitter_);
 
-	mk_HSplitter_->addWidget(&mk_Desktop);
+	mk_HSplitter_->addWidget(mk_Desktop_);
 	mk_HSplitter_->addWidget(mk_PaneLayoutWidget_);
 	mk_HSplitter_->setChildrenCollapsible(false);
 	mk_HSplitter_->setStretchFactor(0, 1);
 	mk_HSplitter_->setStretchFactor(1, 1);
 
-	statusBar()->show();
+	//statusBar()->show();
 	
 	QToolBar* lk_AddToolBar_ = new QToolBar(this);
 	lk_AddToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -73,7 +74,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	lk_AddToolBar_->addSeparator();
 	
-	lk_AddToolBar_->addAction(QIcon(":icons/system-search.png"), "Show all", &mk_Desktop, SLOT(showAll()));
+	lk_AddToolBar_->addAction(QIcon(":icons/view-fullscreen.png"), "Show all", this, SLOT(showAll()));
 
 	lk_AddToolBar_->addSeparator();
 	
@@ -111,7 +112,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	addToolBarBreak(Qt::TopToolBarArea);
 	addToolBar(Qt::TopToolBarArea, lk_OtherToolBar_);
 		
-	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), &mk_Desktop, SLOT(refresh()));
 	
 	//setDockOptions(dockOptions() | QMainWindow::VerticalTabs);
 	//setDockOptions(dockOptions() | QMainWindow::ForceTabbedDocks);
@@ -132,6 +132,8 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 k_PipelineMainWindow::~k_PipelineMainWindow()
 {
+	k_Yaml::emitToFile(mk_Desktop_->pipelineDescription(), "out.pipeline");
+	delete mk_Desktop_;
 }
 
 
@@ -149,31 +151,40 @@ QString k_PipelineMainWindow::outputPrefix()
 
 void k_PipelineMainWindow::addScript(QAction* ak_Action_)
 {
+	if (!mk_Desktop_)
+		return;
+	
 	QString ls_ScriptUri = ak_Action_->data().toString();
-	mk_Desktop.addScriptBox(ls_ScriptUri);
+	mk_Desktop_->addScriptBox(ls_ScriptUri);
 }
 
 
 void k_PipelineMainWindow::start()
 {
-	mk_Desktop.start();
+	if (!mk_Desktop_)
+		return;
+	
+	mk_Desktop_->start();
 }
 
 
 void k_PipelineMainWindow::abort()
 {
+	if (!mk_Desktop_)
+		return;
+	
 	if (mk_Proteomatic.showMessageBox("Abort pipeline", "Are you sure you want to abort the pipeline?", ":/icons/dialog-warning.png", 
 		QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
-	{
-		mk_Desktop.abort();
-		//addOutput("\nScript aborted by user.");
-	}
+		mk_Desktop_->abort();
 }
 
 
 void k_PipelineMainWindow::addFileListBox()
 {
-	mk_Desktop.addInputFileListBox();
+	if (!mk_Desktop_)
+		return;
+	
+	mk_Desktop_->addInputFileListBox();
 }
 
 
@@ -224,17 +235,27 @@ void k_PipelineMainWindow::showProfileManager()
 }
 
 
+void k_PipelineMainWindow::showAll()
+{
+	if (!mk_Desktop_)
+		return;
+	
+	mk_Desktop_->showAll();
+}
+
+
 void k_PipelineMainWindow::toggleUi()
 {
-	mk_AddScriptAction_->setEnabled(!mk_Desktop.running());
-	mk_AddFileListAction_->setEnabled(!mk_Desktop.running());
-	mk_StartAction_->setEnabled((!mk_Desktop.running()) && (mk_Desktop.hasBoxes()));
-	mk_AbortAction_->setEnabled(mk_Desktop.running());
-	mk_RefreshAction_->setEnabled((!mk_Desktop.running()) && (mk_Desktop.hasBoxes()));
-	mk_ProfileManagerAction_->setEnabled((!mk_Desktop.running()));
-	mk_ResetParametersAction_->setEnabled((!mk_Desktop.running()) && mk_CurrentScriptBox_);
-	mk_ChooseOutputDirectoryAction_->setEnabled(!mk_Desktop.running());
-	mk_Desktop.setEnabled(!mk_Desktop.running());
+	mk_AddScriptAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+	mk_AddFileListAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+	mk_StartAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
+	mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());
+	mk_RefreshAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
+	mk_ProfileManagerAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
+	mk_ResetParametersAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && mk_CurrentScriptBox_);
+	mk_ChooseOutputDirectoryAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+	if (mk_Desktop_)
+		mk_Desktop_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 }
 
 

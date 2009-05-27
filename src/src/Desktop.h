@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
+#include "Yaml.h"
 
 
 class k_PipelineMainWindow;
@@ -52,6 +53,7 @@ public:
 	virtual bool running() const;
 	
 	virtual bool hasBoxes();
+	virtual tk_YamlMap pipelineDescription();
 	
 public slots:
 	virtual void refresh();

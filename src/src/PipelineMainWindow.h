@@ -54,9 +54,10 @@ protected slots:
 	void setOutputDirectory(QString as_Path);
 	void resetParameters();
 	void showProfileManager();
+	void showAll();
 
 protected:
-	k_Desktop mk_Desktop;
+	k_Desktop* mk_Desktop_;
 	QToolButton* mk_AddScriptAction_;
 	QAction* mk_AddFileListAction_;
 	QAction* mk_StartAction_;

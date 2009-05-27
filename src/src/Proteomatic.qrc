@@ -11,10 +11,12 @@
   <file>icons/dialog-cancel.png</file>
   <file>icons/dialog-ok.png</file>
   <file>icons/dialog-warning.png</file>
+  <file>icons/document-new.png</file>
   <file>icons/document-open.png</file>
   <file>icons/document-open-multiple.png</file>
   <file>icons/document-properties.png</file>
   <file>icons/document-save.png</file>
+  <file>icons/document-save-as.png</file>
   <file>icons/edit-clear.png</file>
   <file>icons/edit-redo.png</file>
   <file>icons/emblem-important.png</file>
@@ -34,16 +36,19 @@
   <file>icons/preferences-system.png</file>
   <file>icons/process-stop.png</file>
   <file>icons/proteomatic.png</file>
+  <file>icons/proteomatic-pipeline.png</file>
   <file>icons/ruby.png</file>
   <file>icons/select-continuous-area.png</file>
   <file>icons/size-grip.png</file>
   <file>icons/software-update-available.png</file>
   <file>icons/system-log-out.png</file>
   <file>icons/system-search.png</file>
+  <file>icons/system-shutdown.png</file>
   <file>icons/system-software-update.png</file>
   <file>icons/text-x-generic.png</file>
   <file>icons/ticket.png</file>
   <file>icons/utilities-terminal.png</file>
+  <file>icons/view-fullscreen.png</file>
   <file>icons/view-refresh.png</file>
 </qresource>
 </RCC>

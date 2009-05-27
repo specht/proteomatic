@@ -291,7 +291,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 	lk_Parameters["-outputDirectory"] = this->outputDirectory();
 
 	// set output prefix
-	lk_Parameters["-outputPrefix"] = mk_Prefix.text();
+	lk_Parameters["-outputPrefix"] = mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text();
 	
 	// set output files
 	foreach (QString ls_Key, mk_pScript->outputFileKeys())
