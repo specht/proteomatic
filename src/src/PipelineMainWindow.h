@@ -34,8 +34,7 @@ public:
 	QString outputDirectory();
 	virtual void addOutput(QString as_String);
 	virtual void clearOutput();
-	virtual QDockWidget* logDockWidget();
-	virtual QTabWidget* tabWidget();
+	virtual void setPaneLayoutWidget(QWidget* ak_Widget_);
 	
 signals:
 	void outputDirectoryChanged(const QString& as_Path);
@@ -61,6 +60,6 @@ protected:
 	QFileSystemWatcher mk_FileSystemWatcher;
 	QTextEdit* mk_Log_;
 	k_ConsoleString ms_Log;
-	QDockWidget* mk_LogDockWidget_;
-	QTabWidget* mk_TabWidget_;
+	QWidget* mk_PaneLayoutWidget_;
+	QBoxLayout* mk_PaneLayout_;
 };

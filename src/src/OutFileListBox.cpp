@@ -111,7 +111,8 @@ void k_OutFileListBox::toggleUi()
 	mk_FileName_->setVisible((!mb_ListMode) && (mk_FileList.fileCount() > 0));
 	mk_FileList.setVisible(mb_ListMode);
 	mk_BatchModeButton.setVisible(mb_ListMode);
-	QString ls_String = "<b>" + ms_Label + "</b>";
+	//QString ls_String = "<b>" + ms_Label + "</b>";
+	QString ls_String = ms_Label;
 	mk_Label_->setText(ls_String);
 	if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
 	{

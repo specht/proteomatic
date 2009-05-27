@@ -41,6 +41,7 @@ public:
 	virtual bool checkReadyToGo();
 	virtual QStringList iterationKeys();
 	virtual QString outputDirectory() const;
+	virtual QWidget* paneWidget();
 	
 protected slots:
 	virtual void outputFileActionToggled();
@@ -72,4 +73,5 @@ protected:
 
 	k_ConsoleString ms_Output;
 	QTextEdit mk_OutputBox;
+	QTabWidget* mk_TabWidget_;
 };

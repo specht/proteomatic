@@ -101,6 +101,12 @@ QString k_ScriptBox::outputDirectory() const
 }
 
 
+QWidget* k_ScriptBox::paneWidget()
+{
+	return mk_pParameterProxyWidget.get_Pointer();
+}
+
+
 void k_ScriptBox::outputFileActionToggled()
 {
 	QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(sender());
@@ -312,7 +318,7 @@ void k_ScriptBox::addOutput(QString as_Text)
 
 void k_ScriptBox::showOutputBox(bool ab_Flag/* = true*/)
 {
-	mk_OutputBox.setVisible(ab_Flag);
+	mk_TabWidget_->setCurrentWidget(&mk_OutputBox);
 }
 
 
@@ -335,33 +341,34 @@ void k_ScriptBox::setupLayout()
 	
 	// build parameter proxy widget
 	
-	mk_pParameterProxyWidget = RefPtr<QWidget>(new QDialog());
-	
 	//mk_pParameterProxyWidget->resize(500, 600);
 	//mk_pParameterProxyWidget->setWindowTitle(mk_pScript->title());
 	//mk_pParameterProxyWidget->setWindowIcon(QIcon(":icons/proteomatic.png"));
 	
-	lk_VLayout_ = new QVBoxLayout(mk_pParameterProxyWidget.get_Pointer());
-	lk_VLayout_->setContentsMargins(0, 0, 0, 0);
-	lk_VLayout_->setSpacing(0);
+	mk_TabWidget_ = new QTabWidget(this);
 	
-	QToolBar* lk_ToolBar_ = new QToolBar(mk_pParameterProxyWidget.get_Pointer());
-	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	mk_pParameterProxyWidget = RefPtr<QWidget>(mk_TabWidget_);
+	
 
-	lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
-	lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SLOT(reset()));
-	QWidget* lk_StretchLabel_ = new QWidget(mk_pParameterProxyWidget.get_Pointer());
-	lk_StretchLabel_->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
-	lk_StretchLabel_->setContentsMargins(0, 0, 0, 0);
-	lk_ToolBar_->addWidget(lk_StretchLabel_);
-	lk_ToolBar_->addAction(QIcon(":/icons/dialog-ok.png"), "Close", mk_pParameterProxyWidget.get_Pointer(), SLOT(accept()));
-	
-	lk_VLayout_->addWidget(lk_ToolBar_);
+// 	QToolBar* lk_ToolBar_ = new QToolBar(mk_pParameterProxyWidget.get_Pointer());
+// 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+// 
+// 	lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
+// 	lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SLOT(reset()));
+// 	QWidget* lk_StretchLabel_ = new QWidget(mk_pParameterProxyWidget.get_Pointer());
+// 	lk_StretchLabel_->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
+// 	lk_StretchLabel_->setContentsMargins(0, 0, 0, 0);
+// 	lk_ToolBar_->addWidget(lk_StretchLabel_);
+// 	lk_ToolBar_->addAction(QIcon(":/icons/dialog-ok.png"), "Close", mk_pParameterProxyWidget.get_Pointer(), SLOT(accept()));
+// 	
+// 	lk_VLayout_->addWidget(lk_ToolBar_);
 
 	QScrollArea* lk_ScrollArea_ = new QScrollArea();
+	lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
 	lk_ScrollArea_->setWidget(mk_pScript->parameterWidget());
 	lk_ScrollArea_->setWidgetResizable(true);
-	lk_VLayout_->addWidget(lk_ScrollArea_);
+	mk_TabWidget_->addTab(lk_ScrollArea_, "Parameters");
+	mk_TabWidget_->addTab(&mk_OutputBox, "Output messages");
 
 	// now the script box ...
 	
@@ -491,6 +498,4 @@ void k_ScriptBox::setupLayout()
 	
 	mk_OutputBox.setReadOnly(true);
 	mk_OutputBox.setFont(mk_Proteomatic.consoleFont());
-	mk_OutputBox.setParent(&(mk_Desktop_->pipelineMainWindow()), Qt::Tool);
-	mk_OutputBox.hide();
 }

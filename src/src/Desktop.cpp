@@ -106,6 +106,7 @@ void k_Desktop::addScriptBox(const QString& as_ScriptUri)
 		connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
 		connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
 		mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(lk_Box_);
+		mk_PipelineMainWindow.setPaneLayoutWidget(lk_ScriptBox_->paneWidget());
 	}
 }
 
@@ -156,7 +157,10 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	mk_SelectedBoxes.remove(ak_Box_);
 	mk_BatchBoxes.remove(ak_Box_);
 	if (mk_CurrentScriptBox_ == ak_Box_)
+	{
 		mk_CurrentScriptBox_ = NULL;
+		mk_PipelineMainWindow.setPaneLayoutWidget(NULL);
+	}
 	
 	redrawSelection();
 	redrawBatchFrame();
@@ -382,7 +386,10 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 	if (!lk_Box_)
 		return;
 	if (dynamic_cast<IScriptBox*>(lk_Box_))
+	{
 		mk_CurrentScriptBox_ = lk_Box_;
+		mk_PipelineMainWindow.setPaneLayoutWidget((dynamic_cast<IScriptBox*>(lk_Box_))->paneWidget());
+	}
 	
 	if ((ae_Modifiers & Qt::ControlModifier) == Qt::ControlModifier)
 	{
@@ -498,7 +505,16 @@ void k_Desktop::redrawSelection()
 	lk_Path = QPainterPath();
 	
 	if (mk_CurrentScriptBox_)
+	{
+		QPen lk_Pen = mk_CurrentScriptBoxGraphicsPathItem_->pen();
+		if (mb_Running)
+			lk_Pen.setColor(QColor(TANGO_CHAMELEON_2));
+		else
+			lk_Pen.setColor(QColor(TANGO_SCARLET_RED_2));
+		mk_CurrentScriptBoxGraphicsPathItem_->setPen(lk_Pen);
+		
 		lk_Path = grownPathForBox(mk_CurrentScriptBox_, 3);
+	}
 	
 	mk_CurrentScriptBoxGraphicsPathItem_->setPath(lk_Path);
 	
@@ -585,9 +601,12 @@ void k_Desktop::clearSelection()
 void k_Desktop::scriptStarted()
 {
 	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
+	mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(lk_ScriptBox_);
+	mk_PipelineMainWindow.setPaneLayoutWidget(lk_ScriptBox_->paneWidget());
 	mk_RemainingScriptBoxes.remove(lk_ScriptBox_);
 	mb_Running = true;
 	mk_PipelineMainWindow.addOutput(QString("%1: ").arg(lk_ScriptBox_->script()->title()));
+	redrawSelection();
 }
 
 
@@ -610,6 +629,7 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 		mk_PipelineMainWindow.addOutput("The pipeline was aborted after an error occured.\n");
 		lk_ScriptBox_->showOutputBox(true);
 	}
+	redrawSelection();
 }
 
 
@@ -632,7 +652,8 @@ void k_Desktop::mousePressEvent(QMouseEvent* event)
 		if ((event->modifiers() & Qt::ControlModifier) == 0)
 		{
 			clearSelection();
-			mk_CurrentScriptBox_ = NULL;
+/*			mk_CurrentScriptBox_ = NULL;
+			mk_PipelineMainWindow.setPaneLayoutWidget(NULL);*/
 			redrawSelection();
 		}
 	}

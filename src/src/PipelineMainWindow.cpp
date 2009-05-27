@@ -33,10 +33,26 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	setWindowTitle("Proteomatic Pipeline");
-	resize(800, 600);
-	setCentralWidget(&mk_Desktop);
-	statusBar()->show();
+	resize(1000, 600);
+	
+	QSplitter* mk_HSplitter_ = new QSplitter(this);
+	mk_HSplitter_->setStyle(new QPlastiqueStyle());
+	mk_HSplitter_->setOrientation(Qt::Horizontal);
+	mk_HSplitter_->setHandleWidth(4);
+	mk_PaneLayoutWidget_ = new QWidget(this);
+	mk_PaneLayout_ = new QVBoxLayout(mk_PaneLayoutWidget_);
+	mk_PaneLayoutWidget_->hide();
+	
+	setCentralWidget(mk_HSplitter_);
 
+	mk_HSplitter_->addWidget(&mk_Desktop);
+	mk_HSplitter_->addWidget(mk_PaneLayoutWidget_);
+	mk_HSplitter_->setChildrenCollapsible(false);
+	mk_HSplitter_->setStretchFactor(0, 1);
+	mk_HSplitter_->setStretchFactor(1, 1);
+
+	statusBar()->show();
+	
 	QToolBar* lk_AddToolBar_ = new QToolBar(this);
 	lk_AddToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
@@ -83,17 +99,9 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_Log_ = new QTextEdit(this);
 	mk_Log_->setReadOnly(true);
 	mk_Log_->setFont(mk_Proteomatic.consoleFont());
-	mk_LogDockWidget_ = new QDockWidget("Script parameters");
-	QLabel* lk_Label_ = new QLabel("<i>(no script selected)</i>", this);
-	mk_LogDockWidget_->setWidget(lk_Label_);
 	//mk_LogDockWidget_->setFeatures(QDockWidget::NoDockWidgetFeatures);
-	addDockWidget(Qt::LeftDockWidgetArea, mk_LogDockWidget_);
+	mk_Log_->hide();
 	
-	QDockWidget* lk_LogDockWidget_ = new QDockWidget("Output");
-	//mk_LogDockWidget_->setFeatures(QDockWidget::NoDockWidgetFeatures);
-	//lk_LogDockWidget_->setWidget(mk_Log_);
-	addDockWidget(Qt::LeftDockWidgetArea, lk_LogDockWidget_);
-	lk_LogDockWidget_->setWidget(mk_Log_);
 	addOutput("Welcome to Proteomatic Pipeline.\n");
 
 	show();
@@ -183,14 +191,15 @@ void k_PipelineMainWindow::clearOutput()
 }
 
 
-QDockWidget* k_PipelineMainWindow::logDockWidget()
+void k_PipelineMainWindow::setPaneLayoutWidget(QWidget* ak_Widget_)
 {
-	return mk_LogDockWidget_;
+	QLayoutItem* lk_Item_;
+	while ((lk_Item_ = mk_PaneLayout_->takeAt(0)) != NULL)
+		lk_Item_->widget()->hide();
+	if (ak_Widget_)
+	{
+		mk_PaneLayout_->addWidget(ak_Widget_);
+		ak_Widget_->show();
+		mk_PaneLayoutWidget_->show();
+	}
 }
-
-
-QTabWidget* k_PipelineMainWindow::tabWidget()
-{
-	return mk_TabWidget_;
-}
-
