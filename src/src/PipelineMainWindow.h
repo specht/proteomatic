@@ -32,34 +32,46 @@ public:
 	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_PipelineMainWindow();
 	QString outputDirectory();
+	QString outputPrefix();
 	virtual void addOutput(QString as_String);
 	virtual void clearOutput();
-	virtual void setPaneLayoutWidget(QWidget* ak_Widget_);
+	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
+	
+public slots:
+	void toggleUi();
 	
 signals:
 	void outputDirectoryChanged(const QString& as_Path);
+	void outputPrefixChanged(const QString& as_Prefix);
 	void forceRefresh();
 
 protected slots:
 	void addScript(QAction* ak_Action_);
 	void start();
+	void abort();
 	void addFileListBox();
 	void chooseOutputDirectory();
 	void setOutputDirectory(QString as_Path);
-	void toggleUi();
+	void resetParameters();
+	void showProfileManager();
 
 protected:
 	k_Desktop mk_Desktop;
 	QToolButton* mk_AddScriptAction_;
 	QAction* mk_AddFileListAction_;
 	QAction* mk_StartAction_;
+	QAction* mk_AbortAction_;
 	QAction* mk_RefreshAction_;
+	QAction* mk_ProfileManagerAction_;
+	QAction* mk_ResetParametersAction_;
+	QLineEdit* mk_OutputPrefix_;
 	QLineEdit* mk_OutputDirectory_;
 	QAction* mk_ChooseOutputDirectoryAction_;
 	k_Proteomatic& mk_Proteomatic;
 	QFileSystemWatcher mk_FileSystemWatcher;
 	QTextEdit* mk_Log_;
 	k_ConsoleString ms_Log;
+	IScriptBox* mk_CurrentScriptBox_;
 	QWidget* mk_PaneLayoutWidget_;
 	QBoxLayout* mk_PaneLayout_;
 };

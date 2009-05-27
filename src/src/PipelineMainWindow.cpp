@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "PipelineMainWindow.h"
 #include "Desktop.h"
+#include "ProfileManager.h"
 #include "Proteomatic.h"
 
 
@@ -27,7 +28,9 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	: QMainWindow(ak_Parent_)
 	, mk_Desktop(this, ak_Proteomatic, *this)
 	, mk_Proteomatic(ak_Proteomatic)
+	, mk_OutputPrefix_(new QLineEdit(this))
 	, mk_OutputDirectory_(new QLineEdit(this))
+	, mk_CurrentScriptBox_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 
@@ -72,10 +75,24 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	mk_RefreshAction_ = lk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
 	mk_StartAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-ok.png"), "Start", this, SLOT(start()));
+	mk_AbortAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "Abort", this, SLOT(abort()));
 
 	lk_AddToolBar_->addSeparator();
 	
-	lk_AddToolBar_->addWidget(new QLabel("Output directory:", this));
+	mk_ProfileManagerAction_ = lk_AddToolBar_->addAction(QIcon(":icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
+	mk_ResetParametersAction_ = lk_AddToolBar_->addAction(QIcon(":icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
+	
+	QToolBar* lk_OtherToolBar_ = new QToolBar(this);
+	lk_OtherToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	
+	lk_OtherToolBar_->addWidget(new QLabel("Output prefix: ", this));
+	
+	lk_OtherToolBar_->addWidget(mk_OutputPrefix_);
+	connect(mk_OutputPrefix_, SIGNAL(textChanged(const QString&)), this, SIGNAL(outputPrefixChanged(const QString&)));
+	
+	lk_OtherToolBar_->addSeparator();
+	
+	lk_OtherToolBar_->addWidget(new QLabel("Output directory: ", this));
 	
 	QString ls_Path = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString();
 	if (!QFileInfo(ls_Path).isDir())
@@ -83,13 +100,13 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	this->setOutputDirectory(ls_Path);
 	mk_OutputDirectory_->setReadOnly(true);
 	
-	lk_AddToolBar_->addWidget(mk_OutputDirectory_);
-	mk_ChooseOutputDirectoryAction_ = lk_AddToolBar_->addAction(QIcon(":icons/folder.png"), "", this, SLOT(chooseOutputDirectory()));
+	lk_OtherToolBar_->addWidget(mk_OutputDirectory_);
+	mk_ChooseOutputDirectoryAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/folder.png"), "", this, SLOT(chooseOutputDirectory()));
 	
-	lk_AddToolBar_->addSeparator();
-
 	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
-	
+	addToolBarBreak(Qt::TopToolBarArea);
+	addToolBar(Qt::TopToolBarArea, lk_OtherToolBar_);
+		
 	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), &mk_Desktop, SLOT(refresh()));
 	
 	//setDockOptions(dockOptions() | QMainWindow::VerticalTabs);
@@ -104,6 +121,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	addOutput("Welcome to Proteomatic Pipeline.\n");
 
+	toggleUi();
 	show();
 }
 
@@ -119,6 +137,12 @@ QString k_PipelineMainWindow::outputDirectory()
 }
 
 
+QString k_PipelineMainWindow::outputPrefix()
+{
+	return mk_OutputPrefix_->text();
+}
+
+
 void k_PipelineMainWindow::addScript(QAction* ak_Action_)
 {
 	QString ls_ScriptUri = ak_Action_->data().toString();
@@ -129,6 +153,17 @@ void k_PipelineMainWindow::addScript(QAction* ak_Action_)
 void k_PipelineMainWindow::start()
 {
 	mk_Desktop.start();
+}
+
+
+void k_PipelineMainWindow::abort()
+{
+	if (mk_Proteomatic.showMessageBox("Abort pipeline", "Are you sure you want to abort the pipeline?", ":/icons/dialog-warning.png", 
+		QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+	{
+		mk_Desktop.abort();
+		//addOutput("\nScript aborted by user.");
+	}
 }
 
 
@@ -161,15 +196,41 @@ void k_PipelineMainWindow::setOutputDirectory(QString as_Path)
 }
 
 
+void k_PipelineMainWindow::resetParameters()
+{
+	if (!mk_CurrentScriptBox_)
+		return;
+	mk_CurrentScriptBox_->script()->reset();
+}
+
+
+void k_PipelineMainWindow::showProfileManager()
+{
+	IScript* lk_Script_ = NULL;
+	if (mk_CurrentScriptBox_)
+		lk_Script_ = mk_CurrentScriptBox_->script();
+	
+	RefPtr<k_ProfileManager> lk_pProfileManager(new k_ProfileManager(mk_Proteomatic, lk_Script_, this));
+	lk_pProfileManager->reset();
+	if (lk_pProfileManager->exec())
+	{
+		if (lk_Script_)
+			lk_Script_->setConfiguration(lk_pProfileManager->getGoodProfileMix());
+	}
+}
+
+
 void k_PipelineMainWindow::toggleUi()
 {
-	/*
 	mk_AddScriptAction_->setEnabled(!mk_Desktop.running());
 	mk_AddFileListAction_->setEnabled(!mk_Desktop.running());
-	mk_StartAction_->setEnabled(!mk_Desktop.running());
-	mk_RefreshAction_->setEnabled(!mk_Desktop.running());
+	mk_StartAction_->setEnabled((!mk_Desktop.running()) && (mk_Desktop.hasBoxes()));
+	mk_AbortAction_->setEnabled(mk_Desktop.running());
+	mk_RefreshAction_->setEnabled((!mk_Desktop.running()) && (mk_Desktop.hasBoxes()));
+	mk_ProfileManagerAction_->setEnabled(true);
+	mk_ResetParametersAction_->setEnabled(mk_CurrentScriptBox_);
 	mk_ChooseOutputDirectoryAction_->setEnabled(!mk_Desktop.running());
-	*/
+	mk_Desktop.setEnabled(!mk_Desktop.running());
 }
 
 
@@ -191,15 +252,19 @@ void k_PipelineMainWindow::clearOutput()
 }
 
 
-void k_PipelineMainWindow::setPaneLayoutWidget(QWidget* ak_Widget_)
+void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 {
+	mk_CurrentScriptBox_ = ak_ScriptBox_;
+
 	QLayoutItem* lk_Item_;
 	while ((lk_Item_ = mk_PaneLayout_->takeAt(0)) != NULL)
 		lk_Item_->widget()->hide();
-	if (ak_Widget_)
+	
+	if (ak_ScriptBox_)
 	{
-		mk_PaneLayout_->addWidget(ak_Widget_);
-		ak_Widget_->show();
+		mk_PaneLayout_->addWidget(ak_ScriptBox_->paneWidget());
+		ak_ScriptBox_->paneWidget()->show();
 		mk_PaneLayoutWidget_->show();
 	}
+	toggleUi();
 }

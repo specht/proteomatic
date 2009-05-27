@@ -51,10 +51,13 @@ public:
 	virtual void createFilenameTags(QStringList ak_Filenames, QHash<QString, QString>& ak_TagForFilename, QString& as_PrefixWithoutTags);
 	virtual bool running() const;
 	
+	virtual bool hasBoxes();
+	
 public slots:
 	virtual void refresh();
 	virtual void redraw();
 	virtual void start();
+	virtual void abort();
 	
 protected slots:
 	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());
@@ -69,6 +72,7 @@ protected slots:
 	virtual void clearSelection();
 	virtual void scriptStarted();
 	virtual void scriptFinished(int ai_ExitCode);
+	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
 	
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
@@ -123,6 +127,7 @@ protected:
 	QGraphicsPathItem* mk_BatchGraphicsPathItem_;
 	
 	bool mb_Running;
+	bool mb_Error;
 	QSet<IScriptBox*> mk_RemainingScriptBoxes;
 	
 	// mk_DeleteBoxStackSet is there to prevent recursive

@@ -42,6 +42,11 @@ public:
 	virtual QStringList iterationKeys();
 	virtual QString outputDirectory() const;
 	virtual QWidget* paneWidget();
+	virtual bool hasExistingOutputFiles();
+	
+public slots:
+	virtual void start(const QString& as_IterationKey);
+	virtual void abort();
 	
 protected slots:
 	virtual void outputFileActionToggled();
@@ -50,7 +55,6 @@ protected slots:
 	virtual void updateBatchMode();
 	virtual void updateOutputFilenames();
 	virtual void proposePrefixButtonClicked();
-	virtual void start(const QString& as_IterationKey);
 	virtual void readyReadSlot();
 	virtual void addOutput(QString as_String);
 	virtual void showOutputBox(bool ab_Flag = true);

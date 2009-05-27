@@ -267,11 +267,19 @@ void k_Proteomatic::loadConfiguration()
 
 void k_Proteomatic::collectScriptInfo()
 {
+
 	mk_ScriptInfo.clear();
 	QDir lk_Dir(ms_ScriptPath + "/" + ms_ScriptPackage);
 	QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb", QDir::Files);
+/*	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size());
+	lk_ProgressDialog.setCancelButton(0);
+	lk_ProgressDialog.setWindowTitle("Proteomatic");
+	lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
+	int li_Count = 0;*/
 	foreach (QString ls_Path, lk_Scripts)
 	{
+/*		++li_Count;
+		lk_ProgressDialog.setValue(li_Count);*/
 		if (ls_Path.contains(".defunct."))
 			continue;
 		ls_Path = lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
@@ -439,9 +447,10 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 		lk_TargetMenu_->addAction(lk_Action_);
 		connect(lk_Action_, SIGNAL(triggered()), this, SLOT(scriptMenuScriptClickedInternal()));
 	}
-    
-    lk_Menu_->addSeparator();
-   	lk_Menu_->addMenu(mk_RemoteMenu_);
+
+// disable remote scripts as of now!
+//     lk_Menu_->addSeparator();
+//    	lk_Menu_->addMenu(mk_RemoteMenu_);
 
 	mk_pProteomaticScriptsMenu = RefPtr<QMenu>(lk_Menu_);
 	emit scriptMenuChanged();

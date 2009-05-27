@@ -36,6 +36,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mk_ArrowEndBox_(NULL)
 	, mk_UserArrowPathItem_(NULL)
 	, mb_Running(false)
+	, mb_Error(false)
 	, mk_CurrentScriptBox_(NULL)
 {
 	setAcceptDrops(true);
@@ -105,8 +106,8 @@ void k_Desktop::addScriptBox(const QString& as_ScriptUri)
 		addBox(lk_Box_);
 		connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
 		connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
-		mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(lk_Box_);
-		mk_PipelineMainWindow.setPaneLayoutWidget(lk_ScriptBox_->paneWidget());
+		setCurrentScriptBox(lk_ScriptBox_);
+		mb_Error = false;
 	}
 }
 
@@ -131,6 +132,7 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 	QPointF lk_FreeSpace = findFreeSpace(lk_BoundingRect, mk_Boxes.size() - 1, ak_Box_);
 	lk_DesktopBox_->move(QPoint((int)lk_FreeSpace.x(), (int)lk_FreeSpace.y()));
 	redraw();
+	mk_PipelineMainWindow.toggleUi();
 }
 
 
@@ -157,13 +159,11 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	mk_SelectedBoxes.remove(ak_Box_);
 	mk_BatchBoxes.remove(ak_Box_);
 	if (mk_CurrentScriptBox_ == ak_Box_)
-	{
-		mk_CurrentScriptBox_ = NULL;
-		mk_PipelineMainWindow.setPaneLayoutWidget(NULL);
-	}
+		setCurrentScriptBox(NULL);
 	
 	redrawSelection();
 	redrawBatchFrame();
+	mk_PipelineMainWindow.toggleUi();
 	mk_DeleteBoxStackSet.remove(ak_Box_);
 }
 
@@ -310,6 +310,12 @@ bool k_Desktop::running() const
 }
 
 
+bool k_Desktop::hasBoxes()
+{
+	return !mk_Boxes.empty();
+}
+
+
 void k_Desktop::refresh()
 {
 	foreach (IDesktopBox* lk_Box_, mk_Boxes)
@@ -356,6 +362,21 @@ void k_Desktop::start()
 		return;
 	}
 	
+	// check whether output files are aleady there
+	QList<IScriptBox*> lk_ScriptBoxesWithExistingOutputFiles;
+	
+	foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
+		if (lk_Box_->hasExistingOutputFiles())
+			lk_ScriptBoxesWithExistingOutputFiles.push_back(lk_Box_);
+	
+	if (!lk_ScriptBoxesWithExistingOutputFiles.empty())
+		if (mk_Proteomatic.showMessageBox("Attention", "Some output files already exist. If you continue, only the missing output files will be generated, and scripts with already existing output files will not be run.", ":icons/emblem-important.png", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok, QMessageBox::Cancel) != QMessageBox::Ok)
+			return;
+
+	// skip all scripts that have already existing output files
+	foreach (IScriptBox* lk_Box_, lk_ScriptBoxesWithExistingOutputFiles)
+		mk_RemainingScriptBoxes.remove(lk_Box_);
+	
 	// pick a box, start it
 	IScriptBox* lk_Box_ = pickNextScriptBox();
 	if (lk_Box_)
@@ -364,6 +385,15 @@ void k_Desktop::start()
 		mk_PipelineMainWindow.clearOutput();
 		mk_PipelineMainWindow.addOutput("Starting pipeline...\n");
 	}
+}
+
+
+void k_Desktop::abort()
+{
+	// abort current script
+	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(mk_CurrentScriptBox_);
+	if (lk_ScriptBox_)
+		lk_ScriptBox_->abort();
 }
 
 
@@ -387,8 +417,9 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 		return;
 	if (dynamic_cast<IScriptBox*>(lk_Box_))
 	{
-		mk_CurrentScriptBox_ = lk_Box_;
-		mk_PipelineMainWindow.setPaneLayoutWidget((dynamic_cast<IScriptBox*>(lk_Box_))->paneWidget());
+		if (mk_CurrentScriptBox_ != lk_Box_)
+			mb_Error = false;
+		setCurrentScriptBox(dynamic_cast<IScriptBox*>(lk_Box_));
 	}
 	
 	if ((ae_Modifiers & Qt::ControlModifier) == Qt::ControlModifier)
@@ -506,12 +537,35 @@ void k_Desktop::redrawSelection()
 	
 	if (mk_CurrentScriptBox_)
 	{
-		QPen lk_Pen = mk_CurrentScriptBoxGraphicsPathItem_->pen();
+		QColor lk_FrameColor;
+		QColor lk_BackgroundColor;
 		if (mb_Running)
-			lk_Pen.setColor(QColor(TANGO_CHAMELEON_2));
+		{
+			lk_FrameColor = QColor(TANGO_CHAMELEON_2);
+			lk_BackgroundColor = QColor(TANGO_CHAMELEON_0);
+		}
 		else
-			lk_Pen.setColor(QColor(TANGO_SCARLET_RED_2));
+		{
+			if (mb_Error)
+			{
+				lk_FrameColor = QColor(TANGO_SCARLET_RED_2);
+				lk_BackgroundColor = QColor(TANGO_SCARLET_RED_0);
+			}
+			else
+			{
+				lk_FrameColor = QColor(TANGO_SKY_BLUE_2);
+				lk_BackgroundColor = QColor(TANGO_SKY_BLUE_0);
+			}
+		}
+		QPen lk_Pen = mk_CurrentScriptBoxGraphicsPathItem_->pen();
+		lk_Pen.setColor(lk_FrameColor);
 		mk_CurrentScriptBoxGraphicsPathItem_->setPen(lk_Pen);
+		
+		QBrush lk_Brush = mk_CurrentScriptBoxGraphicsPathItem_->brush();
+		lk_BackgroundColor.setHsvF(lk_BackgroundColor.hueF(), lk_BackgroundColor.saturationF() * 0.3, lk_BackgroundColor.valueF() * 1.0);
+		lk_Brush.setColor(lk_BackgroundColor);
+		lk_Brush.setStyle(Qt::SolidPattern);
+		mk_CurrentScriptBoxGraphicsPathItem_->setBrush(lk_Brush);
 		
 		lk_Path = grownPathForBox(mk_CurrentScriptBox_, 3);
 	}
@@ -601,12 +655,14 @@ void k_Desktop::clearSelection()
 void k_Desktop::scriptStarted()
 {
 	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
-	mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(lk_ScriptBox_);
-	mk_PipelineMainWindow.setPaneLayoutWidget(lk_ScriptBox_->paneWidget());
+	setCurrentScriptBox(lk_ScriptBox_);
+	lk_ScriptBox_->showOutputBox(true);
 	mk_RemainingScriptBoxes.remove(lk_ScriptBox_);
 	mb_Running = true;
+	mb_Error = false;
 	mk_PipelineMainWindow.addOutput(QString("%1: ").arg(lk_ScriptBox_->script()->title()));
 	redrawSelection();
+	mk_PipelineMainWindow.toggleUi();
 }
 
 
@@ -628,8 +684,17 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 		mk_PipelineMainWindow.addOutput("error.\n");
 		mk_PipelineMainWindow.addOutput("The pipeline was aborted after an error occured.\n");
 		lk_ScriptBox_->showOutputBox(true);
+		mb_Error = true;
 	}
 	redrawSelection();
+	mk_PipelineMainWindow.toggleUi();
+}
+
+
+void k_Desktop::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
+{
+	mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(ak_ScriptBox_);
+	mk_PipelineMainWindow.setCurrentScriptBox(ak_ScriptBox_);
 }
 
 

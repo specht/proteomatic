@@ -31,8 +31,10 @@ struct IScriptBox
 	virtual bool checkReadyToGo() = 0;
 	virtual QStringList iterationKeys() = 0;
 	virtual void start(const QString& as_IterationKey) = 0;
+	virtual void abort() = 0;
 	virtual void showOutputBox(bool ab_Flag = true) = 0;
 	virtual QWidget* paneWidget() = 0;
+	virtual bool hasExistingOutputFiles() = 0;
 	
 	// signals
 	virtual void scriptStarted() = 0;

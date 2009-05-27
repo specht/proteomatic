@@ -43,6 +43,7 @@ public:
 	virtual void setListMode(bool ab_Enabled);
 	virtual bool listMode() const;
 	virtual QString label() const;
+	virtual bool hasExistingFiles();
 	
 signals:
 	virtual void arrowPressed();

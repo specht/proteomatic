@@ -38,6 +38,7 @@ k_ScriptBox::k_ScriptBox(const QString& as_ScriptUri, k_Desktop* ak_Parent_, k_P
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
 	connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputDirectoryChanged(const QString&)), this, SLOT(updateOutputFilenames()));
+	connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputPrefixChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(readyRead()), this, SIGNAL(readyRead()));
@@ -104,6 +105,18 @@ QString k_ScriptBox::outputDirectory() const
 QWidget* k_ScriptBox::paneWidget()
 {
 	return mk_pParameterProxyWidget.get_Pointer();
+}
+
+
+bool k_ScriptBox::hasExistingOutputFiles()
+{
+	foreach (IDesktopBox* lk_Box_, mk_OutputFileBoxes.values())
+	{
+		k_OutFileListBox* lk_OutFileListBox_ = dynamic_cast<k_OutFileListBox*>(lk_Box_);
+		if (lk_OutFileListBox_ && lk_OutFileListBox_->hasExistingFiles())
+			return true;
+	}
+	return false;
 }
 
 
@@ -220,7 +233,7 @@ void k_ScriptBox::updateOutputFilenames()
 		{
 			k_OutFileListBox* lk_OutBox_ = dynamic_cast<k_OutFileListBox*>(mk_OutputFileBoxes[ls_Key]);
 			QStringList lk_Filenames;
-			lk_Filenames.append(outputDirectory() + "/" + mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
+			lk_Filenames.append(outputDirectory() + "/" + mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
 			lk_OutBox_->setFilenames(lk_Filenames);
 		}
 	}
@@ -298,6 +311,13 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 
 	ms_Output.clear();
 	mk_pScript->start(lk_InputFiles, lk_Parameters);
+}
+
+
+void k_ScriptBox::abort()
+{
+	mk_pScript->kill();
+	addOutput("\nScript aborted by user.");
 }
 
 
@@ -437,11 +457,6 @@ void k_ScriptBox::setupLayout()
 	
 /*	lk_HLayout_->addStretch();*/
 	
-// 	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
-// 	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
-// 	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
-// 	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
-
 	QWidget* lk_Container_ = new QWidget(this);
 	
 	k_FoldedHeader* lk_FoldedHeader_ = new k_FoldedHeader("Output files", lk_Container_, this);
@@ -460,6 +475,11 @@ void k_ScriptBox::setupLayout()
 	mk_Prefix.setHint("output file prefix");
 	lk_HLayout_->addWidget(&mk_Prefix);
 	connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
+
+	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
+	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
+	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
+	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
 
 	lk_HLayout_ = new QHBoxLayout();
 	lk_VLayout_->addLayout(lk_HLayout_);

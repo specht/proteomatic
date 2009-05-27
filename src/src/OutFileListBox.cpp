@@ -97,6 +97,16 @@ QString k_OutFileListBox::label() const
 }
 
 
+bool k_OutFileListBox::hasExistingFiles()
+{
+	foreach (QString ls_Path, mk_FileList.files())
+		if (QFileInfo(ls_Path).exists())
+			return true;
+		
+	return false;
+}
+
+
 void k_OutFileListBox::setBatchMode(bool ab_Enabled)
 {
 	k_DesktopBox::setBatchMode(ab_Enabled);
@@ -111,16 +121,16 @@ void k_OutFileListBox::toggleUi()
 	mk_FileName_->setVisible((!mb_ListMode) && (mk_FileList.fileCount() > 0));
 	mk_FileList.setVisible(mb_ListMode);
 	mk_BatchModeButton.setVisible(mb_ListMode);
-	//QString ls_String = "<b>" + ms_Label + "</b>";
-	QString ls_String = ms_Label;
+	QString ls_String = "<b>" + ms_Label + "</b>";
+	//QString ls_String = ms_Label;
 	mk_Label_->setText(ls_String);
 	if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
 	{
 		QString ls_Path = mk_FileList.files().first();
 		if (QFileInfo(ls_Path).exists())
-			mk_FileName_->setText("<a href='file://" + ls_Path + "'>" + QFileInfo(ls_Path).fileName() + "</a>");
+			mk_FileName_->setText(QString("<a style='color: %1' href='file://").arg(TANGO_SKY_BLUE_2) + ls_Path + "'>" + QFileInfo(ls_Path).fileName() + "</a>");
 		else
-			mk_FileName_->setText(QFileInfo(ls_Path).fileName());
+			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_ALUMINIUM_3) + QFileInfo(ls_Path).fileName() + "</span>");
 	}
 }
 
@@ -163,7 +173,7 @@ void k_OutFileListBox::setupLayout()
 	connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(setBatchMode(bool)));
 	
 	k_ClickableLabel* lk_ArrowLabel_ = new k_ClickableLabel(this);
-	lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(24, Qt::SmoothTransformation));
+	lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation));
 	lk_VLayout_->addStretch();
 	lk_VLayout_->addWidget(lk_ArrowLabel_);
 	

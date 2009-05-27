@@ -125,6 +125,7 @@ void k_FileListBox::setupLayout()
 	mk_BatchModeButton.setChecked(false);
 	lk_HLayout_->addWidget(&mk_BatchModeButton);
 	connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(setBatchMode(bool)));
+	mk_BatchModeButton.hide();
 	
 	lk_HLayout_ = new QHBoxLayout();
 	lk_HLayout_->addWidget(&mk_FileList);
@@ -145,7 +146,7 @@ void k_FileListBox::setupLayout()
 	lk_VSubLayout_->addStretch();
 	
 	k_ClickableLabel* lk_ArrowLabel_ = new k_ClickableLabel(this);
-	lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(24, Qt::SmoothTransformation));
+	lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation));
 	lk_VSubLayout_->addWidget(lk_ArrowLabel_);
 	
 	connect(lk_ArrowLabel_, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
