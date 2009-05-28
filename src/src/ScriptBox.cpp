@@ -597,6 +597,7 @@ void k_ScriptBox::setupLayout()
 		ms_ConverterFilenamePattern = mk_pScript->info()["converterFilename"];
 		IDesktopBox* lk_Box_ = 
 			k_DesktopBoxFactory::makeOutFileListBox(mk_Desktop_, mk_Proteomatic, ls_Label, false);
+		lk_Box_->setProtectedFromUserDeletion(true);
 		dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
 		mk_OutputFileBoxes[ls_Key] = lk_Box_;
 		mk_Desktop_->addBox(lk_Box_);

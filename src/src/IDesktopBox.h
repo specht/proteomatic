@@ -26,6 +26,8 @@ struct IDesktopBox
 	virtual ~IDesktopBox() {};
 	
 	virtual bool batchMode() const = 0;
+	virtual bool protectedFromUserDeletion() const = 0;
+	virtual void setProtectedFromUserDeletion(bool ab_Flag) = 0;
 	virtual QSet<IDesktopBox*> incomingBoxes() const = 0;
 	virtual QSet<IDesktopBox*> outgoingBoxes() const = 0;
 	

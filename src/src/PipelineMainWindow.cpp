@@ -62,8 +62,16 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	QToolBar* lk_AddToolBar_ = new QToolBar(this);
 	lk_AddToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
+	QToolButton* lk_ProteomaticButton_ = new QToolButton(lk_AddToolBar_);
+	lk_ProteomaticButton_->setIcon(QIcon(":/icons/proteomatic-pipeline.png"));
+	lk_ProteomaticButton_->setText("Pipeline");
+	lk_ProteomaticButton_->setMenu(new QMenu(this));
+	lk_ProteomaticButton_->setPopupMode(QToolButton::InstantPopup);
+	lk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	lk_AddToolBar_->addWidget(lk_ProteomaticButton_);
+
 	QToolButton* lk_AddScriptButton_ = new QToolButton(lk_AddToolBar_);
-	lk_AddScriptButton_->setIcon(QIcon(":/icons/folder.png"));
+	lk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
 	lk_AddScriptButton_->setText("Add script");
 	lk_AddScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
 	lk_AddScriptButton_->setPopupMode(QToolButton::InstantPopup);
@@ -72,7 +80,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), this, SLOT(addScript(QAction*)));
 	mk_AddScriptAction_ = lk_AddScriptButton_;
 
-	mk_AddFileListAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open-multiple.png"), "Add file list", this, SLOT(addFileListBox()));
+	mk_AddFileListAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
 
 	lk_AddToolBar_->addSeparator();
 	

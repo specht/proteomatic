@@ -29,6 +29,7 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
 	, mb_Resizable(ab_Resizable)
 	, mk_ResizeGripPixmap(QPixmap(":icons/size-grip.png"))
 	, mb_BatchMode(false)
+	, mb_ProtectedFromUserDeletion(false)
 	, mb_Moving(false)
 	, mb_Resizing(false)
 {
@@ -45,6 +46,18 @@ k_DesktopBox::~k_DesktopBox()
 bool k_DesktopBox::batchMode() const
 {
 	return mb_BatchMode;
+}
+
+
+bool k_DesktopBox::protectedFromUserDeletion() const
+{
+	return mb_ProtectedFromUserDeletion;
+}
+
+
+void k_DesktopBox::setProtectedFromUserDeletion(bool ab_Flag)
+{
+	mb_ProtectedFromUserDeletion = ab_Flag;
 }
 
 

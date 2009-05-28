@@ -647,10 +647,23 @@ void k_Desktop::deleteSelected()
 	QList<QGraphicsPathItem*> lk_ArrowDeleteList = mk_SelectedArrows.toList();
 
 	foreach (QGraphicsPathItem* lk_Arrow_, lk_ArrowDeleteList)
-		disconnectBoxes(mk_Arrows[lk_Arrow_].first, mk_Arrows[lk_Arrow_].second);
+	{
+		// skip this arrow if it points to a delete-protected box
+		if (mk_Arrows[lk_Arrow_].second->protectedFromUserDeletion())
+			mk_SelectedArrows.remove(lk_Arrow_);
+		else
+			disconnectBoxes(mk_Arrows[lk_Arrow_].first, mk_Arrows[lk_Arrow_].second);
+	}
 	
 	while (!mk_SelectedBoxes.empty())
-		removeBox(mk_SelectedBoxes.toList().first());
+	{
+		IDesktopBox* lk_First_ = mk_SelectedBoxes.toList().first();
+		// skip this box if it's protected from deletion
+		if (lk_First_->protectedFromUserDeletion())
+			mk_SelectedBoxes.remove(lk_First_);
+		else
+			removeBox(lk_First_);
+	}
 	
 	redrawSelection();
 	redrawBatchFrame();

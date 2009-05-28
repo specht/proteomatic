@@ -48,6 +48,8 @@ public:
 	// IDesktopBox
 	
 	virtual bool batchMode() const;
+	virtual bool protectedFromUserDeletion() const;
+	virtual void setProtectedFromUserDeletion(bool ab_Flag);
 	virtual QSet<IDesktopBox*> incomingBoxes() const;
 	virtual QSet<IDesktopBox*> outgoingBoxes() const;
 	
@@ -84,6 +86,7 @@ protected:
 	QPixmap mk_ResizeGripPixmap;
 	
 	bool mb_BatchMode;
+	bool mb_ProtectedFromUserDeletion;
 	QSet<IDesktopBox*> mk_ConnectedIncomingBoxes;
 	QSet<IDesktopBox*> mk_ConnectedOutgoingBoxes;
 	
