@@ -24,6 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IDesktopBox.h"
 #include "DesktopBox.h"
 #include "FileList.h"
+#include "ClickableLabel.h"
 
 
 class k_Proteomatic;
@@ -32,7 +33,8 @@ class k_OutFileListBox: public k_DesktopBox, public IFileBox
 {
 	Q_OBJECT
 public:
-	k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label);
+	k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label,
+					  bool ab_ItemsDeletable = true);
 	virtual ~k_OutFileListBox();
 
 	virtual QStringList filenames() const;
@@ -54,7 +56,7 @@ protected slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void toggleUi();
 	virtual void updateFilenameTags();
-	virtual void linkActivated(const QString& as_Url);
+	virtual void filenameDoubleClicked();
 	
 protected:
 	virtual void setupLayout();
@@ -62,7 +64,7 @@ protected:
 	QString ms_Label;
 	k_FileList mk_FileList;
 	QLabel* mk_Label_;
-	QLabel* mk_FileName_;
+	k_ClickableLabel* mk_FileName_;
 	QToolButton mk_BatchModeButton;
 	bool mb_ListMode;
 	QHash<QString, QString> mk_TagForFilename;

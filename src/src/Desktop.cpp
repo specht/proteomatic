@@ -39,7 +39,9 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mb_Running(false)
 	, mb_Error(false)
 	, mk_CurrentScriptBox_(NULL)
+	, md_BoxZ(0.0)
 {
+	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
 	setAcceptDrops(true);
 	setScene(&mk_GraphicsScene);
 	setRenderHint(QPainter::Antialiasing, true);
@@ -117,7 +119,7 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 {
 	k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
 	QRectF lk_BoundingRect = mk_GraphicsScene.itemsBoundingRect();
-	mk_GraphicsScene.addWidget(lk_DesktopBox_);
+	mk_ProxyWidgetForBox[lk_DesktopBox_] = mk_GraphicsScene.addWidget(lk_DesktopBox_);
 	IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(ak_Box_);
 	if (lk_FileBox_)
 	{
@@ -154,6 +156,8 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(ak_Box_);
 	if (lk_ScriptBox_)
 		mk_BoxForScript.remove(lk_ScriptBox_->script());
+	
+	mk_ProxyWidgetForBox.remove(ak_Box_);
 	
 	delete ak_Box_;
 	mk_Boxes.remove(ak_Box_);
@@ -407,9 +411,11 @@ void k_Desktop::start()
 		if (mk_Proteomatic.showMessageBox("Attention", "Some output files already exist. If you continue, only the missing output files will be generated, and scripts with already existing output files will not be run.", ":icons/emblem-important.png", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok, QMessageBox::Cancel) != QMessageBox::Ok)
 			return;
 
-	// skip all scripts that have already existing output files
+	// skip all ->processor<- scripts that have already existing output files,
+	// converter script boxes will just silently skip the existing files.
 	foreach (IScriptBox* lk_Box_, lk_ScriptBoxesWithExistingOutputFiles)
-		mk_RemainingScriptBoxes.remove(lk_Box_);
+		if (lk_Box_->script()->type() == r_ScriptType::Processor)
+			mk_RemainingScriptBoxes.remove(lk_Box_);
 	
 	// pick a box, start it
 	IScriptBox* lk_Box_ = pickNextScriptBox();
@@ -418,6 +424,7 @@ void k_Desktop::start()
 		lk_Box_->start("");
 		mk_PipelineMainWindow.clearOutput();
 		mk_PipelineMainWindow.addOutput("Starting pipeline...\n");
+		emit pipelineIdle(false);
 	}
 }
 
@@ -459,6 +466,15 @@ void k_Desktop::boxMovedOrResized(QPoint ak_Delta)
 void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 {
 	IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
+	if (md_BoxZ > 1000.0)
+	{
+		md_BoxZ = 0.0;
+		foreach (IDesktopBox* lk_Box_, mk_Boxes)
+			mk_ProxyWidgetForBox[lk_Box_]->setZValue(md_BoxZ);
+	}
+	md_BoxZ += 0.01;
+	mk_ProxyWidgetForBox[lk_Box_]->setZValue(md_BoxZ);
+	// if z values get too high, reset all boxes z values
 	if (!lk_Box_)
 		return;
 	if (dynamic_cast<IScriptBox*>(lk_Box_))
@@ -487,6 +503,9 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 
 void k_Desktop::arrowPressed()
 {
+	if (mb_Running)
+		return;
+	
 	mk_ArrowStartBox_ = dynamic_cast<IDesktopBox*>(sender());
 	mk_ArrowEndBox_ = NULL;
 	mk_UserArrowPathItem_ = mk_GraphicsScene.
@@ -723,7 +742,10 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 		if (lk_NextBox_)
 			lk_NextBox_->start("");
 		else
+		{
 			mk_PipelineMainWindow.addOutput("Pipeline finished.\n\n");
+			emit pipelineIdle(true);
+		}
 	}
 	else
 	{
@@ -731,6 +753,7 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 		mk_PipelineMainWindow.addOutput("The pipeline was aborted after an error occured.\n");
 		lk_ScriptBox_->showOutputBox(true);
 		mb_Error = true;
+			emit pipelineIdle(true);
 	}
 	redrawSelection();
 	mk_PipelineMainWindow.toggleUi();
@@ -749,7 +772,7 @@ void k_Desktop::keyPressEvent(QKeyEvent* event)
 	QGraphicsView::keyPressEvent(event);
 	if (!event->isAccepted())
 	{
-		if (event->matches(QKeySequence::Delete))
+		if (event->matches(QKeySequence::Delete) && !mb_Running)
 			deleteSelected();
 	}
 }
@@ -806,6 +829,15 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* event)
 	if (mk_ArrowStartBox_)
 	{
 		mk_ArrowEndBox_ = boxAt(mapToScene(event->pos()));
+		if (dynamic_cast<IScriptBox*>(mk_ArrowEndBox_) == NULL || mk_ArrowEndBox_ == mk_ArrowStartBox_)
+			mk_ArrowEndBox_ = NULL;
+		if (mk_ArrowEndBox_)
+		{
+			if (mk_ArrowEndBox_ && mk_ArrowStartBox_->incomingBoxes().contains(mk_ArrowEndBox_))
+				mk_ArrowEndBox_ = NULL;
+			if (mk_ArrowEndBox_ && mk_ArrowStartBox_->outgoingBoxes().contains(mk_ArrowEndBox_))
+				mk_ArrowEndBox_ = NULL;
+		}
 		updateUserArrow(mapToScene(event->pos()));
 	}
 }
@@ -917,6 +949,13 @@ QPointF k_Desktop::intersectLineWithBox(const QPointF& ak_Point0, const QPointF&
 void k_Desktop::updateArrowInternal(QGraphicsPathItem* ak_Arrow_, QPointF ak_Start, QPointF ak_End)
 {
 	QPainterPath lk_Path;
+	
+	if (mk_ArrowStartBox_ && dynamic_cast<k_DesktopBox*>(mk_ArrowStartBox_)->frameGeometry().contains(ak_End.toPoint()))
+	{
+		ak_Arrow_->setPath(lk_Path);
+		return;
+	}
+	
 	lk_Path.moveTo(ak_Start);
 	lk_Path.lineTo(ak_End);
 	
@@ -934,7 +973,7 @@ void k_Desktop::updateArrowInternal(QGraphicsPathItem* ak_Arrow_, QPointF ak_Sta
 		lk_Arrow << ak_End;
 		lk_Path.addPolygon(lk_Arrow);
 	}
-	
+
 	ak_Arrow_->setPath(lk_Path);
 }
 

@@ -24,6 +24,12 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 
 
+#define FILE_URL_PREFIX "file://"
+#ifdef WIN32
+	#define FILE_URL_PREFIX "file:///"
+#endif
+
+
 k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 	: mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
@@ -900,4 +906,10 @@ bool k_Proteomatic::fileUpToDate(QString as_Path, QStringList ak_Dependencies)
 				return false;
 	}
 	return true;
+}
+
+
+void k_Proteomatic::openFileLink(QString as_Path)
+{
+	QDesktopServices::openUrl(QUrl(QString(FILE_URL_PREFIX) + as_Path, QUrl::TolerantMode));
 }

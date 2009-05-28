@@ -30,9 +30,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "UnclickableLabel.h"
 
 
-k_ScriptBox::k_ScriptBox(const QString& as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic, false)
-	, mk_pScript(k_ScriptFactory::makeScript(as_ScriptUri, ak_Proteomatic, false, false))
+	, mk_pScript(ak_pScript)
 	, mk_OutputBox(this)
 {
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
@@ -129,12 +129,12 @@ void k_ScriptBox::outputFileActionToggled()
 		IDesktopBox* lk_Box_ = 
 		k_DesktopBoxFactory::makeOutFileListBox(
 			mk_Desktop_, mk_Proteomatic, 
-			mk_pScript->outputFileDetails(ls_Key)["label"]);
+			mk_pScript->outputFileDetails(ls_Key)["label"], false);
 		dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
 		mk_OutputFileBoxes[ls_Key] = lk_Box_;
 		mk_Desktop_->addBox(lk_Box_);
 		mk_Desktop_->connectBoxes(this, lk_Box_);
-		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(batchMode());
+		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
 		updateOutputFilenames();
 	}
 	else
@@ -192,7 +192,7 @@ void k_ScriptBox::updateBatchMode()
 	
 	// if this box is in batch mode, put all output boxes in list mode
 	foreach (IDesktopBox* lk_Box_, mk_OutputFileBoxes.values())
-		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(lb_BatchMode);
+		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
 	
 	updateOutputFilenames();
 }
@@ -233,7 +233,48 @@ void k_ScriptBox::updateOutputFilenames()
 		{
 			k_OutFileListBox* lk_OutBox_ = dynamic_cast<k_OutFileListBox*>(mk_OutputFileBoxes[ls_Key]);
 			QStringList lk_Filenames;
-			lk_Filenames.append(outputDirectory() + "/" + mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
+			if (mk_pScript->type() == r_ScriptType::Processor)
+				lk_Filenames.append(outputDirectory() + "/" + mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
+			else
+			{
+				foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+				{
+					IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+					if (lk_FileBox_)
+					{
+						foreach (QString ls_Path, lk_FileBox_->filenames())
+						{
+							QString ls_Basename = QFileInfo(ls_Path).baseName();
+							QString ls_Extension = "." + QFileInfo(ls_Path).completeSuffix();
+							QString ls_Filename = QFileInfo(ls_Path).completeBaseName();
+							QString ls_DestinationFilename = ms_ConverterFilenamePattern;
+							QRegExp lk_RegExp("(#\\{[a-zA-Z0-9_]+\\})", Qt::CaseSensitive, QRegExp::RegExp2);
+							int li_Position = 0;
+							while ((li_Position = lk_RegExp.indexIn(ls_DestinationFilename)) != -1)
+							{
+								QString ls_Capture = lk_RegExp.cap(1);
+								QString ls_Key = ls_Capture;
+								ls_Key.replace("#{", "");
+								ls_Key.replace("}", "");
+								QString ls_Value = "";
+								if (ls_Key == "basename")
+									ls_Value = ls_Basename;
+								else if (ls_Key == "extension")
+									ls_Value = ls_Extension;
+								else if (ls_Key == "filename")
+									ls_Value = ls_Filename;
+								else
+								{
+									// it must be a parameter!
+									ls_Value = mk_pScript->parameterValue(ls_Key);
+								}
+								ls_DestinationFilename.replace(ls_Capture, ls_Value);
+							}
+							lk_Filenames.append(outputDirectory() + "/" + mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text() + ls_DestinationFilename);
+						}
+					}
+				}
+			}
 			lk_OutBox_->setFilenames(lk_Filenames);
 		}
 	}
@@ -342,6 +383,21 @@ void k_ScriptBox::showOutputBox(bool ab_Flag/* = true*/)
 }
 
 
+void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
+{
+	if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
+		updateOutputFilenames();
+}
+
+
+void k_ScriptBox::chooseOutputDirectory()
+{
+	QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
+	if (ls_Path.length() > 0)
+		mk_OutputDirectory.setText(ls_Path);
+}
+
+
 /*
 void k_ScriptBox::showPopupMenu()
 {
@@ -386,6 +442,7 @@ void k_ScriptBox::setupLayout()
 	QScrollArea* lk_ScrollArea_ = new QScrollArea();
 	lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
 	lk_ScrollArea_->setWidget(mk_pScript->parameterWidget());
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), mk_pScript->parameterWidget(), SLOT(setEnabled(bool)));
 	lk_ScrollArea_->setWidgetResizable(true);
 	mk_TabWidget_->addTab(lk_ScrollArea_, "Parameters");
 	mk_TabWidget_->addTab(&mk_OutputBox, "Output messages");
@@ -398,6 +455,13 @@ void k_ScriptBox::setupLayout()
 	QLabel* lk_ScriptTitle_ = new k_UnclickableLabel("<b>" + mk_pScript->title() + "</b>", this);
 	lk_VLayout_->addWidget(lk_ScriptTitle_);
 
+	mk_OutputBox.setReadOnly(true);
+	mk_OutputBox.setFont(mk_Proteomatic.consoleFont());
+
+	// exit here if no output files for this script!
+	if (mk_pScript->type() == r_ScriptType::Processor && mk_pScript->outputFileKeys().empty())
+		return;
+	
 	// horizontal rule
 	QFrame* lk_Frame_ = new QFrame(this);
 	lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Plain);
@@ -474,24 +538,29 @@ void k_ScriptBox::setupLayout()
 
 	mk_Prefix.setHint("output file prefix");
 	lk_HLayout_->addWidget(&mk_Prefix);
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
 	connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 
 	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
 	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
 	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_ProposePrefixButton_, SLOT(setEnabled(bool)));
 	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
 
 	lk_HLayout_ = new QHBoxLayout();
 	lk_VLayout_->addLayout(lk_HLayout_);
 
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_OutputDirectory, SLOT(setEnabled(bool)));
 	mk_OutputDirectory.setHint("output directory");
 	mk_OutputDirectory.setReadOnly(true);
 	lk_HLayout_->addWidget(&mk_OutputDirectory);
 	connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 
 	QToolButton* lk_SelectOutputDirectory_ = new QToolButton(lk_Container_);
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_SelectOutputDirectory_, SLOT(setEnabled(bool)));
 	lk_SelectOutputDirectory_->setIcon(QIcon(":/icons/folder.png"));
 	lk_HLayout_->addWidget(lk_SelectOutputDirectory_);
+	connect(lk_SelectOutputDirectory_, SIGNAL(clicked()), this, SLOT(chooseOutputDirectory()));
 	//connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
 	
 	/*
@@ -509,6 +578,7 @@ void k_ScriptBox::setupLayout()
 		QHash<QString, QString> lk_OutputFileDetails = mk_pScript->outputFileDetails(ls_Key);
 		QCheckBox* lk_CheckBox_ = new QCheckBox("Write " + lk_OutputFileDetails["label"], lk_Container_);
 		lk_CheckBox_->setProperty("key", ls_Key);
+		connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_CheckBox_, SLOT(setEnabled(bool)));
 		connect(lk_CheckBox_, SIGNAL(toggled(bool)), this, SLOT(outputFileActionToggled()));
 		lk_VLayout_->addWidget(lk_CheckBox_);
 		mk_Checkboxes[ls_Key] = lk_CheckBox_;
@@ -516,6 +586,48 @@ void k_ScriptBox::setupLayout()
 			lk_CheckBox_->setChecked(true);
 	}
 	
-	mk_OutputBox.setReadOnly(true);
-	mk_OutputBox.setFont(mk_Proteomatic.consoleFont());
+	if (mk_pScript->type() == r_ScriptType::Converter)
+	{
+		QString ls_Key = "key";
+		QString ls_Label = "Output files";
+		if (mk_pScript->info().contains("converterKey"))
+			ls_Key = mk_pScript->info()["converterKey"];
+		if (mk_pScript->info().contains("converterLabel"))
+			ls_Label = mk_pScript->info()["converterLabel"];
+		ms_ConverterFilenamePattern = mk_pScript->info()["converterFilename"];
+		IDesktopBox* lk_Box_ = 
+			k_DesktopBoxFactory::makeOutFileListBox(mk_Desktop_, mk_Proteomatic, ls_Label, false);
+		dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
+		mk_OutputFileBoxes[ls_Key] = lk_Box_;
+		mk_Desktop_->addBox(lk_Box_);
+		mk_Desktop_->connectBoxes(this, lk_Box_);
+		// make the output file box of a converter script a list
+		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
+		
+		// make dummy invisible checkbox
+		QCheckBox* lk_CheckBox_ = new QCheckBox("dummy", lk_Container_);
+		lk_CheckBox_->hide();
+		lk_CheckBox_->setProperty("key", ls_Key);
+		mk_Checkboxes[ls_Key] = lk_CheckBox_;
+		lk_CheckBox_->setChecked(true);
+		
+		updateOutputFilenames();
+		
+		// collect parameters that affect the output filename
+		QString ls_DestinationFilename = ms_ConverterFilenamePattern;
+		QRegExp lk_RegExp("(#\\{[a-zA-Z0-9_]+\\})", Qt::CaseSensitive, QRegExp::RegExp2);
+		int li_Position = 0;
+		while ((li_Position = lk_RegExp.indexIn(ls_DestinationFilename)) != -1)
+		{
+			QString ls_Capture = lk_RegExp.cap(1);
+			QString ls_Key = ls_Capture;
+			ls_Key.replace("#{", "");
+			ls_Key.replace("}", "");
+			mk_ConverterFilenameAffectingParameters.insert(ls_Key);
+			ls_DestinationFilename.replace(ls_Capture, "");
+		}
+		
+		connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(parameterChanged(const QString&)), this, SLOT(scriptParameterChanged(const QString&)));
+
+	}
 }

@@ -100,6 +100,7 @@ void k_FileListBox::toggleUi()
 	else
 		ls_Label += QString(" (%1 files)").arg(mk_FileList.fileCount());
 	mk_Label.setText(ls_Label);
+	mk_FileList.refresh();
 }
 
 
@@ -114,6 +115,8 @@ void k_FileListBox::setupLayout()
 	QBoxLayout* lk_VLayout_;
 	QBoxLayout* lk_HLayout_;
 	
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_FileList, SLOT(setEnabled(bool)));
+
 	lk_VLayout_ = new QVBoxLayout(this);
 	
 	lk_HLayout_ = new QHBoxLayout();
@@ -125,6 +128,7 @@ void k_FileListBox::setupLayout()
 	mk_BatchModeButton.setChecked(false);
 	lk_HLayout_->addWidget(&mk_BatchModeButton);
 	connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(setBatchMode(bool)));
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_BatchModeButton, SLOT(setEnabled(bool)));
 	mk_BatchModeButton.hide();
 	
 	lk_HLayout_ = new QHBoxLayout();
@@ -139,9 +143,11 @@ void k_FileListBox::setupLayout()
 	QToolButton* lk_AddFilesButton_ = new QToolButton(this);
 	lk_AddFilesButton_->setIcon(QIcon(":icons/folder.png"));
 	connect(lk_AddFilesButton_, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_AddFilesButton_, SLOT(setEnabled(bool)));
 	lk_VSubLayout_->addWidget(lk_AddFilesButton_);
 	mk_RemoveSelectionButton.setIcon(QIcon(":icons/list-remove.png"));
 	lk_VSubLayout_->addWidget(&mk_RemoveSelectionButton);
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_RemoveSelectionButton, SLOT(setEnabled(bool)));
 	connect(&mk_RemoveSelectionButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
 	lk_VSubLayout_->addStretch();
 	

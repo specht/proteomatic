@@ -33,6 +33,7 @@ public:
 
 signals:
 	void clicked();
+	void doubleClicked();
 	void pressed();
 	void released();
 	void enter();
@@ -41,6 +42,7 @@ signals:
 protected:
 	virtual void mousePressEvent(QMouseEvent* event);
 	virtual void mouseReleaseEvent(QMouseEvent* event);
+	virtual void mouseDoubleClickEvent(QMouseEvent* event);
 	virtual void enterEvent(QMouseEvent* event);
 	virtual void leaveEvent(QMouseEvent* event);
 	virtual void focusInEvent(QFocusEvent* event);

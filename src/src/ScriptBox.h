@@ -25,6 +25,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IScriptBox.h"
 #include "DesktopBox.h"
 #include "HintLineEdit.h"
+#include "RefPtr.h"
 
 
 class k_Proteomatic;
@@ -33,7 +34,7 @@ class k_ScriptBox: public k_DesktopBox, public IScriptBox
 {
 	Q_OBJECT
 public:
-	k_ScriptBox(const QString& as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_ScriptBox();
 	
 	virtual IScript* script();
@@ -58,6 +59,8 @@ protected slots:
 	virtual void readyReadSlot();
 	virtual void addOutput(QString as_String);
 	virtual void showOutputBox(bool ab_Flag = true);
+	virtual void scriptParameterChanged(const QString& as_Key);
+	virtual void chooseOutputDirectory();
 	
 signals:
 	virtual void scriptStarted();
@@ -78,4 +81,6 @@ protected:
 	k_ConsoleString ms_Output;
 	QTextEdit mk_OutputBox;
 	QTabWidget* mk_TabWidget_;
+	QString ms_ConverterFilenamePattern;
+	QSet<QString> mk_ConverterFilenameAffectingParameters;
 };

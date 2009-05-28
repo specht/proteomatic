@@ -40,12 +40,16 @@ signals:
 	void remove(QList<QListWidgetItem *>);
 	void selectionChanged(bool);
 	void doubleClick();
+	void myItemDoubleClicked(QListWidgetItem*);
 	void changed();
 
 public slots:
 	void removeSelection();
 	void selectionChanged();
 	void refresh();
+	
+protected slots:
+	virtual void itemDoubleClicked(QListWidgetItem* ak_Item_);
 
 protected:
 	virtual void keyPressEvent(QKeyEvent* ak_Event_);
@@ -59,4 +63,5 @@ protected:
 private:
 	bool mb_ReallyRemoveItems;
 	bool mb_FileMode;
+	bool mb_Refreshing;
 };

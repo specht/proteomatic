@@ -18,16 +18,22 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "DesktopBoxFactory.h"
+#include "ScriptFactory.h"
 #include "ScriptBox.h"
 #include "FileListBox.h"
 #include "OutFileListBox.h"
+#include "Script.h"
 
 
 IDesktopBox*
 k_DesktopBoxFactory::makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, 
 									k_Proteomatic& ak_Proteomatic)
 {
-	return new k_ScriptBox(as_ScriptUri, ak_Parent_, ak_Proteomatic);
+	RefPtr<IScript> lk_pScript = k_ScriptFactory::makeScript(as_ScriptUri, ak_Proteomatic, false, false);
+	k_Script* lk_Script_ = dynamic_cast<k_Script*>(lk_pScript.get_Pointer());
+	if (!lk_Script_ || !lk_Script_->isGood())
+		return NULL;
+	return new k_ScriptBox(lk_pScript, ak_Parent_, ak_Proteomatic);
 }
 
 
@@ -42,7 +48,8 @@ k_DesktopBoxFactory::makeFileListBox(k_Desktop* ak_Parent_,
 IDesktopBox*
 k_DesktopBoxFactory::makeOutFileListBox(k_Desktop* ak_Parent_, 
 										 k_Proteomatic& ak_Proteomatic,
-										 QString as_Label)
+										 QString as_Label,
+										 bool ab_ItemsDeleteable)
 {
-	return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Label);
+	return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Label, ab_ItemsDeleteable);
 }

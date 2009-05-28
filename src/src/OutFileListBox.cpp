@@ -22,18 +22,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Desktop.h"
 #include "Tango.h"
 #include "UnclickableLabel.h"
-
-#define FILE_URL_PREFIX "file://"
-#ifdef WIN32
-	#define FILE_URL_PREFIX "file:///"
-#endif
+#include "Proteomatic.h"
 
 
 k_OutFileListBox::k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
-									QString as_Label)
+									QString as_Label, bool ab_ItemsDeletable/* = true*/)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic, true)
 	, ms_Label(as_Label)
-	, mk_FileList(this, true, true)
+	, mk_FileList(this, ab_ItemsDeletable, true)
 	, mb_ListMode(false)
 {
 	if (!ms_Label.isEmpty())
@@ -125,7 +121,12 @@ void k_OutFileListBox::toggleUi()
 	setResizable(mb_ListMode);
 	mk_FileName_->setVisible((!mb_ListMode) && (mk_FileList.fileCount() > 0));
 	mk_FileList.setVisible(mb_ListMode);
-	mk_BatchModeButton.setVisible(mb_ListMode);
+	mk_FileList.refresh();
+	
+	// disable batch mode as of now!
+	//mk_BatchModeButton.setVisible(mb_ListMode);
+	mk_BatchModeButton.setVisible(false);
+	
 	QString ls_String = "<b>" + ms_Label + "</b>";
 	//QString ls_String = ms_Label;
 	mk_Label_->setText(ls_String);
@@ -133,7 +134,7 @@ void k_OutFileListBox::toggleUi()
 	{
 		QString ls_Path = mk_FileList.files().first();
 		if (QFileInfo(ls_Path).exists())
-			mk_FileName_->setText(QString("<a style='color: %1' href='%2").arg(TANGO_SKY_BLUE_2).arg(FILE_URL_PREFIX) + ls_Path + "'>" + QFileInfo(ls_Path).fileName() + "</a>");
+			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_SKY_BLUE_2) + QFileInfo(ls_Path).fileName() + "</span>");
 		else
 			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_ALUMINIUM_3) + QFileInfo(ls_Path).fileName() + "</span>");
 	}
@@ -146,9 +147,11 @@ void k_OutFileListBox::updateFilenameTags()
 }
 
 
-void k_OutFileListBox::linkActivated(const QString& as_Url)
+void k_OutFileListBox::filenameDoubleClicked()
 {
-	QDesktopServices::openUrl(QUrl(as_Url, QUrl::TolerantMode));
+	QString ls_Path = filenames().first();
+	if (QFileInfo(ls_Path).exists())
+		k_Proteomatic::openFileLink(ls_Path);
 }
 
 
@@ -159,13 +162,15 @@ void k_OutFileListBox::setupLayout()
 	
 	lk_HLayout_ = new QHBoxLayout(this);
 	
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_FileList, SLOT(setEnabled(bool)));
+	
 	lk_VLayout_ = new QVBoxLayout();
 	lk_HLayout_->addLayout(lk_VLayout_);
 	mk_Label_ = new k_UnclickableLabel("", this);
-	mk_FileName_ = new QLabel("", this);
+	mk_FileName_ = new k_ClickableLabel("", this);
+	connect(mk_FileName_, SIGNAL(doubleClicked()), this, SLOT(filenameDoubleClicked()));
 	lk_VLayout_->addWidget(mk_Label_);
 	lk_VLayout_->addWidget(mk_FileName_);
-	connect(mk_FileName_, SIGNAL(linkActivated(const QString&)), this, SLOT(linkActivated(const QString&)));
 	lk_VLayout_->addWidget(&mk_FileList);
 	
 	lk_VLayout_ = new QVBoxLayout();
@@ -174,8 +179,10 @@ void k_OutFileListBox::setupLayout()
 	mk_BatchModeButton.setIcon(QIcon(":icons/cycle.png"));
 	mk_BatchModeButton.setCheckable(true);
 	mk_BatchModeButton.setChecked(false);
+	
 	lk_VLayout_->addWidget(&mk_BatchModeButton);
 	connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(setBatchMode(bool)));
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_BatchModeButton, SLOT(setEnabled(bool)));
 	
 	k_ClickableLabel* lk_ArrowLabel_ = new k_ClickableLabel(this);
 	lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation));

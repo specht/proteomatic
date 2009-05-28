@@ -19,15 +19,18 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "FileList.h"
 #include "Tango.h"
+#include "Proteomatic.h"
 
 
 k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_FileMode)
 	: QListWidget(ak_Parent_)
 	, mb_ReallyRemoveItems(ab_ReallyRemoveItems)
 	, mb_FileMode(ab_FileMode)
+	, mb_Refreshing(false)
 {
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
+	connect(this, SIGNAL(myItemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 }
 
 
@@ -143,18 +146,21 @@ void k_FileList::removeSelection()
 {
 	if (mb_FileMode)
 	{
-		foreach (QListWidgetItem* lk_Item_, selectedItems())
+		if (mb_ReallyRemoveItems)
 		{
-			QString ls_Path = lk_Item_->data(Qt::UserRole).toString();
-			if (!mk_Keys.empty())
+			foreach (QListWidgetItem* lk_Item_, selectedItems())
 			{
-				foreach (QString ls_Key, mk_Keys)
-					mk_Files[ls_Key].remove(ls_Path);
+				QString ls_Path = lk_Item_->data(Qt::UserRole).toString();
+				if (!mk_Keys.empty())
+				{
+					foreach (QString ls_Key, mk_Keys)
+						mk_Files[ls_Key].remove(ls_Path);
+				}
+				else
+					mk_Files[""].remove(ls_Path);
 			}
-			else
-				mk_Files[""].remove(ls_Path);
+			this->refresh();
 		}
-		this->refresh();
 	}
 	else
 	{
@@ -184,6 +190,9 @@ void k_FileList::mouseDoubleClickEvent(QMouseEvent* event)
 {
 	event->accept();
 	emit doubleClick();
+	QListWidgetItem* lk_Item_ = itemAt(event->pos());
+	if (lk_Item_)
+		emit myItemDoubleClicked(lk_Item_);
 }
 
 
@@ -195,22 +204,44 @@ void k_FileList::selectionChanged()
 
 void k_FileList::refresh()
 {
-	if (!mb_FileMode)
+	if (mb_Refreshing)
 		return;
 	
-	this->clear();
+	mb_Refreshing = true;
+	
+	if (!mb_FileMode)
+		return;
+
 	if (mk_Keys.empty())
 	{
-		foreach (QString ls_Path, mk_Files[""].keys())
+		QList<QListWidgetItem*> lk_ToBeDeleted;
+		QSet<QString> lk_Paths = mk_Files[""].keys().toSet();
+		for (int i = 0; i < count(); ++i)
 		{
-			QString ls_Filename = QFileInfo(ls_Path).fileName();
-			QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Filename, this);
+			QListWidgetItem* lk_Item_ = item(i);
+			QString ls_Path = lk_Item_->data(Qt::UserRole).toString();
+			if (mk_Files[""].contains(ls_Path))
+				lk_Item_->setForeground(QFileInfo(ls_Path).exists() ? QBrush(TANGO_SKY_BLUE_2) : QBrush(TANGO_ALUMINIUM_3));
+			else
+				lk_ToBeDeleted.push_back(lk_Item_);
+			
+			lk_Paths.remove(ls_Path);
+		}
+		
+		foreach (QListWidgetItem* lk_Item_, lk_ToBeDeleted)
+			delete takeItem(row(lk_Item_));
+		
+		foreach (QString ls_Path, lk_Paths)
+		{
+			QListWidgetItem* lk_Item_ = new QListWidgetItem(QFileInfo(ls_Path).fileName(), this);
 			lk_Item_->setData(Qt::UserRole, ls_Path);
-			lk_Item_->setForeground(QFileInfo(ls_Path).exists() ? QBrush("#000") : QBrush(TANGO_ALUMINIUM_3));
+			lk_Item_->setForeground(QFileInfo(ls_Path).exists() ? QBrush(TANGO_SKY_BLUE_2) : QBrush(TANGO_ALUMINIUM_3));
 		}
 	}
 	else
 	{
+		// TODO: update instead of clear and re-insert
+		this->clear();
 		foreach (QString ls_Key, mk_Keys)
 		{
 			QListWidgetItem* lk_Item_ = new QListWidgetItem(mk_Labels[ls_Key] + QString(" files (%1)").arg(mk_Files[ls_Key].size()), this);
@@ -227,4 +258,15 @@ void k_FileList::refresh()
 			}
 		}
 	}
+	mb_Refreshing = false;
 }
+
+
+void k_FileList::itemDoubleClicked(QListWidgetItem* ak_Item_)
+{
+	//printf("double click: %s\n", ak_Item_->data(Qt::UserRole).toString().toStdString().c_str());
+	QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
+	if (QFileInfo(ls_Path).exists())
+		k_Proteomatic::openFileLink(ls_Path);
+}
+

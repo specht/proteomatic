@@ -114,6 +114,7 @@ public:
 	void saveConfiguration();
 	QString scriptsVersion();
 	bool fileUpToDate(QString as_Path, QStringList ak_Dependencies);
+	static void openFileLink(QString as_Path);
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);

@@ -34,6 +34,8 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	, mk_CurrentScriptBox_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
+	
+	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), this, SIGNAL(forceRefresh()));
 
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	setWindowTitle("Proteomatic Pipeline");
@@ -74,7 +76,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	lk_AddToolBar_->addSeparator();
 	
-	lk_AddToolBar_->addAction(QIcon(":icons/view-fullscreen.png"), "Show all", this, SLOT(showAll()));
+	lk_AddToolBar_->addAction(QIcon(":icons/system-search.png"), "Show all", this, SLOT(showAll()));
 
 	lk_AddToolBar_->addSeparator();
 	
@@ -253,9 +255,9 @@ void k_PipelineMainWindow::toggleUi()
 	mk_RefreshAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
 	mk_ProfileManagerAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
 	mk_ResetParametersAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && mk_CurrentScriptBox_);
+	mk_OutputPrefix_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+	mk_OutputDirectory_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_ChooseOutputDirectoryAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-	if (mk_Desktop_)
-		mk_Desktop_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 }
 
 

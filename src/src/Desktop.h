@@ -62,6 +62,9 @@ public slots:
 	virtual void abort();
 	virtual void showAll();
 	
+signals:
+	virtual void pipelineIdle(bool);
+	
 protected slots:
 	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());
 	virtual void boxClicked(Qt::KeyboardModifiers ae_Modifiers);
@@ -103,6 +106,7 @@ protected:
 	QSet<IDesktopBox*> mk_Boxes;
 	
 	QHash<IScript*, IScriptBox*> mk_BoxForScript;
+	QHash<IDesktopBox*, QGraphicsProxyWidget*> mk_ProxyWidgetForBox;
 
 	// an arrow in the making!
 	IDesktopBox* mk_ArrowStartBox_;
@@ -137,4 +141,6 @@ protected:
 	// deletion of boxes which might happen when boxes
 	// depend on each other
 	QSet<IDesktopBox*> mk_DeleteBoxStackSet;
+	
+	double md_BoxZ;
 };

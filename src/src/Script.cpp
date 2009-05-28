@@ -662,7 +662,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				QString ls_Value = ak_Definition.takeFirst().trimmed();
 				mk_Info[ls_Key] = ls_Value;
 				if (ls_Key == "type")
-					me_Type = ls_Value == "processor" ? r_ScriptType::Processor : r_ScriptType::Converter;
+					me_Type = (ls_Value == "processor") ? r_ScriptType::Processor : r_ScriptType::Converter;
 			}
 		}
 		if (ls_Parameter == "!!!begin parameter")
@@ -1360,6 +1360,7 @@ void k_Script::parameterChangedWithKey(QString as_Key)
 		QString ls_Description = this->profileDescription();
 		emit profileDescriptionChanged(ls_Description);
 	}
+	emit parameterChanged(as_Key);
 }
 
 

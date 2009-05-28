@@ -54,6 +54,13 @@ void k_ClickableLabel::mouseReleaseEvent(QMouseEvent* event)
 }
 
 
+void k_ClickableLabel::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	event->accept();
+	emit doubleClicked();
+}
+
+
 void k_ClickableLabel::enterEvent(QMouseEvent* event)
 {
 	event->accept();
