@@ -24,9 +24,10 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 
 
-#define FILE_URL_PREFIX "file://"
 #ifdef WIN32
 	#define FILE_URL_PREFIX "file:///"
+#else
+	#define FILE_URL_PREFIX "file://"
 #endif
 
 
@@ -52,6 +53,9 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 		{
 			mk_ConsoleFont = QFont(ls_Font);
 			mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.8);
+#ifdef WIN32			
+			mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.9);
+#endif
 			break;
 		}
 	}
