@@ -16,9 +16,9 @@
    inkscape:version="0.46"
    version="1.0"
    sodipodi:docbase="/media/FLASH DISK/Files/desktop vista"
-   sodipodi:docname="GPF icon - pipeline.svg"
+   sodipodi:docname="Proteomatic icon.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/michael/programming/proteomatic/trunk/src/src/icons/proteomatic-pipeline.png"
+   inkscape:export-filename="/home/michael/programming/proteomatic/trunk/src/src/icons/proteomatic.png"
    inkscape:export-xdpi="135"
    inkscape:export-ydpi="135">
   <defs
@@ -217,6 +217,13 @@
        inkscape:vp_y="0 : 1000 : 0"
        inkscape:vp_x="0 : 24 : 1"
        sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3221"
+       inkscape:persp3d-origin="16 : 10.666667 : 1"
+       inkscape:vp_z="32 : 16 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 16 : 1"
+       sodipodi:type="inkscape:persp3d" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -225,17 +232,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="18.84375"
-     inkscape:cx="16"
-     inkscape:cy="16"
+     inkscape:zoom="9.421875"
+     inkscape:cx="17.479242"
+     inkscape:cy="16.602176"
      inkscape:document-units="px"
-     inkscape:current-layer="g2478"
+     inkscape:current-layer="layer3"
      width="32px"
      height="32px"
      showgrid="true"
-     inkscape:window-width="1440"
-     inkscape:window-height="826"
-     inkscape:window-x="0"
+     inkscape:window-width="857"
+     inkscape:window-height="821"
+     inkscape:window-x="456"
      inkscape:window-y="25"
      inkscape:grid-points="true"
      gridtolerance="10000">
@@ -266,7 +273,8 @@
   <g
      inkscape:label="Ebene 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     style="display:inline">
     <rect
        ry="3"
        rx="3"
@@ -275,38 +283,120 @@
        height="22"
        width="22"
        id="rect3176"
-       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter7060);opacity:0.6" />
-    <g
-       id="g3164">
-      <rect
-         style="fill:#b7db75;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect3161"
-         width="22"
-         height="22"
-         x="5"
-         y="5"
-         rx="3"
-         ry="3" />
-      <rect
-         ry="3"
-         rx="3"
-         y="5"
-         x="5"
-         height="22"
-         width="22"
-         id="rect2266"
-         style="fill:none;fill-opacity:1;stroke:#648923;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;" />
-    </g>
+       style="opacity:0.6;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter7060)" />
+    <rect
+       ry="3"
+       rx="3"
+       y="5"
+       x="5"
+       height="22"
+       width="22"
+       id="rect3161"
+       style="fill:#97d956;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:export-filename="/home/michael/Desktop/rect3161.png"
+       inkscape:export-xdpi="135"
+       inkscape:export-ydpi="135" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#4b8415;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect2266"
+       width="22"
+       height="22"
+       x="5"
+       y="5"
+       rx="3"
+       ry="3" />
+    <rect
+       ry="3"
+       rx="3"
+       y="-10"
+       x="2"
+       height="6"
+       width="6"
+       id="rect3186"
+       style="fill:#4e9a06;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <rect
+       style="fill:#73d216;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect3188"
+       width="6"
+       height="6"
+       x="9"
+       y="-10"
+       rx="3"
+       ry="3" />
+    <rect
+       ry="3"
+       rx="3"
+       y="-10"
+       x="16"
+       height="6"
+       width="6"
+       id="rect3190"
+       style="fill:#8ae234;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <rect
+       y="-7"
+       x="16"
+       height="5"
+       width="6"
+       id="rect3192"
+       style="opacity:0.25;fill:#c0c0c0;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <rect
+       style="opacity:0.25;fill:#808080;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect3194"
+       width="6"
+       height="5"
+       x="9"
+       y="-7" />
+    <rect
+       y="-7"
+       x="2"
+       height="5"
+       width="6"
+       id="rect3196"
+       style="opacity:0.25;fill:#404040;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="arrow"
+     style="display:none">
     <g
        inkscape:label="Layer 1"
        id="g2478"
-       transform="translate(42.16371,-11.265518)">
+       transform="translate(42.16371,-11.265518)"
+       style="fill:#77be31;fill-opacity:1;stroke:#4b8415;stroke-opacity:1;display:inline">
       <path
          inkscape:transform-center-x="-0.93435317"
          sodipodi:nodetypes="ccssccsscccc"
          id="path2415"
          d="M -17.265947,32.656298 L -20.132967,31.001024 C -22.188821,34.561865 -26.747298,35.783305 -30.30814,33.727452 C -33.86898,31.671599 -35.090422,27.113122 -33.034568,23.55228 C -30.978715,19.991438 -26.420238,18.769998 -22.859396,20.825852 L -24.928492,24.40963 C -26.511088,23.495918 -28.537078,24.038781 -29.45079,25.621376 C -30.364503,27.203973 -29.821639,29.22996 -28.239044,30.143675 C -26.656448,31.057386 -24.630458,30.514525 -23.716746,28.931928 L -26.583767,27.276651 L -19.235034,25.307564 L -17.265947,32.656298 z"
-         style="opacity:1;fill:#89b930;fill-opacity:1;stroke:#648923;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         style="opacity:1;fill:#77be31;fill-opacity:1;stroke:#4b8415;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="dot"
+     style="display:inline">
+    <g
+       id="g3227"
+       inkscape:label="Ebene 1"
+       transform="translate(10.999997,27.000002)">
+      <g
+         id="g3164">
+        <path
+           inkscape:export-ydpi="46.450001"
+           inkscape:export-xdpi="46.450001"
+           inkscape:export-filename="C:\Users\Micha\Desktop\gpf-16.png"
+           transform="matrix(0.2947368,0,0,0.2692308,-24.210519,-20.42308)"
+           d="M 116.07142,35 A 16.964285,18.571428 0 1 1 82.142855,35 A 16.964285,18.571428 0 1 1 116.07142,35 z"
+           sodipodi:ry="18.571428"
+           sodipodi:rx="16.964285"
+           sodipodi:cy="35"
+           sodipodi:cx="99.10714"
+           id="path3238"
+           style="fill:#77be31;fill-opacity:1;stroke:#4b8415;stroke-width:3.54993534;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           sodipodi:type="arc" />
+      </g>
     </g>
   </g>
 </svg>
