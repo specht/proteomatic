@@ -231,7 +231,11 @@ void k_ScriptBox::updateBatchMode()
 	
 	// if this box is in batch mode, put all output boxes in list mode
 	foreach (IDesktopBox* lk_Box_, mk_OutputFileBoxes.values())
-		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
+	{
+		k_OutFileListBox* lk_OutFileListBox_ = dynamic_cast<k_OutFileListBox*>(lk_Box_);
+		if (lk_OutFileListBox_)
+			lk_OutFileListBox_->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
+	}
 	
 	updateOutputFilenames();
 	mk_Desktop_->setHasUnsavedChanges(true);

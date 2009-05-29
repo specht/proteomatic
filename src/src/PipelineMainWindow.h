@@ -86,4 +86,5 @@ protected:
 	QWidget* mk_PaneLayoutWidget_;
 	QBoxLayout* mk_PaneLayout_;
 	QString ms_PipelineFilename;
+	QSplitter* mk_HSplitter_;
 };

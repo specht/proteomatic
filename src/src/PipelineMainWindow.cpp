@@ -42,7 +42,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	setWindowTitle("Proteomatic Pipeline");
 	resize(1000, 600);
 	
-	QSplitter* mk_HSplitter_ = new QSplitter(this);
+	mk_HSplitter_ = new QSplitter(this);
 	mk_HSplitter_->setStyle(new QPlastiqueStyle());
 	mk_HSplitter_->setOrientation(Qt::Horizontal);
 	mk_HSplitter_->setHandleWidth(4);
@@ -55,8 +55,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_HSplitter_->addWidget(mk_Desktop_);
 	mk_HSplitter_->addWidget(mk_PaneLayoutWidget_);
 	mk_HSplitter_->setChildrenCollapsible(false);
-	mk_HSplitter_->setStretchFactor(0, 1);
-	mk_HSplitter_->setStretchFactor(1, 1);
 
 	//statusBar()->show();
 	
@@ -369,7 +367,15 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 	{
 		mk_PaneLayout_->addWidget(ak_ScriptBox_->paneWidget());
 		ak_ScriptBox_->paneWidget()->show();
-		mk_PaneLayoutWidget_->show();
+		if (!mk_PaneLayoutWidget_->isVisible())
+		{
+			mk_PaneLayoutWidget_->show();
+			QList<int> lk_Sizes;
+			lk_Sizes.push_back(width() - 450);
+			lk_Sizes.push_back(450);
+			mk_HSplitter_->setSizes(lk_Sizes);
+			mk_Desktop_->showAll();
+		}
 	}
 	toggleUi();
 }
