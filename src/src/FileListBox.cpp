@@ -60,6 +60,15 @@ QString k_FileListBox::prefixWithoutTags() const
 }
 
 
+void k_FileListBox::addPath(const QString& as_Path)
+{
+	mk_FileList.addInputFile(as_Path, false);
+	mk_FileList.refresh();
+	toggleUi();
+	mk_Desktop_->setHasUnsavedChanges(true);
+}
+
+
 void k_FileListBox::setBatchMode(bool ab_Enabled)
 {
 	k_DesktopBox::setBatchMode(ab_Enabled);
@@ -68,6 +77,7 @@ void k_FileListBox::setBatchMode(bool ab_Enabled)
 	toggleUi();
 	if (ab_Enabled)
 		updateFilenameTags();
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -81,6 +91,7 @@ void k_FileListBox::addFilesButtonClicked()
 			mk_FileList.addInputFile(ls_Path, false);
 		mk_FileList.refresh();
 		toggleUi();
+		mk_Desktop_->setHasUnsavedChanges(true);
 	}
 }
 
@@ -107,6 +118,7 @@ void k_FileListBox::toggleUi()
 void k_FileListBox::updateFilenameTags()
 {
 	mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 

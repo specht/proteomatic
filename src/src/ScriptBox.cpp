@@ -120,6 +120,42 @@ bool k_ScriptBox::hasExistingOutputFiles()
 }
 
 
+bool k_ScriptBox::outputFileActivated(const QString& as_Key)
+{
+	if (!mk_Checkboxes.contains(as_Key))
+		return false;
+	return mk_Checkboxes[as_Key]->isChecked();
+}
+
+
+void k_ScriptBox::setOutputFileActivated(const QString& as_Key, bool ab_Flag)
+{
+	if (!mk_Checkboxes.contains(as_Key))
+		return;
+	mk_Checkboxes[as_Key]->setChecked(ab_Flag);
+}
+
+
+IDesktopBox* k_ScriptBox::boxForOutputFileKey(const QString& as_Key)
+{
+	if (!mk_OutputFileBoxes.contains(as_Key))
+		return NULL;
+	return mk_OutputFileBoxes[as_Key];
+}
+
+
+QString k_ScriptBox::boxOutputDirectory() const
+{
+	return mk_OutputDirectory.text();
+}
+
+
+QString k_ScriptBox::boxOutputPrefix() const
+{
+	return mk_Prefix.text();
+}
+
+
 void k_ScriptBox::outputFileActionToggled()
 {
 	QCheckBox* lk_CheckBox_ = dynamic_cast<QCheckBox*>(sender());
@@ -147,6 +183,7 @@ void k_ScriptBox::outputFileActionToggled()
 			mk_OutputFileBoxes.remove(ls_Key);
 		}
 	}
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -158,6 +195,7 @@ void k_ScriptBox::handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming)
 		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(batchModeChanged(bool)), this, SLOT(updateBatchMode()));
 		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(filenamesChanged()), this, SLOT(updateOutputFilenames()));
 	}
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -173,6 +211,7 @@ void k_ScriptBox::handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming
 	}
 	updateBatchMode();
 	updateOutputFilenames();
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -195,6 +234,7 @@ void k_ScriptBox::updateBatchMode()
 		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
 	
 	updateOutputFilenames();
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -321,6 +361,7 @@ void k_ScriptBox::proposePrefixButtonClicked()
 		}
 		*/
 	}
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -387,14 +428,18 @@ void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 {
 	if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
 		updateOutputFilenames();
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
 void k_ScriptBox::chooseOutputDirectory()
 {
-	QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
+	QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), mk_OutputDirectory.text().isEmpty()? mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString(): mk_OutputDirectory.text());
 	if (ls_Path.length() > 0)
+	{
 		mk_OutputDirectory.setText(ls_Path);
+		mk_Desktop_->setHasUnsavedChanges(true);
+	}
 }
 
 

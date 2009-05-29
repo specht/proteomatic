@@ -46,6 +46,11 @@ signals:
 	void forceRefresh();
 
 protected slots:
+	void newPipeline();
+	void loadPipeline();
+	void savePipeline();
+	void savePipelineAs();
+	void quit();
 	void addScript(QAction* ak_Action_);
 	void start();
 	void abort();
@@ -59,6 +64,11 @@ protected slots:
 protected:
 	k_Desktop* mk_Desktop_;
 	QToolButton* mk_AddScriptAction_;
+	QAction* mk_NewPipelineAction_;
+	QAction* mk_LoadPipelineAction_;
+	QAction* mk_SavePipelineAction_;
+	QAction* mk_SavePipelineAsAction_;
+	QAction* mk_QuitAction_;
 	QAction* mk_AddFileListAction_;
 	QAction* mk_StartAction_;
 	QAction* mk_AbortAction_;
@@ -75,4 +85,5 @@ protected:
 	IScriptBox* mk_CurrentScriptBox_;
 	QWidget* mk_PaneLayoutWidget_;
 	QBoxLayout* mk_PaneLayout_;
+	QString ms_PipelineFilename;
 };

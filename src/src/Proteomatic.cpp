@@ -229,17 +229,22 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_PROFILES] = QMap<QString, QVariant>();
 		lb_InsertedDefaultValue = true;
 	}
-	if (!mk_Configuration.contains(CONFIG_REMEMBER_PROFILE_PATH) || mk_Configuration[CONFIG_REMEMBER_PROFILE_PATH].type() != QVariant::String)
+	if (!mk_Configuration.contains(CONFIG_REMEMBER_PROFILE_PATH) || mk_Configuration[CONFIG_REMEMBER_PROFILE_PATH].type() != QVariant::String || !QFileInfo(mk_Configuration[CONFIG_REMEMBER_PROFILE_PATH].toString()).exists())
 	{
 		mk_Configuration[CONFIG_REMEMBER_PROFILE_PATH] = QDir::homePath();
 		lb_InsertedDefaultValue = true;
 	}
-	if (!mk_Configuration.contains(CONFIG_REMEMBER_INPUT_FILES_PATH) || mk_Configuration[CONFIG_REMEMBER_INPUT_FILES_PATH].type() != QVariant::String)
+	if (!mk_Configuration.contains(CONFIG_REMEMBER_PIPELINE_PATH) || mk_Configuration[CONFIG_REMEMBER_PIPELINE_PATH].type() != QVariant::String || !QFileInfo(mk_Configuration[CONFIG_REMEMBER_PIPELINE_PATH].toString()).exists())
+	{
+		mk_Configuration[CONFIG_REMEMBER_PIPELINE_PATH] = QDir::homePath();
+		lb_InsertedDefaultValue = true;
+	}
+	if (!mk_Configuration.contains(CONFIG_REMEMBER_INPUT_FILES_PATH) || mk_Configuration[CONFIG_REMEMBER_INPUT_FILES_PATH].type() != QVariant::String || !QFileInfo(mk_Configuration[CONFIG_REMEMBER_INPUT_FILES_PATH].toString()).exists())
 	{
 		mk_Configuration[CONFIG_REMEMBER_INPUT_FILES_PATH] = QDir::homePath();
 		lb_InsertedDefaultValue = true;
 	}
-	if (!mk_Configuration.contains(CONFIG_REMEMBER_OUTPUT_PATH) || mk_Configuration[CONFIG_REMEMBER_OUTPUT_PATH].type() != QVariant::String)
+	if (!mk_Configuration.contains(CONFIG_REMEMBER_OUTPUT_PATH) || mk_Configuration[CONFIG_REMEMBER_OUTPUT_PATH].type() != QVariant::String || !QFileInfo(mk_Configuration[CONFIG_REMEMBER_OUTPUT_PATH].toString()).exists())
 	{
 		mk_Configuration[CONFIG_REMEMBER_OUTPUT_PATH] = QDir::homePath();
 		lb_InsertedDefaultValue = true;
@@ -496,6 +501,12 @@ QFont& k_Proteomatic::consoleFont()
 QString k_Proteomatic::scriptPath() const
 {
 	return ms_ScriptPath;
+}
+
+
+QString k_Proteomatic::scriptPathAndPackage() const
+{
+	return ms_ScriptPath + "/" + ms_ScriptPackage;
 }
 
 

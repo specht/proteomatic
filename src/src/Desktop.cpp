@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Desktop.h"
 #include "DesktopBoxFactory.h"
 #include "DesktopBox.h"
+#include "FileListBox.h"
 #include "IFileBox.h"
 #include "IScriptBox.h"
 #include "PipelineMainWindow.h"
@@ -40,9 +41,12 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mb_Error(false)
 	, mk_CurrentScriptBox_(NULL)
 	, md_BoxZ(0.0)
+	, mb_HasUnsavedChanges(false)
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
+	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
 	setAcceptDrops(true);
+	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 	setScene(&mk_GraphicsScene);
 	setRenderHint(QPainter::Antialiasing, true);
 	setRenderHint(QPainter::TextAntialiasing, true);
@@ -90,16 +94,17 @@ QGraphicsScene& k_Desktop::graphicsScene()
 }
 
 	
-void k_Desktop::addInputFileListBox()
+IDesktopBox* k_Desktop::addInputFileListBox()
 {
 	IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
 	k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
 	addBox(lk_Box_);
 	lk_DesktopBox_->resize(300, 10);
+	return lk_DesktopBox_;
 }
 
 
-void k_Desktop::addScriptBox(const QString& as_ScriptUri)
+IDesktopBox*  k_Desktop::addScriptBox(const QString& as_ScriptUri)
 {
 	IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeScriptBox(as_ScriptUri, this, mk_Proteomatic);
 	if (lk_Box_)
@@ -112,6 +117,7 @@ void k_Desktop::addScriptBox(const QString& as_ScriptUri)
 		setCurrentScriptBox(lk_ScriptBox_);
 		mb_Error = false;
 	}
+	return lk_Box_;
 }
 
 
@@ -135,6 +141,7 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 	QPointF lk_FreeSpace = findFreeSpace(lk_BoundingRect, mk_Boxes.size() - 1, ak_Box_);
 	lk_DesktopBox_->move(QPoint((int)lk_FreeSpace.x(), (int)lk_FreeSpace.y()));
 	redraw();
+	mb_HasUnsavedChanges = true;
 	mk_PipelineMainWindow.toggleUi();
 }
 
@@ -168,6 +175,7 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	
 	redrawSelection();
 	redrawBatchFrame();
+	mb_HasUnsavedChanges = true;
 	mk_PipelineMainWindow.toggleUi();
 	mk_DeleteBoxStackSet.remove(ak_Box_);
 }
@@ -191,6 +199,8 @@ void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destinatio
 	mk_ArrowsForBox[ak_Destination_].insert(lk_GraphicsPathItem_);
 	mk_ArrowProxy[lk_GraphicsPathItem_] = lk_ArrowProxy_;
 	this->updateArrow(lk_GraphicsPathItem_);
+	mb_HasUnsavedChanges = true;
+	mk_PipelineMainWindow.toggleUi();
 }
 
 
@@ -207,6 +217,8 @@ void k_Desktop::disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destina
 	mk_ArrowProxy.remove(lk_GraphicsPathItem_);
 	delete lk_GraphicsPathItem_;
 	ak_Source_->disconnectOutgoingBox(ak_Destination_);
+	mb_HasUnsavedChanges = true;
+	mk_PipelineMainWindow.toggleUi();
 }
 
 
@@ -324,6 +336,8 @@ bool k_Desktop::hasBoxes()
 tk_YamlMap k_Desktop::pipelineDescription()
 {
 	// collect script boxes
+	QSet<tk_BoxPair> lk_UnsavedArrows = mk_Arrows.values().toSet();
+	
 	tk_YamlMap lk_Description;
 	tk_YamlSequence lk_ScriptBoxes;
 	foreach (IDesktopBox* lk_Box_, mk_Boxes)
@@ -332,8 +346,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
 		if (lk_ScriptBox_)
 		{
 			tk_YamlMap lk_ScriptBoxDescription;
-			lk_ScriptBoxDescription["id"] = (qint64)lk_ScriptBox_;
-			lk_ScriptBoxDescription["uri"] = QFileInfo(lk_ScriptBox_->script()->uri()).completeBaseName();
+			lk_ScriptBoxDescription["id"] = (qint64)lk_Box_;
+			lk_ScriptBoxDescription["uri"] = QFileInfo(lk_ScriptBox_->script()->uri()).fileName();
 			tk_YamlMap lk_ScriptParameters;
 			QHash<QString, QString> lk_Hash = lk_ScriptBox_->script()->configuration();
 			QHash<QString, QString>::const_iterator lk_Iter = lk_Hash.begin();
@@ -341,16 +355,162 @@ tk_YamlMap k_Desktop::pipelineDescription()
 				lk_ScriptParameters[lk_Iter.key()] = lk_Iter.value();
 			lk_ScriptBoxDescription["parameters"] = lk_ScriptParameters;
 			tk_YamlSequence lk_Coordinates;
-			lk_Coordinates.push_back(dynamic_cast<QWidget*>(lk_ScriptBox_)->x());
-			lk_Coordinates.push_back(dynamic_cast<QWidget*>(lk_ScriptBox_)->y());
+			lk_Coordinates.push_back(boxLocation(lk_Box_).x() - 10000);
+			lk_Coordinates.push_back(boxLocation(lk_Box_).y() - 10000);
 			lk_ScriptBoxDescription["position"] = lk_Coordinates;
+/*			lk_ScriptBoxDescription["outputPrefix"] = lk_ScriptBox_->boxOutputPrefix();
+			lk_ScriptBoxDescription["outputDirectory"] = lk_ScriptBox_->boxOutputDirectory();*/
 			// now add active output boxes
+			tk_YamlMap lk_ActiveOutputFileBoxes;
+			foreach (QString ls_Key, lk_ScriptBox_->script()->outputFileKeys())
+			{
+				if (lk_ScriptBox_->outputFileActivated(ls_Key))
+				{
+					IDesktopBox* lk_OutputFileBox_ = lk_ScriptBox_->boxForOutputFileKey(ls_Key);
+					tk_YamlMap lk_Map;
+					tk_YamlSequence lk_Coordinates;
+					lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).x() - 10000);
+					lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).y() - 10000);
+					lk_Map["position"] = lk_Coordinates;
+					lk_Map["id"] = (qint64)lk_OutputFileBox_;
+					lk_ActiveOutputFileBoxes[ls_Key] = lk_Map;
+					lk_UnsavedArrows.remove(tk_BoxPair(lk_Box_, lk_OutputFileBox_));
+				}
+			}
+			lk_ScriptBoxDescription["activeOutputFiles"] = lk_ActiveOutputFileBoxes;
+			if (lk_ScriptBox_->script()->type() == r_ScriptType::Converter)
+			{
+				IDesktopBox* lk_OtherBox_ = lk_Box_->outgoingBoxes().toList().first();
+				tk_YamlSequence lk_Position;
+				lk_Position.push_back(boxLocation(lk_OtherBox_).x() - 10000);
+				lk_Position.push_back(boxLocation(lk_OtherBox_).y() - 10000);
+				lk_ScriptBoxDescription["converterOutputFileBoxPosition"] = lk_Position;
+			}
 			lk_ScriptBoxes.push_back(lk_ScriptBoxDescription);
 		}
 	}
 	lk_Description["scriptBoxes"] = lk_ScriptBoxes;
-	// continue with connections between output boxes and script boxes
+
+	// now come the input file boxes
+	tk_YamlSequence lk_InputFileListBoxes;
+	foreach (IDesktopBox* lk_Box_, mk_Boxes)
+	{
+		k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(lk_Box_);
+		if (lk_FileListBox_)
+		{
+			tk_YamlMap lk_BoxDescription;
+			lk_BoxDescription["id"] = (qint64)lk_Box_;
+			tk_YamlSequence lk_Coordinates;
+			lk_Coordinates.push_back(boxLocation(lk_Box_).x() - 10000);
+			lk_Coordinates.push_back(boxLocation(lk_Box_).y() - 10000);
+			lk_BoxDescription["position"] = lk_Coordinates;
+			tk_YamlSequence lk_Paths;
+			foreach (QString ls_Path, lk_FileListBox_->filenames())
+				lk_Paths.push_back(ls_Path);
+			lk_BoxDescription["paths"] = lk_Paths;
+			lk_InputFileListBoxes.push_back(lk_BoxDescription);
+		}
+	}
+	lk_Description["inputFileListBoxes"] = lk_InputFileListBoxes;
+	
+	// continue with with remaining arrows
+	tk_YamlSequence lk_Arrows;
+	foreach (tk_BoxPair lk_BoxPair, lk_UnsavedArrows)
+	{
+		tk_YamlSequence lk_Pair;
+		lk_Pair.push_back((qint64)lk_BoxPair.first);
+		lk_Pair.push_back((qint64)lk_BoxPair.second);
+		lk_Arrows.push_back(lk_Pair);
+	}
+	lk_Description["connections"] = lk_Arrows;
+	
 	return lk_Description;
+}
+
+
+void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
+{
+	clearAll();
+	QHash<QString, IDesktopBox*> lk_BoxForId;
+	foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
+	{
+		tk_YamlMap lk_BoxDescription = lk_Item.toMap();
+		QString ls_Uri = lk_BoxDescription["uri"].toString();
+		QString ls_Id = lk_BoxDescription["id"].toString();
+		QString ls_CompleteUri = QFileInfo(QDir(mk_Proteomatic.scriptPathAndPackage()), ls_Uri).absoluteFilePath();
+		tk_YamlMap lk_OutputBoxes = lk_BoxDescription["activeOutputFiles"].toMap();
+		IDesktopBox* lk_Box_ = addScriptBox(ls_CompleteUri);
+		if (lk_Box_)
+		{
+			IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+			if (lk_ScriptBox_)
+			{
+				lk_BoxForId[ls_Id] = lk_Box_;
+				tk_YamlMap lk_Parameters = lk_BoxDescription["parameters"].toMap();
+				foreach (QString ls_Key, lk_Parameters.keys())
+					lk_ScriptBox_->script()->setParameter(ls_Key, lk_Parameters[ls_Key].toString());
+				tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+				moveBoxTo(lk_Box_, QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+				foreach (QString ls_Key, lk_ScriptBox_->script()->outputFileKeys())
+				{
+					lk_ScriptBox_->setOutputFileActivated(ls_Key, lk_OutputBoxes.contains(ls_Key));
+					if (lk_OutputBoxes.contains(ls_Key))
+					{
+						tk_YamlMap lk_OutBoxDescription = lk_OutputBoxes[ls_Key].toMap();
+						tk_YamlSequence lk_Position = lk_OutBoxDescription["position"].toList();
+						lk_BoxForId[lk_OutBoxDescription["id"].toString()] = lk_ScriptBox_->boxForOutputFileKey(ls_Key);
+						moveBoxTo(lk_ScriptBox_->boxForOutputFileKey(ls_Key), QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+					}
+				}
+				if (lk_ScriptBox_->script()->type() == r_ScriptType::Converter && lk_BoxDescription.contains("converterOutputFileBoxPosition"))
+				{
+					tk_YamlSequence lk_Position = lk_BoxDescription["converterOutputFileBoxPosition"].toList();
+					moveBoxTo(lk_Box_->outgoingBoxes().toList().first(), QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+				}
+			}
+		}
+	}
+	foreach (QVariant lk_Item, ak_Description["inputFileListBoxes"].toList())
+	{
+		tk_YamlMap lk_BoxDescription = lk_Item.toMap();
+		QString ls_Id = lk_BoxDescription["id"].toString();
+		tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+		lk_BoxForId[ls_Id] = addInputFileListBox();
+		moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+		tk_YamlSequence lk_Paths = lk_BoxDescription["paths"].toList();
+		foreach (QVariant ls_Path, lk_Paths)
+			dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id])->addPath(ls_Path.toString());
+	}
+	foreach (QVariant lk_Item, ak_Description["connections"].toList())
+	{
+		tk_YamlSequence lk_Pair = lk_Item.toList();
+		if (lk_BoxForId.contains(lk_Pair[0].toString()) && lk_BoxForId.contains(lk_Pair[1].toString()))
+			connectBoxes(lk_BoxForId[lk_Pair[0].toString()], lk_BoxForId[lk_Pair[1].toString()]);
+	}
+	
+	redraw();
+	setHasUnsavedChanges(false);
+	emit showAllRequested();
+}
+
+
+void k_Desktop::setHasUnsavedChanges(bool ab_Flag)
+{
+	mb_HasUnsavedChanges = ab_Flag;
+	mk_PipelineMainWindow.toggleUi();
+}
+
+
+bool k_Desktop::hasUnsavedChanges() const
+{
+	return mb_HasUnsavedChanges;
+}
+
+
+void k_Desktop::clearAll()
+{
+	while (!mk_Boxes.empty())
+		removeBox(mk_Boxes.toList().first());
 }
 
 
@@ -442,11 +602,41 @@ void k_Desktop::showAll()
 {
 	if (mk_Boxes.empty())
 		return;
+
+	// reset scaling to 1.0
+	md_Scale = 1.0;
+	QMatrix lk_Matrix = this->matrix();
+	lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
+	this->setMatrix(lk_Matrix);
 	
+	// determine bounding box
 	QRectF lk_Rect;
 	foreach (IDesktopBox* lk_Box_, mk_Boxes)
 		lk_Rect = lk_Rect.united(lk_Box_->rect());
+	lk_Rect.adjust(-10.0, -10.0, 10.0, 10.0);
+	
+	// center
 	centerOn(lk_Rect.center());
+	
+	// adjust scaling
+	QPointF lk_A = mapToScene(QPoint(0, 0));
+	QPointF lk_B = mapToScene(QPoint(frameRect().width(), frameRect().height()));
+	double ld_WindowX = lk_B.x() - lk_A.x();
+	double ld_WindowY = lk_B.y() - lk_A.y();
+	double ld_SceneX = lk_Rect.width();
+	double ld_SceneY = lk_Rect.height();
+	double a = ld_WindowX / ld_SceneX;
+	if (ld_WindowY / ld_SceneY < a)
+		a = ld_WindowY / ld_SceneY;
+	if (a < 1.0)
+	{
+		md_Scale *= a;
+		md_Scale = std::max<double>(md_Scale, 0.3);
+		md_Scale = std::min<double>(md_Scale, 1.0);
+		QMatrix lk_Matrix = this->matrix();
+		lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
+		this->setMatrix(lk_Matrix);
+	}
 }
 
 
@@ -543,6 +733,8 @@ void k_Desktop::boxBatchModeChanged(bool ab_Enabled)
 	redrawBatchFrame();
 	foreach (QGraphicsPathItem* lk_Arrow_, mk_ArrowsForBox[lk_Box_])
 		updateArrow(lk_Arrow_);
+	mb_HasUnsavedChanges = true;
+	mk_PipelineMainWindow.toggleUi();
 }
 
 
@@ -747,7 +939,6 @@ void k_Desktop::scriptStarted()
 void k_Desktop::scriptFinished(int ai_ExitCode)
 {
 	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
-	mb_Running = false;
 	if (ai_ExitCode == 0)
 	{
 		mk_PipelineMainWindow.addOutput("done.\n");
@@ -756,17 +947,19 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 			lk_NextBox_->start("");
 		else
 		{
+			mb_Running = false;
 			mk_PipelineMainWindow.addOutput("Pipeline finished.\n\n");
 			emit pipelineIdle(true);
 		}
 	}
 	else
 	{
+		mb_Running = false;
 		mk_PipelineMainWindow.addOutput("error.\n");
 		mk_PipelineMainWindow.addOutput("The pipeline was aborted after an error occured.\n");
 		lk_ScriptBox_->showOutputBox(true);
 		mb_Error = true;
-			emit pipelineIdle(true);
+		emit pipelineIdle(true);
 	}
 	redrawSelection();
 	mk_PipelineMainWindow.toggleUi();
@@ -897,6 +1090,13 @@ QPoint k_Desktop::boxLocation(IDesktopBox* ak_Box_) const
 {
 	k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
 	return lk_Box_->pos() + QPoint(lk_Box_->width(), lk_Box_->height()) / 2;
+}
+
+
+void k_Desktop::moveBoxTo(IDesktopBox* ak_Box_, QPoint ak_Position)
+{
+	k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
+	lk_Box_->move(ak_Position - QPoint(lk_Box_->width(), lk_Box_->height()) / 2);
 }
 
 

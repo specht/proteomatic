@@ -41,8 +41,8 @@ public:
 
 	virtual k_PipelineMainWindow& pipelineMainWindow() const;
 	virtual QGraphicsScene& graphicsScene();
-	virtual void addInputFileListBox();
-	virtual void addScriptBox(const QString& as_ScriptUri);
+	virtual IDesktopBox* addInputFileListBox();
+	virtual IDesktopBox* addScriptBox(const QString& as_ScriptUri);
 	virtual void addBox(IDesktopBox* ak_Box_);
 	virtual void removeBox(IDesktopBox* ak_Box_);
 	virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
@@ -54,8 +54,13 @@ public:
 	
 	virtual bool hasBoxes();
 	virtual tk_YamlMap pipelineDescription();
+	virtual void applyPipelineDescription(tk_YamlMap ak_Description);
+	
+	virtual void setHasUnsavedChanges(bool ab_Flag);
+	virtual bool hasUnsavedChanges() const;
 	
 public slots:
+	virtual void clearAll();
 	virtual void refresh();
 	virtual void redraw();
 	virtual void start();
@@ -64,6 +69,7 @@ public slots:
 	
 signals:
 	virtual void pipelineIdle(bool);
+	virtual void showAllRequested();
 	
 protected slots:
 	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());
@@ -87,6 +93,7 @@ protected:
 	virtual void wheelEvent(QWheelEvent* event);
 	virtual void updateUserArrow(QPointF ak_MousePosition);
 	virtual QPoint boxLocation(IDesktopBox* ak_Box_) const;
+	virtual void moveBoxTo(IDesktopBox* ak_Box_, QPoint ak_Position);
 	virtual IDesktopBox* boxAt(QPointF ak_Point) const;
 	virtual double intersect(QPointF p0, QPointF d0, QPointF p1, QPointF d1);
 	virtual void boxConnector(IDesktopBox* ak_Box0_, IDesktopBox* ak_Box1_, QPointF& ak_Point0, QPointF& ak_Point1);
@@ -143,4 +150,5 @@ protected:
 	QSet<IDesktopBox*> mk_DeleteBoxStackSet;
 	
 	double md_BoxZ;
+	bool mb_HasUnsavedChanges;
 };

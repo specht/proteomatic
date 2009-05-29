@@ -44,6 +44,11 @@ public:
 	virtual QString outputDirectory() const;
 	virtual QWidget* paneWidget();
 	virtual bool hasExistingOutputFiles();
+	virtual bool outputFileActivated(const QString& as_Key);
+	virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag);
+	virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key);
+	virtual QString boxOutputDirectory() const;
+	virtual QString boxOutputPrefix() const;
 	
 public slots:
 	virtual void start(const QString& as_IterationKey);

@@ -32,6 +32,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	, mk_OutputPrefix_(new QLineEdit(this))
 	, mk_OutputDirectory_(new QLineEdit(this))
 	, mk_CurrentScriptBox_(NULL)
+	, ms_PipelineFilename(QString())
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	
@@ -65,7 +66,14 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	QToolButton* lk_ProteomaticButton_ = new QToolButton(lk_AddToolBar_);
 	lk_ProteomaticButton_->setIcon(QIcon(":/icons/proteomatic-pipeline.png"));
 	lk_ProteomaticButton_->setText("Pipeline");
-	lk_ProteomaticButton_->setMenu(new QMenu(this));
+	QMenu* lk_ProteomaticMenu_ = new QMenu(this);
+	mk_NewPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-new.png"), "New pipeline", this, SLOT(newPipeline()), QKeySequence("Ctrl+N"));
+	mk_LoadPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-open.png"), "Open pipeline...", this, SLOT(loadPipeline()), QKeySequence("Ctrl+O"));
+	mk_SavePipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-save.png"), "Save pipeline", this, SLOT(savePipeline()), QKeySequence("Ctrl+S"));
+	mk_SavePipelineAsAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-save-as.png"), "Save pipeline as...", this, SLOT(savePipelineAs()));
+	lk_ProteomaticMenu_->addSeparator();
+	mk_QuitAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/system-shutdown.png"), "Quit", this, SLOT(quit()));
+	lk_ProteomaticButton_->setMenu(lk_ProteomaticMenu_);
 	lk_ProteomaticButton_->setPopupMode(QToolButton::InstantPopup);
 	lk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_AddToolBar_->addWidget(lk_ProteomaticButton_);
@@ -142,7 +150,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 k_PipelineMainWindow::~k_PipelineMainWindow()
 {
-	k_Yaml::emitToFile(mk_Desktop_->pipelineDescription(), "out.pipeline");
 	delete mk_Desktop_;
 }
 
@@ -156,6 +163,63 @@ QString k_PipelineMainWindow::outputDirectory()
 QString k_PipelineMainWindow::outputPrefix()
 {
 	return mk_OutputPrefix_->text();
+}
+
+
+void k_PipelineMainWindow::newPipeline()
+{
+	if (mk_Desktop_->hasUnsavedChanges())
+	{
+		// save discard cancel
+		//if (mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes. Do you want to save the current pipeline?", QMessageBox::Yes | QMessageBox::No, 
+	}
+	mk_Desktop_->clearAll();
+	mk_Desktop_->setHasUnsavedChanges(false);
+	ms_PipelineFilename = QString();
+	toggleUi();
+}
+
+
+void k_PipelineMainWindow::loadPipeline()
+{
+	QString ls_Path;
+	ls_Path = QFileDialog::getOpenFileName(this, "Load pipeline", mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PIPELINE_PATH).toString(), "Proteomatic Pipeline (*.pipeline)");
+	if (!ls_Path.isEmpty())
+	{
+		tk_YamlMap lk_Description = k_Yaml::parseFromFile(ls_Path).toMap();
+		ms_PipelineFilename = ls_Path;
+		mk_Desktop_->applyPipelineDescription(lk_Description);
+		mk_Desktop_->setHasUnsavedChanges(false);
+	}
+}
+
+
+void k_PipelineMainWindow::savePipeline()
+{
+	if (ms_PipelineFilename.isEmpty())
+		savePipelineAs();
+	else
+	{
+		k_Yaml::emitToFile(mk_Desktop_->pipelineDescription(), ms_PipelineFilename);
+		mk_Desktop_->setHasUnsavedChanges(false);
+	}
+}
+
+
+void k_PipelineMainWindow::savePipelineAs()
+{
+	ms_PipelineFilename = QFileDialog::getSaveFileName(this, "Save pipeline as...", mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PIPELINE_PATH).toString() + "/" + (ms_PipelineFilename.isEmpty() ? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName()) + ".pipeline", "Proteomatic Pipeline (*.pipeline)");
+	if (ms_PipelineFilename != "")
+	{
+		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_PIPELINE_PATH] = QFileInfo(ms_PipelineFilename).absolutePath();
+		savePipeline();
+	}
+}
+
+
+void k_PipelineMainWindow::quit()
+{
+	close();
 }
 
 
@@ -256,6 +320,12 @@ void k_PipelineMainWindow::showAll()
 
 void k_PipelineMainWindow::toggleUi()
 {
+	setWindowTitle(QString("%1%2 - Proteomatic Pipeline %3").arg(ms_PipelineFilename.isEmpty()? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName()).arg(mk_Desktop_->hasUnsavedChanges() ? " [modified]" : "").arg(mk_Proteomatic.version()));
+	mk_NewPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+	mk_LoadPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+	mk_SavePipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
+	mk_SavePipelineAsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
+	mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_AddScriptAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_AddFileListAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_StartAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));

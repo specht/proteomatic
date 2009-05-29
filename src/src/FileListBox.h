@@ -39,6 +39,7 @@ public:
 	virtual QStringList filenames() const;	
 	virtual QString tagForFilename(const QString& as_Filename) const;
 	virtual QString prefixWithoutTags() const;
+	virtual void addPath(const QString& as_Path);
 	
 signals:
 	virtual void arrowPressed();

@@ -35,6 +35,11 @@ struct IScriptBox
 	virtual void showOutputBox(bool ab_Flag = true) = 0;
 	virtual QWidget* paneWidget() = 0;
 	virtual bool hasExistingOutputFiles() = 0;
+	virtual bool outputFileActivated(const QString& as_Key) = 0;
+	virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag) = 0;
+	virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key) = 0;
+	virtual QString boxOutputDirectory() const = 0;
+	virtual QString boxOutputPrefix() const = 0;
 	
 	// signals
 	virtual void scriptStarted() = 0;
