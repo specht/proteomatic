@@ -18,9 +18,9 @@
    sodipodi:docbase="/media/FLASH DISK/Files/desktop vista"
    sodipodi:docname="Proteomatic icon.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/michael/programming/proteomatic/trunk/src/src/icons/proteomatic.png"
-   inkscape:export-xdpi="135"
-   inkscape:export-ydpi="135">
+   inkscape:export-filename="/home/michael/programming/proteomatic/trunk/src/src/icons/proteomatic-128.png"
+   inkscape:export-xdpi="360"
+   inkscape:export-ydpi="360">
   <defs
      id="defs2200">
     <inkscape:perspective
@@ -233,7 +233,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="9.421875"
-     inkscape:cx="17.479242"
+     inkscape:cx="14.520758"
      inkscape:cy="16.602176"
      inkscape:document-units="px"
      inkscape:current-layer="layer3"
@@ -292,7 +292,7 @@
        height="22"
        width="22"
        id="rect3161"
-       style="fill:#97d956;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#b3df88;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        inkscape:export-filename="/home/michael/Desktop/rect3161.png"
        inkscape:export-xdpi="135"
        inkscape:export-ydpi="135" />
@@ -338,7 +338,7 @@
        height="5"
        width="6"
        id="rect3192"
-       style="opacity:0.25;fill:#c0c0c0;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+       style="opacity:0.50000000000000000;fill:#dcdcdc;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     <rect
        style="opacity:0.25;fill:#808080;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect3194"
