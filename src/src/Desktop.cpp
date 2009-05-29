@@ -385,6 +385,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
 				lk_Position.push_back(boxLocation(lk_OtherBox_).x() - 10000);
 				lk_Position.push_back(boxLocation(lk_OtherBox_).y() - 10000);
 				lk_ScriptBoxDescription["converterOutputFileBoxPosition"] = lk_Position;
+				lk_ScriptBoxDescription["converterOutputFileBoxId"] = (qint64)lk_OtherBox_;
 			}
 			lk_ScriptBoxes.push_back(lk_ScriptBoxDescription);
 		}
@@ -466,6 +467,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 				{
 					tk_YamlSequence lk_Position = lk_BoxDescription["converterOutputFileBoxPosition"].toList();
 					moveBoxTo(lk_Box_->outgoingBoxes().toList().first(), QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+					lk_BoxForId[lk_BoxDescription["converterOutputFileBoxId"].toString()] = lk_Box_->outgoingBoxes().toList().first();
 				}
 			}
 		}
@@ -968,6 +970,8 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 
 void k_Desktop::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 {
+	if (mb_Running)
+		return;
 	mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(ak_ScriptBox_);
 	mk_PipelineMainWindow.setCurrentScriptBox(ak_ScriptBox_);
 }
