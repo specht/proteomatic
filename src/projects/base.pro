@@ -1,7 +1,6 @@
 TEMPLATE = app
 
 win32 {
-    RC_FILE = Proteomatic.rc
 	INCLUDEPATH += c:/Qt/2009.02/mingw/include
 }
 

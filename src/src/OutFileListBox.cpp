@@ -133,10 +133,14 @@ void k_OutFileListBox::toggleUi()
 	if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
 	{
 		QString ls_Path = mk_FileList.files().first();
+		setToolTip(ls_Path);
+		ls_Path = QFileInfo(ls_Path).fileName();
+		if (ls_Path.length() > 50)
+			ls_Path = "..." + ls_Path.right(50);
 		if (QFileInfo(ls_Path).exists())
-			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_SKY_BLUE_2) + QFileInfo(ls_Path).fileName() + "</span>");
+			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_SKY_BLUE_2) + ls_Path + "</span>");
 		else
-			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_ALUMINIUM_3) + QFileInfo(ls_Path).fileName() + "</span>");
+			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_ALUMINIUM_3) + ls_Path + "</span>");
 	}
 }
 

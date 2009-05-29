@@ -2,6 +2,10 @@ TARGET = ProteomaticPipeline
 
 include(../base.pro)
 
+win32 {
+    RC_FILE = ProteomaticPipeline.rc
+}
+
 # Input
 HEADERS += \
     ../../src/Desktop.h \
