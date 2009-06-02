@@ -369,6 +369,13 @@ void k_ScriptBox::proposePrefixButtonClicked()
 }
 
 
+void k_ScriptBox::clearPrefixButtonClicked()
+{
+	mk_Prefix.setText(QString());
+	mk_Desktop_->setHasUnsavedChanges(true);
+}
+
+
 void k_ScriptBox::start(const QString& as_IterationKey)
 {
 	QHash<QString, QString> lk_Parameters;
@@ -590,6 +597,11 @@ void k_ScriptBox::setupLayout()
 	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
 	connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 
+	QToolButton* lk_ClearPrefixButton_ = new QToolButton(this);
+	lk_ClearPrefixButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
+	lk_HLayout_->addWidget(lk_ClearPrefixButton_);
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_ClearPrefixButton_, SLOT(setEnabled(bool)));
+	connect(lk_ClearPrefixButton_, SIGNAL(clicked()), this, SLOT(clearPrefixButtonClicked()));
 	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
 	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
 	lk_HLayout_->addWidget(lk_ProposePrefixButton_);

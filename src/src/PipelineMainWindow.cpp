@@ -38,7 +38,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), this, SIGNAL(forceRefresh()));
 
-	setWindowIcon(QIcon(":/icons/proteomatic.png"));
+	setWindowIcon(QIcon(":/icons/proteomatic-pipeline.png"));
 	setWindowTitle("Proteomatic Pipeline");
 	resize(1000, 600);
 	
@@ -110,6 +110,9 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	lk_OtherToolBar_->addWidget(mk_OutputPrefix_);
 	connect(mk_OutputPrefix_, SIGNAL(textChanged(const QString&)), this, SIGNAL(outputPrefixChanged(const QString&)));
+	
+	mk_ClearPrefixForAllScriptsAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "", mk_Desktop_, SLOT(clearPrefixForAllScripts()));
+	mk_ProposePrefixForAllScriptsAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/select-continuous-area.png"), "", mk_Desktop_, SLOT(proposePrefixForAllScripts()));
 	
 	lk_OtherToolBar_->addSeparator();
 	
@@ -334,6 +337,8 @@ void k_PipelineMainWindow::toggleUi()
 	mk_OutputPrefix_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_OutputDirectory_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_ChooseOutputDirectoryAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+	mk_ClearPrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
+	mk_ProposePrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
 }
 
 

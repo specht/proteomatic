@@ -77,6 +77,8 @@ protected:
 	QAction* mk_ResetParametersAction_;
 	QLineEdit* mk_OutputPrefix_;
 	QLineEdit* mk_OutputDirectory_;
+	QAction* mk_ClearPrefixForAllScriptsAction_;
+	QAction* mk_ProposePrefixForAllScriptsAction_;
 	QAction* mk_ChooseOutputDirectoryAction_;
 	k_Proteomatic& mk_Proteomatic;
 	QFileSystemWatcher mk_FileSystemWatcher;

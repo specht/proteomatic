@@ -23,6 +23,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "FileListBox.h"
 #include "IFileBox.h"
 #include "IScriptBox.h"
+#include "ScriptBox.h"
 #include "PipelineMainWindow.h"
 #include "Tango.h"
 #include "Yaml.h"
@@ -642,6 +643,27 @@ void k_Desktop::showAll()
 }
 
 
+void k_Desktop::clearPrefixForAllScripts()
+{
+	foreach (IDesktopBox* lk_Box_, mk_Boxes)
+	{
+		k_ScriptBox* lk_ScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
+		if (lk_ScriptBox_)
+			lk_ScriptBox_->clearPrefixButtonClicked();
+	}
+}
+
+void k_Desktop::proposePrefixForAllScripts()
+{
+	foreach (IDesktopBox* lk_Box_, mk_Boxes)
+	{
+		k_ScriptBox* lk_ScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
+		if (lk_ScriptBox_)
+			lk_ScriptBox_->proposePrefixButtonClicked();
+	}
+}
+
+
 void k_Desktop::boxMovedOrResized(QPoint ak_Delta)
 {
 	IDesktopBox* lk_Sender_ = dynamic_cast<IDesktopBox*>(sender());
@@ -927,7 +949,7 @@ void k_Desktop::clearSelection()
 void k_Desktop::scriptStarted()
 {
 	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
-	setCurrentScriptBox(lk_ScriptBox_);
+	setCurrentScriptBoxForce(lk_ScriptBox_);
 	lk_ScriptBox_->showOutputBox(true);
 	mk_RemainingScriptBoxes.remove(lk_ScriptBox_);
 	mb_Running = true;
@@ -972,6 +994,12 @@ void k_Desktop::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 {
 	if (mb_Running)
 		return;
+	setCurrentScriptBoxForce(ak_ScriptBox_);
+}
+
+
+void k_Desktop::setCurrentScriptBoxForce(IScriptBox* ak_ScriptBox_)
+{
 	mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(ak_ScriptBox_);
 	mk_PipelineMainWindow.setCurrentScriptBox(ak_ScriptBox_);
 }

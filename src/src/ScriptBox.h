@@ -53,6 +53,9 @@ public:
 public slots:
 	virtual void start(const QString& as_IterationKey);
 	virtual void abort();
+	// :TODO: these two guys should be in IScriptBox!!
+	virtual void proposePrefixButtonClicked();
+	virtual void clearPrefixButtonClicked();
 	
 protected slots:
 	virtual void outputFileActionToggled();
@@ -60,7 +63,6 @@ protected slots:
 	virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void updateBatchMode();
 	virtual void updateOutputFilenames();
-	virtual void proposePrefixButtonClicked();
 	virtual void readyReadSlot();
 	virtual void addOutput(QString as_String);
 	virtual void showOutputBox(bool ab_Flag = true);

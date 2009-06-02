@@ -66,6 +66,8 @@ public slots:
 	virtual void start();
 	virtual void abort();
 	virtual void showAll();
+	virtual void clearPrefixForAllScripts();
+	virtual void proposePrefixForAllScripts();
 	
 signals:
 	virtual void pipelineIdle(bool);
@@ -85,6 +87,7 @@ protected slots:
 	virtual void scriptStarted();
 	virtual void scriptFinished(int ai_ExitCode);
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
+	virtual void setCurrentScriptBoxForce(IScriptBox* ak_ScriptBox_);
 	
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
