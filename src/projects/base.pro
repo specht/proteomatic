@@ -32,17 +32,16 @@ QT = core gui network
 
 INCLUDEPATH += ../../src/ ../../src/dialogs
 
-MYLIBPATH = /Users/michael/programming/ext/lib
+MYLIBPATH = /usr/local/lib
 
-unix {
-	LIBPATH += /usr/local/lib
-}
 win32 {
-	LIBS += c:\Qt\2009.02\mingw\lib\libyaml.a
+	MYLIBPATH = c:\Qt\2009.02\mingw\lib\
 }
 macx {
-	LIBS += $$MYLIBPATH/libyaml.a
+	MYLIBPATH = /Users/michael/programming/ext/lib
 }
+
+LIBS += $$MYLIBPATH/libyaml.a
 
 
 # Input files
