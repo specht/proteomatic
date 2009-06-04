@@ -8,8 +8,9 @@ CONFIG += debug_and_release
 
 macx {
 	CONFIG -= app_bundle
-	CONFIG += x86
+	CONFIG += x86 ppc
 	ICON = ../../src/icons/proteomatic.icns
+	INCLUDEPATH += '/Users/michael/programming/ext/include'
 }
 
 CONFIG(debug, debug|release) {
@@ -31,12 +32,18 @@ QT = core gui network
 
 INCLUDEPATH += ../../src/ ../../src/dialogs
 
+MYLIBPATH = /Users/michael/programming/ext/lib
+
 unix {
-	LIBS += /usr/local/lib/libyaml.a
+	LIBPATH += /usr/local/lib
 }
 win32 {
 	LIBS += c:\Qt\2009.02\mingw\lib\libyaml.a
 }
+macx {
+	LIBS += $$MYLIBPATH/libyaml.a
+}
+
 
 # Input files
 HEADERS += \

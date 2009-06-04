@@ -134,7 +134,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	//setDockOptions(dockOptions() | QMainWindow::VerticalTabs);
 	//setDockOptions(dockOptions() | QMainWindow::ForceTabbedDocks);
-	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+	//setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 
 	mk_Log_ = new QTextEdit(this);
 	mk_Log_->setReadOnly(true);
