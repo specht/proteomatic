@@ -45,7 +45,7 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 	this->checkRuby();
 	
 	QFontDatabase lk_FontDatabase;
-	QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Courier New" << "Courier";
+	QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
 	while (!lk_Fonts.empty())
 	{
 		QString ls_Font = lk_Fonts.takeFirst();

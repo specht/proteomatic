@@ -32,7 +32,7 @@ QT = core gui network
 
 INCLUDEPATH += ../../src/ ../../src/dialogs
 
-MYLIBPATH = /usr/local/lib
+MYLIBPATH = /home/michael/programming/static_libs_deployment
 
 win32 {
 	MYLIBPATH = c:\Qt\2009.02\mingw\lib\
