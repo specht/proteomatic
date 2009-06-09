@@ -130,7 +130,7 @@ void k_FileListBox::setupLayout()
 	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_FileList, SLOT(setEnabled(bool)));
 
 	lk_VLayout_ = new QVBoxLayout(this);
-	lk_VLayout_->setContentsMargins(0, 0, 0, 0);
+	lk_VLayout_->setContentsMargins(11, 11, 11, 11);
 	
 	lk_HLayout_ = new QHBoxLayout();
 	lk_VLayout_->addLayout(lk_HLayout_);

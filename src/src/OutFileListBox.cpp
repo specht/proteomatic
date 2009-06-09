@@ -165,6 +165,7 @@ void k_OutFileListBox::setupLayout()
 	QBoxLayout* lk_HLayout_;
 	
 	lk_HLayout_ = new QHBoxLayout(this);
+	lk_HLayout_->setContentsMargins(11, 11, 11, 11);
 	
 	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_FileList, SLOT(setEnabled(bool)));
 	
