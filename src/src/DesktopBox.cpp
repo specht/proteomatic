@@ -35,6 +35,7 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
 {
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 	setFocusPolicy(Qt::StrongFocus);
+	setContentsMargins(0, 0, 0, 0);
 }
 
 

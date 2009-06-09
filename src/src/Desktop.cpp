@@ -167,7 +167,8 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	
 	mk_ProxyWidgetForBox.remove(ak_Box_);
 	
-	delete ak_Box_;
+	if (ak_Box_)
+		delete ak_Box_;
 	mk_Boxes.remove(ak_Box_);
 	mk_SelectedBoxes.remove(ak_Box_);
 	mk_BatchBoxes.remove(ak_Box_);
@@ -805,8 +806,7 @@ void k_Desktop::redrawSelection()
 	
 	foreach (IDesktopBox* lk_Box_, mk_SelectedBoxes)
 	{
-		if (lk_Box_ != mk_CurrentScriptBox_)
-			lk_Path = lk_Path.united(grownPathForBox(lk_Box_, 3));
+		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, 3 + (lk_Box_ == mk_CurrentScriptBox_ ? 3 : 0)));
 	}
 	
 	foreach (QGraphicsPathItem* lk_Arrow_, mk_SelectedArrows)
@@ -1010,7 +1010,7 @@ void k_Desktop::keyPressEvent(QKeyEvent* event)
 	QGraphicsView::keyPressEvent(event);
 	if (!event->isAccepted())
 	{
-		if (event->matches(QKeySequence::Delete) && !mb_Running)
+		if ((event->matches(QKeySequence::Delete) || (event->key() == Qt::Key_Backspace)) && !mb_Running)
 			deleteSelected();
 	}
 }

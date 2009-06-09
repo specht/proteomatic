@@ -130,7 +130,9 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
 	addToolBarBreak(Qt::TopToolBarArea);
 	addToolBar(Qt::TopToolBarArea, lk_OtherToolBar_);
-		
+	
+	lk_AddToolBar_->setIconSize(QSize(24, 24));
+	lk_OtherToolBar_->setIconSize(QSize(24, 24));
 	
 	//setDockOptions(dockOptions() | QMainWindow::VerticalTabs);
 	//setDockOptions(dockOptions() | QMainWindow::ForceTabbedDocks);

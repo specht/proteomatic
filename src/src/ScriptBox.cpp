@@ -376,6 +376,13 @@ void k_ScriptBox::clearPrefixButtonClicked()
 }
 
 
+void k_ScriptBox::clearOutputDirectoryButtonClicked()
+{
+	mk_OutputDirectory.setText(QString());
+	mk_Desktop_->setHasUnsavedChanges(true);
+}
+
+
 void k_ScriptBox::start(const QString& as_IterationKey)
 {
 	QHash<QString, QString> lk_Parameters;
@@ -617,6 +624,11 @@ void k_ScriptBox::setupLayout()
 	lk_HLayout_->addWidget(&mk_OutputDirectory);
 	connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 
+	QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(this);
+	lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
+	lk_HLayout_->addWidget(lk_ClearOutputDirectoryButton_);
+	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_ClearOutputDirectoryButton_, SLOT(setEnabled(bool)));
+	connect(lk_ClearOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(clearOutputDirectoryButtonClicked()));
 	QToolButton* lk_SelectOutputDirectory_ = new QToolButton(lk_Container_);
 	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_SelectOutputDirectory_, SLOT(setEnabled(bool)));
 	lk_SelectOutputDirectory_->setIcon(QIcon(":/icons/folder.png"));

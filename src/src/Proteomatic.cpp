@@ -36,10 +36,12 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
 	, ms_ScriptPath(as_ApplicationPath + "/scripts")
-	, ms_ProgramConfigurationPath(as_ApplicationPath + "/proteomatic.conf.yaml")
-	, ms_UserConfigurationPath(QDir::homePath() + "/proteomatic.conf.yaml")
+	, ms_ConfigurationPath(as_ApplicationPath + "/proteomatic.conf.yaml")
 {
 	QDir::setCurrent(as_ApplicationPath);
+	if (QFileInfo(QDir::homePath() + "/proteomatic.conf.yaml").exists())
+		ms_ConfigurationPath = QDir::homePath() + "/proteomatic.conf.yaml";
+
 	this->loadConfiguration();
 
 	this->checkRuby();
@@ -205,16 +207,8 @@ bool k_Proteomatic::versionChanged() const
 
 void k_Proteomatic::loadConfiguration()
 {
-	// can install program configuration as user configuration?
-	if (QFile(ms_ProgramConfigurationPath).exists() && !QFile(ms_UserConfigurationPath).exists())
-	{
-		QFile lk_File(ms_ProgramConfigurationPath);
-		lk_File.copy(ms_UserConfigurationPath);
-	}
-		
-	// update program configuration with user configuration
-	if (QFile(ms_UserConfigurationPath).exists())
-		mk_Configuration = k_Yaml::parseFromFile(ms_UserConfigurationPath).toMap();
+	if (QFile(ms_ConfigurationPath).exists())
+		mk_Configuration = k_Yaml::parseFromFile(ms_ConfigurationPath).toMap();
 		
 	// insert default values
 	bool lb_InsertedDefaultValue = false;
@@ -290,6 +284,7 @@ void k_Proteomatic::collectScriptInfo()
 	lk_ProgressDialog.setCancelButton(0);
 	lk_ProgressDialog.setWindowTitle("Proteomatic");
 	lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
+	lk_ProgressDialog.setMinimumDuration(2000);
 	int li_Count = 0;
 	foreach (QString ls_Path, lk_Scripts)
 	{
@@ -753,7 +748,7 @@ tk_YamlMap& k_Proteomatic::getConfigurationRoot()
 
 void k_Proteomatic::saveConfiguration()
 {
-	k_Yaml::emitToFile(mk_Configuration, ms_UserConfigurationPath);
+	k_Yaml::emitToFile(mk_Configuration, ms_ConfigurationPath);
 }
 
 

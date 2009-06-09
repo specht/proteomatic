@@ -56,6 +56,7 @@ public slots:
 	// :TODO: these two guys should be in IScriptBox!!
 	virtual void proposePrefixButtonClicked();
 	virtual void clearPrefixButtonClicked();
+	virtual void clearOutputDirectoryButtonClicked();
 	
 protected slots:
 	virtual void outputFileActionToggled();

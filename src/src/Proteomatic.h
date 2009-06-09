@@ -151,8 +151,7 @@ protected:
 	RefPtr<QHttp> mk_pRemoteHubHttp;
 	QFont mk_ConsoleFont;
 	QString ms_ScriptPath;
-	QString ms_ProgramConfigurationPath;
-	QString ms_UserConfigurationPath;
+	QString ms_ConfigurationPath;
 	QString ms_ScriptPackage;
 	
 	// title => uri
