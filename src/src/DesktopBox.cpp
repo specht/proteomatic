@@ -220,8 +220,10 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 {
 	if (mb_Moving)
 	{
-		QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;
-		mk_MousePressPosition = event->globalPos();
+		QPoint lk_GlobalPos = event->globalPos();
+		printf("mouse move %d,%d - %d,%d\n", lk_GlobalPos.x(), lk_GlobalPos.y(), mk_MousePressPosition.x(), mk_MousePressPosition.y());
+		QPoint lk_Delta = lk_GlobalPos - mk_MousePressPosition;
+		mk_MousePressPosition = lk_GlobalPos;
 		mk_Desktop_->moveBox(this, lk_Delta);
 	}
 	if (mb_Resizing)
