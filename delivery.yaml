@@ -8,4 +8,4 @@ versionInject:
     #include <QtCore>
     QString gs_ProteomaticVersion = "#{VERSION}";
 externals: [helper]
-specialAddScripts: trunk
+specialAddScripts: 0.3.0
