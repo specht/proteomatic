@@ -47,6 +47,7 @@ k_ProfileManager::k_ProfileManager(k_Proteomatic& ak_Proteomatic,
 	setModal(true);
 	
 	QToolBar* lk_ToolBar_ = new QToolBar("Profile actions", this);
+	lk_ToolBar_->setIconSize(QSize(24, 24));
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	mk_NewAction_ = lk_ToolBar_->addAction(QIcon(":/icons/list-add.png"), "&New");
 	connect(mk_NewAction_, SIGNAL(triggered()), this, SLOT(newProfile()));
