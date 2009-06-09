@@ -7,7 +7,7 @@ win32 {
 CONFIG += debug_and_release
 
 macx {
-	CONFIG -= app_bundle
+	CONFIG += app_bundle
 	CONFIG += x86 ppc
 	ICON = ../../src/icons/proteomatic.icns
 	INCLUDEPATH += '/Users/michael/programming/ext/include'
