@@ -40,6 +40,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
 	
 	QToolBar* lk_ToolBar_ = new QToolBar("Actions", this);
+	lk_ToolBar_->setIconSize(QSize(24, 24));
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	
 	QToolButton* lk_CopyFromButton_ = new QToolButton(lk_ToolBar_);

@@ -513,6 +513,7 @@ void k_ScriptBox::setupLayout()
 	// now the script box ...
 	
 	lk_VLayout_ = new QVBoxLayout(this);
+	lk_VLayout_->setContentsMargins(11, 11, 11, 11);
 	
 	// script title
 	QLabel* lk_ScriptTitle_ = new k_UnclickableLabel("<b>" + mk_pScript->title() + "</b>", this);

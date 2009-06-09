@@ -88,6 +88,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	
 
 	QToolBar* lk_ToolBar_ = new QToolBar(this);
+	lk_ToolBar_->setIconSize(QSize(24, 24));
 	lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
 	mk_LoadScriptButton_ = new QToolButton(lk_ToolBar_);
