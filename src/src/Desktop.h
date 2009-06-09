@@ -76,7 +76,7 @@ signals:
 	
 protected slots:
 	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());
-	virtual void boxClicked(Qt::KeyboardModifiers ae_Modifiers);
+	virtual void boxClicked(QMouseEvent* event);
 	virtual void arrowPressed();
 	virtual void arrowReleased();
 	virtual void boxBatchModeChanged(bool ab_Enabled);
@@ -93,6 +93,7 @@ protected slots:
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
 	virtual void mousePressEvent(QMouseEvent* event);
+	virtual void mouseReleaseEvent(QMouseEvent* event);
 	virtual void mouseMoveEvent(QMouseEvent* event);
 	virtual void wheelEvent(QWheelEvent* event);
 	virtual void updateUserArrow(QPointF ak_MousePosition);
@@ -156,4 +157,6 @@ protected:
 	double md_BoxZ;
 	bool mb_HasUnsavedChanges;
 	QHash<IDesktopBox*, QPoint> mk_MoveSelectionStartPositions;
+	QPoint mk_MoveStartPoint;
+	bool mb_Moving;
 };

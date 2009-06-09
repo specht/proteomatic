@@ -68,7 +68,7 @@ signals:
 	virtual void batchModeChanged(bool);
 	virtual void moved(QPoint ak_Delta);
 	virtual void resized();
-	virtual void clicked(Qt::KeyboardModifiers ae_Modifiers);
+	virtual void clicked(QMouseEvent* event);
 	virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	

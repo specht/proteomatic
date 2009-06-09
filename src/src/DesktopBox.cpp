@@ -194,19 +194,22 @@ void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
 
 void k_DesktopBox::mousePressEvent(QMouseEvent* event)
 {
+	event->ignore();
 	mk_MousePressPosition = event->globalPos();
 	if (mb_Resizable && (event->pos() - QPoint(width(), height())).manhattanLength() <= 16)
 	{
 		mb_Resizing = true;
 		mk_OldSize = this->size();
+		event->accept();
 	}
-	else
+/*	else
 	{
 		mk_Desktop_->moveSelectedBoxesStart(this);
 		mb_Moving = true;
 		mk_OldPosition = this->pos();
-	}
-	emit clicked(event->modifiers());
+	}*/
+	else
+		emit clicked(event);
 	event->accept();
 }
 
@@ -221,13 +224,13 @@ void k_DesktopBox::mouseReleaseEvent(QMouseEvent* event)
 
 void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 {
-	if (mb_Moving)
+/*	if (mb_Moving)
 	{
 		QPoint lk_GlobalPos = event->globalPos();
 		QPoint lk_Delta = lk_GlobalPos - mk_MousePressPosition;
 		mk_Desktop_->moveSelectedBoxes(lk_Delta);
 		event->accept();
-	}
+	}*/
 	if (mb_Resizing)
 	{
 		QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;

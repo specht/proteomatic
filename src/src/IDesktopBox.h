@@ -20,6 +20,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtCore>
+#include <QtGui>
+
 
 struct IDesktopBox
 {
@@ -46,7 +48,7 @@ struct IDesktopBox
 	virtual void batchModeChanged(bool) = 0;
 	virtual void moved(QPoint ak_Delta) = 0;
 	virtual void resized() = 0;
-	virtual void clicked(Qt::KeyboardModifiers ae_Modifiers) = 0;
+	virtual void clicked(QMouseEvent* event) = 0;
 	virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming) = 0;
 	virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming) = 0;
 };

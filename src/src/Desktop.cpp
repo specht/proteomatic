@@ -43,6 +43,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mk_CurrentScriptBox_(NULL)
 	, md_BoxZ(0.0)
 	, mb_HasUnsavedChanges(false)
+	, mb_Moving(false)
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
 	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
@@ -135,7 +136,7 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 	}
 	connect(lk_DesktopBox_, SIGNAL(moved(QPoint)), this, SLOT(boxMovedOrResized(QPoint)));
 	connect(lk_DesktopBox_, SIGNAL(resized()), this, SLOT(boxMovedOrResized()));
-	connect(lk_DesktopBox_, SIGNAL(clicked(Qt::KeyboardModifiers)), this, SLOT(boxClicked(Qt::KeyboardModifiers)));
+	connect(lk_DesktopBox_, SIGNAL(clicked(QMouseEvent*)), this, SLOT(boxClicked(QMouseEvent*)));
 	connect(lk_DesktopBox_, SIGNAL(batchModeChanged(bool)), this, SLOT(boxBatchModeChanged(bool)));
 	mk_Boxes.insert(ak_Box_);
 	lk_DesktopBox_->resize(1, 1);
@@ -236,6 +237,7 @@ void k_Desktop::moveSelectedBoxesStart(IDesktopBox* ak_IncludeThis_)
 		if (lk_DesktopBox_)
 			mk_MoveSelectionStartPositions[lk_Box_] = lk_DesktopBox_->pos();
 	}
+	mb_Moving = true;
 }
 
 
@@ -688,8 +690,9 @@ void k_Desktop::boxMovedOrResized(QPoint ak_Delta)
 }
 
 
-void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
+void k_Desktop::boxClicked(QMouseEvent* event)
 {
+	Qt::KeyboardModifiers le_Modifiers = event->modifiers();
 	IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
 	if (md_BoxZ > 1000.0)
 	{
@@ -709,7 +712,7 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 		setCurrentScriptBox(dynamic_cast<IScriptBox*>(lk_Box_));
 	}
 	
-	if ((ae_Modifiers & Qt::ControlModifier) == Qt::ControlModifier)
+	if ((le_Modifiers & Qt::ControlModifier) == Qt::ControlModifier)
 	{
 		if (mk_SelectedBoxes.contains(lk_Box_))
 			mk_SelectedBoxes.remove(lk_Box_);
@@ -723,6 +726,7 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 		mk_SelectedBoxes.insert(lk_Box_);
 	}
 	redrawSelection();
+	moveSelectedBoxesStart(lk_Box_);
 }
 
 
@@ -1067,7 +1071,17 @@ void k_Desktop::mousePressEvent(QMouseEvent* event)
 			}
 		}
 	}
+	event->ignore();
+	mk_MoveStartPoint = event->globalPos();
 	QGraphicsView::mousePressEvent(event);
+}
+
+
+void k_Desktop::mouseReleaseEvent(QMouseEvent* event)
+{
+	mb_Moving = false;
+	event->accept();
+	QGraphicsView::mouseReleaseEvent(event);
 }
 
 
@@ -1087,6 +1101,13 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* event)
 				mk_ArrowEndBox_ = NULL;
 		}
 		updateUserArrow(mapToScene(event->pos()));
+	}
+	if (mb_Moving)
+	{
+		if (event->buttons() == Qt::NoButton)
+			mb_Moving = false;
+		else
+			moveSelectedBoxes(event->globalPos() - mk_MoveStartPoint);
 	}
 }
 
