@@ -95,4 +95,5 @@ protected:
 	QPoint mk_MousePressPosition;
 	QPoint mk_OldPosition;
 	QSize mk_OldSize;
+	bool mb_MouseMoveGuard;
 };

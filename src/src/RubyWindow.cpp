@@ -45,17 +45,7 @@ k_RubyWindow::k_RubyWindow(k_Proteomatic& ak_Proteomatic, QStringList ak_Argumen
 	mk_pDialog->setModal(true);
 	mk_Output_->setReadOnly(true);
 	
-	QFontDatabase lk_FontDatabase;
-	QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
-	while (!lk_Fonts.empty())
-	{
-		QString ls_Font = lk_Fonts.takeFirst();
-		if (lk_FontDatabase.families().contains(ls_Font))
-		{
-			mk_Output_->setFont(QFont(ls_Font, 8));
-			break;
-		}
-	}
+	mk_Output_->setFont(mk_Proteomatic.consoleFont());
 	connect(mk_CloseButton_, SIGNAL(clicked()), mk_pDialog.get_Pointer(), SLOT(accept()));
 }
 

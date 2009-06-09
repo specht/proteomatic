@@ -32,6 +32,7 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
 	, mb_ProtectedFromUserDeletion(false)
 	, mb_Moving(false)
 	, mb_Resizing(false)
+	, mb_MouseMoveGuard(false)
 {
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 	setFocusPolicy(Qt::StrongFocus);
@@ -219,6 +220,11 @@ void k_DesktopBox::mouseReleaseEvent(QMouseEvent* event)
 
 void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 {
+	if (mb_MouseMoveGuard)
+		return;
+	
+	mb_MouseMoveGuard = true;
+	
 	if (mb_Moving)
 	{
 		QPoint lk_GlobalPos = event->globalPos();
@@ -231,4 +237,6 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 		QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;
 		this->resize(mk_OldSize + QSize(lk_Delta.x(), lk_Delta.y()));
 	}
+	
+	mb_MouseMoveGuard = false;
 }
