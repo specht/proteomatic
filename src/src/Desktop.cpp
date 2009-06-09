@@ -224,19 +224,26 @@ void k_Desktop::disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destina
 }
 
 
-void k_Desktop::moveBox(IDesktopBox* ak_Box_, QPoint ak_Delta)
+void k_Desktop::moveSelectedBoxesStart()
 {
-	k_DesktopBox* lk_Box_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
-	if (mk_SelectedBoxes.contains(ak_Box_))
+	mk_MoveSelectionStartPositions.clear();
+	foreach (IDesktopBox* lk_Box_, mk_SelectedBoxes)
 	{
-		foreach (IDesktopBox* lk_SetBox_, mk_SelectedBoxes)
-		{
-			k_DesktopBox* lk_SetDesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_SetBox_);
-			lk_SetDesktopBox_->move(lk_SetDesktopBox_->pos() + ak_Delta);
-		}
+		k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
+		if (lk_DesktopBox_)
+			mk_MoveSelectionStartPositions[lk_Box_] = lk_DesktopBox_->pos();
 	}
-	else
-		lk_Box_->move(lk_Box_->pos() + ak_Delta);
+}
+
+
+void k_Desktop::moveSelectedBoxes(QPoint ak_Delta)
+{
+	foreach (IDesktopBox* lk_Box_, mk_SelectedBoxes)
+	{
+		k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
+		if (lk_DesktopBox_ && mk_MoveSelectionStartPositions.contains(lk_Box_))
+			lk_DesktopBox_->move(mk_MoveSelectionStartPositions[lk_Box_] + ak_Delta);
+	}
 }
 
 

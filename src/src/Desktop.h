@@ -47,7 +47,8 @@ public:
 	virtual void removeBox(IDesktopBox* ak_Box_);
 	virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
 	virtual void disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
-	virtual void moveBox(IDesktopBox* ak_Box_, QPoint ak_Delta);
+	virtual void moveSelectedBoxesStart();
+	virtual void moveSelectedBoxes(QPoint ak_Delta);
 	
 	virtual void createFilenameTags(QStringList ak_Filenames, QHash<QString, QString>& ak_TagForFilename, QString& as_PrefixWithoutTags);
 	virtual bool running() const;
@@ -154,4 +155,5 @@ protected:
 	
 	double md_BoxZ;
 	bool mb_HasUnsavedChanges;
+	QHash<IDesktopBox*, QPoint> mk_MoveSelectionStartPositions;
 };

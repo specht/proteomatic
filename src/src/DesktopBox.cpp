@@ -201,6 +201,7 @@ void k_DesktopBox::mousePressEvent(QMouseEvent* event)
 	}
 	else
 	{
+		mk_Desktop_->moveSelectedBoxesStart();
 		mb_Moving = true;
 		mk_OldPosition = this->pos();
 	}
@@ -221,10 +222,9 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 	if (mb_Moving)
 	{
 		QPoint lk_GlobalPos = event->globalPos();
-		printf("mouse move %d,%d - %d,%d\n", lk_GlobalPos.x(), lk_GlobalPos.y(), mk_MousePressPosition.x(), mk_MousePressPosition.y());
 		QPoint lk_Delta = lk_GlobalPos - mk_MousePressPosition;
-		mk_MousePressPosition = lk_GlobalPos;
-		mk_Desktop_->moveBox(this, lk_Delta);
+		this->move(mk_OldPosition + lk_Delta);
+		mk_Desktop_->moveSelectedBoxes(lk_Delta);
 	}
 	if (mb_Resizing)
 	{
