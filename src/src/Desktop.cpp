@@ -224,10 +224,13 @@ void k_Desktop::disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destina
 }
 
 
-void k_Desktop::moveSelectedBoxesStart()
+void k_Desktop::moveSelectedBoxesStart(IDesktopBox* ak_IncludeThis_)
 {
 	mk_MoveSelectionStartPositions.clear();
-	foreach (IDesktopBox* lk_Box_, mk_SelectedBoxes)
+	QSet<IDesktopBox*> lk_SelectedBoxes = mk_SelectedBoxes;
+	if (ak_IncludeThis_)
+		lk_SelectedBoxes.insert(ak_IncludeThis_);
+	foreach (IDesktopBox* lk_Box_, lk_SelectedBoxes)
 	{
 		k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
 		if (lk_DesktopBox_)
