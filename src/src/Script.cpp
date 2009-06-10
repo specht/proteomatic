@@ -890,32 +890,9 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		QBoxLayout* lk_Layout_ = new QBoxLayout(QBoxLayout::LeftToRight);
 		lk_Layout_->setContentsMargins(0, 0, 0, 0);
 		lk_Layout_->setSpacing(5);
-		int li_ColSpan = 1;
-		if (lk_Parameter.contains("colspan"))
-			li_ColSpan = QVariant(lk_Parameter["colspan"]).toInt();
-		if (li_ColSpan > 1)
-		{
-			if (lk_GroupBoxX[ls_Group] != 0)
-			{
-				lk_GroupBoxX[ls_Group] = 0;
-				lk_GroupBoxY[ls_Group] += 1;
-			}
-		}
-		lk_GridLayouts[ls_Group]->addLayout(lk_Layout_, lk_GroupBoxY[ls_Group], lk_GroupBoxX[ls_Group], 1, li_ColSpan);
-		if (true || li_ColSpan > 1)
-		{
-			lk_GroupBoxX[ls_Group] = 0;
-			lk_GroupBoxY[ls_Group] += 1;
-		}
-		else
-		{
-			lk_GroupBoxX[ls_Group] += 1;
-			if (lk_GroupBoxX[ls_Group] > 1)
-			{
-				lk_GroupBoxX[ls_Group] = 0;
-				lk_GroupBoxY[ls_Group] += 1;
-			}
-		}
+		lk_GridLayouts[ls_Group]->addLayout(lk_Layout_, lk_GroupBoxY[ls_Group], lk_GroupBoxX[ls_Group], 1, 1);
+		lk_GroupBoxX[ls_Group] = 0;
+		lk_GroupBoxY[ls_Group] += 1;
 
 		bool lb_AddLabel = true;
 		bool lb_WidgetFirst = false;

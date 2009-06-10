@@ -18,9 +18,9 @@
    sodipodi:docbase="/media/FLASH DISK/Files/desktop vista"
    sodipodi:docname="Proteomatic icon.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/michael/programming/proteomatic/trunk/src/src/icons/proteomatic-128.png"
-   inkscape:export-xdpi="360"
-   inkscape:export-ydpi="360">
+   inkscape:export-filename="/home/michael/programming/proteomatic/trunk/src/src/icons/revelio.png"
+   inkscape:export-xdpi="135"
+   inkscape:export-ydpi="135">
   <defs
      id="defs2200">
     <inkscape:perspective
@@ -232,17 +232,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="9.421875"
-     inkscape:cx="14.520758"
-     inkscape:cy="16.602176"
+     inkscape:zoom="13.324543"
+     inkscape:cx="7.9561707"
+     inkscape:cy="9.676281"
      inkscape:document-units="px"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer4"
      width="32px"
      height="32px"
      showgrid="true"
-     inkscape:window-width="857"
-     inkscape:window-height="821"
-     inkscape:window-x="456"
+     inkscape:window-width="1440"
+     inkscape:window-height="826"
+     inkscape:window-x="0"
      inkscape:window-y="25"
      inkscape:grid-points="true"
      gridtolerance="10000">
@@ -374,9 +374,43 @@
   </g>
   <g
      inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="question"
+     style="display:inline">
+    <path
+       style="opacity:1;fill:#77be31;fill-opacity:1;stroke:#4b8415;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M -18 4 C -21.312 4 -24 6.688 -24 10 C -24 12.817335 -22.057114 15.168653 -19.4375 15.8125 L -19.4375 24.0625 L -16.53125 24.0625 L -16.53125 15.8125 C -13.926675 15.15811 -12 12.806659 -12 10 C -12 6.688 -14.688 4 -18 4 z "
+       id="path2439" />
+    <path
+       sodipodi:type="arc"
+       style="opacity:1;fill:#ffffff;fill-opacity:0.50196081;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path3220"
+       sodipodi:cx="-18"
+       sodipodi:cy="10"
+       sodipodi:rx="4"
+       sodipodi:ry="4"
+       d="M -14,10 A 4,4 0 1 1 -22,10 A 4,4 0 1 1 -14,10 z"
+       transform="matrix(1.125,0,0,1.125,2.228752,-1.271248)" />
+    <path
+       id="path3224"
+       d="M 12.133072,9.176725 C 9.3945989,10.757783 8.4552477,14.263489 10.036306,17.001962 C 11.381224,19.331429 14.110123,20.348098 16.583462,19.62992 L 20.521786,26.451297 L 22.924771,25.063933 L 18.986447,18.242556 C 20.82761,16.458132 21.298131,13.594131 19.958309,11.273491 C 18.377251,8.5350181 14.871545,7.595667 12.133072,9.176725 z"
+       style="fill:#77be31;fill-opacity:1;stroke:#4b8415;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <path
+       transform="matrix(0.8438945,-0.4872227,0.4872227,0.8438945,25.292786,-3.0733313)"
+       d="M -14,10 A 4,4 0 1 1 -22,10 A 4,4 0 1 1 -14,10 z"
+       sodipodi:ry="4"
+       sodipodi:rx="4"
+       sodipodi:cy="10"
+       sodipodi:cx="-18"
+       id="path3226"
+       style="fill:#ffffff;fill-opacity:0.50196078;stroke:#4b8415;stroke-width:0.93102211;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       sodipodi:type="arc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="dot"
-     style="display:inline">
+     style="display:none">
     <g
        id="g3227"
        inkscape:label="Ebene 1"

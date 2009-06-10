@@ -25,7 +25,7 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	mk_Label_ = new QLabel("Hello, world!", this);
 	resize(600, 300);
 	setWindowTitle("Revelio");
-	setWindowIcon(QIcon(":/icons/proteomatic.png"));
+	setWindowIcon(QIcon(":/icons/revelio.png"));
 }
 
 
