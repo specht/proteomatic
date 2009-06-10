@@ -18,17 +18,61 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "RevelioMainWindow.h"
+#include <md5.h>
 
 
 k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 {
-	mk_Label_ = new QLabel("Hello, world!", this);
 	resize(600, 300);
 	setWindowTitle("Revelio");
 	setWindowIcon(QIcon(":/icons/revelio.png"));
+	
+	mk_Label_ = new QLabel("Hello, world!", this);
+	
+	QToolButton* lk_LoadFileButton_ = new QToolButton(this);
+	lk_LoadFileButton_->setText("Load file");
+	lk_LoadFileButton_->setIcon(QIcon(":/icons/document-open.png"));
+	lk_LoadFileButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	connect(lk_LoadFileButton_, SIGNAL(pressed()), this, SLOT(loadFile()));
+	
+	QWidget* lk_MainWidget_ = new QWidget(this);
+	setCentralWidget(lk_MainWidget_);
+	
+	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_MainWidget_);
+	lk_VLayout_->addStretch();
+	lk_VLayout_->addWidget(mk_Label_);
+	lk_VLayout_->addStretch();
+	lk_VLayout_->addWidget(lk_LoadFileButton_);
+	lk_VLayout_->addStretch();
 }
 
 
 k_RevelioMainWindow::~k_RevelioMainWindow()
 {
+}
+
+
+void k_RevelioMainWindow::loadFile()
+{
+	QString ls_Path = QFileDialog::getOpenFileName(this, "Load file");
+	if (!ls_Path.isEmpty())
+	{
+		mk_Label_->setText(QFileInfo(ls_Path).fileName());
+		QFile lk_File(ls_Path);
+		lk_File.open(QIODevice::ReadOnly);
+		// calculate MD5 of file content
+		md5_state_s lk_Md5State;
+		md5_init(&lk_Md5State);
+		while (!lk_File.atEnd())
+		{
+			QByteArray lk_Bytes = lk_File.read(8 * 1024 * 1024);
+			md5_append(&lk_Md5State, (md5_byte_t*)lk_Bytes.constData(), lk_Bytes.size());
+		}
+		lk_File.close();
+		unsigned char lk_Md5[16];
+		md5_finish(&lk_Md5State, (md5_byte_t*)(&lk_Md5));
+		for (int i = 0; i < 16; ++i)
+			printf("%02x", lk_Md5[i]);
+		printf("\n");
+	}
 }

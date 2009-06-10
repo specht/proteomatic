@@ -32,6 +32,9 @@ public:
 public slots:
 	
 signals:
+	
+protected slots:
+	virtual void loadFile();
 
 protected:
 	QLabel* mk_Label_;
