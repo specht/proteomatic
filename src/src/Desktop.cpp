@@ -150,12 +150,12 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 
 void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 {
-	if (mk_DeleteBoxStackSet.contains(ak_Box_))
-		return;
-	
-	mk_DeleteBoxStackSet.insert(ak_Box_);
 	if (!mk_Boxes.contains(ak_Box_))
 		return;
+
+	if (mk_DeleteBoxStackSet.contains(ak_Box_))
+		return;
+	mk_DeleteBoxStackSet.insert(ak_Box_);
 	
 	foreach (IDesktopBox* lk_Box_, ak_Box_->incomingBoxes())
 		disconnectBoxes(lk_Box_, ak_Box_);
@@ -186,6 +186,9 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 
 void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_)
 {
+	tk_BoxPair lk_BoxPair(ak_Source_, ak_Destination_);
+	if (mk_ArrowForBoxPair.contains(lk_BoxPair))
+		return;
 	ak_Source_->connectOutgoingBox(ak_Destination_);
 	QGraphicsPathItem* lk_GraphicsPathItem_ = 
 		mk_GraphicsScene.addPath(QPainterPath(), QPen(QColor(TANGO_ALUMINIUM_3)), QBrush(QColor(TANGO_ALUMINIUM_3)));
@@ -197,7 +200,7 @@ void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destinatio
 	lk_ArrowProxy_->setZValue(-1000.0);
 	mk_ArrowForProxy[lk_ArrowProxy_] = lk_GraphicsPathItem_;
 	mk_Arrows[lk_GraphicsPathItem_] = tk_BoxPair(ak_Source_, ak_Destination_);
-	mk_ArrowForBoxPair[tk_BoxPair(ak_Source_, ak_Destination_)] = lk_GraphicsPathItem_;
+	mk_ArrowForBoxPair[lk_BoxPair] = lk_GraphicsPathItem_;
 	mk_ArrowsForBox[ak_Source_].insert(lk_GraphicsPathItem_);
 	mk_ArrowsForBox[ak_Destination_].insert(lk_GraphicsPathItem_);
 	mk_ArrowProxy[lk_GraphicsPathItem_] = lk_ArrowProxy_;
@@ -210,6 +213,8 @@ void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destinatio
 void k_Desktop::disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_)
 {
 	tk_BoxPair lk_BoxPair(ak_Source_, ak_Destination_);
+	if (!mk_ArrowForBoxPair.contains(lk_BoxPair))
+		return;
 	QGraphicsPathItem* lk_GraphicsPathItem_ = mk_ArrowForBoxPair[lk_BoxPair];
 	mk_Arrows.remove(lk_GraphicsPathItem_);
 	mk_ArrowForBoxPair.remove(lk_BoxPair);
@@ -432,6 +437,12 @@ tk_YamlMap k_Desktop::pipelineDescription()
 	tk_YamlSequence lk_Arrows;
 	foreach (tk_BoxPair lk_BoxPair, lk_UnsavedArrows)
 	{
+		// skip this arrow if it comes from a converter script box, because in that case,
+		// the arrow is already there by definition
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_BoxPair.first);
+		if (lk_ScriptBox_ && lk_ScriptBox_->script()->type() == r_ScriptType::Converter)
+			continue;
+		
 		tk_YamlSequence lk_Pair;
 		lk_Pair.push_back((qint64)lk_BoxPair.first);
 		lk_Pair.push_back((qint64)lk_BoxPair.second);
