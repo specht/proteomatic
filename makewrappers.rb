@@ -1,12 +1,8 @@
-ls_OldDir = Dir.pwd
-
+lb_Windows = RUBY_PLATFORM.downcase.include?('mswin')
 print 'Building wrappers...'
-Dir.chdir('src/src')
 ['Proteomatic', 'ProteomaticPipeline', 'Revelio'].each do |ls_Tool|
-	ls_Tool += '.exe' if RUBY_PLATFORM.downcase.include?('mswin')
-	system("gcc -o ../../#{ls_Tool} -DBINARY=\\\"#{ls_Tool}\\\" BinaryWrapper.cpp -lstdc++")
-	system("strip --strip-all ../../#{ls_Tool}")
+	ls_Tool += '.exe' if lb_Windows
+	system("gcc -o #{ls_Tool} -DBINARY=\\\"#{ls_Tool}\\\" -D#{lb_Windows ? "WIN32" : "WHATEVER"} src/src/BinaryWrapper.cpp -lstdc++")
+	system("strip --strip-all #{ls_Tool}")
 end
 puts 'done.'
-
-Dir.chdir(ls_OldDir)

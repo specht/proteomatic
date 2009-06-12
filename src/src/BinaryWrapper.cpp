@@ -4,11 +4,14 @@
 
 
 // BINARY
-#define PATH "bin/"
-
 
 int main(int argc, char** argv__)
 {
+	char* PATH = new char[5];
+	strcpy(PATH, "bin/");
+#ifdef WIN32
+	PATH[3] = '\\';
+#endif
 	char* ls_Path_ = argv__[0];
 	ls_Path_[strlen(ls_Path_) - strlen(BINARY)] = 0;
 	
