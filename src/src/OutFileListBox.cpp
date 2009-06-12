@@ -118,7 +118,7 @@ void k_OutFileListBox::setBatchMode(bool ab_Enabled)
 
 void k_OutFileListBox::toggleUi()
 {
-	setResizable(mb_ListMode);
+	setResizable(mb_ListMode, mb_ListMode);
 	mk_FileName_->setVisible((!mb_ListMode) && (mk_FileList.fileCount() > 0));
 	mk_FileList.setVisible(mb_ListMode);
 	mk_FileList.refresh();
@@ -134,9 +134,10 @@ void k_OutFileListBox::toggleUi()
 	{
 		QString ls_Path = mk_FileList.files().first();
 		setToolTip(ls_Path);
+		QFontMetrics lk_FontMetrics(mk_FileName_->font());
 		QString ls_PrintPath = QFileInfo(ls_Path).fileName();
-		if (ls_PrintPath.length() > 50)
-			ls_PrintPath = "..." + ls_PrintPath.right(50);
+		if (lk_FontMetrics.boundingRect(ls_Path).width() > 300)
+			ls_PrintPath = lk_FontMetrics.elidedText(ls_PrintPath, Qt::ElideLeft, 300);
 		if (QFileInfo(ls_Path).exists())
 			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_SKY_BLUE_2) + ls_PrintPath + "</span>");
 		else
@@ -195,11 +196,13 @@ void k_OutFileListBox::setupLayout()
 	lk_VLayout_->addWidget(lk_ArrowLabel_);
 	
 	mk_FileList.hide();
-	setResizable(false);
+	setResizable(false, false);
 	mk_BatchModeButton.hide();
 	
 	connect(lk_ArrowLabel_, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
 	connect(lk_ArrowLabel_, SIGNAL(released()), this, SIGNAL(arrowReleased()));
+	
+	connect(this, SIGNAL(resized()), this, SLOT(toggleUi()));
 	
 	resize(300, 100);
 	emit resized();

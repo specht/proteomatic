@@ -40,7 +40,7 @@ struct IDesktopBox
 	virtual void disconnectIncomingBox(IDesktopBox* ak_Other_) = 0;
 	virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_) = 0;
 	virtual void disconnectAll() = 0;
-	virtual void setResizable(bool ab_Enabled) = 0;
+	virtual void setResizable(bool ab_EnabledX, bool ab_EnabledY) = 0;
 	virtual void toggleUi() = 0;
 	virtual QRectF rect() = 0;
 	

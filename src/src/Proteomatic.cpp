@@ -101,6 +101,10 @@ k_Proteomatic::~k_Proteomatic()
 
 void k_Proteomatic::checkForUpdates()
 {
+	// don't do updates if this is trunk!
+	if (gs_ProteomaticVersion == "trunk")
+		return;
+	
 	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
 	{
 		QString ls_Result = this->syncRuby(QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun");

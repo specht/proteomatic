@@ -28,12 +28,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScriptFactory.h"
 #include "Tango.h"
 #include "UnclickableLabel.h"
+#include "LocalScript.h"
 
 
 k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: k_DesktopBox(ak_Parent_, ak_Proteomatic, false)
+	: k_DesktopBox(ak_Parent_, ak_Proteomatic, false, false)
 	, mk_pScript(ak_pScript)
 	, mk_OutputBox(this)
+	, mk_LastUserAdjustedSize(0, 0)
 {
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
@@ -340,22 +342,22 @@ void k_ScriptBox::proposePrefixButtonClicked()
 				{
 					QString ls_Group = mk_pScript->inputGroupForFilename(ls_Path);
 					// TODO: only append files that are in the correct group!!
+					// NAH: not necessary, the script will sort it out
 					lk_InputFiles.append(ls_Path);
 				}
 			}
 		}
-		QHash<QString, QString> lk_Tags;
-		QString ls_CommonPrefix;
-		mk_Desktop_->createFilenameTags(lk_InputFiles, lk_Tags, ls_CommonPrefix);
-		if ((!ls_CommonPrefix.isEmpty()) && (ls_CommonPrefix.right(1) != "-"))
-			ls_CommonPrefix += "-";
-		mk_Prefix.setText(ls_CommonPrefix);
-		/*
-		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer()))->proposePrefix(lk_Arguments);
+// 		QHash<QString, QString> lk_Tags;
+// 		QString ls_CommonPrefix;
+// 		mk_Desktop_->createFilenameTags(lk_InputFiles, lk_Tags, ls_CommonPrefix);
+// 		if ((!ls_CommonPrefix.isEmpty()) && (ls_CommonPrefix.right(1) != "-"))
+// 			ls_CommonPrefix += "-";
+// 		mk_Prefix.setText(ls_CommonPrefix);
+		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer()))->proposePrefix(lk_InputFiles);
 		if (ls_Result.startsWith("--proposePrefix"))
 		{
 			QStringList lk_Result = ls_Result.split("\n");
-			mk_PrefixWidget.setText(lk_Result[1].trimmed());
+			mk_Prefix.setText(lk_Result[1].trimmed());
 		}
 		else
 		{
@@ -363,7 +365,6 @@ void k_ScriptBox::proposePrefixButtonClicked()
 				"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
 				":/icons/emblem-important.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
 		}
-		*/
 	}
 	mk_Desktop_->setHasUnsavedChanges(true);
 }
@@ -458,6 +459,20 @@ void k_ScriptBox::chooseOutputDirectory()
 		mk_OutputDirectory.setText(ls_Path);
 		mk_Desktop_->setHasUnsavedChanges(true);
 	}
+}
+
+
+void k_ScriptBox::hidingBuddy()
+{
+	mk_LastUserAdjustedSize = this->size();
+	this->setResizable(false, false);
+}
+
+
+void k_ScriptBox::showingBuddy()
+{
+	this->setResizable(true, false);
+	this->resize(mk_LastUserAdjustedSize);
 }
 
 
@@ -592,6 +607,9 @@ void k_ScriptBox::setupLayout()
 	lk_VLayout_->addWidget(lk_FoldedHeader_);
 	lk_VLayout_->addWidget(lk_Container_);
 	
+	connect(lk_FoldedHeader_, SIGNAL(hidingBuddy()), this, SLOT(hidingBuddy()));
+	connect(lk_FoldedHeader_, SIGNAL(showingBuddy()), this, SLOT(showingBuddy()));
+	
 	lk_FoldedHeader_->hideBuddy();
 	
 	lk_VLayout_ = new QVBoxLayout(lk_Container_);
@@ -705,4 +723,6 @@ void k_ScriptBox::setupLayout()
 		connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(parameterChanged(const QString&)), this, SLOT(scriptParameterChanged(const QString&)));
 
 	}
+	lk_VLayout_->addStretch();
+	mk_LastUserAdjustedSize = QSize(0, 0);
 }

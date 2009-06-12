@@ -1,4 +1,4 @@
-TARGET = Proteomatic
+TARGET = bin/Proteomatic
 
 include(../base.pro)
 

@@ -44,6 +44,8 @@ signals:
 	void clicked();
 	void enter();
 	void leave();
+	void showingBuddy();
+	void hidingBuddy();
 	
 protected slots:
 	void update();	

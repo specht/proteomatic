@@ -56,7 +56,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_HSplitter_->addWidget(mk_PaneLayoutWidget_);
 	mk_HSplitter_->setChildrenCollapsible(false);
 
-	//statusBar()->show();
+	statusBar()->show();
 	
 	QToolBar* lk_AddToolBar_ = new QToolBar(this);
 	lk_AddToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -106,7 +106,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	QToolBar* lk_OtherToolBar_ = new QToolBar(this);
 	lk_OtherToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	
-	lk_OtherToolBar_->addWidget(new QLabel("Output prefix: ", this));
+	lk_OtherToolBar_->addWidget(new QLabel("Global output prefix: ", this));
 	
 	lk_OtherToolBar_->addWidget(mk_OutputPrefix_);
 	connect(mk_OutputPrefix_, SIGNAL(textChanged(const QString&)), this, SIGNAL(outputPrefixChanged(const QString&)));
@@ -116,7 +116,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	lk_OtherToolBar_->addSeparator();
 	
-	lk_OtherToolBar_->addWidget(new QLabel("Output directory: ", this));
+	lk_OtherToolBar_->addWidget(new QLabel("Global output directory: ", this));
 	
 	QString ls_Path = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString();
 	if (!QFileInfo(ls_Path).isDir())
@@ -174,7 +174,15 @@ void k_PipelineMainWindow::newPipeline()
 	if (mk_Desktop_->hasUnsavedChanges())
 	{
 		// save discard cancel
-		//if (mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes. Do you want to save the current pipeline?", QMessageBox::Yes | QMessageBox::No, 
+		int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes. Do you want to save the current pipeline?", ":/icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes, QMessageBox::Cancel);
+		if (li_Button == QMessageBox::Cancel)
+			return;
+		if (li_Button == QMessageBox::Yes)
+		{
+			this->savePipelineAs();
+			if (mk_Desktop_->hasUnsavedChanges())
+				return;
+		}
 	}
 	mk_Desktop_->clearAll();
 	mk_Desktop_->setHasUnsavedChanges(false);

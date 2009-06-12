@@ -22,11 +22,13 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tango.h"
 
 
-k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, bool ab_Resizable)
+k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, 
+						   bool ab_ResizableX, bool ab_ResizableY)
 	: QWidget(NULL)
 	, mk_Desktop_(ak_Parent_)
 	, mk_Proteomatic(ak_Proteomatic)
-	, mb_Resizable(ab_Resizable)
+	, mb_ResizableX(ab_ResizableX)
+	, mb_ResizableY(ab_ResizableY)
 	, mk_ResizeGripPixmap(QPixmap(":icons/size-grip.png"))
 	, mb_BatchMode(false)
 	, mb_ProtectedFromUserDeletion(false)
@@ -137,11 +139,11 @@ void k_DesktopBox::disconnectAll()
 }
 
 
-void k_DesktopBox::setResizable(bool ab_Enabled)
+void k_DesktopBox::setResizable(bool ab_EnabledX, bool ab_EnabledY)
 {
-	mb_Resizable = ab_Enabled;
-	if (!mb_Resizable)
-		resize(1, 1);
+	mb_ResizableX = ab_EnabledX;
+	mb_ResizableY = ab_EnabledY;
+	resize(mb_ResizableX ? width() : 1, mb_ResizableY ? height() : 1);
 	repaint();
 }
 
@@ -171,8 +173,7 @@ void k_DesktopBox::moveEvent(QMoveEvent* event)
 
 void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
 {
-	if (!mb_Resizable)
-		this->resize(1, 1);
+	resize(mb_ResizableX ? width() : 1, mb_ResizableY ? height() : 1);
 	
 	QPainter lk_Painter(this);
 	
@@ -185,7 +186,7 @@ void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
 	lk_Painter.drawRoundedRect(QRectF(lf_PenWidth * 0.5, lf_PenWidth * 0.5, (qreal)width() - lf_PenWidth, (qreal)height() - lf_PenWidth), 8.0, 8.0);
 
 	// draw resize grip
-	if (mb_Resizable)
+	if (mb_ResizableX || mb_ResizableY)
 		lk_Painter.drawPixmap(width() - mk_ResizeGripPixmap.width() - 2, 
 							  height() - mk_ResizeGripPixmap.height() - 2, 
 							  mk_ResizeGripPixmap);
@@ -196,7 +197,7 @@ void k_DesktopBox::mousePressEvent(QMouseEvent* event)
 {
 	event->ignore();
 	mk_MousePressPosition = event->globalPos();
-	if (mb_Resizable && (event->pos() - QPoint(width(), height())).manhattanLength() <= 16)
+	if ((mb_ResizableX || mb_ResizableY) && (event->pos() - QPoint(width(), height())).manhattanLength() <= 16)
 	{
 		mb_Resizing = true;
 		mk_OldSize = this->size();
@@ -234,7 +235,7 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 	if (mb_Resizing)
 	{
 		QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;
-		this->resize(mk_OldSize + QSize(lk_Delta.x(), lk_Delta.y()));
+		this->resize(mk_OldSize + QSize(mb_ResizableX ? lk_Delta.x() : 0, mb_ResizableY ? lk_Delta.y() : 0));
 		event->accept();
 	}
 }

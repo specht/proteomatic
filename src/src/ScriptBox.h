@@ -69,6 +69,8 @@ protected slots:
 	virtual void showOutputBox(bool ab_Flag = true);
 	virtual void scriptParameterChanged(const QString& as_Key);
 	virtual void chooseOutputDirectory();
+	virtual void hidingBuddy();
+	virtual void showingBuddy();
 	
 signals:
 	virtual void scriptStarted();
@@ -91,4 +93,5 @@ protected:
 	QTabWidget* mk_TabWidget_;
 	QString ms_ConverterFilenamePattern;
 	QSet<QString> mk_ConverterFilenameAffectingParameters;
+	QSize mk_LastUserAdjustedSize;
 };
