@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "PipelineMainWindow.h"
 #include "Desktop.h"
+#include "MessageBox.h"
 #include "ProfileManager.h"
 #include "Proteomatic.h"
 #include "Yaml.h"
@@ -174,10 +175,10 @@ void k_PipelineMainWindow::newPipeline()
 	if (mk_Desktop_->hasUnsavedChanges())
 	{
 		// save discard cancel
-		int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes. Do you want to save the current pipeline?", ":/icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes, QMessageBox::Cancel);
+		int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?", "");
 		if (li_Button == QMessageBox::Cancel)
 			return;
-		if (li_Button == QMessageBox::Yes)
+		if (li_Button == QMessageBox::Save)
 		{
 			this->savePipelineAs();
 			if (mk_Desktop_->hasUnsavedChanges())

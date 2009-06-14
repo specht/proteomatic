@@ -104,7 +104,8 @@ public:
 	int showMessageBox(QString as_Title, QString as_Text, QString as_Icon = "", 
 		QMessageBox::StandardButtons ae_Buttons = QMessageBox::Ok, 
 		QMessageBox::StandardButton ae_DefaultButton = QMessageBox::Ok, 
-		QMessageBox::StandardButton ae_EscapeButton = QMessageBox::Ok);
+		QMessageBox::StandardButton ae_EscapeButton = QMessageBox::Ok,
+		QString as_InformativeText = QString(), QString as_DetailedText = QString());
 	void setMessageBoxParent(QWidget* ak_Widget_);
 	QWidget* messageBoxParent() const;
 	int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);
