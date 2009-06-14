@@ -170,12 +170,37 @@ QString k_PipelineMainWindow::outputPrefix()
 }
 
 
+void k_PipelineMainWindow::closeEvent(QCloseEvent* event)
+{
+	if (mk_Desktop_->hasUnsavedChanges())
+	{
+		// save discard cancel
+		int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?");
+		if (li_Button == QMessageBox::Cancel)
+		{
+			event->ignore();
+			return;
+		}
+		if (li_Button == QMessageBox::Save)
+		{
+			this->savePipelineAs();
+			if (mk_Desktop_->hasUnsavedChanges())
+			{
+				event->ignore();
+				return;
+			}
+		}
+	}
+	event->accept();
+}
+
+
 void k_PipelineMainWindow::newPipeline()
 {
 	if (mk_Desktop_->hasUnsavedChanges())
 	{
 		// save discard cancel
-		int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?", "");
+		int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?");
 		if (li_Button == QMessageBox::Cancel)
 			return;
 		if (li_Button == QMessageBox::Save)

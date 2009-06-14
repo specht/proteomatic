@@ -44,6 +44,9 @@ signals:
 	void outputDirectoryChanged(const QString& as_Path);
 	void outputPrefixChanged(const QString& as_Prefix);
 	void forceRefresh();
+	
+protected:
+	virtual void closeEvent(QCloseEvent* event);
 
 protected slots:
 	void newPipeline();
