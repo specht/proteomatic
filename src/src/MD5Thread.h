@@ -18,24 +18,18 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #pragma once
+#include <QThread>
 
-#include <QtGui>
-#include <QGraphicsView>
-
-class k_RevelioMainWindow: public QMainWindow
+class MD5Thread: public QThread
 {
 	Q_OBJECT
 public:
-	k_RevelioMainWindow(QWidget* ak_Parent_ = NULL);
-	virtual ~k_RevelioMainWindow();
+	MD5Thread();
+	void setValues(int li_min, int li_max);
 	
-public slots:
-	
-signals:
-	
-protected slots:
-	virtual void loadFile();
-
 protected:
-	QLabel* mk_Label_;
+	void run();
+private:
+	int li_qmin, li_qmax;
 };
+	

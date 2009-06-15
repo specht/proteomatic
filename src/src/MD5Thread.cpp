@@ -17,25 +17,25 @@ You should have received a copy of the GNU General Public License
 along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include <QTGui>
+#include "MD5Thread.h"
 
-#include <QtGui>
-#include <QGraphicsView>
-
-class k_RevelioMainWindow: public QMainWindow
+MD5Thread::MD5Thread()
 {
-	Q_OBJECT
-public:
-	k_RevelioMainWindow(QWidget* ak_Parent_ = NULL);
-	virtual ~k_RevelioMainWindow();
-	
-public slots:
-	
-signals:
-	
-protected slots:
-	virtual void loadFile();
+li_qmin=0;
+li_qmax=0;
+}
 
-protected:
-	QLabel* mk_Label_;
-};
+void MD5Thread::setValue(int li_min,int li_max)
+{
+li_qmin = li_min;
+li_qmax = li_max;
+}
+
+void MD5Thread::run()
+{
+for (int i = 0; i < li_qmax; i++)
+	{
+	for (volatile int j = 0; j < 12345; j++);
+	}
+}
