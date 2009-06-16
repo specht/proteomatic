@@ -112,6 +112,7 @@ struct IScript
 	// ak_Files is a hash {group => set of filenames}
 	virtual bool checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, QString& as_InputFilesErrorMessage) const = 0;
 	virtual QString proposePrefix(QStringList ak_Files) = 0;
+	virtual QStringList ambiguousInputGroups() = 0;
 
 	// output files
 	virtual QString outputDirectory() const = 0;

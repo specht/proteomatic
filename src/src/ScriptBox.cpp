@@ -29,6 +29,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tango.h"
 #include "UnclickableLabel.h"
 #include "LocalScript.h"
+#include "InputGroupProxyBox.h"
 
 
 k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
@@ -401,12 +402,28 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 	// collect input files
 	QStringList lk_InputFiles;
 	
+	QList<k_InputGroupProxyBox*> lk_ProxyBoxes;
+	
 	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
 	{
-		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-		if (lk_FileBox_)
+		k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
+		if (lk_ProxyBox_ && !lk_ProxyBox_->groupKey().isEmpty())
+			lk_ProxyBoxes.push_back(lk_ProxyBox_);
+		else
 		{
-			lk_InputFiles += lk_FileBox_->filenames();
+			IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+			if (lk_FileBox_)
+				lk_InputFiles += lk_FileBox_->filenames();
+		}
+	}
+	
+	foreach (k_InputGroupProxyBox* lk_ProxyBox_, lk_ProxyBoxes)
+	{
+		QStringList lk_Files = lk_ProxyBox_->filenames();
+		if (lk_Files.size() > 0)
+		{
+			lk_InputFiles.push_back("-" + lk_ProxyBox_->groupKey());
+			lk_InputFiles += lk_Files;
 		}
 	}
 

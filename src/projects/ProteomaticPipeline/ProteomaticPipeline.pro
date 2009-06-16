@@ -13,6 +13,7 @@ HEADERS += \
     ../../src/DesktopBoxFactory.h \
 	../../src/IDesktopBox.h \
 	../../src/IFileBox.h \
+	../../src/InputGroupProxyBox.h \
 	../../src/IScriptBox.h \
 	../../src/FileListBox.h \
 	../../src/OutFileListBox.h \
@@ -24,6 +25,7 @@ SOURCES += \
     ../../src/DesktopBox.cpp \
     ../../src/DesktopBoxFactory.cpp \
 	../../src/FileListBox.cpp \
+	../../src/InputGroupProxyBox.cpp \
 	../../src/OutFileListBox.cpp \
 	../../src/PipelineMainWindow.cpp \
 	../../src/ProteomaticPipelineMain.cpp \

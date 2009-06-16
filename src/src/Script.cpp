@@ -394,6 +394,12 @@ QString k_Script::proposePrefix(QStringList ak_Files)
 }
 
 
+QStringList k_Script::ambiguousInputGroups()
+{
+	return mk_AmbiguousInputGroups;
+}
+
+
 QString k_Script::parameterValue(const QString& as_Key) const
 {
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
@@ -713,6 +719,10 @@ void k_Script::clearOutputDirectoryButtonClicked()
 }
 
 
+// BIG TODO: prefix proposal does not take amibiguous input files into account,
+// any file which is ambiguous is just counted as the first group, not according
+// to how the user actually assigned the file
+
 QString k_Script::inputGroupForFilename(const QString& as_Path) const
 {
 	QString ls_Path = as_Path.toLower();
@@ -775,6 +785,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 {
 	ms_DefaultOutputDirectory.clear();
 	mk_ProposePrefixList.clear();
+	mk_AmbiguousInputGroups.clear();
 	mk_InputGroupKeys.clear();
 	mk_InputGroupLabels.clear();
 	mk_InputGroupDescriptions.clear();
@@ -880,6 +891,18 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				if (ls_Key == "!!!end proposePrefixList")
 					break;
 				mk_ProposePrefixList.push_back(ls_Key);
+			}
+		}
+		if (ls_Parameter == "!!!begin ambiguousInputGroups")
+		{
+			while (true)
+			{
+				QString ls_Key = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "!!!end ambiguousInputGroups")
+					break;
+				// ls_Key is an ambiguous input file group now,
+				// so we will need an extra input box for this
+				mk_AmbiguousInputGroups.push_back(ls_Key);
 			}
 		}
 		if (lk_Parameter["key"].length() > 0)
@@ -1353,7 +1376,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		{
 			QString ls_Label = lk_Parameter["label"];
 			if (ls_Key.startsWith("output") && !lk_Parameter["filename"].isEmpty())
-				ls_Label += QString(" (%1)").arg(lk_Parameter["filename"]);
+				ls_Label = "Write " + ls_Label + QString(" (%1)").arg(lk_Parameter["filename"]);
 			if (!lb_WidgetFirst)
 				ls_Label += ":";
 				
