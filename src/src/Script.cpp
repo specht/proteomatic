@@ -263,7 +263,7 @@ bool intStringLessThan(const QString& as_First, const QString& as_Second)
 }
 
 
-QString k_Script::proposePrefix(QStringList ak_Files)
+QString k_Script::mergeFilenames(QStringList ak_Files)
 {
 	if (ak_Files.empty())
 		return QString();
@@ -273,7 +273,7 @@ QString k_Script::proposePrefix(QStringList ak_Files)
 		lk_Files.push_back(QFileInfo(ls_Path).completeBaseName().split(".").first());
 	
 	if (lk_Files.size() == 1)
-		return lk_Files.first() + "-";
+		return lk_Files.first();
 	
 	QString ls_AllPattern;
 	QList<QSet<QString> > lk_AllParts;
@@ -373,7 +373,24 @@ QString k_Script::proposePrefix(QStringList ak_Files)
 		}
 	}
 
-	return ls_Prefix + "-";
+	return ls_Prefix;
+}
+
+
+QString k_Script::proposePrefix(QStringList ak_Files)
+{
+	QString ls_AllPrefix;
+	foreach (QString ls_Group, mk_ProposePrefixList)
+	{
+		QStringList lk_Files;
+		foreach (QString ls_Path, ak_Files)
+			if (inputGroupForFilename(ls_Path) == ls_Group)
+				lk_Files.push_back(ls_Path);
+		QString ls_Prefix = mergeFilenames(lk_Files);
+		if (!ls_Prefix.isEmpty())
+			ls_AllPrefix += ls_Prefix + "-";
+	}
+	return ls_AllPrefix;
 }
 
 
@@ -757,6 +774,7 @@ void k_Script::resetDialog()
 void k_Script::createParameterWidget(QStringList ak_Definition)
 {
 	ms_DefaultOutputDirectory.clear();
+	mk_ProposePrefixList.clear();
 	mk_InputGroupKeys.clear();
 	mk_InputGroupLabels.clear();
 	mk_InputGroupDescriptions.clear();
@@ -852,6 +870,16 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				if (ls_Key == "!!!end defaultOutputDirectory")
 					break;
 				ms_DefaultOutputDirectory = ls_Key;
+			}
+		}
+		if (ls_Parameter == "!!!begin proposePrefixList")
+		{
+			while (true)
+			{
+				QString ls_Key = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "!!!end proposePrefixList")
+					break;
+				mk_ProposePrefixList.push_back(ls_Key);
 			}
 		}
 		if (lk_Parameter["key"].length() > 0)

@@ -92,6 +92,7 @@ public:
 	// it just checks whether all min/max requirements are fulfilled.
 	// ak_Files is a hash {group => set of filenames}
 	virtual bool checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, QString& as_InputFilesErrorMessage) const;
+	virtual QString mergeFilenames(QStringList ak_Files);
 	virtual QString proposePrefix(QStringList ak_Files);
 
 	// output files
@@ -148,6 +149,7 @@ protected:
 	QString ms_Description;
 	bool mb_HasParameters;
 	QString ms_DefaultOutputDirectory;
+	QStringList mk_ProposePrefixList;
 
 	RefPtr<QWidget> mk_pParameterWidget;
 	

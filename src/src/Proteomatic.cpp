@@ -323,7 +323,7 @@ void k_Proteomatic::collectScriptInfo()
 			bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
 			
 			// disable cache if we're trunk!
-			if (gs_ProteomaticVersion == "trunk")
+			if (version() == "trunk")
 			  lb_UseCache = false;
 			  
 			if (lb_UseCache)

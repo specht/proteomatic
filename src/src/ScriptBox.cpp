@@ -356,7 +356,6 @@ void k_ScriptBox::proposePrefixButtonClicked(bool ab_NotifyOnFailure)
 // 		if ((!ls_CommonPrefix.isEmpty()) && (ls_CommonPrefix.right(1) != "-"))
 // 			ls_CommonPrefix += "-";
 // 		mk_Prefix.setText(ls_CommonPrefix);
-	printf("proposing prefix...\n");
 	QString ls_Result = mk_pScript->proposePrefix(lk_InputFiles);
 	if (!ls_Result.isEmpty())
 	{
