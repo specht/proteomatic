@@ -151,12 +151,6 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
 }
 
 
-QString k_LocalScript::proposePrefix(QStringList ak_Parameters)
-{
-	return mk_Proteomatic.syncRuby((QStringList() << this->uri()) << this->commandLineArguments() << "--proposePrefix" << ak_Parameters);
-}
-
-
 void k_LocalScript::kill(const QString& /*as_Ticket*/)
 {
 	mk_Process.kill();

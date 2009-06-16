@@ -39,7 +39,6 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 {
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
-	connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputDirectoryChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 	connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputPrefixChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
@@ -99,8 +98,15 @@ QString k_ScriptBox::outputDirectory() const
 {
 	if (!mk_OutputDirectory.text().isEmpty())
 		return mk_OutputDirectory.text();
+	
+	// if no output directory has been set, return the directory of one of the
+	// output directory specifying input files
+	
+	// ...but, if it's empty, return nothing!
+	if (ms_OutputDirectoryDefiningInputPath.isEmpty())
+		return QString();
 
-	return mk_Desktop_->pipelineMainWindow().outputDirectory();
+	return QFileInfo(ms_OutputDirectoryDefiningInputPath).dir().path();
 }
 
 
@@ -246,6 +252,12 @@ void k_ScriptBox::updateBatchMode()
 
 void k_ScriptBox::updateOutputFilenames()
 {
+	this->determineOutputDirectoryDefiningInputFile();
+	
+	// auto-prefix if not converter script
+/*	if (mk_pScript->type() != r_ScriptType::Converter)
+		this->proposePrefixButtonClicked(false);*/
+	
 	if (batchMode())
 	{
 		foreach (QString ls_Key, mk_OutputFileBoxes.keys())
@@ -265,7 +277,7 @@ void k_ScriptBox::updateOutputFilenames()
 						ls_OutFilename.remove(ls_OutFilename.length() - ls_Suffix.length() - 1, ls_Suffix.length() + 1);
 						QString ls_OutPath = ls_OutFilename + "-" + lk_SourceBox_->tagForFilename(ls_Path) + "." + ls_Suffix;
 						ls_OutPath = ls_OutPath;
-						lk_Filenames.append(QFileInfo(QDir(mk_Desktop_->pipelineMainWindow().outputDirectory()), ls_OutPath).absoluteFilePath());
+						//lk_Filenames.append(QFileInfo(QDir(mk_Desktop_->pipelineMainWindow().outputDirectory()), ls_OutPath).absoluteFilePath());
 					}
 				}
 			}
@@ -327,46 +339,34 @@ void k_ScriptBox::updateOutputFilenames()
 }
 
 
-void k_ScriptBox::proposePrefixButtonClicked()
+void k_ScriptBox::proposePrefixButtonClicked(bool ab_NotifyOnFailure)
 {
-	if (mk_pScript->location() == r_ScriptLocation::Local)
+	// collect all input files
+	QStringList lk_InputFiles;
+	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
 	{
-		// collect all input files
-		QStringList lk_InputFiles;
-		foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
-		{
-			IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-			if (lk_FileBox_)
-			{
-				foreach (QString ls_Path, lk_FileBox_->filenames())
-				{
-					QString ls_Group = mk_pScript->inputGroupForFilename(ls_Path);
-					// TODO: only append files that are in the correct group!!
-					// NAH: not necessary, the script will sort it out
-					lk_InputFiles.append(ls_Path);
-				}
-			}
-		}
+		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+		if (lk_FileBox_)
+			foreach (QString ls_Path, lk_FileBox_->filenames())
+				lk_InputFiles.append(ls_Path);
+	}
 // 		QHash<QString, QString> lk_Tags;
 // 		QString ls_CommonPrefix;
 // 		mk_Desktop_->createFilenameTags(lk_InputFiles, lk_Tags, ls_CommonPrefix);
 // 		if ((!ls_CommonPrefix.isEmpty()) && (ls_CommonPrefix.right(1) != "-"))
 // 			ls_CommonPrefix += "-";
 // 		mk_Prefix.setText(ls_CommonPrefix);
-		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer()))->proposePrefix(lk_InputFiles);
-		if (ls_Result.startsWith("--proposePrefix"))
-		{
-			QStringList lk_Result = ls_Result.split("\n");
-			mk_Prefix.setText(lk_Result[1].trimmed());
-		}
-		else
-		{
-			mk_Proteomatic.showMessageBox("Propose prefix", 
-				"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
-				":/icons/emblem-important.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
-		}
+	printf("proposing prefix...\n");
+	QString ls_Result = mk_pScript->proposePrefix(lk_InputFiles);
+	if (!ls_Result.isEmpty())
+	{
+		mk_Prefix.setText(ls_Result);
+		mk_Desktop_->setHasUnsavedChanges(true);
 	}
-	mk_Desktop_->setHasUnsavedChanges(true);
+	if (ls_Result.isEmpty() && ab_NotifyOnFailure)
+		mk_Proteomatic.showMessageBox("Propose prefix", 
+			"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
+			":/icons/emblem-important.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
 }
 
 
@@ -389,7 +389,8 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 	QHash<QString, QString> lk_Parameters;
 
 	// set output directory
-	lk_Parameters["-outputDirectory"] = this->outputDirectory();
+	if (!this->outputDirectory().isEmpty())
+		lk_Parameters["-outputDirectory"] = this->outputDirectory();
 
 	// set output prefix
 	lk_Parameters["-outputPrefix"] = mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text();
@@ -621,6 +622,7 @@ void k_ScriptBox::setupLayout()
 	mk_Prefix.setHint("output file prefix");
 	lk_HLayout_->addWidget(&mk_Prefix);
 	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
+	connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SIGNAL(outputPrefixChanged()));
 	connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 
 	QToolButton* lk_ClearPrefixButton_ = new QToolButton(this);
@@ -641,6 +643,7 @@ void k_ScriptBox::setupLayout()
 	mk_OutputDirectory.setHint("output directory");
 	mk_OutputDirectory.setReadOnly(true);
 	lk_HLayout_->addWidget(&mk_OutputDirectory);
+	connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SIGNAL(outputDirectoryChanged()));
 	connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 
 	QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(this);
@@ -725,4 +728,30 @@ void k_ScriptBox::setupLayout()
 	}
 	lk_VLayout_->addStretch();
 	mk_LastUserAdjustedSize = QSize(0, 0);
+}
+
+
+void k_ScriptBox::determineOutputDirectoryDefiningInputFile()
+{
+	QString ls_OldValue = ms_OutputDirectoryDefiningInputPath;
+	ms_OutputDirectoryDefiningInputPath = QString();
+	QStringList lk_InterestingInputFiles;
+	foreach (IDesktopBox* lk_Box_, this->incomingBoxes())
+	{
+		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+		if (lk_FileBox_)
+		{
+			foreach (QString ls_Path, lk_FileBox_->filenames())
+			{
+				if (mk_pScript->inputGroupForFilename(ls_Path) == mk_pScript->defaultOutputDirectoryInputGroup())
+					lk_InterestingInputFiles.push_back(ls_Path);
+			}
+		}
+	}
+	if (lk_InterestingInputFiles.empty())
+		return;
+	qSort(lk_InterestingInputFiles.begin(), lk_InterestingInputFiles.end());
+	ms_OutputDirectoryDefiningInputPath = lk_InterestingInputFiles.first();
+	if (ms_OutputDirectoryDefiningInputPath != ls_OldValue)
+		emit outputDirectoryChanged();
 }

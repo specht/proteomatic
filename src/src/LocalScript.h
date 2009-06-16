@@ -32,7 +32,6 @@ public:
 	virtual ~k_LocalScript();
 	
 	virtual QString readAll();
-	virtual QString proposePrefix(QStringList ak_Parameters = QStringList());
 	
 public slots:
 	virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash());

@@ -59,6 +59,7 @@ public:
 	
 	virtual void setHasUnsavedChanges(bool ab_Flag);
 	virtual bool hasUnsavedChanges() const;
+	virtual QSet<IDesktopBox*> selectedBoxes() const;
 	
 public slots:
 	virtual void clearAll();
@@ -73,6 +74,7 @@ public slots:
 signals:
 	virtual void pipelineIdle(bool);
 	virtual void showAllRequested();
+	virtual void selectionChanged();
 	
 protected slots:
 	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());

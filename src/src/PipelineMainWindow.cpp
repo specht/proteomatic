@@ -20,6 +20,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "PipelineMainWindow.h"
 #include "Desktop.h"
+#include "IFileBox.h"
+#include "IScriptBox.h"
+#include "MessageBox.h"
 #include "ProfileManager.h"
 #include "Proteomatic.h"
 #include "Yaml.h"
@@ -30,13 +33,14 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	, mk_Desktop_(new k_Desktop(this, ak_Proteomatic, *this))
 	, mk_Proteomatic(ak_Proteomatic)
 	, mk_OutputPrefix_(new QLineEdit(this))
-	, mk_OutputDirectory_(new QLineEdit(this))
 	, mk_CurrentScriptBox_(NULL)
 	, ms_PipelineFilename(QString())
+	, mk_WatchedBoxObject_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	
 	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), this, SIGNAL(forceRefresh()));
+	connect(mk_Desktop_, SIGNAL(selectionChanged()), this, SLOT(updateStatusBar()));
 
 	setWindowIcon(QIcon(":/icons/proteomatic-pipeline.png"));
 	setWindowTitle("Proteomatic Pipeline");
@@ -57,6 +61,9 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_HSplitter_->setChildrenCollapsible(false);
 
 	statusBar()->show();
+	mk_StatusBarMessage_ = new QLabel("", this);
+	statusBar()->addWidget(mk_StatusBarMessage_);
+	updateStatusBar();
 	
 	QToolBar* lk_AddToolBar_ = new QToolBar(this);
 	lk_AddToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -113,19 +120,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	mk_ClearPrefixForAllScriptsAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "", mk_Desktop_, SLOT(clearPrefixForAllScripts()));
 	mk_ProposePrefixForAllScriptsAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/select-continuous-area.png"), "", mk_Desktop_, SLOT(proposePrefixForAllScripts()));
-	
-	lk_OtherToolBar_->addSeparator();
-	
-	lk_OtherToolBar_->addWidget(new QLabel("Global output directory: ", this));
-	
-	QString ls_Path = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString();
-	if (!QFileInfo(ls_Path).isDir())
-		ls_Path = QDir::homePath();
-	this->setOutputDirectory(ls_Path);
-	mk_OutputDirectory_->setReadOnly(true);
-	
-	lk_OtherToolBar_->addWidget(mk_OutputDirectory_);
-	mk_ChooseOutputDirectoryAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/folder.png"), "", this, SLOT(chooseOutputDirectory()));
+	mk_ProposePrefixForAllScriptsAction_->setCheckable(true);
 	
 	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
 	addToolBarBreak(Qt::TopToolBarArea);
@@ -157,12 +152,6 @@ k_PipelineMainWindow::~k_PipelineMainWindow()
 }
 
 
-QString k_PipelineMainWindow::outputDirectory()
-{
-	return mk_OutputDirectory_->text();
-}
-
-
 QString k_PipelineMainWindow::outputPrefix()
 {
 	return mk_OutputPrefix_->text();
@@ -171,44 +160,36 @@ QString k_PipelineMainWindow::outputPrefix()
 
 void k_PipelineMainWindow::closeEvent(QCloseEvent* event)
 {
-	if (mk_Desktop_->hasUnsavedChanges())
-	{
-		// save discard cancel
-		int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?");
-		if (li_Button == QMessageBox::Cancel)
-		{
-			event->ignore();
-			return;
-		}
-		if (li_Button == QMessageBox::Save)
-		{
-			this->savePipelineAs();
-			if (mk_Desktop_->hasUnsavedChanges())
-			{
-				event->ignore();
-				return;
-			}
-		}
-	}
-	event->accept();
+	if (askForSaveIfNecessary())
+		event->accept();
+	else
+		event->ignore();
 }
 
 
-void k_PipelineMainWindow::newPipeline()
+bool k_PipelineMainWindow::askForSaveIfNecessary()
 {
 	if (mk_Desktop_->hasUnsavedChanges())
 	{
 		// save discard cancel
 		int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?");
 		if (li_Button == QMessageBox::Cancel)
-			return;
+			return false;
 		if (li_Button == QMessageBox::Save)
 		{
 			this->savePipelineAs();
 			if (mk_Desktop_->hasUnsavedChanges())
-				return;
+				return false;
 		}
 	}
+	return true;
+}
+
+
+void k_PipelineMainWindow::newPipeline()
+{
+	if (!askForSaveIfNecessary())
+		return;
 	mk_Desktop_->clearAll();
 	mk_Desktop_->setHasUnsavedChanges(false);
 	ms_PipelineFilename = QString();
@@ -218,6 +199,8 @@ void k_PipelineMainWindow::newPipeline()
 
 void k_PipelineMainWindow::loadPipeline()
 {
+	if (!askForSaveIfNecessary())
+		return;
 	QString ls_Path;
 	ls_Path = QFileDialog::getOpenFileName(this, "Load pipeline", mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PIPELINE_PATH).toString(), "Proteomatic Pipeline (*.pipeline)");
 	if (!ls_Path.isEmpty())
@@ -298,29 +281,6 @@ void k_PipelineMainWindow::addFileListBox()
 }
 
 
-void k_PipelineMainWindow::chooseOutputDirectory()
-{
-	QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
-	if (ls_Path.length() > 0)
-	{
-		this->setOutputDirectory(ls_Path);
-		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_OUTPUT_PATH] = ls_Path;
-	}
-}
-
-
-void k_PipelineMainWindow::setOutputDirectory(QString as_Path)
-{
-	if (!mk_OutputDirectory_->text().isEmpty())
-		mk_FileSystemWatcher.removePath(mk_OutputDirectory_->text());
-
-	mk_OutputDirectory_->setText(as_Path);
-	mk_FileSystemWatcher.addPath(mk_OutputDirectory_->text());
-
-	emit outputDirectoryChanged(as_Path);
-}
-
-
 void k_PipelineMainWindow::resetParameters()
 {
 	if (!mk_CurrentScriptBox_)
@@ -354,6 +314,45 @@ void k_PipelineMainWindow::showAll()
 }
 
 
+void k_PipelineMainWindow::updateStatusBar()
+{
+	QSet<IDesktopBox*> lk_SelectedBoxes = mk_Desktop_->selectedBoxes();
+	mk_StatusBarMessage_->setText("");
+/*	QObject* lk_Object_ = dynamic_cast<QObject*>(mk_WatchedBoxObject_);
+	if (lk_Object_ != NULL)
+		disconnect(lk_Object_, NULL, this, SLOT(updateStatusBar()));*/
+	mk_WatchedBoxObject_ = NULL;
+	if (lk_SelectedBoxes.size() == 1)
+	{
+		IDesktopBox* lk_Box_ = lk_SelectedBoxes.toList().first();
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+		if (lk_ScriptBox_)
+		{
+			QString ls_OutputDirectory = lk_ScriptBox_->outputDirectory();
+			if (ls_OutputDirectory.isEmpty())
+				ls_OutputDirectory = "<i>undefined</i>";
+			mk_StatusBarMessage_->setText("<b>Output directory:</b> " + ls_OutputDirectory);
+			QObject* lk_BoxObject_ = dynamic_cast<QObject*>(lk_ScriptBox_);
+			connect(lk_BoxObject_, SIGNAL(outputDirectoryChanged()), this, SLOT(updateStatusBar()));
+			mk_WatchedBoxObject_ = lk_BoxObject_;
+		}
+		else if (lk_FileBox_)
+		{
+			QStringList lk_Filenames = lk_FileBox_->filenames(); 
+			if (lk_Filenames.size() == 1)
+			{
+				QString ls_Path = lk_Filenames.first();
+				mk_StatusBarMessage_->setText(ls_Path);
+				QObject* lk_BoxObject_ = dynamic_cast<QObject*>(lk_FileBox_);
+				connect(lk_BoxObject_, SIGNAL(filenamesChanged()), this, SLOT(updateStatusBar()));
+				mk_WatchedBoxObject_ = lk_BoxObject_;
+			}
+		}
+	}
+}
+
+
 void k_PipelineMainWindow::toggleUi()
 {
 	setWindowTitle(QString("%1%2 - Proteomatic Pipeline %3").arg(ms_PipelineFilename.isEmpty()? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName()).arg(mk_Desktop_->hasUnsavedChanges() ? " [modified]" : "").arg(mk_Proteomatic.version()));
@@ -370,8 +369,6 @@ void k_PipelineMainWindow::toggleUi()
 	mk_ProfileManagerAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
 	mk_ResetParametersAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && mk_CurrentScriptBox_);
 	mk_OutputPrefix_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-	mk_OutputDirectory_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-	mk_ChooseOutputDirectoryAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_ClearPrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
 	mk_ProposePrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
 }

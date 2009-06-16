@@ -741,24 +741,16 @@ void k_ScriptHelper::proposePrefix()
 	if (mk_pScript->status() == r_ScriptStatus::Running)
 		return;
 
-	QStringList lk_Arguments;
+	QStringList lk_Files;
 
 	for (int i = 0; i < mk_FileList.files().size(); ++i)
-		lk_Arguments.push_back(mk_FileList.files()[i]);
+		lk_Files.push_back(mk_FileList.files()[i]);
 
-	if (mk_pScript->location() == r_ScriptLocation::Local)
-	{
-		QString ls_Result = (dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer()))->proposePrefix(lk_Arguments);
-		if (ls_Result.startsWith("--proposePrefix"))
-		{
-			QStringList lk_Result = ls_Result.split("\n");
-			mk_pScript->setOutputFilePrefix(lk_Result[1].trimmed());
-		}
-		else
-		{
-			mk_Proteomatic.showMessageBox("Propose prefix", 
-				"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
-				":/icons/emblem-important.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
-		}
-	}
+	QString ls_Result = mk_pScript->proposePrefix(lk_Files);
+	if (!ls_Result.isEmpty())
+		mk_pScript->setOutputFilePrefix(ls_Result);
+	else
+		mk_Proteomatic.showMessageBox("Propose prefix", 
+			"<p>Sorry, but Proteomatic was unable to propose a prefix.</p>", 
+			":/icons/emblem-important.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
 }

@@ -181,6 +181,7 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	mb_HasUnsavedChanges = true;
 	mk_PipelineMainWindow.toggleUi();
 	mk_DeleteBoxStackSet.remove(ak_Box_);
+	emit selectionChanged();
 }
 
 
@@ -534,6 +535,12 @@ bool k_Desktop::hasUnsavedChanges() const
 }
 
 
+QSet<IDesktopBox*> k_Desktop::selectedBoxes() const
+{
+	return mk_SelectedBoxes;
+}
+
+
 void k_Desktop::clearAll()
 {
 	while (!mk_Boxes.empty())
@@ -738,6 +745,7 @@ void k_Desktop::boxClicked(QMouseEvent* event)
 	}
 	redrawSelection();
 	moveSelectedBoxesStart(lk_Box_);
+	emit selectionChanged();
 }
 
 
@@ -908,6 +916,7 @@ void k_Desktop::deleteSelected()
 	
 	redrawSelection();
 	redrawBatchFrame();
+	emit selectionChanged();
 }
 
 
@@ -968,6 +977,7 @@ void k_Desktop::clearSelection()
 {
 	mk_SelectedBoxes.clear();
 	mk_SelectedArrows.clear();
+	emit selectionChanged();
 }
 
 
@@ -1012,6 +1022,7 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 	}
 	redrawSelection();
 	mk_PipelineMainWindow.toggleUi();
+	refresh();
 }
 
 
@@ -1079,6 +1090,7 @@ void k_Desktop::mousePressEvent(QMouseEvent* event)
 				else
 					mk_SelectedArrows.insert(lk_Arrow_);
 				redrawSelection();
+				emit selectionChanged();
 			}
 		}
 	}

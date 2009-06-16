@@ -87,10 +87,12 @@ public:
 	virtual QString inputGroupLabel(const QString& as_Key) const;
 	virtual QStringList inputGroupExtensions(const QString& as_Key) const;
 	virtual QString inputGroupForFilename(const QString& as_Path) const;
+	virtual QString defaultOutputDirectoryInputGroup() const;
 	// checkInputFiles doesn't care whether files are actually there,
 	// it just checks whether all min/max requirements are fulfilled.
 	// ak_Files is a hash {group => set of filenames}
 	virtual bool checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, QString& as_InputFilesErrorMessage) const;
+	virtual QString proposePrefix(QStringList ak_Files);
 
 	// output files
 	virtual QString outputDirectory() const;

@@ -257,6 +257,126 @@ bool k_Script::checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, Q
 }
 
 
+bool intStringLessThan(const QString& as_First, const QString& as_Second)
+{
+	return QVariant(as_First).toInt() < QVariant(as_Second).toInt();
+}
+
+
+QString k_Script::proposePrefix(QStringList ak_Files)
+{
+	if (ak_Files.empty())
+		return QString();
+	
+	QStringList lk_Files;
+	foreach (QString ls_Path, ak_Files)
+		lk_Files.push_back(QFileInfo(ls_Path).completeBaseName().split(".").first());
+	
+	if (lk_Files.size() == 1)
+		return lk_Files.first() + "-";
+	
+	QString ls_AllPattern;
+	QList<QSet<QString> > lk_AllParts;
+	foreach (QString ls_Path, lk_Files)
+	{
+		QString ls_Pattern;
+		QList<QString> lk_Parts;
+		for (int i = 0; i < ls_Path.size(); ++i)
+		{
+			bool lb_IsDigit = ls_Path[i].toAscii() >= '0' && ls_Path[i].toAscii() <= '9';
+			QString ls_Marker = lb_IsDigit ? "0" : "a";
+			if (ls_Pattern.isEmpty())
+			{
+				ls_Pattern = ls_Marker;
+				lk_Parts.push_back("");
+			}
+			if (ls_Pattern.right(1) != ls_Marker)
+			{
+				ls_Pattern += ls_Marker;
+				lk_Parts.push_back("");
+			}
+			lk_Parts.last() += ls_Path[i];
+		}
+		if (ls_AllPattern.isEmpty())
+			ls_AllPattern = ls_Pattern;
+		else
+			if (ls_AllPattern != ls_Pattern)
+				return QString();
+			
+		if (lk_AllParts.empty())
+			for (int i = 0; i < lk_Parts.size(); ++i)
+				lk_AllParts.push_back(QSet<QString>());
+			
+		for (int i = 0; i < lk_Parts.size(); ++i)
+			lk_AllParts[i].insert(lk_Parts[i]);
+	}
+	
+	QString ls_Prefix = "";
+	for (int i = 0; i < ls_AllPattern.length(); ++i)
+	{
+		QStringList lk_Part = lk_AllParts[i].toList();
+		if (ls_AllPattern[i] == QChar('a'))
+			qSort(lk_Part.begin(), lk_Part.end());
+		else
+			qSort(lk_Part.begin(), lk_Part.end(), &intStringLessThan);
+		
+		if (lk_Part.size() == 1)
+			ls_Prefix += lk_Part.first();
+		else
+		{
+			if (ls_AllPattern[i] == QChar('0'))
+			{
+				// we have multiple entries and it's a number part, try to find ranges!
+				QString ls_Start;
+				QString ls_Stop;
+				QString ls_Last;
+				QStringList lk_OldPart = lk_Part;
+				lk_Part.clear();
+				foreach (QString si, lk_OldPart)
+				{
+					int li_Number = QVariant(si).toInt();
+					if (ls_Start.isEmpty())
+					{
+						ls_Start = si;
+						ls_Stop = si;
+						ls_Last = si;
+						continue;
+					}
+					if (li_Number == QVariant(ls_Last).toInt() + 1)
+					{
+						// extend range
+						ls_Stop = si;
+						ls_Last = si;
+						continue;
+					}
+					else
+					{
+						if (QVariant(ls_Start).toInt() == QVariant(ls_Stop).toInt())
+							lk_Part.push_back(ls_Start);
+						else if (QVariant(ls_Start).toInt() + 1 == QVariant(ls_Stop).toInt())
+							lk_Part.push_back(ls_Start + "," + ls_Stop);
+						else
+							lk_Part.push_back(ls_Start + "-" + ls_Stop);
+						ls_Start = si;
+						ls_Stop = si;
+						ls_Last = si;
+					}
+				}
+				if (QVariant(ls_Start).toInt() == QVariant(ls_Stop).toInt())
+					lk_Part.push_back(ls_Start);
+				else if (QVariant(ls_Start).toInt() + 1 == QVariant(ls_Stop).toInt())
+					lk_Part.push_back(ls_Start + "," + ls_Stop);
+				else
+					lk_Part.push_back(ls_Start + "-" + ls_Stop);
+			}
+			ls_Prefix += lk_Part.join(",");
+		}
+	}
+
+	return ls_Prefix + "-";
+}
+
+
 QString k_Script::parameterValue(const QString& as_Key) const
 {
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
@@ -591,6 +711,12 @@ QString k_Script::inputGroupForFilename(const QString& as_Path) const
 }
 
 
+QString k_Script::defaultOutputDirectoryInputGroup() const
+{
+	return ms_DefaultOutputDirectory;
+}
+
+
 void k_Script::setOutputDirectoryButtonClicked()
 {
 	if (!mk_pOutputDirectory)
@@ -812,7 +938,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 		if (!ms_DefaultOutputDirectory.isEmpty())
 		{
-			lk_Label_ = new QLabel("Unless an output directory is specified, the output files will be written to the directory of the first " + ms_DefaultOutputDirectory + " file.", lk_InternalWidget_);
+			lk_Label_ = new QLabel("Unless an output directory is specified, the output files will be written to the directory of one of the " + mk_InputGroupLabels[ms_DefaultOutputDirectory] + " files.", lk_InternalWidget_);
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}

@@ -106,10 +106,12 @@ struct IScript
 	virtual QString inputGroupLabel(const QString& as_Key) const = 0;
 	virtual QStringList inputGroupExtensions(const QString& as_Key) const = 0;
 	virtual QString inputGroupForFilename(const QString& as_Path) const = 0;
+	virtual QString defaultOutputDirectoryInputGroup() const = 0;
 	// checkInputFiles doesn't care whether files are actually there,
 	// it just checks whether all min/max requirements are fulfilled.
 	// ak_Files is a hash {group => set of filenames}
 	virtual bool checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, QString& as_InputFilesErrorMessage) const = 0;
+	virtual QString proposePrefix(QStringList ak_Files) = 0;
 
 	// output files
 	virtual QString outputDirectory() const = 0;
