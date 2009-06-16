@@ -9,10 +9,12 @@ win32 {
 # Input
 HEADERS += \
 	../../src/RevelioMainWindow.h \
+	../../src/Surface.h \
 
 SOURCES += \
 	../../src/RevelioMainWindow.cpp \
 	../../src/RevelioMain.cpp \
+	../../src/Surface.cpp \
 	
 RESOURCES += \
 	../../src/Proteomatic.qrc \
