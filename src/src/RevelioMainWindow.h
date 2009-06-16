@@ -20,7 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
-#include <QGraphicsView>
+#include "Surface.h"
 
 class k_RevelioMainWindow: public QMainWindow
 {
@@ -37,5 +37,7 @@ protected slots:
 	virtual void loadFile();
 
 protected:
-	QLabel* mk_Label_;
+	//k_Surface* mk_Surface_;
+	k_Surface mk_Surface;
+	//RefPtr<k_Surface> mk_pSurface;
 };

@@ -17,25 +17,40 @@ You should have received a copy of the GNU General Public License
 along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
 #include <QtGui>
-#include "MD5Thread.h"
+//#include "ISurfaceBox.h"
 
-MD5Thread::MD5Thread()
-{
-li_qmin=0;
-li_qmax=0;
-}
+class k_RevelioMainWindow;
 
-void MD5Thread::setValue(int li_min,int li_max)
-{
-li_qmin = li_min;
-li_qmax = li_max;
-}
 
-void MD5Thread::run()
+class k_Surface: public QGraphicsView
 {
-for (int i = 0; i < li_qmax; i++)
-	{
-	for (volatile int j = 0; j < 12345; j++);
-	}
-}
+	Q_OBJECT
+public:
+	k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_ = NULL);
+	virtual ~k_Surface();
+	
+	virtual QGraphicsScene& graphicsScene();
+	//virtual void addRect(ISurfaceBox* ak_Box_);
+	
+public slots:
+//addRect(QRectf());
+	
+signals:
+
+protected:
+	
+	virtual void resizeEvent(QResizeEvent* event);
+	
+	k_RevelioMainWindow& mk_RevelioMainWindow;
+	QGraphicsScene mk_GraphicsScene;
+	
+	
+	float mf_SceneWidth2; 
+	float mf_SceneHeight2;
+	
+	
+	
+	
+};
