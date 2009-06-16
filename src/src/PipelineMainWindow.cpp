@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "PipelineMainWindow.h"
 #include "Desktop.h"
-#include "MessageBox.h"
 #include "ProfileManager.h"
 #include "Proteomatic.h"
 #include "Yaml.h"
