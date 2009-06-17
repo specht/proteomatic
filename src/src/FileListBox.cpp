@@ -147,6 +147,7 @@ void k_FileListBox::setupLayout()
 	lk_HLayout_ = new QHBoxLayout();
 	lk_HLayout_->addWidget(&mk_FileList);
 	connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
+	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(toggleUi()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(filenamesChanged()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(updateFilenameTags()));
 	mk_FileList.resize(100, 100);

@@ -28,7 +28,9 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_F
 	, mb_FileMode(ab_FileMode)
 	, mb_Refreshing(false)
 {
-	setSelectionMode(QAbstractItemView::ExtendedSelection);
+	//setSelectionMode(QAbstractItemView::ExtendedSelection);
+	setAcceptDrops(true);
+	setDragDropMode(QAbstractItemView::DropOnly);
 	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 	connect(this, SIGNAL(myItemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 }
@@ -193,6 +195,37 @@ void k_FileList::mouseDoubleClickEvent(QMouseEvent* event)
 	QListWidgetItem* lk_Item_ = itemAt(event->pos());
 	if (lk_Item_)
 		emit myItemDoubleClicked(lk_Item_);
+}
+
+
+void k_FileList::dragEnterEvent(QDragEnterEvent* event)
+{
+	event->acceptProposedAction();
+}
+
+
+void k_FileList::dragMoveEvent(QDragMoveEvent* event)
+{
+	event->acceptProposedAction();
+}
+
+
+void k_FileList::dropEvent(QDropEvent* event)
+{
+	event->accept();
+	foreach (QUrl lk_Url, event->mimeData()->urls())
+	{
+		QString ls_Path = lk_Url.toLocalFile();
+		if (!ls_Path.isEmpty())
+			if (QFileInfo(ls_Path).isFile())
+				addInputFile(ls_Path, true);
+	}
+}
+
+
+Qt::DropActions k_FileList::supportedDropActions() const
+{
+	return Qt::ActionMask;
 }
 
 

@@ -246,8 +246,6 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 				if (mk_pScript)
 					mk_pScript->setOutputDirectory(ls_Path);
 			}
-/*			else
-				addInputFile(ls_Path);*/
 		}
 	}
 }
@@ -796,9 +794,9 @@ void k_ScriptHelper::proposePrefix()
 
 	QStringList lk_Files;
 
-	for (int i = 0; i < mk_FileLists[""]->files().size(); ++i)
-		lk_Files.push_back(mk_FileLists[""]->files()[i]);
-
+	foreach (QString ls_GroupKey, mk_FileLists.keys())
+		lk_Files += mk_FileLists[ls_GroupKey]->files();
+	
 	QString ls_Result = mk_pScript->proposePrefix(lk_Files);
 	if (!ls_Result.isEmpty())
 		mk_pScript->setOutputFilePrefix(ls_Result);
