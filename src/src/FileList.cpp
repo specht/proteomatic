@@ -176,7 +176,7 @@ void k_FileList::removeSelection()
 
 void k_FileList::keyPressEvent(QKeyEvent* ak_Event_)
 {
-	if (ak_Event_->key() == Qt::Key_Delete)
+	if (ak_Event_->matches(QKeySequence::Delete) || ak_Event_->key() == Qt::Key_Backspace)
 	{
 		ak_Event_->accept();
 		removeSelection();

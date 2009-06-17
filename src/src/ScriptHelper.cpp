@@ -33,7 +33,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
 	: QMainWindow(ak_Parent_)
 	, ms_WindowTitle("Proteomatic")
-	, mk_FileList(NULL, true, true)
 	, mk_MainLayout(this)
 	, mb_VersionChanged(false)
 	, mk_Proteomatic(ak_Proteomatic)
@@ -52,21 +51,15 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	//lk_StatusBar_->addWidget(0, mk_ProteomaticScriptVersionLabel_);
 	//this->setStatusBar(lk_StatusBar_);
 	
-	QWidget* lk_UpperLayoutWidget_ = new QWidget(this);
 	QWidget* lk_LowerLayoutWidget_ = new QWidget(this);
-	mk_UpperLayout_ = new QVBoxLayout(lk_UpperLayoutWidget_);
 	mk_LowerLayout_ = new QVBoxLayout(lk_LowerLayoutWidget_);
-	mk_UpperLayout_->setContentsMargins(0, 0, 0, 8);
 	mk_LowerLayout_->setContentsMargins(0, 0, 0, 0);
 
 	mk_VSplitter_ = new QSplitter(this);
-	mk_VSplitter_->setStyle(new QPlastiqueStyle());
 	mk_VSplitter_->setOrientation(Qt::Vertical);
-	mk_VSplitter_->setHandleWidth(4);
+	mk_VSplitter_->hide();
 	mk_HSplitter_ = new QSplitter(this);
-	mk_HSplitter_->setStyle(new QPlastiqueStyle());
 	mk_HSplitter_->setOrientation(Qt::Horizontal);
-	mk_HSplitter_->setHandleWidth(4);
 
 /*
 	QFrame* lk_Frame_ = new QFrame(this);
@@ -133,31 +126,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 
 	//connect(&mk_LoadScriptButton, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
 
-	QLabel* lk_Label_ = new QLabel("<b>Input files</b>", this);
-	mk_UpperLayout_->addWidget(lk_Label_);
-
-	lk_Container_ = new QWidget(this);
-	lk_Label_->setBuddy(lk_Container_);
-	lk_Container_->setContentsMargins(0, 0, 0, 0);
-	lk_GroupBoxLayout_ = new QHBoxLayout(lk_Container_);
-	lk_GroupBoxLayout_->setMargin(0);
-	lk_GroupBoxLayout_->addWidget(&mk_FileList);
-	mk_AddFilesButton.setIcon(QIcon(":/icons/document-open.png"));
-	connect(&mk_AddFilesButton, SIGNAL(clicked()), this, SLOT(loadFilesButtonClicked()));
-	mk_RemoveInputFileButton.setIcon(QIcon(":/icons/list-remove.png"));
-	connect(&mk_RemoveInputFileButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
-	connect(&mk_FileList, SIGNAL(itemSelectionChanged()), this, SLOT(toggleUi()));
-	QBoxLayout* lk_SubLayout_ = new QVBoxLayout();
-	lk_SubLayout_->addWidget(&mk_AddFilesButton);
-	lk_SubLayout_->addWidget(&mk_RemoveInputFileButton);
-	lk_SubLayout_->addStretch();
-	lk_GroupBoxLayout_->addLayout(lk_SubLayout_);
-	lk_Container_->setLayout(lk_GroupBoxLayout_);
-	mk_UpperLayout_->addWidget(lk_Container_);
-
-	mk_VSplitter_->addWidget(lk_UpperLayoutWidget_);
-	
-	lk_Label_ = new QLabel("<b>Output</b>", this);
+	QLabel* lk_Label_ = new QLabel("<b>Output</b>", this);
 	mk_LowerLayout_->addWidget(lk_Label_);
 
 	lk_Container_ = new QWidget(this);
@@ -277,8 +246,8 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 				if (mk_pScript)
 					mk_pScript->setOutputDirectory(ls_Path);
 			}
-			else
-				addInputFile(ls_Path);
+/*			else
+				addInputFile(ls_Path);*/
 		}
 	}
 }
@@ -322,10 +291,71 @@ void k_ScriptHelper::activateScript()
 		mk_ScrollArea_->resize(300, 10);
 		mk_HSplitter_->setStretchFactor(0, 1);
 		mk_HSplitter_->setStretchFactor(1, 1);
+
+		// create input file boxes
+		mk_FileLists.clear();
+		mk_FileListsRemoveButtons.clear();
+		mk_pInputFilesContainer = RefPtr<QWidget>(NULL);
+
+		if (!mk_pScript->inputGroupKeys().empty())
+		{
+			mk_pInputFilesContainer = RefPtr<QWidget>(new QWidget(this));
+			mk_pInputFilesContainer->setContentsMargins(0, 0, 0, 8);
+
+			mk_VSplitter_->insertWidget(0, mk_pInputFilesContainer.get_Pointer());
+			
+			QSet<QString> lk_AvailableInputGroups = mk_pScript->inputGroupKeys().toSet();
+			QStringList lk_GroupKeys;
+			bool lb_HasAmbiguousInputGroups = !mk_pScript->ambiguousInputGroups().empty();
+			foreach (QString ls_Key, mk_pScript->ambiguousInputGroups())
+			{
+				lk_GroupKeys.push_back(ls_Key);
+				lk_AvailableInputGroups.remove(ls_Key);
+			}
+			if (!((lb_HasAmbiguousInputGroups) && (lk_AvailableInputGroups.empty())))
+			{
+				// if it's not like (we have amibiguous input groups and nothing's left), add the
+				// remaining input files group
+				lk_GroupKeys.push_back("");
+			}
+			
+			QBoxLayout* lk_VLayout_ = new QVBoxLayout(mk_pInputFilesContainer.get_Pointer());
+			lk_VLayout_->setMargin(0);
+			foreach (QString ls_Key, lk_GroupKeys)
+			{
+				QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(NULL);
+				lk_GroupBoxLayout_->setMargin(0);
+				QString ls_GroupLabel = lb_HasAmbiguousInputGroups ? "Remaining input files" : "Input files";
+				if (ls_Key != "")
+					ls_GroupLabel = mk_pScript->inputGroupLabel(ls_Key);
+				
+				QLabel* lk_Label_ = new QLabel("<b>" + ls_GroupLabel + "</b>", mk_pInputFilesContainer.get_Pointer());
+				lk_VLayout_->addWidget(lk_Label_);
+
+				mk_FileLists[ls_Key] = RefPtr<k_FileList>(new k_FileList(NULL, true, true));
+				lk_GroupBoxLayout_->addWidget(mk_FileLists[ls_Key].get_Pointer());
+				QToolButton* lk_AddFilesButton_ = new QToolButton(mk_pInputFilesContainer.get_Pointer());
+				lk_AddFilesButton_->setProperty("group", QVariant(ls_Key));
+				lk_AddFilesButton_->setIcon(QIcon(":/icons/document-open.png"));
+				connect(lk_AddFilesButton_, SIGNAL(clicked()), this, SLOT(loadFilesButtonClicked()));
+				QToolButton* lk_RemoveFilesButton_ = new QToolButton(mk_pInputFilesContainer.get_Pointer());
+				mk_FileListsRemoveButtons[ls_Key] = lk_RemoveFilesButton_;
+				lk_RemoveFilesButton_->setIcon(QIcon(":/icons/list-remove.png"));
+				connect(lk_RemoveFilesButton_, SIGNAL(clicked()), mk_FileLists[ls_Key].get_Pointer(), SLOT(removeSelection()));
+				connect(mk_FileLists[ls_Key].get_Pointer(), SIGNAL(itemSelectionChanged()), this, SLOT(toggleUi()));
+				QBoxLayout* lk_SubLayout_ = new QVBoxLayout();
+				lk_SubLayout_->addWidget(lk_AddFilesButton_);
+				lk_SubLayout_->addWidget(lk_RemoveFilesButton_);
+				lk_SubLayout_->addStretch();
+				lk_GroupBoxLayout_->addLayout(lk_SubLayout_);
+				lk_VLayout_->addLayout(lk_GroupBoxLayout_);
+			}
+		}
+
+		mk_VSplitter_->setStretchFactor(0, 3);
+		mk_VSplitter_->setStretchFactor(1, 6);
+		resetParameters();
 		
-		foreach (QString ls_Key, mk_pScript->inputGroupKeys())
-			mk_FileList.addInputFileGroup(ls_Key, mk_pScript->inputGroupLabel(ls_Key), mk_pScript->inputGroupExtensions(ls_Key));
-	
 		if (mk_pScript->location() == r_ScriptLocation::Local)
 		{
 			k_LocalScript* lk_LocalScript_ = dynamic_cast<k_LocalScript*>(mk_pScript.get_Pointer());
@@ -359,8 +389,23 @@ void k_ScriptHelper::start()
 
 	QStringList lk_Files;
 
-	for (int i = 0; i < mk_FileList.files().count(); ++i)
-		lk_Files.push_back(mk_FileList.files()[i]);
+	// first add general files
+	if (mk_FileLists.contains(""))
+		lk_Files += mk_FileLists[""]->files();
+	
+	// then add assigned files
+	foreach (QString ls_GroupKey, mk_FileLists.keys())
+	{
+		if (!ls_GroupKey.isEmpty())
+		{
+			QStringList lk_Filenames = mk_FileLists[ls_GroupKey]->files();
+			if (!lk_Filenames.empty())
+			{
+				lk_Files << "-" + ls_GroupKey;
+				lk_Files += lk_Filenames;
+			}
+		}
+	}
 
 	if (mk_pScript->location() == r_ScriptLocation::Local)
 		mk_pScript->start(lk_Files);
@@ -416,7 +461,8 @@ void k_ScriptHelper::reset()
 	mk_pScript = RefPtr<IScript>(NULL);
 	mk_pProfileManager = RefPtr<k_ProfileManager>(NULL);
 	
-	mk_FileList.resetAll();
+	foreach (QString ls_GroupKey, mk_FileLists.keys())
+		mk_FileLists[ls_GroupKey]->resetAll();
 
 	ms_Output.clear();
 	mk_Output.clear();
@@ -433,13 +479,14 @@ void k_ScriptHelper::parameterLabelClicked(const QString& as_Id)
 
 void k_ScriptHelper::loadFilesButtonClicked()
 {
+	QString ls_Group = sender()->property("group").toString();
 	QStringList lk_Files = QFileDialog::getOpenFileNames(this, tr("Add files"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_INPUT_FILES_PATH).toString(), tr("All files (*.*)"));
 	QString ls_FirstPath = "";
 	foreach (QString ls_Path, lk_Files)
 	{
 		if (ls_FirstPath.isEmpty())
 			ls_FirstPath = ls_Path;
-		addInputFile(ls_Path);
+		mk_FileLists[ls_Group]->addInputFile(ls_Path);
 	}
 	if (!ls_FirstPath.isEmpty())
 		mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_INPUT_FILES_PATH] = QFileInfo(ls_FirstPath).absolutePath();
@@ -448,13 +495,19 @@ void k_ScriptHelper::loadFilesButtonClicked()
 
 void k_ScriptHelper::resetParameters()
 {
-	mk_FileList.resetAll();
+	foreach (QString ls_GroupKey, mk_FileLists.keys())
+		mk_FileLists[ls_GroupKey]->resetAll();
 
 	if (mk_pScript)
 	{
 		mk_pScript->reset();
-		foreach (QString ls_Key, mk_pScript->inputGroupKeys())
-			mk_FileList.addInputFileGroup(ls_Key, mk_pScript->inputGroupLabel(ls_Key), mk_pScript->inputGroupExtensions(ls_Key));
+		if (mk_FileLists.contains(""))
+		{
+			QSet<QString> lk_AmbiguousGroups = mk_pScript->ambiguousInputGroups().toSet();
+			foreach (QString ls_Key, mk_pScript->inputGroupKeys())
+				if (!lk_AmbiguousGroups.contains(ls_Key))
+					mk_FileLists[""]->addInputFileGroup(ls_Key, mk_pScript->inputGroupLabel(ls_Key), mk_pScript->inputGroupExtensions(ls_Key));
+		}
 	}
 
 	ms_Output.clear();
@@ -483,32 +536,31 @@ void k_ScriptHelper::toggleUi()
 	mk_LoadScriptButton_->setEnabled(!lb_ProcessRunning);
 	if (lb_ProcessRunning)
 	{
-		mk_RemoveInputFileButton.setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
 		mk_ReloadScriptAction_->setEnabled(false);
 		mk_StartAction_->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(false);
-		mk_AddFilesButton.setEnabled(false);
-		mk_FileList.setEnabled(false);
+		if (mk_pInputFilesContainer)
+			mk_pInputFilesContainer->setEnabled(false);
 	}
 	else
 	{
-		mk_RemoveInputFileButton.setEnabled(mk_FileList.selectedItems().count() != 0);
+		foreach (QString ls_Key, mk_FileListsRemoveButtons.keys())
+			mk_FileListsRemoveButtons[ls_Key]->setEnabled(mk_FileLists[ls_Key]->selectedItems().count() != 0);
 		mk_ResetAction_->setEnabled(mk_pScript);
 		mk_ReloadScriptAction_->setEnabled(mk_pScript);
 		mk_StartAction_->setEnabled(mk_pScript);
 		mk_CheckTicketAction_->setEnabled(lb_RemoteScriptLoaded);
 		mk_LoadParametersAction_->setEnabled(mk_pScript);
 		mk_SaveParametersAction_->setEnabled(mk_pScript);
-		mk_AddFilesButton.setEnabled(mk_pScript);
-		mk_FileList.setEnabled(mk_pScript);
+		if (mk_pInputFilesContainer)
+			mk_pInputFilesContainer->setEnabled(mk_pScript);
 	}
 
 	if (mb_VersionChanged)
 	{
-		mk_RemoveInputFileButton.setEnabled(false);
 		mk_AbortAction_->setEnabled(false);
 		mk_LoadScriptButton_->setEnabled(false);
 		mk_ProfilesAction_->setEnabled(false);
@@ -518,8 +570,15 @@ void k_ScriptHelper::toggleUi()
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(mk_pScript);
-		mk_AddFilesButton.setEnabled(false);
-		mk_FileList.setEnabled(false);
+		if (mk_pInputFilesContainer)
+			mk_pInputFilesContainer->setEnabled(false);
+	}
+	if (mk_pScript && (!mk_VSplitter_->isVisible()))
+	{
+		mk_VSplitter_->show();
+		mk_HSplitter_->setStretchFactor(0, 1);
+		mk_HSplitter_->setStretchFactor(1, 1);
+		mk_HSplitter_->setSizes(QList<int>() << mk_HSplitter_->width() / 2 << mk_HSplitter_->width() / 2);
 	}
 }
 
@@ -690,12 +749,6 @@ void k_ScriptHelper::scriptMenuChanged()
 }
 
 
-void k_ScriptHelper::addInputFile(QString as_Path)
-{
-	mk_FileList.addInputFile(as_Path);
-}
-
-
 bool k_ScriptHelper::checkVersionChanged()
 {
 	if (mk_Proteomatic.versionChanged())
@@ -743,8 +796,8 @@ void k_ScriptHelper::proposePrefix()
 
 	QStringList lk_Files;
 
-	for (int i = 0; i < mk_FileList.files().size(); ++i)
-		lk_Files.push_back(mk_FileList.files()[i]);
+	for (int i = 0; i < mk_FileLists[""]->files().size(); ++i)
+		lk_Files.push_back(mk_FileLists[""]->files()[i]);
 
 	QString ls_Result = mk_pScript->proposePrefix(lk_Files);
 	if (!ls_Result.isEmpty())
