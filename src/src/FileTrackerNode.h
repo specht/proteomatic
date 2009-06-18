@@ -28,9 +28,9 @@ public:
 private:
 	
 	QLabel* k_NameLabel;
-	QLabel* k_UserLabel;
-	QLabel* K_SizeLabel;
-	QLabel* K_FurtherInfoLabel;
+	QLabel* k_RunUserLabel;
+	QLabel* k_SizeLabel;
+	QLabel* k_FurtherInfoLabel;
 	
 	
 	QHBoxLayout* k_MainLabelLayout;

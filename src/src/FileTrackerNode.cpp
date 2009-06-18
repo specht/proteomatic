@@ -21,5 +21,40 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 k_FileTrackerNode::k_FileTrackerNode()
 {
-
+	//Horizontal Label
+	mk_MainLabelLayout = new QHBoxLayout;
+	mk_MainLabelLayout->addWidget(k_NameLabel);
+	mk_MainLabelLayout->addWidget(k_RunUserLabel);
+	mk_MainLabelLayout->addWidget(k_SizeLabel);
+	
+	//Main Label
+	mk_MainFurtherInfoLabel = new QVBoxLayout;
+	mk_MainFurtherInfoLabel->addWidget(mk_MainLabelLayout);
+	mk_MainFurtherInfoLabel->addWidget(mk_FurtherInfoLabel);
+	
+	//grouping Input-Files
+	mk_InputFileGroup = new QGroupBox("Input-Files");
+	mk_InputFileGroup->addWidget(mk_MainFurtherInfoLabel);
+	mk_InputFileGroup->addWidget(mk_MainFurtherInfoLabel);
+	
+	//grouping Output-Files
+	mk_OutputFileGroup = new QGroupBox("Output-Files");
+	mk_OutputFileGroup->addWidget(mk_MainFurtherInfoLabel);
+	mk_OutputFileGroup->addWidget(mk_MainFurtherInfoLabel);
+	
+	//grouping Input-Runs
+	mk_InputRunGroup = new QGroupBox("Runs with File as Input");
+	mk_InputRunGroup->addWidget(mk_MainFurtherInfoLabel);
+	mk_InputRunGroup->addWidget(mk_MainFurtherInfoLabel);
+	
+	//grouping Output-Runs
+	mk_OutputRunGroup = new QGroupBox("Runs with File as Output");
+	mk_OutputRunGroup->addWidget(mk_MainFurtherInfoLabel);
+	mk_OutputRunGroup->addWidget(mk_MainFurtherInfoLabel);
+	
+	//mainlayout
+	mk_MainLayout = new QVBoxLayout
+	mk_MainLayout->addWidget(mk_InputFileGroup);
+	mk_MainLayout->addWidget(mk_MainFurtherInfoLabel);
+	mk_MainLayout->addWidget(mk_OutputFileGroup);
 }
