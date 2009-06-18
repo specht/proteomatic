@@ -17,40 +17,9 @@ You should have received a copy of the GNU General Public License
 along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#include <QtGui>
+#include "FileTrackerNode.h"
 
-
-class k_RevelioMainWindow;
-
-
-class k_Surface: public QGraphicsView
+k_FileTrackerNode::k_FileTrackerNode()
 {
-	Q_OBJECT
-public:
-	k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_ = NULL);
-	virtual ~k_Surface();
-	
-	virtual QGraphicsScene& graphicsScene();
-	
-	
-public slots:
 
-	
-signals:
-
-protected:
-	
-	virtual void resizeEvent(QResizeEvent* event);
-		
-	k_RevelioMainWindow& mk_RevelioMainWindow;
-	QGraphicsScene mk_GraphicsScene;
-	
-	
-	float mf_SceneWidth2; 
-	float mf_SceneHeight2;
-	
-	
-	
-	
-};
+}

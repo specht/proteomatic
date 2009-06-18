@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Surface.h"
 #include "Tango.h"
 
-
 k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_)
 	: QGraphicsView(ak_Parent_)
 	, mk_RevelioMainWindow(ak_RevelioMainWindow)
@@ -30,6 +29,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 {	
 	setScene(&mk_GraphicsScene);
 	setBackgroundBrush(QBrush(QColor(TANGO_ALUMINIUM_0)));
+	//TestRechteck erzeugen
 	mk_GraphicsScene.addRect(QRectF(-10.0, -10.0, 20.0, 20.0));
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -46,12 +46,6 @@ QGraphicsScene& k_Surface::graphicsScene()
 	return mk_GraphicsScene;
 }
 
-/*
-void k_Surface::addRect(ISurfaceBox* ak_Box_)
-{
-	
-}
-*/
 
 void k_Surface::resizeEvent(QResizeEvent* event)
 {
@@ -59,5 +53,6 @@ void k_Surface::resizeEvent(QResizeEvent* event)
 	mf_SceneWidth2 = width() / 2.0;
 	mf_SceneHeight2 = height() / 2.0;
 	mk_GraphicsScene.setSceneRect(-mf_SceneWidth2, -mf_SceneHeight2, mf_SceneWidth2 * 2, mf_SceneHeight2 * 2);
-	//centerOn(0.0, 0.0);
+	centerOn(0.0, 0.0);
 }
+

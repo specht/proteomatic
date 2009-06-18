@@ -20,37 +20,28 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include <QtGui>
 
-
-class k_RevelioMainWindow;
-
-
-class k_Surface: public QGraphicsView
+class k_FileTrackerNode:: public QWidget
 {
-	Q_OBJECT
 public:
-	k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_ = NULL);
-	virtual ~k_Surface();
+	k_FileTrackerNode();
 	
-	virtual QGraphicsScene& graphicsScene();
+private:
 	
-	
-public slots:
-
-	
-signals:
-
-protected:
-	
-	virtual void resizeEvent(QResizeEvent* event);
-		
-	k_RevelioMainWindow& mk_RevelioMainWindow;
-	QGraphicsScene mk_GraphicsScene;
+	QLabel* k_NameLabel;
+	QLabel* k_UserLabel;
+	QLabel* K_SizeLabel;
+	QLabel* K_FurtherInfoLabel;
 	
 	
-	float mf_SceneWidth2; 
-	float mf_SceneHeight2;
+	QHBoxLayout* k_MainLabelLayout;
+	QVBoxLayout* k_MainFurtherInfoLabel;
+	QVBoxLayout* k_OutInputLayout;
+	//temporarily static mainlayout
+	QVBoxLayout* k_MainLayout;
 	
-	
-	
+	QGroupBox* k_InputFileGroup;
+	QGroupBox* k_OutputFileGroup;
+	QGroupBox* k_InputRunGroup;
+	QGroupBox* k_OutputRunGroup;
 	
 };
