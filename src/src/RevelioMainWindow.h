@@ -40,4 +40,5 @@ protected:
 	//k_Surface* mk_Surface_;
 	k_Surface mk_Surface;
 	//RefPtr<k_Surface> mk_pSurface;
+	
 };

@@ -19,29 +19,34 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 #include <QtGui>
+#include "Tango.h"
 
-class k_FileTrackerNode:: public QWidget
+class k_FileTrackerNode: public QWidget
 {
+	Q_OBJECT
 public:
 	k_FileTrackerNode();
 	
 private:
+	QLabel* lk_NameLabel;
+	QLabel* lk_RunUserLabel;
+	QLabel* lk_SizeLabel;
+	QLabel* lk_FurtherInfoLabel;
+	QGraphicsLineItem* lk_InsertVerticalLine1;
+	QGraphicsLineItem* lk_InsertVerticalLine2;
+	QGraphicsLineItem* lk_InsertHorizontalLine;
+	QPen* lk_Pen;
+	QPainter* lk_Painter;
 	
-	QLabel* k_NameLabel;
-	QLabel* k_RunUserLabel;
-	QLabel* k_SizeLabel;
-	QLabel* k_FurtherInfoLabel;
-	
-	
-	QHBoxLayout* k_MainLabelLayout;
-	QVBoxLayout* k_MainFurtherInfoLabel;
-	QVBoxLayout* k_OutInputLayout;
+	QHBoxLayout* lk_MainLabelLayout;
+	QVBoxLayout* lk_MainFurtherInfoLabel;
+/* 	QVBoxLayout* lk_OutInputLayout;
 	//temporarily static mainlayout
-	QVBoxLayout* k_MainLayout;
+	QVBoxLayout* lk_MainLayout;
 	
-	QGroupBox* k_InputFileGroup;
-	QGroupBox* k_OutputFileGroup;
-	QGroupBox* k_InputRunGroup;
-	QGroupBox* k_OutputRunGroup;
-	
+	QGroupBox* lk_InputFileGroup;
+	QGroupBox* lk_OutputFileGroup;
+	QGroupBox* lk_InputRunGroup;
+	QGroupBox* lk_OutputRunGroup;
+	*/
 };
