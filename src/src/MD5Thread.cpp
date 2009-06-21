@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <QtGui>
 #include "MD5Thread.h"
 
 MD5Thread::MD5Thread()

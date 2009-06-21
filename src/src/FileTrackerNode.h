@@ -40,6 +40,8 @@ private:
 	
 	QHBoxLayout* lk_MainLabelLayout;
 	QVBoxLayout* lk_MainFurtherInfoLabel;
+	
+	QGroupBox* lk_HorizontalLabelGroup;
 /* 	QVBoxLayout* lk_OutInputLayout;
 	//temporarily static mainlayout
 	QVBoxLayout* lk_MainLayout;

@@ -40,11 +40,19 @@ k_FileTrackerNode::k_FileTrackerNode()
 	//lk_MainLabelLayout->addWidget(lk_InsertVerticalLine2);
 	lk_MainLabelLayout->addWidget(lk_SizeLabel);
 	
+	//grouping Horizontal Label
+	lk_HorizontalLabelGroup = new QGroupBox();
+	lk_HorizontalLabelGroup->setLayout(lk_MainLabelLayout);
+	
 	//Main Label
 	lk_MainFurtherInfoLabel = new QVBoxLayout;
-	lk_MainFurtherInfoLabel->addWidget(lk_MainLabelLayout);
+	lk_MainFurtherInfoLabel->addWidget(lk_HorizontalLabelGroup);
 	//lk_MainFurtherInfoLabel->addWidget(lk_InsertHorizontalLine);
 	lk_MainFurtherInfoLabel->addWidget(lk_FurtherInfoLabel);
+	
+	setLayout(lk_MainFurtherInfoLabel);
+	//Grouping Main Label
+	
 	
 	
 	/*
