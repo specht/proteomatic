@@ -37,7 +37,10 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	//mk_GraphicsScene.addRect(QRectF(-10.0, -10.0, 20.0, 20.0));
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	mk_GraphicsScene.addWidget(new k_FileTrackerNode());
+	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
+	lk_Node_->setAlignment(0.5, 0.5);
+	lk_Node_->setPosition(QPoint(0, 0));
+	mk_GraphicsScene.addWidget(lk_Node_);
 }
 
 

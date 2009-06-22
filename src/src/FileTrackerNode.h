@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Thaddäus Slawicki
+Copyright (c) 2007-2008 Thaddaeus Slawicki
 
 This file is part of Proteomatic.
 
@@ -28,15 +28,28 @@ public:
 	k_FileTrackerNode();
 	virtual ~k_FileTrackerNode();
 	
+	virtual float horizontalAlignment() const;
+	virtual float verticalAlignment() const;
+	virtual const QPoint position() const;
+	
+public slots:
+	virtual void setHorizontalAlignment(float af_HorizontalAlignment);
+	virtual void setVerticalAlignment(float af_VerticalAlignment);
+	virtual void setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment);
+	virtual void setPosition(const QPoint ak_Position);
+	
 protected:
 	virtual void paintEvent(QPaintEvent* event);
+	virtual void resizeEvent(QResizeEvent* event);
 	
-	QLabel* lk_NameLabel;
-	QLabel* lk_RunUserLabel;
-	QLabel* lk_SizeLabel;
-	QLabel* lk_FurtherInfoLabel;
+	virtual void adjustPosition();
 	
+	QLabel* mk_NameLabel_;
+	QLabel* mk_RunUserLabel_;
+	QLabel* mk_SizeLabel_;
+	QLabel* mk_FurtherInfoLabel_;
 	
-	
-		
-	};
+	float mf_HorizontalAlignment;
+	float mf_VerticalAlignment;
+	QPoint mk_Position;
+};

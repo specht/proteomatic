@@ -20,54 +20,78 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "FileTrackerNode.h"
 
 k_FileTrackerNode::k_FileTrackerNode()
+	: mk_NameLabel_(new QLabel(this))
+	, mk_RunUserLabel_(new QLabel(this))
+	, mk_SizeLabel_(new QLabel(this))
+	, mk_FurtherInfoLabel_(new QLabel(this))
+	, mf_HorizontalAlignment(0.0)
+	, mf_VerticalAlignment(0.0)
+	, mk_Position(0, 0)
 {	
 	setAttribute(Qt::WA_OpaquePaintEvent, true);	
-	//
-
-/*	
-	QPainter lk_Painter(this);
-	QPen lk_Pen(TANGO_ALUMINIUM_3);
-	float lf_PenWidth = 1.5;
-	lk_Pen.setWidthF(lf_PenWidth);
-	lk_Painter.setPen(lk_Pen);
-	QBrush lk_Brush(TANGO_ALUMINIUM_0);
-	lk_Painter.setBrush(lk_Brush);
-	lk_Painter.drawRoundedRect(QRectF(lf_PenWidth * 0.5, lf_PenWidth * 0.5, (qreal)width() - lf_PenWidth, (qreal)height() - lf_PenWidth), 8.0, 8.0);
-	*/
-
-	lk_NameLabel = new QLabel(this);
-	lk_RunUserLabel = new QLabel(this);
-	lk_SizeLabel = new QLabel(this);
-	lk_FurtherInfoLabel = new QLabel(this);
 	
 	//Horizontal Label
 	QBoxLayout* lk_HLayout_ = new QHBoxLayout();
-	lk_HLayout_->addWidget(lk_NameLabel);
+	lk_HLayout_->addWidget(mk_NameLabel_);
 	//lk_MainLabelLayout->addWidget(lk_InsertVerticalLine1);
-	lk_HLayout_->addWidget(lk_RunUserLabel);
+	lk_HLayout_->addWidget(mk_RunUserLabel_);
 	//lk_MainLabelLayout->addWidget(lk_InsertVerticalLine2);
-	lk_HLayout_->addWidget(lk_SizeLabel);
-	
-	//grouping Horizontal Label
+	lk_HLayout_->addWidget(mk_SizeLabel_);
 	
 	//Main Label
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(this);
 	lk_VLayout_->addLayout(lk_HLayout_);
 	//lk_MainFurtherInfoLabel->addWidget(lk_InsertHorizontalLine);
-	lk_VLayout_->addWidget(lk_FurtherInfoLabel);
+	lk_VLayout_->addWidget(mk_FurtherInfoLabel_);
 	
-	//Grouping Main Label
-	
-	lk_NameLabel->setText("Hallo");
-	lk_RunUserLabel->setText("es");
-	lk_SizeLabel->setText("funzt");
-	lk_FurtherInfoLabel->setText("nicht?");
-	
-	
-	
+	mk_NameLabel_->setText("Hallo");
+	mk_RunUserLabel_->setText("es");
+	mk_SizeLabel_->setText("funzt");
+	mk_FurtherInfoLabel_->setText("nicht?");
 }
+
+
 k_FileTrackerNode::~k_FileTrackerNode()
 {
+}
+
+
+float k_FileTrackerNode::horizontalAlignment() const
+{
+}
+
+
+float k_FileTrackerNode::verticalAlignment() const
+{
+}
+	
+
+const QPoint k_FileTrackerNode::position() const
+{
+}
+
+
+void k_FileTrackerNode::setHorizontalAlignment(float af_HorizontalAlignment)
+{
+	adjustPosition();
+}
+
+
+void k_FileTrackerNode::setVerticalAlignmeht(float af_VerticalAlignment)
+{
+	adjustPosition();
+}
+
+
+void k_FileTrackerNode::setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment)
+{
+	adjustPosition();
+}
+
+
+void k_FileTrackerNode::setPosition(const QPoint ak_Position)
+{
+	adjustPosition();
 }
 
 
@@ -85,3 +109,15 @@ void k_FileTrackerNode::paintEvent(QPaintEvent* event)
 }
 
 
+void k_FileTrackerNode::resizeEvent(QResizeEvent* event)
+{
+	QWidget::resizeEvent(event);
+	adjustPosition();
+}
+
+
+void k_FileTrackerNode::adjustPosition()
+{
+	// take mf_HorizontalAlignment, mf_VerticalAlignment and mk_Position, width() and height()
+	// determine correct position and move there
+}
