@@ -28,7 +28,6 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	setWindowTitle("Revelio");
 	setWindowIcon(QIcon(":/icons/revelio.png"));
 	
-	QLabel* lk_HashLabel_ = new QLabel(this);
 	QToolButton* lk_LoadFileButton_ = new QToolButton(this);
 	lk_LoadFileButton_->setText("Load file");
 	lk_LoadFileButton_->setIcon(QIcon(":/icons/document-open.png"));
@@ -41,7 +40,7 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_MainWidget_);
 	lk_VLayout_->addWidget(lk_LoadFileButton_);
 	lk_VLayout_->addWidget(&mk_Surface);
-	lk_VLayout_->addWidget(lk_HashLabel_);
+	lk_VLayout_->addWidget(&mk_HashLabel);
 	//mk_Surface_ = new k_Surface(this);
 	//mk_pSurface = RefPtr<k_Surface>(new k_Surface(this)); 
 }
@@ -51,33 +50,38 @@ k_RevelioMainWindow::~k_RevelioMainWindow()
 {
 }
 
+QString k_RevelioMainWindow::md5ForFile(QString as_Path)
+{	
+	
+	QFile lk_File(as_Path);
+	lk_File.open(QIODevice::ReadOnly);
+	// calculate MD5 of file content
+	md5_state_s lk_Md5State;
+	md5_init(&lk_Md5State);
+	while (!lk_File.atEnd())
+	{
+		QByteArray lk_Bytes = lk_File.read(8 * 1024 * 1024);
+		md5_append(&lk_Md5State, (md5_byte_t*)lk_Bytes.constData(), lk_Bytes.size());
+	}
+	lk_File.close();
+	unsigned char lk_Md5[16];
+	md5_finish(&lk_Md5State, (md5_byte_t*)(&lk_Md5));
+	QString ls_HashString;
+	for (int i = 0; i < 16; ++i)
+		ls_HashString.append(QString("%1").arg(lk_Md5[i], 2, 16, QChar('0')));
+	return ls_HashString;
+	//	printf("%02x", lk_Md5[i]);
+	//printf("\n");
+}
 
 void k_RevelioMainWindow::loadFile()
 {
-	QString* lk_HashString;
+	
 	
 	QString ls_Path = QFileDialog::getOpenFileName(this, "Load file");
 	if (!ls_Path.isEmpty())
 	{
-		
-		//mk_Label_->setText(QFileInfo(ls_Path).fileName());
-		QFile lk_File(ls_Path);
-		lk_File.open(QIODevice::ReadOnly);
-		// calculate MD5 of file content
-		md5_state_s lk_Md5State;
-		md5_init(&lk_Md5State);
-		while (!lk_File.atEnd())
-		{
-			QByteArray lk_Bytes = lk_File.read(8 * 1024 * 1024);
-			md5_append(&lk_Md5State, (md5_byte_t*)lk_Bytes.constData(), lk_Bytes.size());
-		}
-		lk_File.close();
-		unsigned char lk_Md5[16];
-		md5_finish(&lk_Md5State, (md5_byte_t*)(&lk_Md5));
-		for (int i = 0; i < 16; ++i)
-		//lk_HashString.insert(0, QString(lk_Md5[i]));
-		//return lk_HashLabel(lk_HashString);
-			printf("%02x", lk_Md5[i]);
-		printf("\n");
+		QString ls_SaveString = md5ForFile(ls_Path);
+		mk_HashLabel.setText(ls_SaveString);
 	}
 }

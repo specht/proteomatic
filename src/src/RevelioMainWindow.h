@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Thaddäus Slawicki
+Copyright (c) 2007-2008 Thaddaeus Slawicki
 
 This file is part of Proteomatic.
 
@@ -21,6 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
 #include "Surface.h"
+#include "FileTrackerNode.h"
 
 class k_RevelioMainWindow: public QMainWindow
 {
@@ -28,17 +29,17 @@ class k_RevelioMainWindow: public QMainWindow
 public:
 	k_RevelioMainWindow(QWidget* ak_Parent_ = NULL);
 	virtual ~k_RevelioMainWindow();
-	
+	QString md5ForFile(QString as_Path);
 public slots:
-	
+
 signals:
 	
 protected slots:
 	virtual void loadFile();
-
+	
 protected:
 	//k_Surface* mk_Surface_;
 	k_Surface mk_Surface;
 	//RefPtr<k_Surface> mk_pSurface;
-	
+	QLabel mk_HashLabel; 
 };
