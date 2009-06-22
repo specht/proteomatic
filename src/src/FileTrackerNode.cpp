@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Thadd‰us Slawicki
+Copyright (c) 2007-2008 Thadd√§us Slawicki
 
 This file is part of Proteomatic.
 
@@ -21,6 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 k_FileTrackerNode::k_FileTrackerNode()
 {	
+	setAttribute(Qt::WA_OpaquePaintEvent, true);	
 	//
 
 /*	
