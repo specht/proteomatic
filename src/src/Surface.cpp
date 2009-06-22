@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Surface.h"
 #include "Tango.h"
+#include "FileTrackerNode.h"
 
 k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_)
 	: QGraphicsView(ak_Parent_)
@@ -27,12 +28,16 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	, mf_SceneWidth2(1.0)
 	, mf_SceneHeight2(1.0)
 {	
+	setRenderHint(QPainter::Antialiasing, true);
+	setRenderHint(QPainter::TextAntialiasing, true);
+	setRenderHint(QPainter::SmoothPixmapTransform, true);
 	setScene(&mk_GraphicsScene);
 	setBackgroundBrush(QBrush(QColor(TANGO_ALUMINIUM_0)));
 	//TestRechteck erzeugen
-	mk_GraphicsScene.addRect(QRectF(-10.0, -10.0, 20.0, 20.0));
+	//mk_GraphicsScene.addRect(QRectF(-10.0, -10.0, 20.0, 20.0));
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	mk_GraphicsScene.addWidget(new k_FileTrackerNode());
 }
 
 

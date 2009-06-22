@@ -22,8 +22,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_FileTrackerNode::k_FileTrackerNode()
 {	
 	//
+
+/*	
 	QPainter lk_Painter(this);
-	
 	QPen lk_Pen(TANGO_ALUMINIUM_3);
 	float lf_PenWidth = 1.5;
 	lk_Pen.setWidthF(lf_PenWidth);
@@ -31,57 +32,55 @@ k_FileTrackerNode::k_FileTrackerNode()
 	QBrush lk_Brush(TANGO_ALUMINIUM_0);
 	lk_Painter.setBrush(lk_Brush);
 	lk_Painter.drawRoundedRect(QRectF(lf_PenWidth * 0.5, lf_PenWidth * 0.5, (qreal)width() - lf_PenWidth, (qreal)height() - lf_PenWidth), 8.0, 8.0);
+	*/
 
+	lk_NameLabel = new QLabel(this);
+	lk_RunUserLabel = new QLabel(this);
+	lk_SizeLabel = new QLabel(this);
+	lk_FurtherInfoLabel = new QLabel(this);
+	
 	//Horizontal Label
-	lk_MainLabelLayout = new QHBoxLayout;
-	lk_MainLabelLayout->addWidget(lk_NameLabel);
+	QBoxLayout* lk_HLayout_ = new QHBoxLayout();
+	lk_HLayout_->addWidget(lk_NameLabel);
 	//lk_MainLabelLayout->addWidget(lk_InsertVerticalLine1);
-	lk_MainLabelLayout->addWidget(lk_RunUserLabel);
+	lk_HLayout_->addWidget(lk_RunUserLabel);
 	//lk_MainLabelLayout->addWidget(lk_InsertVerticalLine2);
-	lk_MainLabelLayout->addWidget(lk_SizeLabel);
+	lk_HLayout_->addWidget(lk_SizeLabel);
 	
 	//grouping Horizontal Label
-	lk_HorizontalLabelGroup = new QGroupBox();
-	lk_HorizontalLabelGroup->setLayout(lk_MainLabelLayout);
 	
 	//Main Label
-	lk_MainFurtherInfoLabel = new QVBoxLayout;
-	lk_MainFurtherInfoLabel->addWidget(lk_HorizontalLabelGroup);
+	QBoxLayout* lk_VLayout_ = new QVBoxLayout(this);
+	lk_VLayout_->addLayout(lk_HLayout_);
 	//lk_MainFurtherInfoLabel->addWidget(lk_InsertHorizontalLine);
-	lk_MainFurtherInfoLabel->addWidget(lk_FurtherInfoLabel);
+	lk_VLayout_->addWidget(lk_FurtherInfoLabel);
 	
-	setLayout(lk_MainFurtherInfoLabel);
 	//Grouping Main Label
 	
+	lk_NameLabel->setText("Hallo");
+	lk_RunUserLabel->setText("es");
+	lk_SizeLabel->setText("funzt");
+	lk_FurtherInfoLabel->setText("nicht?");
 	
 	
-	/*
-	//grouping Input-Files
-	lk_InputFileGroup = new QGroupBox("Input-Files");
-	lk_InputFileGroup->addWidget(lk_MainFurtherInfoLabel);
-	lk_InputFileGroup->addWidget(lk_MainFurtherInfoLabel);
-	
-	//grouping Output-Files
-	lk_OutputFileGroup = new QGroupBox("Output-Files");
-	lk_OutputFileGroup->addWidget(lk_MainFurtherInfoLabel);
-	lk_OutputFileGroup->addWidget(lk_MainFurtherInfoLabel);
-	
-	//grouping Input-Runs
-	lk_InputRunGroup = new QGroupBox("Runs with File as Input");
-	lk_InputRunGroup->addWidget(lk_MainFurtherInfoLabel);
-	lk_InputRunGroup->addWidget(lk_MainFurtherInfoLabel);
-	
-	//grouping Output-Runs
-	lk_OutputRunGroup = new QGroupBox("Runs with File as Output");
-	lk_OutputRunGroup->addWidget(lk_MainFurtherInfoLabel);
-	lk_OutputRunGroup->addWidget(lk_MainFurtherInfoLabel);
-	
-	//mainlayout
-	lk_MainLayout = new QVBoxLayout
-	lk_MainLayout->addWidget(lk_InputFileGroup);
-	lk_MainLayout->addWidget(lk_MainFurtherInfoLabel);
-	lk_MainLayout->addWidget(lk_OutputFileGroup);
-	*/
 	
 }
+k_FileTrackerNode::~k_FileTrackerNode()
+{
+}
+
+
+void k_FileTrackerNode::paintEvent(QPaintEvent* event)
+{
+	QPainter lk_Painter(this);
+	QPen lk_Pen(TANGO_ALUMINIUM_3);
+	float lf_PenWidth = 1.5;
+	lk_Pen.setWidthF(lf_PenWidth);
+	lk_Painter.setPen(lk_Pen);
+	QBrush lk_Brush(TANGO_ALUMINIUM_0);
+	lk_Painter.setBrush(lk_Brush);
+	lk_Painter.drawRoundedRect(QRectF(lf_PenWidth * 0.5, lf_PenWidth * 0.5, (qreal)width() - lf_PenWidth, (qreal)height() - lf_PenWidth), 8.0, 8.0);
+	 
+}
+
 

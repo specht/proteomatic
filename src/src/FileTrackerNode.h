@@ -26,29 +26,17 @@ class k_FileTrackerNode: public QWidget
 	Q_OBJECT
 public:
 	k_FileTrackerNode();
+	virtual ~k_FileTrackerNode();
 	
-private:
+protected:
+	virtual void paintEvent(QPaintEvent* event);
+	
 	QLabel* lk_NameLabel;
 	QLabel* lk_RunUserLabel;
 	QLabel* lk_SizeLabel;
 	QLabel* lk_FurtherInfoLabel;
-	QGraphicsLineItem* lk_InsertVerticalLine1;
-	QGraphicsLineItem* lk_InsertVerticalLine2;
-	QGraphicsLineItem* lk_InsertHorizontalLine;
-	QPen* lk_Pen;
-	QPainter* lk_Painter;
 	
-	QHBoxLayout* lk_MainLabelLayout;
-	QVBoxLayout* lk_MainFurtherInfoLabel;
 	
-	QGroupBox* lk_HorizontalLabelGroup;
-/* 	QVBoxLayout* lk_OutInputLayout;
-	//temporarily static mainlayout
-	QVBoxLayout* lk_MainLayout;
 	
-	QGroupBox* lk_InputFileGroup;
-	QGroupBox* lk_OutputFileGroup;
-	QGroupBox* lk_InputRunGroup;
-	QGroupBox* lk_OutputRunGroup;
-	*/
-};
+		
+	};
