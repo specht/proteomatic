@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Thaddäus Slawicki
+Copyright (c) 2007-2008 Thaddaeus Slawicki
 
 This file is part of Proteomatic.
 
@@ -32,7 +32,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	setRenderHint(QPainter::TextAntialiasing, true);
 	setRenderHint(QPainter::SmoothPixmapTransform, true);
 	setScene(&mk_GraphicsScene);
-	setBackgroundBrush(QBrush(QColor(TANGO_ALUMINIUM_0)));
+	setBackgroundBrush(QBrush(QColor("#f8f8f8")));
 	//TestRechteck erzeugen
 	//mk_GraphicsScene.addRect(QRectF(-10.0, -10.0, 20.0, 20.0));
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
