@@ -26,7 +26,7 @@ k_FileTrackerNode::k_FileTrackerNode()
 	, mk_FurtherInfoLabel_(new QLabel(this))
 	, mf_HorizontalAlignment(0.0)
 	, mf_VerticalAlignment(0.0)
-	, mk_Position(0, 0)
+	, mk_Position(0.0, 0.0)
 {	
 	setAttribute(Qt::WA_OpaquePaintEvent, true);	
 	
@@ -78,7 +78,7 @@ float k_FileTrackerNode::verticalAlignment() const
 }
 	
 
-const QPoint k_FileTrackerNode::position() const
+const QPointF k_FileTrackerNode::position() const
 {
 	return mk_Position;
 }
@@ -86,35 +86,19 @@ const QPoint k_FileTrackerNode::position() const
 
 void k_FileTrackerNode::setHorizontalAlignment(float af_HorizontalAlignment)
 {	
-
-	bool setHorizontalAlignment(float af_HorizontalAlignment)
-	{
-	if (af_HorizontalAlignment < 0.0)
-		af_HorizontalAlignment = 0.0;
-	if (af_HorizontalAlignment > 1.0)
-		af_HorizontalAlignment = 1.0;
-	else {
-			this->af_HorizontalAlignment = af_HorizontalAlignment;
-			return true;
-		}
-	}
+	//this->mf_HorizontalAlignment = af_HorizontalAlignment;
+	
+	mf_HorizontalAlignment = qBound(0.0f, af_HorizontalAlignment, 1.0f);	
+	
 	adjustPosition();
 }
 
 
-void k_FileTrackerNode::setVerticalAlignmeht(float af_VerticalAlignment)
+void k_FileTrackerNode::setVerticalAlignment(float af_VerticalAlignment)
 {
-	bool setVerticalAlignmeht(float af_VerticalAlignment)
-	{
-	if (af_VerticalAlignment < 0.0)
-		af_VerticalAlignment = 0.0;
-	if (af_VerticalAlignment > 1.0)
-		af_VerticalAlignment = 1.0;
-	else {
-			this->af_VerticalAlignment = af_VerticalAlignment;
-			return true;
-		}
-	}
+	
+	mf_VerticalAlignment = qBound(0.0f, af_VerticalAlignment, 1.0f);
+	
 	adjustPosition();
 	
 }
@@ -122,28 +106,16 @@ void k_FileTrackerNode::setVerticalAlignmeht(float af_VerticalAlignment)
 
 void k_FileTrackerNode::setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment)
 {	
-	bool setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment)
-	{
-	if (af_VerticalAlignment < 0.0)
-		af_VerticalAlignment = 0.0;
-	if (af_VerticalAlignment > 1.0)
-		af_VerticalAlignment = 1.0;
-	if (af_HorizontalAlignment < 0.0)
-		af_HorizontalAlignment = 0.0;
-	if (af_HorizontalAlignment > 1.0)
-		af_HorizontalAlignment = 1.0;
-	else {
-			this->af_VerticalAlignment = af_VerticalAlignment;
-			this->af_HorizontalAlignment = af_HorizontalAlignment;
-			return true;
-		}
-	}
+	mf_HorizontalAlignment = qBound(0.0f, af_HorizontalAlignment, 1.0f);
+	mf_VerticalAlignment = qBound(0.0f, af_VerticalAlignment, 1.0f);
+	
 	adjustPosition();
 }
 
 
-void k_FileTrackerNode::setPosition(const QPoint ak_Position)
+void k_FileTrackerNode::setPosition(const QPointF ak_Position)
 {
+	mk_Position = ak_Position;
 	adjustPosition();
 }
 
@@ -162,7 +134,7 @@ void k_FileTrackerNode::paintEvent(QPaintEvent* event)
 
 
 void k_FileTrackerNode::resizeEvent(QResizeEvent* event)
-{
+{	
 	QWidget::resizeEvent(event);
 	adjustPosition();
 }
@@ -170,9 +142,11 @@ void k_FileTrackerNode::resizeEvent(QResizeEvent* event)
 
 void k_FileTrackerNode::adjustPosition()
 {
-	int x = width() * mf_HorizontalAlignment;
-	int y = height() * mf_VerticalAlignment;
-	mk_Position.move(int x, int y);
+	float x = (float)width() * mf_HorizontalAlignment;
+	float y = (float)height() * mf_VerticalAlignment;
+	
+	
+	move((mk_Position - QPointF(x, y)).toPoint());
 	// take mf_HorizontalAlignment, mf_VerticalAlignment and mk_Position, width() and height()
 	// determine correct position and move there
 }

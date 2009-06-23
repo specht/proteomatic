@@ -30,13 +30,13 @@ public:
 	
 	virtual float horizontalAlignment() const;
 	virtual float verticalAlignment() const;
-	virtual const QPoint position() const;
+	virtual const QPointF position() const;
 	
 public slots:
 	virtual void setHorizontalAlignment(float af_HorizontalAlignment);
 	virtual void setVerticalAlignment(float af_VerticalAlignment);
 	virtual void setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment);
-	virtual void setPosition(const QPoint ak_Position);
+	virtual void setPosition(const QPointF ak_Position);
 	
 protected:
 	virtual void paintEvent(QPaintEvent* event);
@@ -51,5 +51,5 @@ protected:
 	
 	float mf_HorizontalAlignment;
 	float mf_VerticalAlignment;
-	QPoint mk_Position;
+	QPointF mk_Position;
 };
