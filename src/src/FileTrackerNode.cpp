@@ -68,49 +68,53 @@ k_FileTrackerNode::~k_FileTrackerNode()
 
 float k_FileTrackerNode::horizontalAlignment() const
 {
-	return af_HorizontalAlignment;
+	return mf_HorizontalAlignment;
 }
 
 
 float k_FileTrackerNode::verticalAlignment() const
 {
-	return af_VerticalAlignment;
+	return mf_VerticalAlignment;
 }
 	
 
 const QPoint k_FileTrackerNode::position() const
 {
-	return ak_Position;
+	return mk_Position;
 }
 
 
 void k_FileTrackerNode::setHorizontalAlignment(float af_HorizontalAlignment)
 {	
-	float lf_MinAlignment = 0.0;
-	float lf_MaxAlignment = 1.0;
-	if (af_HorizontalAlignment < lf_MinAlignment)
-		{
-		if (af_HorizontalAlignment > lf_MaxAlignment)
-			af_HorizontalAlignment = 1.0;
+
+	bool setHorizontalAlignment(float af_HorizontalAlignment)
+	{
+	if (af_HorizontalAlignment < 0.0)
+		af_HorizontalAlignment = 0.0;
+	if (af_HorizontalAlignment > 1.0)
+		af_HorizontalAlignment = 1.0;
+	else {
+			this->af_HorizontalAlignment = af_HorizontalAlignment;
+			return true;
 		}
-		else 
-			af_HorizontalAlignment = 0.0;
-		
+	}
 	adjustPosition();
 }
 
 
 void k_FileTrackerNode::setVerticalAlignmeht(float af_VerticalAlignment)
 {
-	float lf_MinAlignment = 0.0;
-	float lf_MaxAlignment = 1.0;
-	if (af_HorizontalAlignment < lf_MinAlignment)
-		{
-		if (af_HorizontalAlignment > lf_MaxAlignment)
-			af_HorizontalAlignment = 1.0;
+	bool setVerticalAlignmeht(float af_VerticalAlignment)
+	{
+	if (af_VerticalAlignment < 0.0)
+		af_VerticalAlignment = 0.0;
+	if (af_VerticalAlignment > 1.0)
+		af_VerticalAlignment = 1.0;
+	else {
+			this->af_VerticalAlignment = af_VerticalAlignment;
+			return true;
 		}
-	else 
-		af_HorizontalAlignment = 0.0;
+	}
 	adjustPosition();
 	
 }
@@ -118,7 +122,22 @@ void k_FileTrackerNode::setVerticalAlignmeht(float af_VerticalAlignment)
 
 void k_FileTrackerNode::setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment)
 {	
-	
+	bool setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment)
+	{
+	if (af_VerticalAlignment < 0.0)
+		af_VerticalAlignment = 0.0;
+	if (af_VerticalAlignment > 1.0)
+		af_VerticalAlignment = 1.0;
+	if (af_HorizontalAlignment < 0.0)
+		af_HorizontalAlignment = 0.0;
+	if (af_HorizontalAlignment > 1.0)
+		af_HorizontalAlignment = 1.0;
+	else {
+			this->af_VerticalAlignment = af_VerticalAlignment;
+			this->af_HorizontalAlignment = af_HorizontalAlignment;
+			return true;
+		}
+	}
 	adjustPosition();
 }
 
