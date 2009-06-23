@@ -44,10 +44,20 @@ k_FileTrackerNode::k_FileTrackerNode()
 	//lk_MainFurtherInfoLabel->addWidget(lk_InsertHorizontalLine);
 	lk_VLayout_->addWidget(mk_FurtherInfoLabel_);
 	
-	mk_NameLabel_->setText("Hallo");
+	mk_NameLabel_->setText("mk_Position");
 	mk_RunUserLabel_->setText("es");
 	mk_SizeLabel_->setText("funzt");
 	mk_FurtherInfoLabel_->setText("nicht?");
+	
+	/*
+	QSpinBox* lk_SpinHorizontal = new QSpinBox;
+	QSpinBox* lk_SpinVertical = new QSpinBox;
+	lk_SpinHorizontal->setMinimum(0);
+	lk_SpinHorizontal->setMaximum(100);
+	lk_SpinVertical->setMinimum(0);
+	lk_SpinVertical->setMaximum(100);
+	*/
+	
 }
 
 
@@ -58,33 +68,57 @@ k_FileTrackerNode::~k_FileTrackerNode()
 
 float k_FileTrackerNode::horizontalAlignment() const
 {
+	return af_HorizontalAlignment;
 }
 
 
 float k_FileTrackerNode::verticalAlignment() const
 {
+	return af_VerticalAlignment;
 }
 	
 
 const QPoint k_FileTrackerNode::position() const
 {
+	return ak_Position;
 }
 
 
 void k_FileTrackerNode::setHorizontalAlignment(float af_HorizontalAlignment)
-{
+{	
+	float lf_MinAlignment = 0.0;
+	float lf_MaxAlignment = 1.0;
+	if (af_HorizontalAlignment < lf_MinAlignment)
+		{
+		if (af_HorizontalAlignment > lf_MaxAlignment)
+			af_HorizontalAlignment = 1.0;
+		}
+		else 
+			af_HorizontalAlignment = 0.0;
+		
 	adjustPosition();
 }
 
 
 void k_FileTrackerNode::setVerticalAlignmeht(float af_VerticalAlignment)
 {
+	float lf_MinAlignment = 0.0;
+	float lf_MaxAlignment = 1.0;
+	if (af_HorizontalAlignment < lf_MinAlignment)
+		{
+		if (af_HorizontalAlignment > lf_MaxAlignment)
+			af_HorizontalAlignment = 1.0;
+		}
+	else 
+		af_HorizontalAlignment = 0.0;
 	adjustPosition();
+	
 }
 
 
 void k_FileTrackerNode::setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment)
-{
+{	
+	
 	adjustPosition();
 }
 
@@ -93,7 +127,6 @@ void k_FileTrackerNode::setPosition(const QPoint ak_Position)
 {
 	adjustPosition();
 }
-
 
 void k_FileTrackerNode::paintEvent(QPaintEvent* event)
 {
@@ -118,6 +151,9 @@ void k_FileTrackerNode::resizeEvent(QResizeEvent* event)
 
 void k_FileTrackerNode::adjustPosition()
 {
+	int x = width() * mf_HorizontalAlignment;
+	int y = height() * mf_VerticalAlignment;
+	mk_Position.move(int x, int y);
 	// take mf_HorizontalAlignment, mf_VerticalAlignment and mk_Position, width() and height()
 	// determine correct position and move there
 }
