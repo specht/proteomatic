@@ -19,6 +19,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 #include <QtGui>
+#include "RefPtr.h"
+#include "FileTrackerNode.h"
 
 
 class k_RevelioMainWindow;
@@ -33,24 +35,16 @@ public:
 	
 	virtual QGraphicsScene& graphicsScene();
 	
-	
 public slots:
 
-	
 signals:
 
 protected:
-	
 	virtual void resizeEvent(QResizeEvent* event);
 		
 	k_RevelioMainWindow& mk_RevelioMainWindow;
 	QGraphicsScene mk_GraphicsScene;
 	
-	
 	float mf_SceneWidth2; 
 	float mf_SceneHeight2;
-	
-	
-	
-	
 };

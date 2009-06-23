@@ -47,9 +47,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	resize(1000, 600);
 	
 	mk_HSplitter_ = new QSplitter(this);
-	mk_HSplitter_->setStyle(new QPlastiqueStyle());
 	mk_HSplitter_->setOrientation(Qt::Horizontal);
-	mk_HSplitter_->setHandleWidth(4);
 	mk_PaneLayoutWidget_ = new QWidget(this);
 	mk_PaneLayout_ = new QVBoxLayout(mk_PaneLayoutWidget_);
 	mk_PaneLayoutWidget_->hide();

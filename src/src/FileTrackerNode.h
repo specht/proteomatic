@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 #include <QtGui>
+#include "RefPtr.h"
 #include "Tango.h"
 
 class k_FileTrackerNode: public QWidget
@@ -37,6 +38,7 @@ public slots:
 	virtual void setVerticalAlignment(float af_VerticalAlignment);
 	virtual void setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment);
 	virtual void setPosition(const QPointF ak_Position);
+	virtual void setLabels(QStringList ak_Labels);
 	
 protected:
 	virtual void paintEvent(QPaintEvent* event);
@@ -44,12 +46,8 @@ protected:
 	
 	virtual void adjustPosition();
 	
-	QLabel* mk_NameLabel_;
-	QLabel* mk_RunUserLabel_;
-	QLabel* mk_SizeLabel_;
-	QLabel* mk_FurtherInfoLabel_;
-	
 	float mf_HorizontalAlignment;
 	float mf_VerticalAlignment;
 	QPointF mk_Position;
+	QList<RefPtr<QWidget> > mk_LabelWidgets;
 };

@@ -18,37 +18,17 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "FileTrackerNode.h"
+#include "Tango.h"
+
 
 k_FileTrackerNode::k_FileTrackerNode()
-	: mk_NameLabel_(new QLabel(this))
-	, mk_RunUserLabel_(new QLabel(this))
-	, mk_SizeLabel_(new QLabel(this))
-	, mk_FurtherInfoLabel_(new QLabel(this))
-	, mf_HorizontalAlignment(0.0)
+	: mf_HorizontalAlignment(0.0)
 	, mf_VerticalAlignment(0.0)
 	, mk_Position(0.0, 0.0)
 {	
 	setAttribute(Qt::WA_OpaquePaintEvent, true);	
-	
-	//Horizontal Label
-	QBoxLayout* lk_HLayout_ = new QHBoxLayout();
-	lk_HLayout_->addWidget(mk_NameLabel_);
-	//lk_MainLabelLayout->addWidget(lk_InsertVerticalLine1);
-	lk_HLayout_->addWidget(mk_RunUserLabel_);
-	//lk_MainLabelLayout->addWidget(lk_InsertVerticalLine2);
-	lk_HLayout_->addWidget(mk_SizeLabel_);
-	
-	//Main Label
-	QBoxLayout* lk_VLayout_ = new QVBoxLayout(this);
-	lk_VLayout_->addLayout(lk_HLayout_);
-	//lk_MainFurtherInfoLabel->addWidget(lk_InsertHorizontalLine);
-	lk_VLayout_->addWidget(mk_FurtherInfoLabel_);
-	
-	mk_NameLabel_->setText("mk_Position");
-	mk_RunUserLabel_->setText("es");
-	mk_SizeLabel_->setText("funzt");
-	mk_FurtherInfoLabel_->setText("nicht?");
-	
+	QBoxLayout* lk_Layout_ = new QHBoxLayout(this);
+
 	/*
 	QSpinBox* lk_SpinHorizontal = new QSpinBox;
 	QSpinBox* lk_SpinVertical = new QSpinBox;
@@ -63,6 +43,7 @@ k_FileTrackerNode::k_FileTrackerNode()
 
 k_FileTrackerNode::~k_FileTrackerNode()
 {
+	mk_LabelWidgets.clear();
 }
 
 
@@ -118,6 +99,32 @@ void k_FileTrackerNode::setPosition(const QPointF ak_Position)
 	mk_Position = ak_Position;
 	adjustPosition();
 }
+
+
+void k_FileTrackerNode::setLabels(QStringList ak_Labels)
+{
+	QLayout* lk_Layout_ = layout();
+		
+	mk_LabelWidgets.clear();
+	for (int i = 0; i < ak_Labels.size(); ++i)
+	{
+		if (i > 0)
+		{
+			QFrame* lk_Separator_ = new QFrame(this);
+			lk_Separator_->setFrameStyle(QFrame::VLine | QFrame::Plain);
+			lk_Separator_->setLineWidth(1);
+			lk_Separator_->setStyleSheet("color: " + QString(TANGO_ALUMINIUM_3) + ";");
+			lk_Layout_->addWidget(lk_Separator_);
+			mk_LabelWidgets.append(RefPtr<QWidget>(lk_Separator_));
+		}
+		QString ls_Text = ak_Labels[i];
+		QLabel* lk_Label_ = new QLabel(ls_Text, this);
+		lk_Layout_->addWidget(lk_Label_);
+		mk_LabelWidgets.append(RefPtr<QWidget>(lk_Label_));
+	}
+	resize(1, 1);
+}
+
 
 void k_FileTrackerNode::paintEvent(QPaintEvent* event)
 {
