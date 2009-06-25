@@ -27,21 +27,28 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	, mk_GraphicsScene(this)
 	, mf_SceneWidth2(1.0)
 	, mf_SceneHeight2(1.0)
+	, mk_CentralNode_(NULL)
 {	
 	setRenderHint(QPainter::Antialiasing, true);
 	setRenderHint(QPainter::TextAntialiasing, true);
 	setRenderHint(QPainter::SmoothPixmapTransform, true);
 	setScene(&mk_GraphicsScene);
 	setBackgroundBrush(QBrush(QColor("#f8f8f8")));
-	//TestRechteck erzeugen
-	//mk_GraphicsScene.addRect(QRectF(-10.0, -10.0, 20.0, 20.0));
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 /*	mk_pNode = RefPtr<k_FileTrackerNode>(new k_FileTrackerNode());
 	mk_GraphicsScene.addWidget(mk_pNode.get_Pointer());
 	mk_pNode->setAlignment(0.5, 0.5);
 	mk_pNode->setPosition(QPoint(0, 0));
-	mk_pNode->setLabels(QStringList() << "hello" << "fellow" << "how are you");*/
+	mk_pNode->setLabels(QStringList() << "hello" << "fellow" << "how are you");
+	k_FileTrackerNode* mk_NodeOutput = new k_FileTrackerNode();
+	k_FileTrackerNode* mk_NodeGlobal = new k_FileTrackerNode();
+	k_FileTrackerNode* mk_NodeInput = new k_FileTrackerNode();
+	mk_GraphicsScene.addWidget(mk_NodeOutput);
+	mk_NodeOutput->setAlignment(1.0,0.5);
+	mk_NodeOutput->setPosition(QPoint(300, 0));
+	mk_NodeOutput->setLabels(QStringList() << "Filename" << "Filesize" << "User");
+	*/
 }
 
 
@@ -63,5 +70,44 @@ void k_Surface::resizeEvent(QResizeEvent* event)
 	mf_SceneHeight2 = height() / 2.0;
 	mk_GraphicsScene.setSceneRect(-mf_SceneWidth2, -mf_SceneHeight2, mf_SceneWidth2 * 2, mf_SceneHeight2 * 2);
 	centerOn(0.0, 0.0);
+	
+	adjustNodes();
 }
 
+void k_Surface::createNodes()
+{	
+	mk_Nodes.clear();
+	mk_CentralNode_ = NULL;
+	mk_LeftNodes.clear();
+	mk_RightNodes.clear();
+
+	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
+	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+	mk_CentralNode_= lk_Node_;
+	
+	
+	for (int i = 0; i< 4; ++i)
+	{
+		lk_Node_ = new k_FileTrackerNode();
+		mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+		mk_LeftNodes.append(lk_Node_);
+	}
+	
+	for (int j = 0; j< 4; ++j)
+	{
+		lk_Node_ = new k_FileTrackerNode();
+		mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+		mk_RightNodes.append(lk_Node_);
+	}
+	
+	foreach(RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
+		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
+		
+	adjustNodes();
+ }
+ 
+ void k_Surface::adjustNodes()
+ {
+ 
+ }
+ 
