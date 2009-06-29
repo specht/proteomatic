@@ -36,19 +36,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	setBackgroundBrush(QBrush(QColor("#f8f8f8")));
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-/*	mk_pNode = RefPtr<k_FileTrackerNode>(new k_FileTrackerNode());
-	mk_GraphicsScene.addWidget(mk_pNode.get_Pointer());
-	mk_pNode->setAlignment(0.5, 0.5);
-	mk_pNode->setPosition(QPoint(0, 0));
-	mk_pNode->setLabels(QStringList() << "hello" << "fellow" << "how are you");
-	k_FileTrackerNode* mk_NodeOutput = new k_FileTrackerNode();
-	k_FileTrackerNode* mk_NodeGlobal = new k_FileTrackerNode();
-	k_FileTrackerNode* mk_NodeInput = new k_FileTrackerNode();
-	mk_GraphicsScene.addWidget(mk_NodeOutput);
-	mk_NodeOutput->setAlignment(1.0,0.5);
-	mk_NodeOutput->setPosition(QPoint(300, 0));
-	mk_NodeOutput->setLabels(QStringList() << "Filename" << "Filesize" << "User");
-	*/
+	createNodes();
 }
 
 
@@ -93,21 +81,51 @@ void k_Surface::createNodes()
 		mk_LeftNodes.append(lk_Node_);
 	}
 	
-	for (int j = 0; j< 4; ++j)
+	for (int j = 0; j< 7; ++j)
 	{
 		lk_Node_ = new k_FileTrackerNode();
 		mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 		mk_RightNodes.append(lk_Node_);
+		
 	}
-	
+	/*
 	foreach(RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
 		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
-		
+		lk_Node_->setLabels(QStringList() << "hello" << "fellow" << "how are you");
+		lk_Node_->setAlignment(0.5, 0.5);
+		lk_Node_->setPosition(QPoint(0, 0));
+	*/
 	adjustNodes();
  }
  
- void k_Surface::adjustNodes()
- {
- 
- }
+void k_Surface::adjustNodes()
+{	
+	float lf_NodeHeight = (float)height();
+	float lf_NodePosition = lf_NodeHeight + 100.0;
+	
+	float lf_xLeft = -(mf_SceneWidth2 / 3.0);
+	float lf_xRight = (mf_SceneWidth2 / 3.0);
+		
+	mk_GraphicsScene.addWidget(mk_CentralNode_);
+	mk_CentralNode_->setLabels(QStringList() << "No" << "Name" << "Set");
+	mk_CentralNode_->setAlignment(0.5, 0.5);
+	mk_CentralNode_->setPosition(QPoint(0, 0));
+
+	
+	for	(int i = 0; i < mk_LeftNodes.size(); ++i)
+	{
+	float lf_y = -(((i - 1)* lf_NodePosition) / 2);
+	mk_GraphicsScene.addWidget(mk_LeftNodes[i]);
+	mk_LeftNodes[i]->setAlignment(1.0 , 0.5);
+	mk_LeftNodes[i]->setPosition(QPointF(lf_xLeft, lf_y));
+	};
+	
+	for (int j = 0; j < mk_RightNodes.size(); ++j)
+	{
+	float lf_y = -(((j - 1)* lf_NodePosition) / 2);
+	mk_GraphicsScene.addWidget(mk_RightNodes[j]);
+	mk_RightNodes[j]->setAlignment(0.0 , 0.5);
+	mk_RightNodes[j]->setPosition(QPointF(lf_xRight,lf_y));
+	};
+}
  

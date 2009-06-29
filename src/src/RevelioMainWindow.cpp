@@ -24,7 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	: mk_Surface(*this, this)
 {
-	resize(600, 300);
+	resize(640, 480);
 	setWindowTitle("Revelio");
 	setWindowIcon(QIcon(":/icons/revelio.png"));
 	
