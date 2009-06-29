@@ -74,7 +74,7 @@ void k_Surface::createNodes()
 	mk_CentralNode_= lk_Node_;
 	
 	
-	for (int i = 0; i< 4; ++i)
+	for (int i = 0; i< 2; ++i)
 	{
 		lk_Node_ = new k_FileTrackerNode();
 		mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
@@ -88,44 +88,43 @@ void k_Surface::createNodes()
 		mk_RightNodes.append(lk_Node_);
 		
 	}
-	/*
+	
 	foreach(RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
+	{
 		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
-		lk_Node_->setLabels(QStringList() << "hello" << "fellow" << "how are you");
-		lk_Node_->setAlignment(0.5, 0.5);
-		lk_Node_->setPosition(QPoint(0, 0));
-	*/
+		lk_pNode->setLabels(QStringList() << "hello" << "fellow" << "how are you");
+	}
 	adjustNodes();
  }
  
 void k_Surface::adjustNodes()
 {	
-	float lf_NodeHeight = (float)height();
-	float lf_NodePosition = lf_NodeHeight + 100.0;
+	
+	float lf_NodeSpacing = mk_CentralNode_->height() + 20;
 	
 	float lf_xLeft = -(mf_SceneWidth2 / 3.0);
 	float lf_xRight = (mf_SceneWidth2 / 3.0);
 		
-	mk_GraphicsScene.addWidget(mk_CentralNode_);
-	mk_CentralNode_->setLabels(QStringList() << "No" << "Name" << "Set");
+	//mk_CentralNode_->setLabels(QStringList() << "No" << "Name" << "Set");
+	mk_CentralNode_->setPosition(QPointF(0.0, 0.0));
 	mk_CentralNode_->setAlignment(0.5, 0.5);
-	mk_CentralNode_->setPosition(QPoint(0, 0));
 
-	
+	float y = -(float)(mk_LeftNodes.size() - 1) * lf_NodeSpacing * 0.5;
 	for	(int i = 0; i < mk_LeftNodes.size(); ++i)
 	{
-	float lf_y = -(((i - 1)* lf_NodePosition) / 2);
-	mk_GraphicsScene.addWidget(mk_LeftNodes[i]);
-	mk_LeftNodes[i]->setAlignment(1.0 , 0.5);
-	mk_LeftNodes[i]->setPosition(QPointF(lf_xLeft, lf_y));
+		//mk_LeftNodes[i]->setLabels(QStringList() << "Ich bin ein Input" << "Label");
+		mk_LeftNodes[i]->setPosition(QPointF(lf_xLeft, y));
+		y += lf_NodeSpacing;
+		mk_LeftNodes[i]->setAlignment(1.0 , 0.5);
 	};
-	
-	for (int j = 0; j < mk_RightNodes.size(); ++j)
+
+	y = -(float)(mk_RightNodes.size() - 1) * lf_NodeSpacing * 0.5;
+	for (int i = 0; i < mk_RightNodes.size(); ++i)
 	{
-	float lf_y = -(((j - 1)* lf_NodePosition) / 2);
-	mk_GraphicsScene.addWidget(mk_RightNodes[j]);
-	mk_RightNodes[j]->setAlignment(0.0 , 0.5);
-	mk_RightNodes[j]->setPosition(QPointF(lf_xRight,lf_y));
+		//mk_RightNodes[i]->setLabels(QStringList() << "Ich bin ein Output" << "Label");
+		mk_RightNodes[i]->setPosition(QPointF(lf_xRight, y));
+		y += lf_NodeSpacing;
+		mk_RightNodes[i]->setAlignment(0.0 , 0.5);
 	};
 }
  

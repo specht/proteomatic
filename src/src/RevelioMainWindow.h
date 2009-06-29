@@ -30,6 +30,8 @@ public:
 	k_RevelioMainWindow(QWidget* ak_Parent_ = NULL);
 	virtual ~k_RevelioMainWindow();
 	QString md5ForFile(QString as_Path);
+	virtual void adjustLayout();
+	
 public slots:
 
 signals:

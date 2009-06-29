@@ -28,6 +28,7 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
 	
 	k_RevelioMainWindow lk_MainWindow;
 	lk_MainWindow.show();
+	lk_MainWindow.adjustLayout();
 	
 	return lk_App.exec();
 }

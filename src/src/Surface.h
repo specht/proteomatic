@@ -34,6 +34,7 @@ public:
 	virtual ~k_Surface();
 	
 	virtual QGraphicsScene& graphicsScene();
+	virtual void adjustNodes();
 	
 public slots:
 
@@ -42,7 +43,6 @@ signals:
 protected:
 	virtual void resizeEvent(QResizeEvent* event);
 	virtual void createNodes();
-	virtual void adjustNodes();
 	
 	k_RevelioMainWindow& mk_RevelioMainWindow;
 	QGraphicsScene mk_GraphicsScene;
