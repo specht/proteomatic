@@ -22,7 +22,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Desktop.h"
 #include "IFileBox.h"
 #include "IScriptBox.h"
-#include "MessageBox.h"
 #include "ProfileManager.h"
 #include "Proteomatic.h"
 #include "Yaml.h"
