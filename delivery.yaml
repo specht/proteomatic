@@ -8,6 +8,6 @@ versionInject:
     #pragma once
     #include <QtCore>
     QString gs_ProteomaticVersion = "#{VERSION}";
-externals: [helper]
+externals: [bin/helper]
 specialAddScripts: trunk
 specialWrappers: makewrappers.rb
