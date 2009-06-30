@@ -1,6 +1,7 @@
 projects:
   - src/projects/Proteomatic
   - src/projects/ProteomaticPipeline
+binaryPath: bin
 qt: [core, gui, network]
 versionInject:
   src/src/version.h: |
@@ -9,3 +10,4 @@ versionInject:
     QString gs_ProteomaticVersion = "#{VERSION}";
 externals: [helper]
 specialAddScripts: trunk
+specialWrappers: makewrappers.rb
