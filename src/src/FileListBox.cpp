@@ -26,7 +26,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
-	: k_DesktopBox(ak_Parent_, ak_Proteomatic, true)
+	: k_DesktopBox(ak_Parent_, ak_Proteomatic, true, true)
 	, mk_FileList(this, true, true)
 	, mk_Label("<b>File list</b> (empty)", this)
 {
@@ -147,6 +147,7 @@ void k_FileListBox::setupLayout()
 	lk_HLayout_ = new QHBoxLayout();
 	lk_HLayout_->addWidget(&mk_FileList);
 	connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
+	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(toggleUi()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(filenamesChanged()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(updateFilenameTags()));
 	mk_FileList.resize(100, 100);

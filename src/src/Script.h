@@ -87,10 +87,14 @@ public:
 	virtual QString inputGroupLabel(const QString& as_Key) const;
 	virtual QStringList inputGroupExtensions(const QString& as_Key) const;
 	virtual QString inputGroupForFilename(const QString& as_Path) const;
+	virtual QString defaultOutputDirectoryInputGroup() const;
 	// checkInputFiles doesn't care whether files are actually there,
 	// it just checks whether all min/max requirements are fulfilled.
 	// ak_Files is a hash {group => set of filenames}
 	virtual bool checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, QString& as_InputFilesErrorMessage) const;
+	virtual QString mergeFilenames(QStringList ak_Files);
+	virtual QString proposePrefix(QStringList ak_Files);
+	virtual QStringList ambiguousInputGroups();
 
 	// output files
 	virtual QString outputDirectory() const;
@@ -146,6 +150,8 @@ protected:
 	QString ms_Description;
 	bool mb_HasParameters;
 	QString ms_DefaultOutputDirectory;
+	QStringList mk_ProposePrefixList;
+	QStringList mk_AmbiguousInputGroups;
 
 	RefPtr<QWidget> mk_pParameterWidget;
 	

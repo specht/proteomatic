@@ -48,7 +48,7 @@ public:
 	virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
 	virtual void disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
 	virtual void moveSelectedBoxesStart(IDesktopBox* ak_IncludeThis_);
-	virtual void moveSelectedBoxes(QPoint ak_Delta);
+	virtual void moveSelectedBoxes(QPointF ak_Delta);
 	
 	virtual void createFilenameTags(QStringList ak_Filenames, QHash<QString, QString>& ak_TagForFilename, QString& as_PrefixWithoutTags);
 	virtual bool running() const;
@@ -59,6 +59,7 @@ public:
 	
 	virtual void setHasUnsavedChanges(bool ab_Flag);
 	virtual bool hasUnsavedChanges() const;
+	virtual QSet<IDesktopBox*> selectedBoxes() const;
 	
 public slots:
 	virtual void clearAll();
@@ -73,10 +74,11 @@ public slots:
 signals:
 	virtual void pipelineIdle(bool);
 	virtual void showAllRequested();
+	virtual void selectionChanged();
 	
 protected slots:
 	virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());
-	virtual void boxClicked(Qt::KeyboardModifiers ae_Modifiers);
+	virtual void boxClicked(QMouseEvent* event);
 	virtual void arrowPressed();
 	virtual void arrowReleased();
 	virtual void boxBatchModeChanged(bool ab_Enabled);
@@ -93,6 +95,7 @@ protected slots:
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
 	virtual void mousePressEvent(QMouseEvent* event);
+	virtual void mouseReleaseEvent(QMouseEvent* event);
 	virtual void mouseMoveEvent(QMouseEvent* event);
 	virtual void wheelEvent(QWheelEvent* event);
 	virtual void updateUserArrow(QPointF ak_MousePosition);
@@ -156,4 +159,6 @@ protected:
 	double md_BoxZ;
 	bool mb_HasUnsavedChanges;
 	QHash<IDesktopBox*, QPoint> mk_MoveSelectionStartPositions;
+	QPointF mk_MoveStartPoint;
+	bool mb_Moving;
 };

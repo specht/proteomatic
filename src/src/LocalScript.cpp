@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "LocalScript.h"
 #include "RubyWindow.h"
+#include "Proteomatic.h"
 
 
 k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
@@ -46,6 +47,10 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 	{
 		QString ls_Response;
 		bool lb_UseCache = mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && mk_Proteomatic.fileUpToDate(ls_CacheFilename, QStringList() << as_ScriptPath);
+		// disable cache if we're trunk!
+		if (mk_Proteomatic.version() == "trunk")
+			lb_UseCache = false;
+			
 		if (lb_UseCache)
 		{
 			// see if cached info showed no errors or unresolved dependencies
@@ -148,12 +153,6 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
 	}
 	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << this->uri()) + commandLineArguments() + lk_AdditionalParameters + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
 	return QString();
-}
-
-
-QString k_LocalScript::proposePrefix(QStringList ak_Parameters)
-{
-	return mk_Proteomatic.syncRuby((QStringList() << this->uri()) << this->commandLineArguments() << "--proposePrefix" << ak_Parameters);
 }
 
 

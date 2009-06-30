@@ -66,23 +66,21 @@ protected:
 	void setScript(QString as_Filename);
 	void activateScript();
 	void addOutput(QString as_Text);
-	void addInputFile(QString as_Path);
 	bool checkVersionChanged();
 	void updateWindowTitle();
 
 	QString ms_WindowTitle;
-	k_FileList mk_FileList;
-	QToolButton mk_RemoveInputFileButton;
+	RefPtr<QWidget> mk_pInputFilesContainer;
+	QHash<QString, RefPtr<k_FileList> > mk_FileLists;
+	QHash<QString, QWidget*> mk_FileListsRemoveButtons;
 	QPushButton mk_ResetButton;
 	QPushButton mk_ResetParametersButton;
 	QPushButton mk_LoadParametersButton;
 	QPushButton mk_SaveParametersButton;
-	QToolButton mk_AddFilesButton;
 	QTextEdit mk_Output;
 	k_ConsoleString ms_Output;
 
 	QVBoxLayout mk_MainLayout;
-	QVBoxLayout* mk_UpperLayout_;
 	QVBoxLayout* mk_LowerLayout_;
 	QSplitter* mk_VSplitter_;
 	QSplitter* mk_HSplitter_;

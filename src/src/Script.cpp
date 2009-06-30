@@ -257,6 +257,149 @@ bool k_Script::checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, Q
 }
 
 
+bool intStringLessThan(const QString& as_First, const QString& as_Second)
+{
+	return QVariant(as_First).toInt() < QVariant(as_Second).toInt();
+}
+
+
+QString k_Script::mergeFilenames(QStringList ak_Files)
+{
+	if (ak_Files.empty())
+		return QString();
+	
+	QStringList lk_Files;
+	foreach (QString ls_Path, ak_Files)
+		lk_Files.push_back(QFileInfo(ls_Path).completeBaseName().split(".").first());
+	
+	if (lk_Files.size() == 1)
+		return lk_Files.first();
+	
+	QString ls_AllPattern;
+	QList<QSet<QString> > lk_AllParts;
+	foreach (QString ls_Path, lk_Files)
+	{
+		QString ls_Pattern;
+		QList<QString> lk_Parts;
+		for (int i = 0; i < ls_Path.size(); ++i)
+		{
+			bool lb_IsDigit = ls_Path[i].toAscii() >= '0' && ls_Path[i].toAscii() <= '9';
+			QString ls_Marker = lb_IsDigit ? "0" : "a";
+			if (ls_Pattern.isEmpty())
+			{
+				ls_Pattern = ls_Marker;
+				lk_Parts.push_back("");
+			}
+			if (ls_Pattern.right(1) != ls_Marker)
+			{
+				ls_Pattern += ls_Marker;
+				lk_Parts.push_back("");
+			}
+			lk_Parts.last() += ls_Path[i];
+		}
+		if (ls_AllPattern.isEmpty())
+			ls_AllPattern = ls_Pattern;
+		else
+			if (ls_AllPattern != ls_Pattern)
+				return QString();
+			
+		if (lk_AllParts.empty())
+			for (int i = 0; i < lk_Parts.size(); ++i)
+				lk_AllParts.push_back(QSet<QString>());
+			
+		for (int i = 0; i < lk_Parts.size(); ++i)
+			lk_AllParts[i].insert(lk_Parts[i]);
+	}
+	
+	QString ls_Prefix = "";
+	for (int i = 0; i < ls_AllPattern.length(); ++i)
+	{
+		QStringList lk_Part = lk_AllParts[i].toList();
+		if (ls_AllPattern[i] == QChar('a'))
+			qSort(lk_Part.begin(), lk_Part.end());
+		else
+			qSort(lk_Part.begin(), lk_Part.end(), &intStringLessThan);
+		
+		if (lk_Part.size() == 1)
+			ls_Prefix += lk_Part.first();
+		else
+		{
+			if (ls_AllPattern[i] == QChar('0'))
+			{
+				// we have multiple entries and it's a number part, try to find ranges!
+				QString ls_Start;
+				QString ls_Stop;
+				QString ls_Last;
+				QStringList lk_OldPart = lk_Part;
+				lk_Part.clear();
+				foreach (QString si, lk_OldPart)
+				{
+					int li_Number = QVariant(si).toInt();
+					if (ls_Start.isEmpty())
+					{
+						ls_Start = si;
+						ls_Stop = si;
+						ls_Last = si;
+						continue;
+					}
+					if (li_Number == QVariant(ls_Last).toInt() + 1)
+					{
+						// extend range
+						ls_Stop = si;
+						ls_Last = si;
+						continue;
+					}
+					else
+					{
+						if (QVariant(ls_Start).toInt() == QVariant(ls_Stop).toInt())
+							lk_Part.push_back(ls_Start);
+						else if (QVariant(ls_Start).toInt() + 1 == QVariant(ls_Stop).toInt())
+							lk_Part.push_back(ls_Start + "," + ls_Stop);
+						else
+							lk_Part.push_back(ls_Start + "-" + ls_Stop);
+						ls_Start = si;
+						ls_Stop = si;
+						ls_Last = si;
+					}
+				}
+				if (QVariant(ls_Start).toInt() == QVariant(ls_Stop).toInt())
+					lk_Part.push_back(ls_Start);
+				else if (QVariant(ls_Start).toInt() + 1 == QVariant(ls_Stop).toInt())
+					lk_Part.push_back(ls_Start + "," + ls_Stop);
+				else
+					lk_Part.push_back(ls_Start + "-" + ls_Stop);
+			}
+			ls_Prefix += lk_Part.join(",");
+		}
+	}
+
+	return ls_Prefix;
+}
+
+
+QString k_Script::proposePrefix(QStringList ak_Files)
+{
+	QString ls_AllPrefix;
+	foreach (QString ls_Group, mk_ProposePrefixList)
+	{
+		QStringList lk_Files;
+		foreach (QString ls_Path, ak_Files)
+			if (inputGroupForFilename(ls_Path) == ls_Group)
+				lk_Files.push_back(ls_Path);
+		QString ls_Prefix = mergeFilenames(lk_Files);
+		if (!ls_Prefix.isEmpty())
+			ls_AllPrefix += ls_Prefix + "-";
+	}
+	return ls_AllPrefix;
+}
+
+
+QStringList k_Script::ambiguousInputGroups()
+{
+	return mk_AmbiguousInputGroups;
+}
+
+
 QString k_Script::parameterValue(const QString& as_Key) const
 {
 	QWidget* lk_Widget_ = mk_ParameterValueWidgets[as_Key];
@@ -576,6 +719,10 @@ void k_Script::clearOutputDirectoryButtonClicked()
 }
 
 
+// BIG TODO: prefix proposal does not take amibiguous input files into account,
+// any file which is ambiguous is just counted as the first group, not according
+// to how the user actually assigned the file
+
 QString k_Script::inputGroupForFilename(const QString& as_Path) const
 {
 	QString ls_Path = as_Path.toLower();
@@ -588,6 +735,12 @@ QString k_Script::inputGroupForFilename(const QString& as_Path) const
 		}
 	}
 	return "";
+}
+
+
+QString k_Script::defaultOutputDirectoryInputGroup() const
+{
+	return ms_DefaultOutputDirectory;
 }
 
 
@@ -631,6 +784,8 @@ void k_Script::resetDialog()
 void k_Script::createParameterWidget(QStringList ak_Definition)
 {
 	ms_DefaultOutputDirectory.clear();
+	mk_ProposePrefixList.clear();
+	mk_AmbiguousInputGroups.clear();
 	mk_InputGroupKeys.clear();
 	mk_InputGroupLabels.clear();
 	mk_InputGroupDescriptions.clear();
@@ -728,6 +883,28 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				ms_DefaultOutputDirectory = ls_Key;
 			}
 		}
+		if (ls_Parameter == "!!!begin proposePrefixList")
+		{
+			while (true)
+			{
+				QString ls_Key = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "!!!end proposePrefixList")
+					break;
+				mk_ProposePrefixList.push_back(ls_Key);
+			}
+		}
+		if (ls_Parameter == "!!!begin ambiguousInputGroups")
+		{
+			while (true)
+			{
+				QString ls_Key = ak_Definition.takeFirst().trimmed();
+				if (ls_Key == "!!!end ambiguousInputGroups")
+					break;
+				// ls_Key is an ambiguous input file group now,
+				// so we will need an extra input box for this
+				mk_AmbiguousInputGroups.push_back(ls_Key);
+			}
+		}
 		if (lk_Parameter["key"].length() > 0)
 		{
 			lk_Parameters[lk_Parameter["key"]] = lk_Parameter;
@@ -812,7 +989,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 		if (!ms_DefaultOutputDirectory.isEmpty())
 		{
-			lk_Label_ = new QLabel("Unless an output directory is specified, the output files will be written to the directory of the first " + ms_DefaultOutputDirectory + " file.", lk_InternalWidget_);
+			lk_Label_ = new QLabel("Unless an output directory is specified, the output files will be written to the directory of one of the " + mk_InputGroupLabels[ms_DefaultOutputDirectory] + " files.", lk_InternalWidget_);
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}
@@ -890,32 +1067,9 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		QBoxLayout* lk_Layout_ = new QBoxLayout(QBoxLayout::LeftToRight);
 		lk_Layout_->setContentsMargins(0, 0, 0, 0);
 		lk_Layout_->setSpacing(5);
-		int li_ColSpan = 1;
-		if (lk_Parameter.contains("colspan"))
-			li_ColSpan = QVariant(lk_Parameter["colspan"]).toInt();
-		if (li_ColSpan > 1)
-		{
-			if (lk_GroupBoxX[ls_Group] != 0)
-			{
-				lk_GroupBoxX[ls_Group] = 0;
-				lk_GroupBoxY[ls_Group] += 1;
-			}
-		}
-		lk_GridLayouts[ls_Group]->addLayout(lk_Layout_, lk_GroupBoxY[ls_Group], lk_GroupBoxX[ls_Group], 1, li_ColSpan);
-		if (true || li_ColSpan > 1)
-		{
-			lk_GroupBoxX[ls_Group] = 0;
-			lk_GroupBoxY[ls_Group] += 1;
-		}
-		else
-		{
-			lk_GroupBoxX[ls_Group] += 1;
-			if (lk_GroupBoxX[ls_Group] > 1)
-			{
-				lk_GroupBoxX[ls_Group] = 0;
-				lk_GroupBoxY[ls_Group] += 1;
-			}
-		}
+		lk_GridLayouts[ls_Group]->addLayout(lk_Layout_, lk_GroupBoxY[ls_Group], lk_GroupBoxX[ls_Group], 1, 1);
+		lk_GroupBoxX[ls_Group] = 0;
+		lk_GroupBoxY[ls_Group] += 1;
 
 		bool lb_AddLabel = true;
 		bool lb_WidgetFirst = false;
@@ -1222,7 +1376,7 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		{
 			QString ls_Label = lk_Parameter["label"];
 			if (ls_Key.startsWith("output") && !lk_Parameter["filename"].isEmpty())
-				ls_Label += QString(" (%1)").arg(lk_Parameter["filename"]);
+				ls_Label = "Write " + ls_Label + QString(" (%1)").arg(lk_Parameter["filename"]);
 			if (!lb_WidgetFirst)
 				ls_Label += ":";
 				

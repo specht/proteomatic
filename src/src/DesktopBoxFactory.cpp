@@ -18,6 +18,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "DesktopBoxFactory.h"
+#include "InputGroupProxyBox.h"
 #include "ScriptFactory.h"
 #include "ScriptBox.h"
 #include "FileListBox.h"
@@ -53,3 +54,13 @@ k_DesktopBoxFactory::makeOutFileListBox(k_Desktop* ak_Parent_,
 {
 	return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Label, ab_ItemsDeleteable);
 }
+
+
+IDesktopBox* 
+k_DesktopBoxFactory::makeInputGroupProxyBox(k_Desktop* ak_Parent_, 
+											 k_Proteomatic& ak_Proteomatic,
+											 QString as_Label, QString as_GroupKey)
+{
+	return new k_InputGroupProxyBox(ak_Parent_, ak_Proteomatic, as_Label, as_GroupKey);
+}
+

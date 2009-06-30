@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesktopBox.h"
 #include "FileListBox.h"
 #include "IFileBox.h"
+#include "InputGroupProxyBox.h"
 #include "IScriptBox.h"
 #include "ScriptBox.h"
 #include "PipelineMainWindow.h"
@@ -43,6 +44,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mk_CurrentScriptBox_(NULL)
 	, md_BoxZ(0.0)
 	, mb_HasUnsavedChanges(false)
+	, mb_Moving(false)
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
 	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
@@ -105,7 +107,7 @@ IDesktopBox* k_Desktop::addInputFileListBox()
 }
 
 
-IDesktopBox*  k_Desktop::addScriptBox(const QString& as_ScriptUri)
+IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri)
 {
 	IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeScriptBox(as_ScriptUri, this, mk_Proteomatic);
 	if (lk_Box_)
@@ -117,6 +119,28 @@ IDesktopBox*  k_Desktop::addScriptBox(const QString& as_ScriptUri)
 		connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
 		setCurrentScriptBox(lk_ScriptBox_);
 		mb_Error = false;
+		QSet<QString> lk_InputGroups = lk_ScriptBox_->script()->inputGroupKeys().toSet();
+		foreach (QString ls_GroupKey, lk_ScriptBox_->script()->ambiguousInputGroups())
+		{
+			QString ls_GroupLabel = lk_ScriptBox_->script()->inputGroupLabel(ls_GroupKey);
+			IDesktopBox* lk_ProxyBox_ = k_DesktopBoxFactory::makeInputGroupProxyBox(this, mk_Proteomatic, ls_GroupLabel, ls_GroupKey);
+			if (lk_ProxyBox_)
+			{
+				addBox(lk_ProxyBox_);
+				connectBoxes(lk_ProxyBox_, lk_Box_);
+			}
+			lk_InputGroups.remove(ls_GroupKey);
+		}
+		if (!lk_ScriptBox_->script()->ambiguousInputGroups().empty() && !lk_InputGroups.empty())
+		{
+			// add another 'remaining files' input proxy box and disallow direct connections to the script box
+			IDesktopBox* lk_ProxyBox_ = k_DesktopBoxFactory::makeInputGroupProxyBox(this, mk_Proteomatic, "Remaining input files", "");
+			if (lk_ProxyBox_)
+			{
+				addBox(lk_ProxyBox_);
+				connectBoxes(lk_ProxyBox_, lk_Box_);
+			}
+		}
 	}
 	return lk_Box_;
 }
@@ -135,7 +159,7 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 	}
 	connect(lk_DesktopBox_, SIGNAL(moved(QPoint)), this, SLOT(boxMovedOrResized(QPoint)));
 	connect(lk_DesktopBox_, SIGNAL(resized()), this, SLOT(boxMovedOrResized()));
-	connect(lk_DesktopBox_, SIGNAL(clicked(Qt::KeyboardModifiers)), this, SLOT(boxClicked(Qt::KeyboardModifiers)));
+	connect(lk_DesktopBox_, SIGNAL(clicked(QMouseEvent*)), this, SLOT(boxClicked(QMouseEvent*)));
 	connect(lk_DesktopBox_, SIGNAL(batchModeChanged(bool)), this, SLOT(boxBatchModeChanged(bool)));
 	mk_Boxes.insert(ak_Box_);
 	lk_DesktopBox_->resize(1, 1);
@@ -149,19 +173,29 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_)
 
 void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 {
-	if (mk_DeleteBoxStackSet.contains(ak_Box_))
-		return;
-	
-	mk_DeleteBoxStackSet.insert(ak_Box_);
 	if (!mk_Boxes.contains(ak_Box_))
 		return;
+
+	if (mk_DeleteBoxStackSet.contains(ak_Box_))
+		return;
+	mk_DeleteBoxStackSet.insert(ak_Box_);
+
+	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(ak_Box_);
+	
+	// explicitely delete incoming input group proxy boxes if this is a script box
+	if (lk_ScriptBox_)
+		foreach (IDesktopBox* lk_Box_, ak_Box_->incomingBoxes())
+		{
+			k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
+			if (lk_ProxyBox_)
+				this->removeBox(lk_ProxyBox_);
+		}
 	
 	foreach (IDesktopBox* lk_Box_, ak_Box_->incomingBoxes())
 		disconnectBoxes(lk_Box_, ak_Box_);
 	foreach (IDesktopBox* lk_Box_, ak_Box_->outgoingBoxes())
 		disconnectBoxes(ak_Box_, lk_Box_);
 	
-	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(ak_Box_);
 	if (lk_ScriptBox_)
 		mk_BoxForScript.remove(lk_ScriptBox_->script());
 	
@@ -180,11 +214,15 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 	mb_HasUnsavedChanges = true;
 	mk_PipelineMainWindow.toggleUi();
 	mk_DeleteBoxStackSet.remove(ak_Box_);
+	emit selectionChanged();
 }
 
 
 void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_)
 {
+	tk_BoxPair lk_BoxPair(ak_Source_, ak_Destination_);
+	if (mk_ArrowForBoxPair.contains(lk_BoxPair))
+		return;
 	ak_Source_->connectOutgoingBox(ak_Destination_);
 	QGraphicsPathItem* lk_GraphicsPathItem_ = 
 		mk_GraphicsScene.addPath(QPainterPath(), QPen(QColor(TANGO_ALUMINIUM_3)), QBrush(QColor(TANGO_ALUMINIUM_3)));
@@ -196,7 +234,7 @@ void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destinatio
 	lk_ArrowProxy_->setZValue(-1000.0);
 	mk_ArrowForProxy[lk_ArrowProxy_] = lk_GraphicsPathItem_;
 	mk_Arrows[lk_GraphicsPathItem_] = tk_BoxPair(ak_Source_, ak_Destination_);
-	mk_ArrowForBoxPair[tk_BoxPair(ak_Source_, ak_Destination_)] = lk_GraphicsPathItem_;
+	mk_ArrowForBoxPair[lk_BoxPair] = lk_GraphicsPathItem_;
 	mk_ArrowsForBox[ak_Source_].insert(lk_GraphicsPathItem_);
 	mk_ArrowsForBox[ak_Destination_].insert(lk_GraphicsPathItem_);
 	mk_ArrowProxy[lk_GraphicsPathItem_] = lk_ArrowProxy_;
@@ -209,6 +247,8 @@ void k_Desktop::connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destinatio
 void k_Desktop::disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_)
 {
 	tk_BoxPair lk_BoxPair(ak_Source_, ak_Destination_);
+	if (!mk_ArrowForBoxPair.contains(lk_BoxPair))
+		return;
 	QGraphicsPathItem* lk_GraphicsPathItem_ = mk_ArrowForBoxPair[lk_BoxPair];
 	mk_Arrows.remove(lk_GraphicsPathItem_);
 	mk_ArrowForBoxPair.remove(lk_BoxPair);
@@ -236,16 +276,17 @@ void k_Desktop::moveSelectedBoxesStart(IDesktopBox* ak_IncludeThis_)
 		if (lk_DesktopBox_)
 			mk_MoveSelectionStartPositions[lk_Box_] = lk_DesktopBox_->pos();
 	}
+	mb_Moving = true;
 }
 
 
-void k_Desktop::moveSelectedBoxes(QPoint ak_Delta)
+void k_Desktop::moveSelectedBoxes(QPointF ak_Delta)
 {
 	foreach (IDesktopBox* lk_Box_, mk_SelectedBoxes)
 	{
 		k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
 		if (lk_DesktopBox_ && mk_MoveSelectionStartPositions.contains(lk_Box_))
-			lk_DesktopBox_->move(mk_MoveSelectionStartPositions[lk_Box_] + ak_Delta);
+			lk_DesktopBox_->move(mk_MoveSelectionStartPositions[lk_Box_] + ak_Delta.toPoint());
 	}
 }
 
@@ -430,6 +471,12 @@ tk_YamlMap k_Desktop::pipelineDescription()
 	tk_YamlSequence lk_Arrows;
 	foreach (tk_BoxPair lk_BoxPair, lk_UnsavedArrows)
 	{
+		// skip this arrow if it comes from a converter script box, because in that case,
+		// the arrow is already there by definition
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_BoxPair.first);
+		if (lk_ScriptBox_ && lk_ScriptBox_->script()->type() == r_ScriptType::Converter)
+			continue;
+		
 		tk_YamlSequence lk_Pair;
 		lk_Pair.push_back((qint64)lk_BoxPair.first);
 		lk_Pair.push_back((qint64)lk_BoxPair.second);
@@ -518,6 +565,12 @@ void k_Desktop::setHasUnsavedChanges(bool ab_Flag)
 bool k_Desktop::hasUnsavedChanges() const
 {
 	return mb_HasUnsavedChanges;
+}
+
+
+QSet<IDesktopBox*> k_Desktop::selectedBoxes() const
+{
+	return mk_SelectedBoxes;
 }
 
 
@@ -688,8 +741,9 @@ void k_Desktop::boxMovedOrResized(QPoint ak_Delta)
 }
 
 
-void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
+void k_Desktop::boxClicked(QMouseEvent* event)
 {
+	Qt::KeyboardModifiers le_Modifiers = event->modifiers();
 	IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
 	if (md_BoxZ > 1000.0)
 	{
@@ -709,7 +763,7 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 		setCurrentScriptBox(dynamic_cast<IScriptBox*>(lk_Box_));
 	}
 	
-	if ((ae_Modifiers & Qt::ControlModifier) == Qt::ControlModifier)
+	if ((le_Modifiers & Qt::ControlModifier) == Qt::ControlModifier)
 	{
 		if (mk_SelectedBoxes.contains(lk_Box_))
 			mk_SelectedBoxes.remove(lk_Box_);
@@ -723,6 +777,8 @@ void k_Desktop::boxClicked(Qt::KeyboardModifiers ae_Modifiers)
 		mk_SelectedBoxes.insert(lk_Box_);
 	}
 	redrawSelection();
+	moveSelectedBoxesStart(lk_Box_);
+	emit selectionChanged();
 }
 
 
@@ -874,8 +930,9 @@ void k_Desktop::deleteSelected()
 
 	foreach (QGraphicsPathItem* lk_Arrow_, lk_ArrowDeleteList)
 	{
-		// skip this arrow if it points to a delete-protected box
-		if (mk_Arrows[lk_Arrow_].second->protectedFromUserDeletion())
+		// skip this arrow if it points to a delete-protected box or it comes from a delete-protected box
+		if ((mk_Arrows[lk_Arrow_].first->protectedFromUserDeletion() && dynamic_cast<k_InputGroupProxyBox*>(mk_Arrows[lk_Arrow_].first) != NULL) || 
+			(mk_Arrows[lk_Arrow_].second->protectedFromUserDeletion() && dynamic_cast<IScriptBox*>(mk_Arrows[lk_Arrow_].first) != NULL))
 			mk_SelectedArrows.remove(lk_Arrow_);
 		else
 			disconnectBoxes(mk_Arrows[lk_Arrow_].first, mk_Arrows[lk_Arrow_].second);
@@ -893,6 +950,7 @@ void k_Desktop::deleteSelected()
 	
 	redrawSelection();
 	redrawBatchFrame();
+	emit selectionChanged();
 }
 
 
@@ -953,6 +1011,7 @@ void k_Desktop::clearSelection()
 {
 	mk_SelectedBoxes.clear();
 	mk_SelectedArrows.clear();
+	emit selectionChanged();
 }
 
 
@@ -997,6 +1056,7 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 	}
 	redrawSelection();
 	mk_PipelineMainWindow.toggleUi();
+	refresh();
 }
 
 
@@ -1064,10 +1124,21 @@ void k_Desktop::mousePressEvent(QMouseEvent* event)
 				else
 					mk_SelectedArrows.insert(lk_Arrow_);
 				redrawSelection();
+				emit selectionChanged();
 			}
 		}
 	}
+	event->ignore();
+	mk_MoveStartPoint = mapToScene(event->globalPos());
 	QGraphicsView::mousePressEvent(event);
+}
+
+
+void k_Desktop::mouseReleaseEvent(QMouseEvent* event)
+{
+	mb_Moving = false;
+	event->accept();
+	QGraphicsView::mouseReleaseEvent(event);
 }
 
 
@@ -1077,8 +1148,29 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* event)
 	if (mk_ArrowStartBox_)
 	{
 		mk_ArrowEndBox_ = boxAt(mapToScene(event->pos()));
-		if (dynamic_cast<IScriptBox*>(mk_ArrowEndBox_) == NULL || mk_ArrowEndBox_ == mk_ArrowStartBox_)
+		if (((dynamic_cast<IScriptBox*>(mk_ArrowEndBox_) == NULL) && (dynamic_cast<k_InputGroupProxyBox*>(mk_ArrowEndBox_) == NULL)) || mk_ArrowEndBox_ == mk_ArrowStartBox_)
 			mk_ArrowEndBox_ = NULL;
+		// make sure that the output of one script is not connected to one of its input proxy boxes
+		foreach (IDesktopBox* lk_Box_, mk_ArrowStartBox_->incomingBoxes())
+		{
+			foreach (IDesktopBox* lk_PreviousBox_, lk_Box_->incomingBoxes())
+			{
+				k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_PreviousBox_);
+				if (lk_ProxyBox_ && lk_ProxyBox_ == mk_ArrowEndBox_)
+				{
+					mk_ArrowEndBox_ = NULL;
+					break;
+				}
+			}
+		}
+		// make sure the arrow end box is not a script box which has ambiguous input groups
+		// in that case, the files should go to one of the proxy boxes
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(mk_ArrowEndBox_);
+		if (lk_ScriptBox_)
+		{
+			if (!lk_ScriptBox_->script()->ambiguousInputGroups().empty())
+				mk_ArrowEndBox_ = NULL;
+		}
 		if (mk_ArrowEndBox_)
 		{
 			if (mk_ArrowEndBox_ && mk_ArrowStartBox_->incomingBoxes().contains(mk_ArrowEndBox_))
@@ -1087,6 +1179,13 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* event)
 				mk_ArrowEndBox_ = NULL;
 		}
 		updateUserArrow(mapToScene(event->pos()));
+	}
+	if (mb_Moving)
+	{
+		if (event->buttons() == Qt::NoButton)
+			mb_Moving = false;
+		else
+			moveSelectedBoxes(mapToScene(event->globalPos()) - mk_MoveStartPoint);
 	}
 }
 

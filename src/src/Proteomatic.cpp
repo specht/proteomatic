@@ -101,6 +101,10 @@ k_Proteomatic::~k_Proteomatic()
 
 void k_Proteomatic::checkForUpdates()
 {
+	// don't do updates if this is trunk!
+	if (gs_ProteomaticVersion == "trunk")
+		return;
+	
 	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
 	{
 		QString ls_Result = this->syncRuby(QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun");
@@ -319,7 +323,7 @@ void k_Proteomatic::collectScriptInfo()
 			bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
 			
 			// disable cache if we're trunk!
-			if (gs_ProteomaticVersion == "trunk")
+			if (version() == "trunk")
 			  lb_UseCache = false;
 			  
 			if (lb_UseCache)
@@ -511,7 +515,8 @@ QString k_Proteomatic::scriptPathAndPackage() const
 
 int k_Proteomatic::showMessageBox(QString as_Title, QString as_Text, QString as_Icon, 
 								  QMessageBox::StandardButtons ae_Buttons, QMessageBox::StandardButton ae_DefaultButton, 
-								  QMessageBox::StandardButton ae_EscapeButton)
+								  QMessageBox::StandardButton ae_EscapeButton,
+								  QString as_InformativeText, QString as_DetailedText)
 {
 	QMessageBox lk_MessageBox(mk_MessageBoxParent_);
 	if (as_Icon != "")
@@ -522,6 +527,10 @@ int k_Proteomatic::showMessageBox(QString as_Title, QString as_Text, QString as_
 	lk_MessageBox.setStandardButtons(ae_Buttons);
 	lk_MessageBox.setEscapeButton(ae_EscapeButton);
 	lk_MessageBox.setDefaultButton(ae_DefaultButton);
+	if (!as_InformativeText.isEmpty())
+		lk_MessageBox.setInformativeText(as_InformativeText);
+	if (!as_DetailedText.isEmpty())
+		lk_MessageBox.setDetailedText(as_DetailedText);
 	return lk_MessageBox.exec();
 }
 

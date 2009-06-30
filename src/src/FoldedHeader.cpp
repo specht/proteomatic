@@ -50,6 +50,7 @@ void k_FoldedHeader::hideBuddy()
 	mb_Increasing = false;
 	mk_Timer.start();
 	mk_Buddy_->setVisible(false);
+	emit hidingBuddy();
 	//mk_Label.setForegroundRole(QPalette::Text);
 	//mk_Icon.setPixmap(mk_FoldedIcon);
 	
@@ -63,6 +64,7 @@ void k_FoldedHeader::showBuddy()
 	mb_Increasing = true;
 	mk_Timer.start();
 	mk_Buddy_->setVisible(true);
+	emit showingBuddy();
 	//mk_Label.setForegroundRole(QPalette::Text);
 	//mk_Icon.setPixmap(mk_UnfoldedIcon);
 }

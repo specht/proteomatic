@@ -31,7 +31,6 @@ class k_PipelineMainWindow: public QMainWindow
 public:
 	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_PipelineMainWindow();
-	QString outputDirectory();
 	QString outputPrefix();
 	virtual void addOutput(QString as_String);
 	virtual void clearOutput();
@@ -41,9 +40,12 @@ public slots:
 	void toggleUi();
 	
 signals:
-	void outputDirectoryChanged(const QString& as_Path);
 	void outputPrefixChanged(const QString& as_Prefix);
 	void forceRefresh();
+	
+protected:
+	virtual void closeEvent(QCloseEvent* event);
+	virtual bool askForSaveIfNecessary();
 
 protected slots:
 	void newPipeline();
@@ -55,11 +57,10 @@ protected slots:
 	void start();
 	void abort();
 	void addFileListBox();
-	void chooseOutputDirectory();
-	void setOutputDirectory(QString as_Path);
 	void resetParameters();
 	void showProfileManager();
 	void showAll();
+	void updateStatusBar();
 
 protected:
 	k_Desktop* mk_Desktop_;
@@ -76,10 +77,8 @@ protected:
 	QAction* mk_ProfileManagerAction_;
 	QAction* mk_ResetParametersAction_;
 	QLineEdit* mk_OutputPrefix_;
-	QLineEdit* mk_OutputDirectory_;
 	QAction* mk_ClearPrefixForAllScriptsAction_;
 	QAction* mk_ProposePrefixForAllScriptsAction_;
-	QAction* mk_ChooseOutputDirectoryAction_;
 	k_Proteomatic& mk_Proteomatic;
 	QFileSystemWatcher mk_FileSystemWatcher;
 	QTextEdit* mk_Log_;
@@ -89,4 +88,6 @@ protected:
 	QBoxLayout* mk_PaneLayout_;
 	QString ms_PipelineFilename;
 	QSplitter* mk_HSplitter_;
+	QLabel* mk_StatusBarMessage_;
+	QObject* mk_WatchedBoxObject_;
 };

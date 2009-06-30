@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "EditProfileDialog.h"
 #include "FoldedHeader.h"
 #include "ScriptFactory.h"
+#include "Proteomatic.h"
 
 
 k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, 

@@ -54,6 +54,10 @@ protected slots:
 protected:
 	virtual void keyPressEvent(QKeyEvent* ak_Event_);
 	virtual void mouseDoubleClickEvent(QMouseEvent* event);
+	virtual void dragEnterEvent(QDragEnterEvent* event);
+	virtual void dragMoveEvent(QDragMoveEvent* event);
+	virtual void dropEvent(QDropEvent* event);
+	virtual Qt::DropActions supportedDropActions() const;
 	
 	QStringList mk_Keys;
 	QHash<QString, QString> mk_Labels;

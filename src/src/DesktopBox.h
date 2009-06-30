@@ -42,7 +42,7 @@ class k_DesktopBox: public QWidget, public IDesktopBox
 {
 	Q_OBJECT
 public:
-	k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, bool ab_Resizable = true);
+	k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, bool ab_ResizableX = true, bool ab_ResizableY = true);
 	virtual ~k_DesktopBox();
 	
 	// IDesktopBox
@@ -60,7 +60,7 @@ public slots:
 	virtual void disconnectIncomingBox(IDesktopBox* ak_Other_);
 	virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_);
 	virtual void disconnectAll();
-	virtual void setResizable(bool ab_Enabled);
+	virtual void setResizable(bool ab_EnabledX, bool ab_EnabledY);
 	virtual void toggleUi();
 	virtual QRectF rect();
 	
@@ -68,7 +68,7 @@ signals:
 	virtual void batchModeChanged(bool);
 	virtual void moved(QPoint ak_Delta);
 	virtual void resized();
-	virtual void clicked(Qt::KeyboardModifiers ae_Modifiers);
+	virtual void clicked(QMouseEvent* event);
 	virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	
@@ -82,7 +82,7 @@ protected:
 
 	k_Desktop* mk_Desktop_;
 	k_Proteomatic& mk_Proteomatic;
-	bool mb_Resizable;
+	bool mb_ResizableX, mb_ResizableY;
 	QPixmap mk_ResizeGripPixmap;
 	
 	bool mb_BatchMode;

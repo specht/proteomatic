@@ -54,7 +54,7 @@ public slots:
 	virtual void start(const QString& as_IterationKey);
 	virtual void abort();
 	// :TODO: these two guys should be in IScriptBox!!
-	virtual void proposePrefixButtonClicked();
+	virtual void proposePrefixButtonClicked(bool ab_NotifyOnFailure = true);
 	virtual void clearPrefixButtonClicked();
 	virtual void clearOutputDirectoryButtonClicked();
 	
@@ -69,14 +69,19 @@ protected slots:
 	virtual void showOutputBox(bool ab_Flag = true);
 	virtual void scriptParameterChanged(const QString& as_Key);
 	virtual void chooseOutputDirectory();
+	virtual void hidingBuddy();
+	virtual void showingBuddy();
 	
 signals:
 	virtual void scriptStarted();
 	virtual void scriptFinished(int ai_ExitCode);
 	virtual void readyRead();
+	virtual void outputPrefixChanged();
+	virtual void outputDirectoryChanged();
 	
 protected:
 	virtual void setupLayout();
+	virtual void determineOutputDirectoryDefiningInputFile();
 	
 	RefPtr<IScript> mk_pScript;
 	RefPtr<QWidget> mk_pParameterProxyWidget;
@@ -91,4 +96,6 @@ protected:
 	QTabWidget* mk_TabWidget_;
 	QString ms_ConverterFilenamePattern;
 	QSet<QString> mk_ConverterFilenameAffectingParameters;
+	QSize mk_LastUserAdjustedSize;
+	QString ms_OutputDirectoryDefiningInputPath;
 };
