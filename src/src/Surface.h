@@ -35,14 +35,18 @@ public:
 	
 	virtual QGraphicsScene& graphicsScene();
 	virtual void adjustNodes();
-	
+
+
 public slots:
 
 signals:
+	
 
 protected:
 	virtual void resizeEvent(QResizeEvent* event);
 	virtual void createNodes();
+	virtual void mouseDoubleClickEvent(QMouseEvent* mouseEvent);
+
 	
 	k_RevelioMainWindow& mk_RevelioMainWindow;
 	QGraphicsScene mk_GraphicsScene;
@@ -50,8 +54,11 @@ protected:
 	float mf_SceneWidth2; 
 	float mf_SceneHeight2;
 	
+	
 	QList<RefPtr<k_FileTrackerNode> > mk_Nodes;
 	QList<k_FileTrackerNode*> mk_LeftNodes;
 	QList<k_FileTrackerNode*> mk_RightNodes;
 	k_FileTrackerNode* mk_CentralNode_;
+	
 };
+

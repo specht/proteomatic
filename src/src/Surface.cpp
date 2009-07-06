@@ -19,7 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Surface.h"
 #include "Tango.h"
-#include "FileTrackerNode.h"
+
 
 k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_)
 	: QGraphicsView(ak_Parent_)
@@ -28,6 +28,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	, mf_SceneWidth2(1.0)
 	, mf_SceneHeight2(1.0)
 	, mk_CentralNode_(NULL)
+
 {	
 	setRenderHint(QPainter::Antialiasing, true);
 	setRenderHint(QPainter::TextAntialiasing, true);
@@ -37,6 +38,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	createNodes();
+	
 }
 
 
@@ -105,14 +107,14 @@ void k_Surface::adjustNodes()
 	float lf_xLeft = -(mf_SceneWidth2 / 3.0);
 	float lf_xRight = (mf_SceneWidth2 / 3.0);
 		
-	mk_CentralNode_->setLabels(QStringList() << "No" << "Name" << "Set");
+
 	mk_CentralNode_->setPosition(QPointF(0.0, 0.0));
 	mk_CentralNode_->setAlignment(0.5, 0.5);
 
 	float y = -(float)(mk_LeftNodes.size() - 1) * lf_NodeSpacing * 0.5;
 	for	(int i = 0; i < mk_LeftNodes.size(); ++i)
 	{
-		mk_LeftNodes[i]->setLabels(QStringList() << "Ich bin ein Input" << "Label");
+
 		mk_LeftNodes[i]->setPosition(QPointF(lf_xLeft, y));
 		y += lf_NodeSpacing;
 		mk_LeftNodes[i]->setAlignment(1.0 , 0.5);
@@ -121,10 +123,25 @@ void k_Surface::adjustNodes()
 	y = -(float)(mk_RightNodes.size() - 1) * lf_NodeSpacing * 0.5;
 	for (int i = 0; i < mk_RightNodes.size(); ++i)
 	{
-		mk_RightNodes[i]->setLabels(QStringList() << "Ich bin ein Output" << "Label");
 		mk_RightNodes[i]->setPosition(QPointF(lf_xRight, y));
 		y += lf_NodeSpacing;
 		mk_RightNodes[i]->setAlignment(0.0 , 0.5);
-	};
+	}
 }
- 
+
+void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
+{	
+
+	if (itemAt(mouseEvent->pos()))
+	{
+		
+		
+		QString title("Info");
+		QString text("Hat geklappt!");
+		
+		QMessageBox msgBox(QMessageBox::Information, title ,text, QMessageBox::Ok);
+		msgBox.exec();
+		
+	}
+
+}

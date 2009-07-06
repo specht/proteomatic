@@ -30,7 +30,7 @@ public:
 	k_RevelioMainWindow(QWidget* ak_Parent_ = NULL);
 	virtual ~k_RevelioMainWindow();
 	QString md5ForFile(QString as_Path);
-	//virtual void adjustLayout();
+	virtual void adjustLayout();
 	
 public slots:
 
@@ -43,5 +43,6 @@ protected:
 	//k_Surface* mk_Surface_;
 	k_Surface mk_Surface;
 	//RefPtr<k_Surface> mk_pSurface;
-	QLabel mk_HashLabel; 
+	QLabel mk_HashLabel;
+	
 };

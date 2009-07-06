@@ -21,6 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <md5.h>
 
 
+
 k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	: mk_Surface(*this, this)
 {
@@ -34,11 +35,19 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	lk_LoadFileButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	connect(lk_LoadFileButton_, SIGNAL(pressed()), this, SLOT(loadFile()));
 	
+	//QLabel* lk_ParamLabel_ = new QLabel(this);
+	
+	
 	QWidget* lk_MainWidget_ = new QWidget(this);
 	setCentralWidget(lk_MainWidget_);
 	
+	//QBoxLayout* lk_HLayout_ = new QHBoxLayout();
+	//lk_HLayout_->addWidget(lk_ParamLabel_);
+	//lk_HLayout_->addWidget(&mk_Surface);
+	
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_MainWidget_);
 	lk_VLayout_->addWidget(lk_LoadFileButton_);
+	//lk_VLayout_->addWidget(lk_HLayout_);
 	lk_VLayout_->addWidget(&mk_Surface);
 	lk_VLayout_->addWidget(&mk_HashLabel);
 	//mk_Surface_ = new k_Surface(this);
@@ -84,3 +93,14 @@ void k_RevelioMainWindow::loadFile()
 		//mk_Surface.mk_pNode->setLabels(QStringList() << QFileInfo(ls_Path).completeBaseName() << ls_SaveString);
 	}
 }
+
+void k_RevelioMainWindow::adjustLayout()
+{
+	mk_Surface.adjustNodes();
+}
+
+/*void k_RevelioMainWindow::showParam()
+{
+
+}
+*/

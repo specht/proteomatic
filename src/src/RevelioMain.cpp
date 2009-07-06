@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Thaddäus Slawicki
+Copyright (c) 2007-2008 Thaddaeus Slawicki
 
 This file is part of Proteomatic.
 
