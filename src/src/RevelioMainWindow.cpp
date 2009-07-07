@@ -104,3 +104,4 @@ void k_RevelioMainWindow::adjustLayout()
 
 }
 */
+

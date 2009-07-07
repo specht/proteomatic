@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 #include <QtGui>
+#include <QtSql>
 #include "RefPtr.h"
 #include "FileTrackerNode.h"
 
@@ -35,7 +36,7 @@ public:
 	
 	virtual QGraphicsScene& graphicsScene();
 	virtual void adjustNodes();
-
+	bool createConnection();
 
 public slots:
 

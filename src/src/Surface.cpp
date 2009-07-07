@@ -145,3 +145,19 @@ void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 	}
 
 }
+
+bool k_Surface::createConnection()
+{
+	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+	db.setHostName("peak.uni-muenster.de");
+	db.setDatabaseName("filetracker");
+	db.setUserName("testuser");
+	db.setPassword("user");
+	
+	if (!db.open())
+	{
+		QMessageBox::critical(0, QObject::tr("Database Error"), db.lastError().text());
+		return false;
+	}
+	return true;
+}

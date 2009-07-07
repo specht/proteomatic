@@ -20,3 +20,5 @@ SOURCES += \
 	
 RESOURCES += \
 	../../src/Proteomatic.qrc \
+	
+QT += sql
