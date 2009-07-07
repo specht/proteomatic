@@ -88,8 +88,9 @@ void k_RevelioMainWindow::loadFile()
 	QString ls_Path = QFileDialog::getOpenFileName(this, "Load file");
 	if (!ls_Path.isEmpty())
 	{
-		QString ls_SaveString = md5ForFile(ls_Path);
-		mk_HashLabel.setText(ls_SaveString);
+		QString ls_Md5 = md5ForFile(ls_Path);
+		mk_HashLabel.setText(ls_Md5);
+		mk_Surface.focusFile(ls_Path, ls_Md5);
 		//mk_Surface.mk_pNode->setLabels(QStringList() << QFileInfo(ls_Path).completeBaseName() << ls_SaveString);
 	}
 }

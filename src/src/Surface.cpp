@@ -38,7 +38,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	createNodes();
-	
+	createConnection();
 }
 
 
@@ -64,13 +64,35 @@ void k_Surface::resizeEvent(QResizeEvent* event)
 	adjustNodes();
 }
 
+
 void k_Surface::createNodes()
 {	
+	if (!mk_FocusNode.mb_IsGood)
+		return;
+	
+	// clear all nodes
 	mk_Nodes.clear();
 	mk_CentralNode_ = NULL;
 	mk_LeftNodes.clear();
 	mk_RightNodes.clear();
 
+	// if (mk_FocusNode.me_Type == r_NodeType::File)
+		// `filewithname`
+		// SELECT filewithname_id FROM `filewithname` WHERE filecontent_id = 'x' (Liste!)
+		// (ex. 2, 7, 189, 509)
+		
+		// `run_filewithname`
+		// SELECT `run_id`, `input_file` FROM `run_filewithname` WHERE filewithname_id = '2' OR  ...
+		// run_id list: 1, 4, 10, 11, 1,2 40
+		// run titles are: 
+		// Filter by mass accuracy
+		// Write HTML report
+		// SimQuant
+		// Compare PSM lists (you want some SimQuant with tha...
+		// Compare PSM lists (you want some SimQuant with tha...
+		// Write HTML report
+
+	// create central node
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
 	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 	mk_CentralNode_= lk_Node_;
@@ -97,7 +119,8 @@ void k_Surface::createNodes()
 		lk_pNode->setLabels(QStringList() << "hello" << "fellow" << "how are you");
 	}
 	adjustNodes();
- }
+}
+ 
  
 void k_Surface::adjustNodes()
 {	
@@ -148,16 +171,30 @@ void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 
 bool k_Surface::createConnection()
 {
-	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-	db.setHostName("peak.uni-muenster.de");
-	db.setDatabaseName("filetracker");
-	db.setUserName("testuser");
-	db.setPassword("user");
+	mk_Database = QSqlDatabase::addDatabase("QMYSQL");
+	mk_Database.setHostName("peaks.uni-muenster.de");
+	mk_Database.setDatabaseName("filetracker");
+	mk_Database.setUserName("testuser");
+	mk_Database.setPassword("user");
 	
-	if (!db.open())
+	if (!mk_Database.open())
 	{
-		QMessageBox::critical(0, QObject::tr("Database Error"), db.lastError().text());
+		QMessageBox::critical(0, QObject::tr("Database Error"), mk_Database.lastError().text());
 		return false;
 	}
 	return true;
+}
+
+
+void k_Surface::focusFile(QString as_Path, QString as_Md5)
+{
+	// `filecontents`
+	// identifier: md5{as_Md5}
+	// identifier: basename{QFileInfo(as_Path).completeBaseName()}
+	// size
+	// --> filecontent_id (eine nur!) (ex. 2)
+	mk_FocusNode.me_Type = r_NodeType::File;
+	mk_FocusNode.mi_Id = 0; //filecontent_id
+	mk_FocusNode.mb_IsGood = true;
+	createNodes();
 }
