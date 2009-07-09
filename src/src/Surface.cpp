@@ -96,6 +96,7 @@ void k_Surface::createNodes()
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
 	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 	mk_CentralNode_= lk_Node_;
+
 	
 	
 	for (int i = 0; i< 2; ++i)
@@ -171,11 +172,13 @@ void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 
 bool k_Surface::createConnection()
 {
+
 	mk_Database = QSqlDatabase::addDatabase("QMYSQL");
 	mk_Database.setHostName("peaks.uni-muenster.de");
 	mk_Database.setDatabaseName("filetracker");
 	mk_Database.setUserName("testuser");
 	mk_Database.setPassword("user");
+
 	
 	if (!mk_Database.open())
 	{
