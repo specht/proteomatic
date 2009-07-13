@@ -61,7 +61,7 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	QWidget* lk_MainWidget_ = new QWidget(this);
 	setCentralWidget(lk_MainWidget_);
 	
-	mk_ParamLabel.setText("Hier werden demnächst Parameter erscheinen");
+	mk_ParamLabel.setText("Hier werden demnï¿½chst Parameter erscheinen");
 	
 	QBoxLayout* lk_HLayoutParam_ = new QHBoxLayout(this);
 	lk_HLayoutParam_->addWidget(&mk_ParamLabel);
