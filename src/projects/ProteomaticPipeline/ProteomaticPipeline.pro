@@ -1,4 +1,4 @@
-TARGET = bin/ProteomaticPipeline
+TARGET = ProteomaticPipeline
 
 include(../base.pro)
 

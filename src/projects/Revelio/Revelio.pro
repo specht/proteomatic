@@ -1,4 +1,4 @@
-TARGET = bin/Revelio
+TARGET = Revelio
 
 include(../base.pro)
 
