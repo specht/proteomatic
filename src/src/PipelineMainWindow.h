@@ -31,7 +31,7 @@ class k_PipelineMainWindow: public QMainWindow
 public:
 	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_PipelineMainWindow();
-	QString outputPrefix();
+	//QString outputPrefix();
 	virtual void addOutput(QString as_String);
 	virtual void clearOutput();
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
@@ -40,7 +40,7 @@ public slots:
 	void toggleUi();
 	
 signals:
-	void outputPrefixChanged(const QString& as_Prefix);
+	//void outputPrefixChanged(const QString& as_Prefix);
 	void forceRefresh();
 	
 protected:
@@ -76,8 +76,8 @@ protected:
 	QAction* mk_RefreshAction_;
 	QAction* mk_ProfileManagerAction_;
 	QAction* mk_ResetParametersAction_;
-	QLineEdit* mk_OutputPrefix_;
-	QAction* mk_ClearPrefixForAllScriptsAction_;
+	//QLineEdit* mk_OutputPrefix_;
+	//QAction* mk_ClearPrefixForAllScriptsAction_;
 	QAction* mk_ProposePrefixForAllScriptsAction_;
 	k_Proteomatic& mk_Proteomatic;
 	QFileSystemWatcher mk_FileSystemWatcher;

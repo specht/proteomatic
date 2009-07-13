@@ -28,10 +28,11 @@ class k_FileList: public QListWidget
 public:
 	k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_FileMode = false);
 	~k_FileList();
-	void resetAll();
+	void resetAll(bool ab_EmitSignal = true);
 	void forceRemove(QList<QListWidgetItem *> ak_List);
 	void addInputFileGroup(QString as_Key, QString as_Label, QStringList ak_Extensions);
-	void addInputFile(QString as_Path, bool ab_Refresh = true);
+	void addInputFile(QString as_Path, bool ab_Refresh = true, bool ab_EmitSignal = true);
+	void addInputFiles(QStringList ak_Paths, bool ab_Refresh = true, bool ab_EmitSignal = true);
 	// TODO: tell files sorted by key to solve ambiguous cases
 	QStringList files() const;
 	int fileCount() const;

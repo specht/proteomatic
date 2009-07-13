@@ -40,7 +40,7 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 {
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
-	connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputPrefixChanged(const QString&)), this, SLOT(updateOutputFilenames()));
+	//connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputPrefixChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(readyRead()), this, SIGNAL(readyRead()));
@@ -202,7 +202,10 @@ void k_ScriptBox::handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming)
 	{
 		updateBatchMode();
 		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(batchModeChanged(bool)), this, SLOT(updateBatchMode()));
-		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(filenamesChanged()), this, SLOT(updateOutputFilenames()));
+		if (mk_pScript->type() == r_ScriptType::Converter)
+			connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(filenamesChanged()), this, SLOT(updateOutputFilenames()));
+		else
+			connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(filenamesChanged()), this, SLOT(updateOutputDirectory()));
 	}
 	mk_Desktop_->setHasUnsavedChanges(true);
 }
@@ -219,7 +222,10 @@ void k_ScriptBox::handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming
 			mk_Checkboxes[ls_Key]->setChecked(Qt::Unchecked);
 	}
 	updateBatchMode();
-	updateOutputFilenames();
+	if (mk_pScript->type() == r_ScriptType::Converter)
+		updateOutputFilenames();
+	else
+		updateOutputDirectory();
 	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -255,7 +261,10 @@ void k_ScriptBox::updateOutputFilenames()
 {
 	this->determineOutputDirectoryDefiningInputFile();
 	
-	// auto-prefix if not converter script
+	// auto-prefix if not converter script!
+	// no, don't!!
+	// or should we...?
+	// nah, maybe not.
 /*	if (mk_pScript->type() != r_ScriptType::Converter)
 		this->proposePrefixButtonClicked(false);*/
 	
@@ -293,7 +302,7 @@ void k_ScriptBox::updateOutputFilenames()
 			k_OutFileListBox* lk_OutBox_ = dynamic_cast<k_OutFileListBox*>(mk_OutputFileBoxes[ls_Key]);
 			QStringList lk_Filenames;
 			if (mk_pScript->type() == r_ScriptType::Processor)
-				lk_Filenames.append(outputDirectory() + "/" + mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
+				lk_Filenames.append(outputDirectory() + "/" + /*mk_Desktop_->pipelineMainWindow().outputPrefix() + */mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
 			else
 			{
 				foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
@@ -329,7 +338,7 @@ void k_ScriptBox::updateOutputFilenames()
 								}
 								ls_DestinationFilename.replace(ls_Capture, ls_Value);
 							}
-							lk_Filenames.append(outputDirectory() + "/" + mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text() + ls_DestinationFilename);
+							lk_Filenames.append(outputDirectory() + "/" + mk_Prefix.text() + ls_DestinationFilename);
 						}
 					}
 				}
@@ -337,6 +346,18 @@ void k_ScriptBox::updateOutputFilenames()
 			lk_OutBox_->setFilenames(lk_Filenames);
 		}
 	}
+}
+
+
+// check whether the output directory has changed according to the input
+// files. if so, update update filenames!
+void k_ScriptBox::updateOutputDirectory()
+{
+	QString ls_OldOutputDirectory = outputDirectory();
+	this->determineOutputDirectoryDefiningInputFile();
+	QString ls_NewOutputDirectory = outputDirectory();
+	if (ls_OldOutputDirectory != ls_NewOutputDirectory)
+		this->updateOutputFilenames();
 }
 
 
@@ -393,7 +414,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 		lk_Parameters["-outputDirectory"] = this->outputDirectory();
 
 	// set output prefix
-	lk_Parameters["-outputPrefix"] = mk_Desktop_->pipelineMainWindow().outputPrefix() + mk_Prefix.text();
+	lk_Parameters["-outputPrefix"] = /*mk_Desktop_->pipelineMainWindow().outputPrefix() + */mk_Prefix.text();
 	
 	// set output files
 	foreach (QString ls_Key, mk_pScript->outputFileKeys())
@@ -462,8 +483,9 @@ void k_ScriptBox::showOutputBox(bool ab_Flag/* = true*/)
 
 void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 {
-	if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
-		updateOutputFilenames();
+	if (mk_pScript->type() == r_ScriptType::Converter)
+		if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
+			updateOutputFilenames();
 	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -646,11 +668,14 @@ void k_ScriptBox::setupLayout()
 	lk_HLayout_->addWidget(lk_ClearPrefixButton_);
 	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_ClearPrefixButton_, SLOT(setEnabled(bool)));
 	connect(lk_ClearPrefixButton_, SIGNAL(clicked()), this, SLOT(clearPrefixButtonClicked()));
-	QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
-	lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
-	lk_HLayout_->addWidget(lk_ProposePrefixButton_);
-	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_ProposePrefixButton_, SLOT(setEnabled(bool)));
-	connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
+	if (mk_pScript->type() != r_ScriptType::Converter)
+	{
+		QToolButton* lk_ProposePrefixButton_ = new QToolButton(this);
+		lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
+		lk_HLayout_->addWidget(lk_ProposePrefixButton_);
+		connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_ProposePrefixButton_, SLOT(setEnabled(bool)));
+		connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SLOT(proposePrefixButtonClicked()));
+	}
 
 	lk_HLayout_ = new QHBoxLayout();
 	lk_VLayout_->addLayout(lk_HLayout_);
@@ -660,7 +685,7 @@ void k_ScriptBox::setupLayout()
 	mk_OutputDirectory.setReadOnly(true);
 	lk_HLayout_->addWidget(&mk_OutputDirectory);
 	connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SIGNAL(outputDirectoryChanged()));
-	connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
+	connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputDirectory()));
 
 	QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(this);
 	lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
