@@ -253,12 +253,12 @@ void k_Proteomatic::loadConfiguration()
 	}
 	if (!mk_Configuration.contains(CONFIG_SCRIPTS_URL) || mk_Configuration[CONFIG_SCRIPTS_URL].type() != QVariant::String)
 	{
-		mk_Configuration[CONFIG_SCRIPTS_URL] = "ftp://gpf.uni-muenster.de/download/proteomatic-scripts";
+		mk_Configuration[CONFIG_SCRIPTS_URL] = "";
 		lb_InsertedDefaultValue = true;
 	}
 	if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
 	{
-		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
+		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = false;
 		lb_InsertedDefaultValue = true;
 	}
 	if (!mk_Configuration.contains(CONFIG_WARN_ABOUT_MIXED_PROFILES) || mk_Configuration[CONFIG_WARN_ABOUT_MIXED_PROFILES].type() != QVariant::String)
