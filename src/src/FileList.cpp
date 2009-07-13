@@ -28,7 +28,7 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_F
 	, mb_FileMode(ab_FileMode)
 	, mb_Refreshing(false)
 {
-	//setSelectionMode(QAbstractItemView::ExtendedSelection);
+	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	setAcceptDrops(true);
 	setDragDropMode(QAbstractItemView::DropOnly);
 	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
@@ -41,7 +41,7 @@ k_FileList::~k_FileList()
 }
 
 
-void k_FileList::resetAll()
+void k_FileList::resetAll(bool ab_EmitSignal)
 {
 	if (mb_FileMode)
 	{
@@ -51,7 +51,8 @@ void k_FileList::resetAll()
 		mk_Files.clear();
 	}
 	this->clear();
-	emit changed();
+	if (ab_EmitSignal)
+		emit changed();
 }
 
 
@@ -83,7 +84,7 @@ void k_FileList::addInputFileGroup(QString as_Key, QString as_Label, QStringList
 }
 
 
-void k_FileList::addInputFile(QString as_Path, bool ab_Refresh)
+void k_FileList::addInputFile(QString as_Path, bool ab_Refresh, bool ab_EmitSignal)
 {
 	if (!mb_FileMode)
 		return;
@@ -114,7 +115,23 @@ void k_FileList::addInputFile(QString as_Path, bool ab_Refresh)
 	mk_Files[ls_MatchingKey][as_Path] = true;
 	if (ab_Refresh)
 		this->refresh();
-	emit changed();
+	if (ab_EmitSignal)
+		emit changed();
+}
+
+
+void k_FileList::addInputFiles(QStringList ak_Paths, bool ab_Refresh, bool ab_EmitSignal)
+{
+	if (!mb_FileMode)
+		return;
+	
+	foreach (QString ls_Path, ak_Paths)
+		this->addInputFile(ls_Path, false, false);
+
+	if (ab_Refresh)
+		this->refresh();
+	if (ab_EmitSignal)
+		emit changed();
 }
 
 

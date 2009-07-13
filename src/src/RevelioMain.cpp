@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Thaddäus Slawicki
+Copyright (c) 2007-2008 Thaddaeus Slawicki
 
 This file is part of Proteomatic.
 
@@ -25,10 +25,10 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
 {
     Q_INIT_RESOURCE(Proteomatic);
 	QApplication lk_App(ai_ArgumentCount, ac_Arguments__);
-	
+
 	k_RevelioMainWindow lk_MainWindow;
 	lk_MainWindow.show();
-	//lk_MainWindow.adjustLayout();
-	
+
 	return lk_App.exec();
 }
+

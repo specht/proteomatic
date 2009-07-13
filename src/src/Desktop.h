@@ -110,6 +110,7 @@ protected:
 	virtual QPainterPath grownPathForArrow(QGraphicsPathItem* ak_Arrow_, int ai_Grow);
 	virtual QPointF findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, IDesktopBox* ak_Box_);
 	virtual IScriptBox* pickNextScriptBox();
+	virtual QSet<IScriptBox*> incomingScriptBoxes(IDesktopBox* ak_Box_) const;
 	
 	k_Proteomatic& mk_Proteomatic;
 	k_PipelineMainWindow& mk_PipelineMainWindow;

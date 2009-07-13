@@ -719,11 +719,36 @@ void k_Desktop::clearPrefixForAllScripts()
 
 void k_Desktop::proposePrefixForAllScripts()
 {
+	QSet<IScriptBox*> lk_BoxSet;
 	foreach (IDesktopBox* lk_Box_, mk_Boxes)
 	{
-		k_ScriptBox* lk_ScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
 		if (lk_ScriptBox_)
-			lk_ScriptBox_->proposePrefixButtonClicked();
+			lk_BoxSet.insert(lk_ScriptBox_);
+	}
+	while (true)
+	{
+		IScriptBox* lk_ScriptBox_ = NULL;
+		foreach (IScriptBox* lk_SetBox_, lk_BoxSet)
+		{
+			bool lb_Good = false;
+			IDesktopBox* lk_DesktopBox_ = dynamic_cast<IDesktopBox*>(lk_SetBox_);
+			if (lk_DesktopBox_)
+				lb_Good = (incomingScriptBoxes(lk_DesktopBox_).intersect(lk_BoxSet).size() == 0);
+			if (lb_Good)
+			{
+				lk_ScriptBox_ = lk_SetBox_;
+				break;
+			}
+		}
+		
+		if (!lk_ScriptBox_)
+			break;
+		
+		lk_BoxSet.remove(lk_ScriptBox_);
+		k_ScriptBox* lk_KScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_ScriptBox_);
+		if (lk_KScriptBox_ && lk_ScriptBox_->script()->type() != r_ScriptType::Converter)
+			lk_KScriptBox_->proposePrefixButtonClicked(false);
 	}
 }
 
@@ -1415,4 +1440,22 @@ IScriptBox* k_Desktop::pickNextScriptBox()
 			return lk_ScriptBox_;
 	}
 	return NULL;
+}
+
+
+// this function checks all incoming boxes of ak_Box_ and reports all 
+// script boxes among these. if an incoming box is not a script box,
+// the function is recursively called until no incoming boxes are left
+QSet<IScriptBox*> k_Desktop::incomingScriptBoxes(IDesktopBox* ak_Box_) const
+{
+	QSet<IScriptBox*> lk_Result;
+	foreach (IDesktopBox* lk_OtherBox_, ak_Box_->incomingBoxes())
+	{
+		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_OtherBox_);
+		if (lk_ScriptBox_)
+			lk_Result.insert(lk_ScriptBox_);
+		else
+			lk_Result.unite(incomingScriptBoxes(lk_OtherBox_));
+	}
+	return lk_Result;
 }

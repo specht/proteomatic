@@ -66,14 +66,11 @@ QString k_OutFileListBox::prefixWithoutTags() const
 
 void k_OutFileListBox::setFilenames(QStringList ak_Filenames)
 {
-	mk_FileList.resetAll();
-	foreach (QString ls_Path, ak_Filenames)
-		mk_FileList.addInputFile(ls_Path, false);
-	mk_FileList.refresh();
+	mk_FileList.resetAll(false);
+	mk_FileList.addInputFiles(ak_Filenames);
 	
 	toggleUi();
 	updateFilenameTags();
-	emit filenamesChanged();
 }
 
 
@@ -203,6 +200,8 @@ void k_OutFileListBox::setupLayout()
 	connect(lk_ArrowLabel_, SIGNAL(released()), this, SIGNAL(arrowReleased()));
 	
 	connect(this, SIGNAL(resized()), this, SLOT(toggleUi()));
+	
+	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(filenamesChanged()));
 	
 	resize(300, 100);
 	emit resized();

@@ -31,7 +31,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	: QMainWindow(ak_Parent_)
 	, mk_Desktop_(new k_Desktop(this, ak_Proteomatic, *this))
 	, mk_Proteomatic(ak_Proteomatic)
-	, mk_OutputPrefix_(new QLineEdit(this))
+	//, mk_OutputPrefix_(new QLineEdit(this))
 	, mk_CurrentScriptBox_(NULL)
 	, ms_PipelineFilename(QString())
 	, mk_WatchedBoxObject_(NULL)
@@ -98,6 +98,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	lk_AddToolBar_->addSeparator();
 	
+	mk_ProposePrefixForAllScriptsAction_ = lk_AddToolBar_->addAction(QIcon(":icons/select-continuous-area.png"), "Propose prefixes", mk_Desktop_, SLOT(proposePrefixForAllScripts()));
 	mk_RefreshAction_ = lk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
 	mk_StartAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-ok.png"), "Start", this, SLOT(start()));
 	mk_AbortAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "Abort", this, SLOT(abort()));
@@ -107,7 +108,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_ProfileManagerAction_ = lk_AddToolBar_->addAction(QIcon(":icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
 	mk_ResetParametersAction_ = lk_AddToolBar_->addAction(QIcon(":icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
 	
-	QToolBar* lk_OtherToolBar_ = new QToolBar(this);
+/*	QToolBar* lk_OtherToolBar_ = new QToolBar(this);
 	lk_OtherToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	
 	lk_OtherToolBar_->addWidget(new QLabel("Global output prefix: ", this));
@@ -117,14 +118,14 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	mk_ClearPrefixForAllScriptsAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "", mk_Desktop_, SLOT(clearPrefixForAllScripts()));
 	mk_ProposePrefixForAllScriptsAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/select-continuous-area.png"), "", mk_Desktop_, SLOT(proposePrefixForAllScripts()));
-	mk_ProposePrefixForAllScriptsAction_->setCheckable(true);
+	mk_ProposePrefixForAllScriptsAction_->setCheckable(true);*/
 	
 	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
-	addToolBarBreak(Qt::TopToolBarArea);
-	addToolBar(Qt::TopToolBarArea, lk_OtherToolBar_);
+/*	addToolBarBreak(Qt::TopToolBarArea);
+	addToolBar(Qt::TopToolBarArea, lk_OtherToolBar_);*/
 	
 	lk_AddToolBar_->setIconSize(QSize(24, 24));
-	lk_OtherToolBar_->setIconSize(QSize(24, 24));
+// 	lk_OtherToolBar_->setIconSize(QSize(24, 24));
 	
 	//setDockOptions(dockOptions() | QMainWindow::VerticalTabs);
 	//setDockOptions(dockOptions() | QMainWindow::ForceTabbedDocks);
@@ -149,11 +150,11 @@ k_PipelineMainWindow::~k_PipelineMainWindow()
 }
 
 
-QString k_PipelineMainWindow::outputPrefix()
+/*QString k_PipelineMainWindow::outputPrefix()
 {
 	return mk_OutputPrefix_->text();
 }
-
+*/
 
 void k_PipelineMainWindow::closeEvent(QCloseEvent* event)
 {
@@ -331,7 +332,7 @@ void k_PipelineMainWindow::updateStatusBar()
 				ls_OutputDirectory = "<i>undefined</i>";
 			mk_StatusBarMessage_->setText("<b>Output directory:</b> " + ls_OutputDirectory);
 			QObject* lk_BoxObject_ = dynamic_cast<QObject*>(lk_ScriptBox_);
-			connect(lk_BoxObject_, SIGNAL(outputDirectoryChanged()), this, SLOT(updateStatusBar()));
+			//connect(lk_BoxObject_, SIGNAL(outputDirectoryChanged()), this, SLOT(updateStatusBar()));
 			mk_WatchedBoxObject_ = lk_BoxObject_;
 		}
 		else if (lk_FileBox_)
@@ -342,7 +343,7 @@ void k_PipelineMainWindow::updateStatusBar()
 				QString ls_Path = lk_Filenames.first();
 				mk_StatusBarMessage_->setText(ls_Path);
 				QObject* lk_BoxObject_ = dynamic_cast<QObject*>(lk_FileBox_);
-				connect(lk_BoxObject_, SIGNAL(filenamesChanged()), this, SLOT(updateStatusBar()));
+				//connect(lk_BoxObject_, SIGNAL(filenamesChanged()), this, SLOT(updateStatusBar()));
 				mk_WatchedBoxObject_ = lk_BoxObject_;
 			}
 		}
@@ -365,8 +366,8 @@ void k_PipelineMainWindow::toggleUi()
 	mk_RefreshAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
 	mk_ProfileManagerAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
 	mk_ResetParametersAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && mk_CurrentScriptBox_);
-	mk_OutputPrefix_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-	mk_ClearPrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
+	//mk_OutputPrefix_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+	//mk_ClearPrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
 	mk_ProposePrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
 }
 

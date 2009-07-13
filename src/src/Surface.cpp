@@ -19,7 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Surface.h"
 #include "Tango.h"
-#include "FileTrackerNode.h"
+
 
 k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_)
 	: QGraphicsView(ak_Parent_)
@@ -28,6 +28,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	, mf_SceneWidth2(1.0)
 	, mf_SceneHeight2(1.0)
 	, mk_CentralNode_(NULL)
+
 {	
 	setRenderHint(QPainter::Antialiasing, true);
 	setRenderHint(QPainter::TextAntialiasing, true);
@@ -37,6 +38,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	createNodes();
+	createConnection();
 }
 
 
@@ -62,16 +64,39 @@ void k_Surface::resizeEvent(QResizeEvent* event)
 	adjustNodes();
 }
 
+
 void k_Surface::createNodes()
 {	
+	if (!mk_FocusNode.mb_IsGood)
+		return;
+	
+	// clear all nodes
 	mk_Nodes.clear();
 	mk_CentralNode_ = NULL;
 	mk_LeftNodes.clear();
 	mk_RightNodes.clear();
 
+	// if (mk_FocusNode.me_Type == r_NodeType::File)
+		// `filewithname`
+		// SELECT filewithname_id FROM `filewithname` WHERE filecontent_id = 'x' (Liste!)
+		// (ex. 2, 7, 189, 509)
+		
+		// `run_filewithname`
+		// SELECT `run_id`, `input_file` FROM `run_filewithname` WHERE filewithname_id = '2' OR  ...
+		// run_id list: 1, 4, 10, 11, 1,2 40
+		// run titles are: 
+		// Filter by mass accuracy
+		// Write HTML report
+		// SimQuant
+		// Compare PSM lists (you want some SimQuant with tha...
+		// Compare PSM lists (you want some SimQuant with tha...
+		// Write HTML report
+
+	// create central node
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
 	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 	mk_CentralNode_= lk_Node_;
+
 	
 	
 	for (int i = 0; i< 2; ++i)
@@ -95,7 +120,8 @@ void k_Surface::createNodes()
 		lk_pNode->setLabels(QStringList() << "hello" << "fellow" << "how are you");
 	}
 	adjustNodes();
- }
+}
+ 
  
 void k_Surface::adjustNodes()
 {	
@@ -105,14 +131,14 @@ void k_Surface::adjustNodes()
 	float lf_xLeft = -(mf_SceneWidth2 / 3.0);
 	float lf_xRight = (mf_SceneWidth2 / 3.0);
 		
-	mk_CentralNode_->setLabels(QStringList() << "No" << "Name" << "Set");
+
 	mk_CentralNode_->setPosition(QPointF(0.0, 0.0));
 	mk_CentralNode_->setAlignment(0.5, 0.5);
 
 	float y = -(float)(mk_LeftNodes.size() - 1) * lf_NodeSpacing * 0.5;
 	for	(int i = 0; i < mk_LeftNodes.size(); ++i)
 	{
-		mk_LeftNodes[i]->setLabels(QStringList() << "Ich bin ein Input" << "Label");
+
 		mk_LeftNodes[i]->setPosition(QPointF(lf_xLeft, y));
 		y += lf_NodeSpacing;
 		mk_LeftNodes[i]->setAlignment(1.0 , 0.5);
@@ -121,10 +147,57 @@ void k_Surface::adjustNodes()
 	y = -(float)(mk_RightNodes.size() - 1) * lf_NodeSpacing * 0.5;
 	for (int i = 0; i < mk_RightNodes.size(); ++i)
 	{
-		mk_RightNodes[i]->setLabels(QStringList() << "Ich bin ein Output" << "Label");
 		mk_RightNodes[i]->setPosition(QPointF(lf_xRight, y));
 		y += lf_NodeSpacing;
 		mk_RightNodes[i]->setAlignment(0.0 , 0.5);
-	};
+	}
 }
- 
+
+void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
+{	
+
+	if (itemAt(mouseEvent->pos()))
+	{
+		
+		
+		QString title("Info");
+		QString text("Hat geklappt!");
+		
+		QMessageBox msgBox(QMessageBox::Information, title ,text, QMessageBox::Ok);
+		msgBox.exec();
+		
+	}
+
+}
+
+bool k_Surface::createConnection()
+{
+
+	mk_Database = QSqlDatabase::addDatabase("QMYSQL");
+	mk_Database.setHostName("peaks.uni-muenster.de");
+	mk_Database.setDatabaseName("filetracker");
+	mk_Database.setUserName("testuser");
+	mk_Database.setPassword("user");
+
+	
+	if (!mk_Database.open())
+	{
+		QMessageBox::critical(0, QObject::tr("Database Error"), mk_Database.lastError().text());
+		return false;
+	}
+	return true;
+}
+
+
+void k_Surface::focusFile(QString as_Path, QString as_Md5)
+{
+	// `filecontents`
+	// identifier: md5{as_Md5}
+	// identifier: basename{QFileInfo(as_Path).completeBaseName()}
+	// size
+	// --> filecontent_id (eine nur!) (ex. 2)
+	mk_FocusNode.me_Type = r_NodeType::File;
+	mk_FocusNode.mi_Id = 0; //filecontent_id
+	mk_FocusNode.mb_IsGood = true;
+	createNodes();
+}

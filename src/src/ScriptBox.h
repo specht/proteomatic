@@ -64,6 +64,7 @@ protected slots:
 	virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void updateBatchMode();
 	virtual void updateOutputFilenames();
+	virtual void updateOutputDirectory();
 	virtual void readyReadSlot();
 	virtual void addOutput(QString as_String);
 	virtual void showOutputBox(bool ab_Flag = true);
