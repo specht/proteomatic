@@ -500,6 +500,17 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 		QString ls_CompleteUri = QFileInfo(QDir(mk_Proteomatic.scriptPathAndPackage()), ls_Uri).absoluteFilePath();
 		tk_YamlMap lk_OutputBoxes = lk_BoxDescription["activeOutputFiles"].toMap();
 		IDesktopBox* lk_Box_ = addScriptBox(ls_CompleteUri);
+		if (!lk_Box_)
+		{
+			// loading a script failed, now cancel this whole thing
+			QString ls_Title = ls_Uri;
+			mk_Proteomatic.showMessageBox("Error", 
+				QString("While trying to load the pipeline, the script '%1' could not be loaded.").arg(ls_Title),
+				":icons/dialog-warning.png");
+			clearAll();
+			setHasUnsavedChanges(false);
+			return;
+		}
 		if (lk_Box_)
 		{
 			IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
