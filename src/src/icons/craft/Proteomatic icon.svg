@@ -236,7 +236,7 @@
      inkscape:cx="7.9561707"
      inkscape:cy="9.676281"
      inkscape:document-units="px"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer2"
      width="32px"
      height="32px"
      showgrid="true"
@@ -376,14 +376,14 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="question"
-     style="display:inline">
+     style="display:none">
     <path
        style="opacity:1;fill:#77be31;fill-opacity:1;stroke:#4b8415;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="M -18 4 C -21.312 4 -24 6.688 -24 10 C -24 12.817335 -22.057114 15.168653 -19.4375 15.8125 L -19.4375 24.0625 L -16.53125 24.0625 L -16.53125 15.8125 C -13.926675 15.15811 -12 12.806659 -12 10 C -12 6.688 -14.688 4 -18 4 z "
+       d="M -18,4 C -21.312,4 -24,6.688 -24,10 C -24,12.817335 -22.057114,15.168653 -19.4375,15.8125 L -19.4375,24.0625 L -16.53125,24.0625 L -16.53125,15.8125 C -13.926675,15.15811 -12,12.806659 -12,10 C -12,6.688 -14.688,4 -18,4 z"
        id="path2439" />
     <path
        sodipodi:type="arc"
-       style="opacity:1;fill:#ffffff;fill-opacity:0.50196081;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:#ffffff;fill-opacity:0.50196078;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path3220"
        sodipodi:cx="-18"
        sodipodi:cy="10"
@@ -410,7 +410,7 @@
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="dot"
-     style="display:none">
+     style="display:inline">
     <g
        id="g3227"
        inkscape:label="Ebene 1"
