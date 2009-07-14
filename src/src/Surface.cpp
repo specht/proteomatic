@@ -126,15 +126,17 @@ void k_Surface::createNodes()
 void k_Surface::adjustNodes()
 {	
 	
-	float lf_NodeSpacing = mk_CentralNode_->height() + 20;
+	float lf_NodeSpacing = 50.0;
+	if (mk_CentralNode_)
+	{
+		lf_NodeSpacing = mk_CentralNode_->height() + 20.0;
+		mk_CentralNode_->setPosition(QPointF(0.0, 0.0));
+		mk_CentralNode_->setAlignment(0.5, 0.5);
+	}
 	
 	float lf_xLeft = -(mf_SceneWidth2 / 3.0);
 	float lf_xRight = (mf_SceneWidth2 / 3.0);
 		
-
-	mk_CentralNode_->setPosition(QPointF(0.0, 0.0));
-	mk_CentralNode_->setAlignment(0.5, 0.5);
-
 	float y = -(float)(mk_LeftNodes.size() - 1) * lf_NodeSpacing * 0.5;
 	for	(int i = 0; i < mk_LeftNodes.size(); ++i)
 	{
