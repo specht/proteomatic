@@ -32,4 +32,5 @@ protected:
 private:
 	int li_qmin, li_qmax;
 };
+
 	

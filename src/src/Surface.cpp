@@ -96,9 +96,9 @@ void k_Surface::createNodes()
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
 	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 	mk_CentralNode_= lk_Node_;
-
 	
 	
+/*	
 	for (int i = 0; i< 2; ++i)
 	{
 		lk_Node_ = new k_FileTrackerNode();
@@ -119,6 +119,7 @@ void k_Surface::createNodes()
 		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
 		lk_pNode->setLabels(QStringList() << "hello" << "fellow" << "how are you");
 	}
+*/
 	adjustNodes();
 }
  
@@ -160,14 +161,14 @@ void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 
 	if (itemAt(mouseEvent->pos()))
 	{
+		if (pos() != QPoint(0,0))
+		{
+			QString title("Information");
+			QString text("Move Node to centre!");
 		
-		
-		QString title("Info");
-		QString text("Hat geklappt!");
-		
-		QMessageBox msgBox(QMessageBox::Information, title ,text, QMessageBox::Ok);
-		msgBox.exec();
-		
+			QMessageBox msgBox(QMessageBox::Information, title ,text, QMessageBox::Ok);
+			msgBox.exec();
+		}
 	}
 
 }
@@ -192,7 +193,9 @@ bool k_Surface::createConnection()
 
 
 void k_Surface::focusFile(QString as_Path, QString as_Md5)
-{
+{	
+	 QSqlQuery lk_query;
+     lk_query.exec("SELECT filecontent_id , identifier FROM filecontents WHERE identifier = md5{as_Md5} OR identifier = basename{QFileInfo(as_Path).completeBaseName()");
 	// `filecontents`
 	// identifier: md5{as_Md5}
 	// identifier: basename{QFileInfo(as_Path).completeBaseName()}
@@ -203,3 +206,4 @@ void k_Surface::focusFile(QString as_Path, QString as_Md5)
 	mk_FocusNode.mb_IsGood = true;
 	createNodes();
 }
+

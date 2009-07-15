@@ -61,40 +61,32 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	QWidget* lk_MainWidget_ = new QWidget(this);
 	setCentralWidget(lk_MainWidget_);
 	
-	mk_ParamLabel.setText("Hier werden demn�chst Parameter erscheinen");
+	mk_ParamLabel.setText("Parameters will be shown!");
 	
 	QBoxLayout* lk_HLayoutParam_ = new QHBoxLayout(this);
 	lk_HLayoutParam_->addWidget(&mk_ParamLabel);
 	
-	QGroupBox* lk_ParamGroup_ = new QGroupBox("Parameter");
+	QGroupBox* lk_ParamGroup_ = new QGroupBox("Parameters");
 	lk_ParamGroup_->setLayout(lk_HLayoutParam_);
 	
 	mk_StdoutTextEdit.setReadOnly(true);
 	mk_StdoutTextEdit.setCurrentFont(mk_ConsoleFont);
 	mk_StdoutTextEdit.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	//mk_StdoutTextEdit.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	mk_StdoutTextEdit.setText("Und hier sollen weitere Infos rein?!");
-	//mk_StdoutTextEdit.resize(320, 240);
+	mk_StdoutTextEdit.setText("Further Information");
+
 	
 	QBoxLayout* lk_VLayoutInfo_ = new QVBoxLayout(this);
 	lk_VLayoutInfo_->addWidget(lk_ParamGroup_);
 	lk_VLayoutInfo_->addWidget(&mk_StdoutTextEdit);
 	
-	//QGroupBox* lk_InfoGruoup_ = new QGroupBox(this);
-	//lk_InfoGruoup_->setLayout(lk_VLayoutInfo_);
-	
 	QBoxLayout* lk_HLayout_ = new QHBoxLayout(this);
 	lk_HLayout_->addWidget(&mk_Surface);
 	lk_HLayout_->addLayout(lk_VLayoutInfo_); //(lk_InfoGruoup_);
 	
-	//QGroupBox* lk_MainGruoup_ = new QGroupBox(this);
-	//lk_MainGruoup_->setLayout(lk_HLayout_);
-	
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_MainWidget_);
 	lk_VLayout_->addWidget(lk_LoadFileButton_);
 	lk_VLayout_->addLayout(lk_HLayout_);
-	//lk_VLayout_->addWidget(lk_MainGruoup_);
-	//lk_VLayout_->addWidget(&mk_Surface);
 	lk_VLayout_->addWidget(&mk_HashLabel);
 	//mk_Surface_ = new k_Surface(this);
 	//mk_pSurface = RefPtr<k_Surface>(new k_Surface(this));

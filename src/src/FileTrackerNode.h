@@ -51,3 +51,4 @@ protected:
 	QPointF mk_Position;
 	QList<RefPtr<QWidget> > mk_LabelWidgets;
 };
+
