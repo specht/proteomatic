@@ -93,10 +93,26 @@ void k_Surface::createNodes()
 		// Write HTML report
 
 	// create central node
+	
+	if (mk_FocusNode.me_Type == r_NodeType::File)
+	{
+		QSqlQuery ls_FileWithNameQuery;
+		QString ls_Query = QString("SELECT `code_basename` , `filewithname_id`FROM `filewithname` WHERE `filecontent_id` = '%1'LIMIT 1").arg(mk_FocusNode.mi_Id));
+		ls_FileWithNameQuery.exec(ls_Query);
+	}
+	
+	if (mk_FocusNode.me_Type == r_NodeType::Run)
+	{
+		QSqlQuery ls_RunsQuery;
+		QSqlQuery ls_Query = QString("SELECT FROM WHERE");
+		ls_RunsQuery.exec(ls_Query);
+	}
+	
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
 	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 	mk_CentralNode_= lk_Node_;
 	
+
 	
 /*	
 	for (int i = 0; i< 2; ++i)
