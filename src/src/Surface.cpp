@@ -194,16 +194,30 @@ bool k_Surface::createConnection()
 
 void k_Surface::focusFile(QString as_Path, QString as_Md5)
 {	
-	 QSqlQuery lk_query;
-     lk_query.exec("SELECT filecontent_id , identifier FROM filecontents WHERE identifier = md5{as_Md5} OR identifier = basename{QFileInfo(as_Path).completeBaseName()");
+	QSqlQuery lk_Query;
+	QString ls_Query = QString("SELECT `filecontent_id` FROM `filecontents` WHERE identifier = 'md5%1' AND size = '%2' LIMIT 1;").arg(as_Md5).arg(QFileInfo(as_Path).size());
+	lk_Query.exec(ls_Query);
+	if (lk_Query.size() != 1)
+	{
+		QString ls_Query = QString("SELECT `filecontent_id` FROM `filecontents` WHERE identifier = 'basename%1' AND size = '%2' LIMIT 1;").arg(QFileInfo(as_Path).fileName()).arg(QFileInfo(as_Path).size());
+		lk_Query.exec(ls_Query);
+	}
+	
 	// `filecontents`
 	// identifier: md5{as_Md5}
-	// identifier: basename{QFileInfo(as_Path).completeBaseName()}
+	// identifier: basename{QFileInfo(as_Path).fileName()}
 	// size
 	// --> filecontent_id (eine nur!) (ex. 2)
-	mk_FocusNode.me_Type = r_NodeType::File;
-	mk_FocusNode.mi_Id = 0; //filecontent_id
-	mk_FocusNode.mb_IsGood = true;
-	createNodes();
+	if (lk_Query.size() == 1)
+		li_FileContentId = lk_Query.value(0).toInt();
+		mk_FocusNode.me_Type = r_NodeType::File;
+		mk_FocusNode.mi_Id = li_FileContentId; //filecontent_id
+		mk_FocusNode.mb_IsGood = true;
+		createNodes();
+	}
+	else
+	{
+		// messagebox: file not found in database
+	}
 }
 
