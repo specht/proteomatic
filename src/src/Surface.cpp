@@ -123,8 +123,7 @@ void k_Surface::createNodes()
 		while(ls_FileWithNameQuery.next())
 		{
 			int li_FileWithNameId	= ls_FileWithNameQuery.value(0).toInt();
-			foreach(li_FileWithNameId, lk_FileWithNameIdList)
-				qDebug() << li_FileWithNameId;
+			lk_FileWithNameIdList.append(li_FileWithNameId);
 		}
 		
 		if (lk_FileWithNameIdList.size() != 0)
@@ -133,21 +132,14 @@ void k_Surface::createNodes()
 			QString ls_RWNQuery = QString("SELECT `run_id` , `input_file` \
 										FROM `run_filewithname` WHERE `filewithname_id` = '5519'OR '5560'");
 			ls_RunWithNameQuery.exec(ls_RWNQuery);
-		
+			
+			QLinkedList<QPair<int, int> > lk_RunInOutList;
 			while(ls_RunWithNameQuery.next())
 			{
 				int li_RunId		= ls_RunWithNameQuery.value(0).toInt();
 				int li_InputFile	= ls_RunWithNameQuery.value(1).toInt();
-				/*
-				QMap<int, int> li_Map;
-				foreach(li_RunId,li_InputFile)
-				li_Map.insert(li_RunId,li_InputFile);
 				
-				QPair<int, int>qMakePair (li_RunId, li_InputFile);
-				QLinkedList<QPair<int, int> > lk_RunInOutList;
-				
-				foreach(QPair<li_RunId, li_InputFile>,li_FileWithNameId)
-				*/
+				lk_RunInOutList.append(qMakePair(li_RunId,li_InputFile));
 			}
 		}
 	}
