@@ -100,21 +100,34 @@ void k_Surface::createNodes()
 	
 	if (mk_FocusNode.me_Type == r_NodeType::File)
 	{
-		QSqlQuery ls_FileWithNameQuery;
+		QSqlQuery ls_FileWithNameQueryCentralNode;
 		QString ls_Query = QString("SELECT `filewithname_id`,`code_basename`,`directory`,`ctime`,`mtime`\
-									FROM `filewithname` WHERE `filecontent_id` = '%1'").arg(mk_FocusNode.mi_Id);
-		ls_FileWithNameQuery.exec(ls_Query);
+									FROM `filewithname` WHERE `filecontent_id` = '%1' LIMIT 1").arg(mk_FocusNode.mi_Id);
+		ls_FileWithNameQueryCentralNode.exec(ls_Query);
 		
-		while(ls_FileWithNameQuery.next())
-		{
-			int li_FileWithNameId 	= ls_FileWithNameQuery.value(0).toInt();
-			QString ls_CodeBasename = ls_FileWithNameQuery.value(1).toString();
-			QString ls_Directory 	= ls_FileWithNameQuery.value(2).toString();
-			QTime li_CTime			= ls_FileWithNameQuery.value(3).toTime();
-			QTime li_MTime			= ls_FileWithNameQuery.value(4).toTime();
-		}
+		ls_FileWithNameQueryCentralNode.next();
+		//int li_FileWithNameIdCentralNode 	= ls_FileWithNameQueryCentralNode.value(0).toInt();
+		QString ls_CodeBasename 			= ls_FileWithNameQueryCentralNode.value(1).toString();
+		QString ls_Directory 				= ls_FileWithNameQueryCentralNode.value(2).toString();
+		QTime li_CTime						= ls_FileWithNameQueryCentralNode.value(3).toTime();
+		QTime li_MTime						= ls_FileWithNameQueryCentralNode.value(4).toTime();
 		
 		mk_CentralNode_->setLabels(QStringList() << ls_CodeBasename);
+		
+		QSqlQuery ls_FileWithNameQuery;
+		QString ls_FWNIdQuery = QString("SELECT `filewithname_id` \
+										FROM `filewithname_id` WHERE `filecontent_id` = '%1'").arg(mk_FocusNode.mi_Id);
+		
+		ls_FileWithNameQuery.exec(ls_FWNIdQuery);
+		
+		QLinkedList<int> lk_FileWithNameIdList;
+				
+		while(ls_FileWithNameQuery.next())
+		{
+			int li_FileWithNameId	= ls_FileWithNameQuery.value(0).toInt();
+			foreach(li_FileWithNameId, lk_FileWithNameIdList);
+		}
+		
 	}
 	
 	if (mk_FocusNode.me_Type == r_NodeType::Run)
@@ -268,7 +281,7 @@ void k_Surface::focusFile(QString as_Path, QString as_Md5)
 	
 	if (ls_FilecontentQuery.size() == 1)
 	{
-		ls_FilecontentQuery.next()
+		ls_FilecontentQuery.next();
 		int li_FileContentId = ls_FilecontentQuery.value(0).toInt();
 		mk_FocusNode.me_Type = r_NodeType::File;
 		mk_FocusNode.mi_Id = li_FileContentId;
