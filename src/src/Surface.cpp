@@ -98,7 +98,7 @@ void k_Surface::createNodes()
 	{
 		QSqlQuery ls_FileWithNameQuery;
 		QString ls_Query = QString("SELECT `filewithname_id`,`code_basename`,`directory`,`ctime`,`mtime`\
-		FROM `filewithname` WHERE `filecontent_id` = '%1'LIMIT 1").arg(mk_FocusNode.mi_Id);
+									FROM `filewithname` WHERE `filecontent_id` = '%1'LIMIT 1").arg(mk_FocusNode.mi_Id);
 		ls_FileWithNameQuery.exec(ls_Query);
 		
 		ls_FileWithNameQuery.next();
@@ -112,8 +112,9 @@ void k_Surface::createNodes()
 	if (mk_FocusNode.me_Type == r_NodeType::Run)
 	{
 		QSqlQuery ls_RunsQuery;
-		QString ls_Query = QString("SELECT `run_id`,`user`,`title`,`host`,`script_uri`,`version`,`start_time`,`end_time` FROM `runs` WHERE 1");
-		ls_RunsQuery.exec(ls_Query);
+		QString ls_RQuery = QString("SELECT `run_id`,`user`,`title`,`host`,`script_uri`,`version`,`start_time`,`end_time`\
+									FROM `runs` WHERE 1");
+		ls_RunsQuery.exec(ls_RQuery);
 		
 		ls_RunsQuery.next();
 		int li_RunId			= ls_RunsQuery.value(0).toInt();
@@ -124,6 +125,19 @@ void k_Surface::createNodes()
 		int li_Version			= ls_RunsQuery.value(5).toInt();
 		QTime li_StartTime		= ls_RunsQuery.value(6).toTime();
 		QTime li_EndTime		= ls_RunsQuery.value(7).toTime();
+		
+		mk_FocusNode.mi_Id = li_RunId;
+		mk_FocusNode.mb_IsGood = true;
+		
+		QSqlQuery ls_ParamQuery;
+		QString ls_PQuery = QString("SELECT `code_key`,`code_value`\
+									FROM `parameters` WHERE `run_id` ='%1'").arg(mk_FocusNode.mi_Id);
+		ls_ParamQuery.exec(ls_PQuery);
+		
+		ls_ParamQuery.next();
+		QString ls_CodeKey		= ls_ParamQuery.value(0).toString();
+		QString ls_CodeValue	= ls_ParamQuery.value(1).toString();
+		
 	}
 	
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
@@ -231,11 +245,13 @@ bool k_Surface::createConnection()
 void k_Surface::focusFile(QString as_Path, QString as_Md5)
 {	
 	QSqlQuery ls_FilecontentQuery;
-	QString ls_Query = QString("SELECT `filecontent_id` FROM `filecontents` WHERE `identifier` = 'md5%1' AND `size` = '%2' LIMIT 1").arg(as_Md5).arg(QFileInfo(as_Path).size());
+	QString ls_Query = QString("SELECT `filecontent_id`\
+								FROM `filecontents` WHERE `identifier` = 'md5%1' AND `size` = '%2' LIMIT 1").arg(as_Md5).arg(QFileInfo(as_Path).size());
 	ls_FilecontentQuery.exec(ls_Query);
 	if (ls_FilecontentQuery.size() != 1)
 	{
-		QString ls_Query = QString("SELECT `filecontent_id` FROM `filecontents` WHERE `identifier` = 'basename%1' AND `size` = '%2' LIMIT 1").arg(QFileInfo(as_Path).fileName()).arg(QFileInfo(as_Path).size());
+		QString ls_Query = QString("SELECT `filecontent_id`\
+									FROM `filecontents` WHERE `identifier` = 'basename%1' AND `size` = '%2' LIMIT 1").arg(QFileInfo(as_Path).fileName()).arg(QFileInfo(as_Path).size());
 		ls_FilecontentQuery.exec(ls_Query);
 	}
 	
