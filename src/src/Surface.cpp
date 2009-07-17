@@ -231,6 +231,7 @@ bool k_Surface::createConnection()
 	mk_Database.setDatabaseName("filetracker");
 	mk_Database.setUserName("testuser");
 	mk_Database.setPassword("user");
+	mk_Database.setPort(3306);
 
 	
 	if (!mk_Database.open())
