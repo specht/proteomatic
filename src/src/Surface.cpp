@@ -101,23 +101,21 @@ void k_Surface::createNodes()
 	if (mk_FocusNode.me_Type == r_NodeType::File)
 	{
 		QSqlQuery ls_FileWithNameQueryCentralNode;
-		QString ls_Query = QString("SELECT `filewithname_id`,`code_basename`,`directory`,`ctime`,`mtime`\
+		QString ls_Query = QString("SELECT `code_basename`,`directory`,`ctime`,`mtime`\
 									FROM `filewithname` WHERE `filecontent_id` = '%1' LIMIT 1").arg(mk_FocusNode.mi_Id);
 		ls_FileWithNameQueryCentralNode.exec(ls_Query);
 		
 		ls_FileWithNameQueryCentralNode.next();
-		//int li_FileWithNameIdCentralNode 	= ls_FileWithNameQueryCentralNode.value(0).toInt();
-		QString ls_CodeBasename 			= ls_FileWithNameQueryCentralNode.value(1).toString();
-		QString ls_Directory 				= ls_FileWithNameQueryCentralNode.value(2).toString();
-		QTime li_CTime						= ls_FileWithNameQueryCentralNode.value(3).toTime();
-		QTime li_MTime						= ls_FileWithNameQueryCentralNode.value(4).toTime();
+		QString ls_CodeBasename 			= ls_FileWithNameQueryCentralNode.value(0).toString();
+		QString ls_Directory 				= ls_FileWithNameQueryCentralNode.value(1).toString();
+		QTime li_CTime						= ls_FileWithNameQueryCentralNode.value(2).toTime();
+		QTime li_MTime						= ls_FileWithNameQueryCentralNode.value(3).toTime();
 		
 		mk_CentralNode_->setLabels(QStringList() << ls_CodeBasename);
 		
 		QSqlQuery ls_FileWithNameQuery;
 		QString ls_FWNIdQuery = QString("SELECT `filewithname_id` \
-										FROM `filewithname_id` WHERE `filecontent_id` = '%1'").arg(mk_FocusNode.mi_Id);
-		
+										FROM `filewithname` WHERE `filecontent_id` = '%1'").arg(mk_FocusNode.mi_Id);
 		ls_FileWithNameQuery.exec(ls_FWNIdQuery);
 		
 		QLinkedList<int> lk_FileWithNameIdList;
@@ -125,9 +123,33 @@ void k_Surface::createNodes()
 		while(ls_FileWithNameQuery.next())
 		{
 			int li_FileWithNameId	= ls_FileWithNameQuery.value(0).toInt();
-			foreach(li_FileWithNameId, lk_FileWithNameIdList);
+			foreach(li_FileWithNameId, lk_FileWithNameIdList)
+				qDebug() << li_FileWithNameId;
 		}
 		
+		if (lk_FileWithNameIdList.size() != 0)
+		{
+			QSqlQuery ls_RunWithNameQuery;
+			QString ls_RWNQuery = QString("SELECT `run_id` , `input_file` \
+										FROM `run_filewithname` WHERE `filewithname_id` = '5519'OR '5560'");
+			ls_RunWithNameQuery.exec(ls_RWNQuery);
+		
+			while(ls_RunWithNameQuery.next())
+			{
+				int li_RunId		= ls_RunWithNameQuery.value(0).toInt();
+				int li_InputFile	= ls_RunWithNameQuery.value(1).toInt();
+				/*
+				QMap<int, int> li_Map;
+				foreach(li_RunId,li_InputFile)
+				li_Map.insert(li_RunId,li_InputFile);
+				
+				QPair<int, int>qMakePair (li_RunId, li_InputFile);
+				QLinkedList<QPair<int, int> > lk_RunInOutList;
+				
+				foreach(QPair<li_RunId, li_InputFile>,li_FileWithNameId)
+				*/
+			}
+		}
 	}
 	
 	if (mk_FocusNode.me_Type == r_NodeType::Run)
