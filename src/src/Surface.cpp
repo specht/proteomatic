@@ -97,20 +97,40 @@ void k_Surface::createNodes()
 	if (mk_FocusNode.me_Type == r_NodeType::File)
 	{
 		QSqlQuery ls_FileWithNameQuery;
-		QString ls_Query = QString("SELECT `code_basename` , `filewithname_id`FROM `filewithname` WHERE `filecontent_id` = '%1'LIMIT 1").arg(mk_FocusNode.mi_Id);
+		QString ls_Query = QString("SELECT `filewithname_id`,`code_basename`,`directory`,`ctime`,`mtime`\
+		FROM `filewithname` WHERE `filecontent_id` = '%1'LIMIT 1").arg(mk_FocusNode.mi_Id);
 		ls_FileWithNameQuery.exec(ls_Query);
+		
+		ls_FileWithNameQuery.next();
+		int li_FileWithNameId 	= ls_FileWithNameQuery.value(0).toInt();
+		QString ls_CodeBasename = ls_FileWithNameQuery.value(1).toString();
+		QString ls_Directory 	= ls_FileWithNameQuery.value(2).toString();
+		QTime li_CTime			= ls_FileWithNameQuery.value(3).toTime();
+		QTime li_MTime			= ls_FileWithNameQuery.value(4).toTime();
 	}
 	
-/*	if (mk_FocusNode.me_Type == r_NodeType::Run)
+	if (mk_FocusNode.me_Type == r_NodeType::Run)
 	{
 		QSqlQuery ls_RunsQuery;
-		QString ls_Query = QString("SELECT FROM WHERE");
+		QString ls_Query = QString("SELECT `run_id`,`user`,`title`,`host`,`script_uri`,`version`,`start_time`,`end_time` FROM `runs` WHERE 1");
 		ls_RunsQuery.exec(ls_Query);
-	}*/
+		
+		ls_RunsQuery.next();
+		int li_RunId			= ls_RunsQuery.value(0).toInt();
+		QString ls_User			= ls_RunsQuery.value(1).toString();
+		QString ls_Title		= ls_RunsQuery.value(2).toString();
+		QString ls_Host			= ls_RunsQuery.value(3).toString();
+		QString ls_ScriptUri	= ls_RunsQuery.value(4).toString();
+		int li_Version			= ls_RunsQuery.value(5).toInt();
+		QTime li_StartTime		= ls_RunsQuery.value(6).toTime();
+		QTime li_EndTime		= ls_RunsQuery.value(7).toTime();
+	}
 	
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
 	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 	mk_CentralNode_= lk_Node_;
+
+
 	
 
 	
