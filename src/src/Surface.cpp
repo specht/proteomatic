@@ -94,19 +94,27 @@ void k_Surface::createNodes()
 
 	// create central node
 	
+	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
+	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+	mk_CentralNode_= lk_Node_;
+	
 	if (mk_FocusNode.me_Type == r_NodeType::File)
 	{
 		QSqlQuery ls_FileWithNameQuery;
 		QString ls_Query = QString("SELECT `filewithname_id`,`code_basename`,`directory`,`ctime`,`mtime`\
-									FROM `filewithname` WHERE `filecontent_id` = '%1'LIMIT 1").arg(mk_FocusNode.mi_Id);
+									FROM `filewithname` WHERE `filecontent_id` = '%1'").arg(mk_FocusNode.mi_Id);
 		ls_FileWithNameQuery.exec(ls_Query);
 		
-		ls_FileWithNameQuery.next();
-		int li_FileWithNameId 	= ls_FileWithNameQuery.value(0).toInt();
-		QString ls_CodeBasename = ls_FileWithNameQuery.value(1).toString();
-		QString ls_Directory 	= ls_FileWithNameQuery.value(2).toString();
-		QTime li_CTime			= ls_FileWithNameQuery.value(3).toTime();
-		QTime li_MTime			= ls_FileWithNameQuery.value(4).toTime();
+		while(ls_FileWithNameQuery.next())
+		{
+			int li_FileWithNameId 	= ls_FileWithNameQuery.value(0).toInt();
+			QString ls_CodeBasename = ls_FileWithNameQuery.value(1).toString();
+			QString ls_Directory 	= ls_FileWithNameQuery.value(2).toString();
+			QTime li_CTime			= ls_FileWithNameQuery.value(3).toTime();
+			QTime li_MTime			= ls_FileWithNameQuery.value(4).toTime();
+		}
+		
+		mk_CentralNode_->setLabels(QStringList() << ls_CodeBasename);
 	}
 	
 	if (mk_FocusNode.me_Type == r_NodeType::Run)
@@ -134,15 +142,17 @@ void k_Surface::createNodes()
 									FROM `parameters` WHERE `run_id` ='%1'").arg(mk_FocusNode.mi_Id);
 		ls_ParamQuery.exec(ls_PQuery);
 		
-		ls_ParamQuery.next();
-		QString ls_CodeKey		= ls_ParamQuery.value(0).toString();
-		QString ls_CodeValue	= ls_ParamQuery.value(1).toString();
+		while(ls_ParamQuery.next())
+		{	
+			QString ls_CodeKey		= ls_ParamQuery.value(0).toString();
+			QString ls_CodeValue	= ls_ParamQuery.value(1).toString();
+		}	
 		
+		//QSqlQuery ls_FileInRunQuery;
+		//QString ls_FIRQuery  = QString("").arg();
 	}
 	
-	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
-	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
-	mk_CentralNode_= lk_Node_;
+	
 
 
 	
@@ -247,18 +257,18 @@ void k_Surface::focusFile(QString as_Path, QString as_Md5)
 {	
 	QSqlQuery ls_FilecontentQuery;
 	QString ls_Query = QString("SELECT `filecontent_id`\
-								FROM `filecontents` WHERE `identifier` = 'md5%1' AND `size` = '%2' LIMIT 1").arg(as_Md5).arg(QFileInfo(as_Path).size());
+								FROM `filecontents` WHERE `identifier` = 'md5%1' AND `size` = '%2'LIMIT 1").arg(as_Md5).arg(QFileInfo(as_Path).size());
 	ls_FilecontentQuery.exec(ls_Query);
 	if (ls_FilecontentQuery.size() != 1)
 	{
 		QString ls_Query = QString("SELECT `filecontent_id`\
-									FROM `filecontents` WHERE `identifier` = 'basename%1' AND `size` = '%2' LIMIT 1").arg(QFileInfo(as_Path).fileName()).arg(QFileInfo(as_Path).size());
+									FROM `filecontents` WHERE `identifier` = 'basename%1' AND `size` = '%2'LIMIT 1").arg(QFileInfo(as_Path).fileName()).arg(QFileInfo(as_Path).size());
 		ls_FilecontentQuery.exec(ls_Query);
 	}
 	
 	if (ls_FilecontentQuery.size() == 1)
 	{
-		ls_FilecontentQuery.next();
+		ls_FilecontentQuery.next()
 		int li_FileContentId = ls_FilecontentQuery.value(0).toInt();
 		mk_FocusNode.me_Type = r_NodeType::File;
 		mk_FocusNode.mi_Id = li_FileContentId;
