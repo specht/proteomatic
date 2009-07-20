@@ -90,7 +90,8 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	lk_VLayout_->addWidget(&mk_HashLabel);
 	//mk_Surface_ = new k_Surface(this);
 	//mk_pSurface = RefPtr<k_Surface>(new k_Surface(this));
-
+	
+	lk_VLayout_->addWidget(&mk_PaneScrollArea);
 }
 
 
@@ -143,6 +144,13 @@ QFont& k_RevelioMainWindow::consoleFont()
 {
 	return mk_ConsoleFont;
 }
+
+
+QScrollArea& k_RevelioMainWindow::paneScrollArea()
+{
+	return mk_PaneScrollArea;
+}
+
 /*void k_RevelioMainWindow::showParam()
 {
 

@@ -32,6 +32,7 @@ public:
 	QString md5ForFile(QString as_Path);
 	virtual void adjustLayout();
 	QFont& consoleFont();
+	QScrollArea& paneScrollArea();
 	
 public slots:
 
@@ -48,7 +49,5 @@ protected:
 	QLabel mk_ParamLabel;
 	QTextEdit mk_StdoutTextEdit;
 	QFont mk_ConsoleFont;
+	QScrollArea mk_PaneScrollArea;
 };
-
-
-

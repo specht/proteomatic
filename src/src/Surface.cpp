@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Surface.h"
 #include "Tango.h"
+#include "RevelioMainWindow.h"
 
 
 k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_)
@@ -89,12 +90,8 @@ void k_Surface::createNodes()
 		QString ls_Query = QString("SELECT `code_basename`,`directory`,`ctime`,`mtime`\
 									FROM `filewithname` WHERE `filecontent_id` = '%1' LIMIT 1").arg(mk_FocusNode.mi_Id);
 		ls_FileWithNameQueryCentralNode.exec(ls_Query);
-		
 		ls_FileWithNameQueryCentralNode.next();
 		QString ls_CodeBasename 			= ls_FileWithNameQueryCentralNode.value(0).toString();
-		QString ls_Directory 				= ls_FileWithNameQueryCentralNode.value(1).toString();
-		QTime li_CTime						= ls_FileWithNameQueryCentralNode.value(2).toTime();
-		QTime li_MTime						= ls_FileWithNameQueryCentralNode.value(3).toTime();
 		
 		mk_CentralNode_->setLabels(QStringList() << ls_CodeBasename);
 		
@@ -146,7 +143,7 @@ void k_Surface::createNodes()
 				QString ls_RInQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunInList));
 				ls_RunsInQuery.exec(ls_RInQuery);
 				
-				//QLinkedList<QString> lk_TitleInList;
+				QLinkedList<QString> lk_TitleInList;
 				while(ls_RunsInQuery.next())
 				{
 					QString ls_Title = ls_RunsInQuery.value(0).toString();
@@ -154,6 +151,7 @@ void k_Surface::createNodes()
 					mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 					mk_RightNodes.append(lk_Node_);
 					lk_Node_->setLabels(QStringList() << ls_Title);
+					lk_TitleInList.append(ls_Title);
 				}
 				
 			}
@@ -164,7 +162,7 @@ void k_Surface::createNodes()
 				QString ls_ROutQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunOutList));
 				ls_RunsOutQuery.exec(ls_ROutQuery);
 				
-				//QLinkedList<QString> lk_TitleOutList;
+				QLinkedList<QString> lk_TitleOutList;
 				while(ls_RunsOutQuery.next())
 				{
 					QString ls_Title = ls_RunsOutQuery.value(0).toString();
@@ -172,7 +170,7 @@ void k_Surface::createNodes()
 					mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 					mk_LeftNodes.append(lk_Node_);
 					lk_Node_->setLabels(QStringList() << ls_Title);
-				
+					lk_TitleOutList.append(ls_Title);
 				}
 			}
 		}
@@ -180,7 +178,6 @@ void k_Surface::createNodes()
 	
 	if (mk_FocusNode.me_Type == r_NodeType::Run)
 	{
-		//Query for centralNode
 		QSqlQuery ls_RunsQuery;
 		QString ls_RQuery = QString("SELECT `user`,`title`,`host`,`script_uri`,`version`,`start_time`,`end_time`\
 									FROM `runs` WHERE `run_id`='%1'").arg(mk_FocusNode.mi_Id);
@@ -197,18 +194,8 @@ void k_Surface::createNodes()
 		
 		mk_CentralNode_->setLabels(QStringList() << ls_Title);
 		
-		QSqlQuery ls_ParamQuery;
-		QString ls_PQuery = QString("SELECT `code_key`,`code_value`\
-									FROM `parameters` WHERE `run_id` ='%1'").arg(mk_FocusNode.mi_Id);
-		ls_ParamQuery.exec(ls_PQuery);
-		
-		//Frage: Parameter wie übergeben? Liste mit QPair erzeugen?
-		while (ls_ParamQuery.next())
-		{	
-			QString ls_CodeKey		= ls_ParamQuery.value(0).toString();
-			QString ls_CodeValue	= ls_ParamQuery.value(1).toString();
-		}	
-		
+		//QSqlQuery ls_FileInRunQuery;
+		//QString ls_FIRQuery  = QString("").arg();
 		//searching for files used in run as inputfile
 		QSqlQuery ls_RunWithNameQueryIn;
 		QString ls_RWNQuery = QString("SELECT `filewithname_id` FROM `run_filewithname` WHERE `run_id`='%1' AND `input_file`= 1").arg(mk_FocusNode.mi_Id);
@@ -264,8 +251,14 @@ void k_Surface::createNodes()
 				lk_Node_->setLabels(QStringList() << ls_CodeBasename);
 			}
 		}
-
 	}
+	
+	
+
+
+	
+
+	
 /*	
 	for (int i = 0; i< 2; ++i)
 	{
@@ -288,9 +281,71 @@ void k_Surface::createNodes()
 		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
 	
 	adjustNodes();
+	updateInfoPane(mk_FocusNode);
 }
  
  
+void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
+{
+	if (mk_RevelioMainWindow.paneScrollArea().widget())
+		delete mk_RevelioMainWindow.paneScrollArea().takeWidget();
+	
+	QWidget* lk_PaneWidget_ = new QWidget(&mk_RevelioMainWindow.paneScrollArea());
+	mk_RevelioMainWindow.paneScrollArea().setWidget(lk_PaneWidget_);
+	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_PaneWidget_);
+	
+	if (ar_NodeInfo.me_Type == r_NodeType::File)
+	{
+		//Query for CentralNode
+		QSqlQuery ls_FileWithNameQueryCentralNode;
+		QString ls_Query = QString("SELECT `code_basename`,`directory`,`ctime`,`mtime`\
+									FROM `filewithname` WHERE `filecontent_id` = '%1'").arg(ar_NodeInfo.mi_Id);
+		ls_FileWithNameQueryCentralNode.exec(ls_Query);
+		while (ls_FileWithNameQueryCentralNode.next())
+		{
+			QString ls_CodeBasename 			= ls_FileWithNameQueryCentralNode.value(0).toString();
+			QString ls_Directory 				= ls_FileWithNameQueryCentralNode.value(1).toString();
+			QTime li_CTime						= ls_FileWithNameQueryCentralNode.value(2).toTime();
+			QTime li_MTime						= ls_FileWithNameQueryCentralNode.value(3).toTime();
+			// QTableWidget mit file name, directory, creation time, modification time
+			// QTableWidget* lk_FilenameTable_ = new QTableWidget(lk_PaneWidget_);
+			// lk_VLayout_->addWidget(lk_FilenameTable_);
+		}
+	} 
+	else if (ar_NodeInfo.me_Type == r_NodeType::Run)
+	{
+		QSqlQuery ls_RunsQuery;
+		QString ls_RQuery = QString("SELECT `run_id`,`user`,`title`,`host`,`script_uri`,`version`,`start_time`,`end_time`\
+									FROM `runs` WHERE `run_id` = '%1'").arg(ar_NodeInfo.mi_Id);
+		ls_RunsQuery.exec(ls_RQuery);
+		
+		ls_RunsQuery.next();
+		int li_RunId			= ls_RunsQuery.value(0).toInt();
+		QString ls_User			= ls_RunsQuery.value(1).toString();
+		QString ls_Title		= ls_RunsQuery.value(2).toString();
+		QString ls_Host			= ls_RunsQuery.value(3).toString();
+		QString ls_ScriptUri	= ls_RunsQuery.value(4).toString();
+		int li_Version			= ls_RunsQuery.value(5).toInt();
+		QTime li_StartTime		= ls_RunsQuery.value(6).toTime();
+		QTime li_EndTime		= ls_RunsQuery.value(7).toTime();
+		
+		QSqlQuery ls_ParamQuery;
+		QString ls_PQuery = QString("SELECT `code_key`,`code_value`\
+									FROM `parameters` WHERE `run_id` ='%1'").arg(mk_FocusNode.mi_Id);
+		ls_ParamQuery.exec(ls_PQuery);
+		
+		while(ls_ParamQuery.next())
+		{	
+			QString ls_CodeKey		= ls_ParamQuery.value(0).toString();
+			QString ls_CodeValue	= ls_ParamQuery.value(1).toString();
+		}	
+		
+		//QSqlQuery ls_FileInRunQuery;
+		//QString ls_FIRQuery  = QString("").arg();
+	}
+}
+
+
 void k_Surface::adjustNodes()
 {	
 	float lf_NodeSpacing = 50.0;
