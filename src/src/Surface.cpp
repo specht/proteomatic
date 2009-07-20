@@ -146,11 +146,14 @@ void k_Surface::createNodes()
 				QString ls_RInQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunInList));
 				ls_RunsInQuery.exec(ls_RInQuery);
 				
-				QLinkedList<QString> lk_TitleInList;
+				//QLinkedList<QString> lk_TitleInList;
 				while(ls_RunsInQuery.next())
 				{
 					QString ls_Title = ls_RunsInQuery.value(0).toString();
-					lk_TitleInList.append(ls_Title);
+					lk_Node_ = new k_FileTrackerNode();
+					mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+					mk_RightNodes.append(lk_Node_);
+					lk_Node_->setLabels(QStringList() << ls_Title);
 				}
 				
 			}
@@ -161,11 +164,15 @@ void k_Surface::createNodes()
 				QString ls_ROutQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunOutList));
 				ls_RunsOutQuery.exec(ls_ROutQuery);
 				
-				QLinkedList<QString> lk_TitleOutList;
+				//QLinkedList<QString> lk_TitleOutList;
 				while(ls_RunsOutQuery.next())
 				{
 					QString ls_Title = ls_RunsOutQuery.value(0).toString();
-					lk_TitleOutList.append(ls_Title);
+					lk_Node_ = new k_FileTrackerNode();
+					mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+					mk_LeftNodes.append(lk_Node_);
+					lk_Node_->setLabels(QStringList() << ls_Title);
+				
 				}
 			}
 		}
@@ -173,45 +180,92 @@ void k_Surface::createNodes()
 	
 	if (mk_FocusNode.me_Type == r_NodeType::Run)
 	{
+		//Query for centralNode
 		QSqlQuery ls_RunsQuery;
-		QString ls_RQuery = QString("SELECT `run_id`,`user`,`title`,`host`,`script_uri`,`version`,`start_time`,`end_time`\
-									FROM `runs` WHERE 1");
+		QString ls_RQuery = QString("SELECT `user`,`title`,`host`,`script_uri`,`version`,`start_time`,`end_time`\
+									FROM `runs` WHERE `run_id`='%1'").arg(mk_FocusNode.mi_Id);
 		ls_RunsQuery.exec(ls_RQuery);
 		
 		ls_RunsQuery.next();
-		int li_RunId			= ls_RunsQuery.value(0).toInt();
-		QString ls_User			= ls_RunsQuery.value(1).toString();
-		QString ls_Title		= ls_RunsQuery.value(2).toString();
-		QString ls_Host			= ls_RunsQuery.value(3).toString();
-		QString ls_ScriptUri	= ls_RunsQuery.value(4).toString();
-		int li_Version			= ls_RunsQuery.value(5).toInt();
-		QTime li_StartTime		= ls_RunsQuery.value(6).toTime();
-		QTime li_EndTime		= ls_RunsQuery.value(7).toTime();
+		QString ls_User			= ls_RunsQuery.value(0).toString();
+		QString ls_Title		= ls_RunsQuery.value(1).toString();
+		QString ls_Host			= ls_RunsQuery.value(2).toString();
+		QString ls_ScriptUri	= ls_RunsQuery.value(3).toString();
+		int li_Version			= ls_RunsQuery.value(4).toInt();
+		QTime li_StartTime		= ls_RunsQuery.value(5).toTime();
+		QTime li_EndTime		= ls_RunsQuery.value(6).toTime();
 		
-		mk_FocusNode.mi_Id = li_RunId;
-		mk_FocusNode.mb_IsGood = true;
+		mk_CentralNode_->setLabels(QStringList() << ls_Title);
 		
 		QSqlQuery ls_ParamQuery;
 		QString ls_PQuery = QString("SELECT `code_key`,`code_value`\
 									FROM `parameters` WHERE `run_id` ='%1'").arg(mk_FocusNode.mi_Id);
 		ls_ParamQuery.exec(ls_PQuery);
 		
-		while(ls_ParamQuery.next())
+		//Frage: Parameter wie übergeben? Liste mit QPair erzeugen?
+		while (ls_ParamQuery.next())
 		{	
 			QString ls_CodeKey		= ls_ParamQuery.value(0).toString();
 			QString ls_CodeValue	= ls_ParamQuery.value(1).toString();
 		}	
 		
-		//QSqlQuery ls_FileInRunQuery;
-		//QString ls_FIRQuery  = QString("").arg();
+		//searching for files used in run as inputfile
+		QSqlQuery ls_RunWithNameQueryIn;
+		QString ls_RWNQuery = QString("SELECT `filewithname_id` FROM `run_filewithname` WHERE `run_id`='%1' AND `input_file`= 1").arg(mk_FocusNode.mi_Id);
+		ls_RunWithNameQueryIn.exec(ls_RWNQuery);
+		
+		QLinkedList<int> lk_FileInList;
+		while (ls_RunWithNameQueryIn.next())
+		{
+			int li_FileWithNameId = ls_RunWithNameQueryIn.value(0).toInt();
+			lk_FileInList.append(li_FileWithNameId);
+		}
+		
+		//searching for files used in run as outputfile
+		QSqlQuery ls_RunWithNameQueryOut;
+		ls_RWNQuery = QString("SELECT `filewithname_id` FROM `run_filewithname` WHERE `run_id`='%1' AND `input_file`= 0").arg(mk_FocusNode.mi_Id);
+		ls_RunWithNameQueryOut.exec(ls_RWNQuery);
+		
+		QLinkedList<int> lk_FileOutList;
+		while(ls_RunWithNameQueryOut.next())
+		{
+			int li_FileWithNameId = ls_RunWithNameQueryOut.value(0).toInt();
+			lk_FileOutList.append(li_FileWithNameId);
+		}
+		
+		if (lk_FileInList.size() != 0)
+		{
+			QSqlQuery ls_FilesInQuery;
+			QString ls_FInQuery = QString("SELECT `code_basename` FROM `filewithname` WHERE `filewithname_id` IN (%1)").arg(listToString(lk_FileInList));
+			ls_FilesInQuery.exec(ls_FInQuery);
+				
+			while(ls_FilesInQuery.next())
+			{
+				QString ls_CodeBasename = ls_FilesInQuery.value(0).toString();
+				lk_Node_ = new k_FileTrackerNode();
+				mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+				mk_LeftNodes.append(lk_Node_);
+				lk_Node_->setLabels(QStringList() << ls_CodeBasename);
+			}
+		}
+		
+		if (lk_FileOutList.size() != 0)
+		{
+			QSqlQuery ls_FilesOutQuery;
+			QString ls_FOutQuery = QString("SELECT `code_basename` FROM `filewithname` WHERE `filewithname_id` IN (%1)").arg(listToString(lk_FileOutList));
+			ls_FilesOutQuery.exec(ls_FOutQuery);
+				
+			while(ls_FilesOutQuery.next())
+			{
+				QString ls_CodeBasename = ls_FilesOutQuery.value(0).toString();
+				lk_Node_ = new k_FileTrackerNode();
+				mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+				mk_RightNodes.append(lk_Node_);
+				lk_Node_->setLabels(QStringList() << ls_CodeBasename);
+			}
+		}
+
 	}
-	
-	
-
-
-	
-
-	
 /*	
 	for (int i = 0; i< 2; ++i)
 	{
