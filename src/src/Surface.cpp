@@ -115,20 +115,21 @@ void k_Surface::createNodes()
 		{
 			//searching for runs with file used as inputfile
 			QSqlQuery ls_RunWithNameQueryIn;
-			QString ls_RWNQuery = QString("SELECT `run_id` FROM `run_filewithname` WHERE `filewithname_id` IN (%1) AND `input_file` = 1").arg(lk_FileWithNameIdList);
+			QString ls_RWNQuery = QString("SELECT `run_id` FROM `run_filewithname` WHERE `filewithname_id` IN (%1) AND `input_file` = 1").arg(listToString(lk_FileWithNameIdList));
 			ls_RunWithNameQueryIn.exec(ls_RWNQuery);
 			
 			QLinkedList<int> lk_RunInList;
 			while(ls_RunWithNameQueryIn.next())
 			{
-				int li_RunId		= ls_RunWithNameQueryIn.value(0).toInt();
+				int li_RunId = ls_RunWithNameQueryIn.value(0).toInt();
 				lk_RunInList.append(li_RunId);
 			}
+			printf("\n");
 			
 			//searching for runs with file used as outputfile
 			QSqlQuery ls_RunWithNameQueryOut;
-			QString ls_RWNQuery = QString("SELECT `run_id`\
-										FROM `run_filewithname` WHERE `filewithname_id` IN (%1) AND `input_file` = 0").arg(lk_FileWithNameIdList);
+			ls_RWNQuery = QString("SELECT `run_id`\
+										FROM `run_filewithname` WHERE `filewithname_id` IN (%1) AND `input_file` = 0").arg(listToString(lk_FileWithNameIdList));
 			ls_RunWithNameQueryOut.exec(ls_RWNQuery);
 			
 			QLinkedList<int> lk_RunOutList;
@@ -142,13 +143,13 @@ void k_Surface::createNodes()
 			if (lk_RunInList.size() != 0)
 			{
 				QSqlQuery ls_RunsInQuery;
-				QString ls_RInQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(lk_RunInList);
+				QString ls_RInQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunInList));
 				ls_RunsInQuery.exec(ls_RInQuery);
 				
 				QLinkedList<QString> lk_TitleInList;
 				while(ls_RunsInQuery.next())
 				{
-					QString ls_Title = ls_RunsQuery.value(0).toString();
+					QString ls_Title = ls_RunsInQuery.value(0).toString();
 					lk_TitleInList.append(ls_Title);
 				}
 				
@@ -157,7 +158,7 @@ void k_Surface::createNodes()
 			if (lk_RunOutList.size() != 0)
 			{
 				QSqlQuery ls_RunsOutQuery;
-				QString ls_ROutQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(lk_RunOutList);
+				QString ls_ROutQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunOutList));
 				ls_RunsOutQuery.exec(ls_ROutQuery);
 				
 				QLinkedList<QString> lk_TitleOutList;
@@ -227,19 +228,17 @@ void k_Surface::createNodes()
 		
 	}
 	
-	foreach(RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
-	{
-		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
-		lk_pNode->setLabels(QStringList() << "hello" << "fellow" << "how are you");
-	}
 */
+	// insert nodes into graphics scene
+	foreach(RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
+		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
+	
 	adjustNodes();
 }
  
  
 void k_Surface::adjustNodes()
 {	
-	
 	float lf_NodeSpacing = 50.0;
 	if (mk_CentralNode_)
 	{
@@ -286,6 +285,16 @@ void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 
 }
 
+
+QString k_Surface::listToString(QLinkedList<int> ak_List)
+{
+	QStringList lk_List;
+	foreach (int i, ak_List)
+		lk_List << QString("%1").arg(i);
+	return lk_List.join(",");
+}
+
+
 bool k_Surface::createConnection()
 {
 
@@ -310,12 +319,12 @@ void k_Surface::focusFile(QString as_Path, QString as_Md5)
 {	
 	QSqlQuery ls_FilecontentQuery;
 	QString ls_Query = QString("SELECT `filecontent_id`\
-								FROM `filecontents` WHERE `identifier` = 'md5%1' AND `size` = '%2'LIMIT 1").arg(as_Md5).arg(QFileInfo(as_Path).size());
+								FROM `filecontents` WHERE `identifier` = 'md5%1' AND `size` = '%2' LIMIT 1").arg(as_Md5).arg(QFileInfo(as_Path).size());
 	ls_FilecontentQuery.exec(ls_Query);
 	if (ls_FilecontentQuery.size() != 1)
 	{
 		QString ls_Query = QString("SELECT `filecontent_id`\
-									FROM `filecontents` WHERE `identifier` = 'basename%1' AND `size` = '%2'LIMIT 1").arg(QFileInfo(as_Path).fileName()).arg(QFileInfo(as_Path).size());
+									FROM `filecontents` WHERE `identifier` = 'basename%1' AND `size` = '%2' LIMIT 1").arg(QFileInfo(as_Path).fileName()).arg(QFileInfo(as_Path).size());
 		ls_FilecontentQuery.exec(ls_Query);
 	}
 	

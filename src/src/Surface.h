@@ -74,6 +74,7 @@ protected:
 	virtual void resizeEvent(QResizeEvent* event);
 	virtual void createNodes();
 	virtual void mouseDoubleClickEvent(QMouseEvent* mouseEvent);
+	virtual QString listToString(QLinkedList<int> ak_List);
 	
 	k_RevelioMainWindow& mk_RevelioMainWindow;
 	QGraphicsScene mk_GraphicsScene;
