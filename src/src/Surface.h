@@ -46,6 +46,13 @@ struct r_NodeInfo
 	{
 	}
 	
+	r_NodeInfo(r_NodeType::Enumeration ae_Type, int ai_Id)
+		: mb_IsGood(true)
+		, me_Type(ae_Type)
+		, mi_Id(ai_Id)
+	{
+	}
+	
 	bool mb_IsGood;
 	r_NodeType::Enumeration me_Type;
 	int mi_Id;
@@ -89,6 +96,7 @@ protected:
 	QList<k_FileTrackerNode*> mk_RightNodes;
 	k_FileTrackerNode* mk_CentralNode_;
 	QSqlDatabase mk_Database;
+	QHash<QGraphicsItem*, r_NodeInfo> mk_NodeInfoHash;
 };
 
 

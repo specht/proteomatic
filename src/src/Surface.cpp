@@ -71,6 +71,8 @@ void k_Surface::createNodes()
 	if (!mk_FocusNode.mb_IsGood)
 		return;
 	
+	mk_NodeInfoHash.clear();
+	
 	// clear all nodes
 	mk_Nodes.clear();
 	mk_CentralNode_ = NULL;
@@ -82,6 +84,7 @@ void k_Surface::createNodes()
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
 	mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 	mk_CentralNode_= lk_Node_;
+	mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = mk_FocusNode;
 	
 	if (mk_FocusNode.me_Type == r_NodeType::File)
 	{
@@ -140,18 +143,20 @@ void k_Surface::createNodes()
 			if (lk_RunInList.size() != 0)
 			{
 				QSqlQuery ls_RunsInQuery;
-				QString ls_RInQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunInList));
+				QString ls_RInQuery = QString("SELECT `title`, `run_id` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunInList));
 				ls_RunsInQuery.exec(ls_RInQuery);
 				
 				QLinkedList<QString> lk_TitleInList;
 				while(ls_RunsInQuery.next())
 				{
 					QString ls_Title = ls_RunsInQuery.value(0).toString();
+					int li_RunId = ls_RunsInQuery.value(1).toInt();
 					lk_Node_ = new k_FileTrackerNode();
 					mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 					mk_RightNodes.append(lk_Node_);
 					lk_Node_->setLabels(QStringList() << ls_Title);
 					lk_TitleInList.append(ls_Title);
+					mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = r_NodeInfo(r_NodeType::Run, li_RunId);
 				}
 				
 			}
@@ -159,18 +164,20 @@ void k_Surface::createNodes()
 			if (lk_RunOutList.size() != 0)
 			{
 				QSqlQuery ls_RunsOutQuery;
-				QString ls_ROutQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunOutList));
+				QString ls_ROutQuery = QString("SELECT `title`, `run_id` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunOutList));
 				ls_RunsOutQuery.exec(ls_ROutQuery);
 				
 				QLinkedList<QString> lk_TitleOutList;
 				while(ls_RunsOutQuery.next())
 				{
 					QString ls_Title = ls_RunsOutQuery.value(0).toString();
+					int li_RunId = ls_RunsOutQuery.value(1).toInt();
 					lk_Node_ = new k_FileTrackerNode();
 					mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 					mk_LeftNodes.append(lk_Node_);
 					lk_Node_->setLabels(QStringList() << ls_Title);
 					lk_TitleOutList.append(ls_Title);
+					mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = r_NodeInfo(r_NodeType::Run, li_RunId);
 				}
 			}
 		}
@@ -223,32 +230,44 @@ void k_Surface::createNodes()
 		if (lk_FileInList.size() != 0)
 		{
 			QSqlQuery ls_FilesInQuery;
-			QString ls_FInQuery = QString("SELECT `code_basename` FROM `filewithname` WHERE `filewithname_id` IN (%1)").arg(listToString(lk_FileInList));
+			QString ls_FInQuery = QString("SELECT `code_basename`, `filewithname_id` FROM `filewithname` WHERE `filewithname_id` IN (%1)").arg(listToString(lk_FileInList));
 			ls_FilesInQuery.exec(ls_FInQuery);
 				
 			while(ls_FilesInQuery.next())
 			{
 				QString ls_CodeBasename = ls_FilesInQuery.value(0).toString();
+				int li_FileWithNameId = ls_FilesInQuery.value(1).toInt();
+				// additional query filecontent_id for li_FileWithNameId
+				// ...
+				//
+				int li_FileContentId = 0;
 				lk_Node_ = new k_FileTrackerNode();
 				mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 				mk_LeftNodes.append(lk_Node_);
 				lk_Node_->setLabels(QStringList() << ls_CodeBasename);
+				mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = r_NodeInfo(r_NodeType::File, li_FileContentId);
 			}
 		}
 		
 		if (lk_FileOutList.size() != 0)
 		{
 			QSqlQuery ls_FilesOutQuery;
-			QString ls_FOutQuery = QString("SELECT `code_basename` FROM `filewithname` WHERE `filewithname_id` IN (%1)").arg(listToString(lk_FileOutList));
+			QString ls_FOutQuery = QString("SELECT `code_basename`, `filewithname_id` FROM `filewithname` WHERE `filewithname_id` IN (%1)").arg(listToString(lk_FileOutList));
 			ls_FilesOutQuery.exec(ls_FOutQuery);
 				
 			while(ls_FilesOutQuery.next())
 			{
 				QString ls_CodeBasename = ls_FilesOutQuery.value(0).toString();
+				int li_FileWithNameId = ls_FilesOutQuery.value(1).toInt();
+				// additional query filecontent_id for li_FileWithNameId
+				// ...
+				//
+				int li_FileContentId = 0;
 				lk_Node_ = new k_FileTrackerNode();
 				mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 				mk_RightNodes.append(lk_Node_);
 				lk_Node_->setLabels(QStringList() << ls_CodeBasename);
+				mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = r_NodeInfo(r_NodeType::File, li_FileContentId);
 			}
 		}
 	}
@@ -277,8 +296,10 @@ void k_Surface::createNodes()
 	
 */
 	// insert nodes into graphics scene
+	/*
 	foreach(RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
 		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
+	*/
 	
 	adjustNodes();
 	updateInfoPane(mk_FocusNode);
@@ -379,19 +400,12 @@ void k_Surface::adjustNodes()
 
 void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 {	
-
-	if (itemAt(mouseEvent->pos()))
+	QGraphicsItem* lk_Item_ = NULL;
+	if (lk_Item_ = itemAt(mouseEvent->pos()))
 	{
-		if (pos() != QPoint(0,0))
-		{
-			QString title("Information");
-			QString text("Move Node to centre!");
-		
-			QMessageBox msgBox(QMessageBox::Information, title ,text, QMessageBox::Ok);
-			msgBox.exec();
-		}
+		mk_FocusNode = mk_NodeInfoHash[lk_Item_];
+		createNodes();
 	}
-
 }
 
 
