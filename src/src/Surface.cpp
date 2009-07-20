@@ -76,22 +76,6 @@ void k_Surface::createNodes()
 	mk_LeftNodes.clear();
 	mk_RightNodes.clear();
 
-	// if (mk_FocusNode.me_Type == r_NodeType::File)
-		// `filewithname`
-		// SELECT filewithname_id FROM `filewithname` WHERE filecontent_id = 'x' (Liste!)
-		// (ex. 2, 7, 189, 509)
-		
-		// `run_filewithname`
-		// SELECT `run_id`, `input_file` FROM `run_filewithname` WHERE filewithname_id = '2' OR  ...
-		// run_id list: 1, 4, 10, 11, 1,2 40
-		// run titles are: 
-		// Filter by mass accuracy
-		// Write HTML report
-		// SimQuant
-		// Compare PSM lists (you want some SimQuant with tha...
-		// Compare PSM lists (you want some SimQuant with tha...
-		// Write HTML report
-
 	// create central node
 	
 	k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
@@ -100,6 +84,7 @@ void k_Surface::createNodes()
 	
 	if (mk_FocusNode.me_Type == r_NodeType::File)
 	{
+		//Query for CentralNode
 		QSqlQuery ls_FileWithNameQueryCentralNode;
 		QString ls_Query = QString("SELECT `code_basename`,`directory`,`ctime`,`mtime`\
 									FROM `filewithname` WHERE `filecontent_id` = '%1' LIMIT 1").arg(mk_FocusNode.mi_Id);
@@ -113,9 +98,9 @@ void k_Surface::createNodes()
 		
 		mk_CentralNode_->setLabels(QStringList() << ls_CodeBasename);
 		
+		//Query for all files matching with inputfile
 		QSqlQuery ls_FileWithNameQuery;
-		QString ls_FWNIdQuery = QString("SELECT `filewithname_id` \
-										FROM `filewithname` WHERE `filecontent_id` = '%1'").arg(mk_FocusNode.mi_Id);
+		QString ls_FWNIdQuery = QString("SELECT `filewithname_id` FROM `filewithname` WHERE `filecontent_id` = '%1'").arg(mk_FocusNode.mi_Id);
 		ls_FileWithNameQuery.exec(ls_FWNIdQuery);
 		
 		QLinkedList<int> lk_FileWithNameIdList;
@@ -128,18 +113,59 @@ void k_Surface::createNodes()
 		
 		if (lk_FileWithNameIdList.size() != 0)
 		{
-			QSqlQuery ls_RunWithNameQuery;
-			QString ls_RWNQuery = QString("SELECT `run_id` , `input_file` \
-										FROM `run_filewithname` WHERE `filewithname_id` = '5519'OR '5560'");
-			ls_RunWithNameQuery.exec(ls_RWNQuery);
+			//searching for runs with file used as inputfile
+			QSqlQuery ls_RunWithNameQueryIn;
+			QString ls_RWNQuery = QString("SELECT `run_id` FROM `run_filewithname` WHERE `filewithname_id` IN (%1) AND `input_file` = 1").arg(lk_FileWithNameIdList);
+			ls_RunWithNameQueryIn.exec(ls_RWNQuery);
 			
-			QLinkedList<QPair<int, int> > lk_RunInOutList;
-			while(ls_RunWithNameQuery.next())
+			QLinkedList<int> lk_RunInList;
+			while(ls_RunWithNameQueryIn.next())
 			{
-				int li_RunId		= ls_RunWithNameQuery.value(0).toInt();
-				int li_InputFile	= ls_RunWithNameQuery.value(1).toInt();
+				int li_RunId		= ls_RunWithNameQueryIn.value(0).toInt();
+				lk_RunInList.append(li_RunId);
+			}
+			
+			//searching for runs with file used as outputfile
+			QSqlQuery ls_RunWithNameQueryOut;
+			QString ls_RWNQuery = QString("SELECT `run_id`\
+										FROM `run_filewithname` WHERE `filewithname_id` IN (%1) AND `input_file` = 0").arg(lk_FileWithNameIdList);
+			ls_RunWithNameQueryOut.exec(ls_RWNQuery);
+			
+			QLinkedList<int> lk_RunOutList;
+			while(ls_RunWithNameQueryOut.next())
+			{
+				int li_RunId		= ls_RunWithNameQueryOut.value(0).toInt();
+				lk_RunOutList.append(li_RunId);
+			}
+			
+			
+			if (lk_RunInList.size() != 0)
+			{
+				QSqlQuery ls_RunsInQuery;
+				QString ls_RInQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(lk_RunInList);
+				ls_RunsInQuery.exec(ls_RInQuery);
 				
-				lk_RunInOutList.append(qMakePair(li_RunId,li_InputFile));
+				QLinkedList<QString> lk_TitleInList;
+				while(ls_RunsInQuery.next())
+				{
+					QString ls_Title = ls_RunsQuery.value(0).toString();
+					lk_TitleInList.append(ls_Title);
+				}
+				
+			}
+			
+			if (lk_RunOutList.size() != 0)
+			{
+				QSqlQuery ls_RunsOutQuery;
+				QString ls_ROutQuery = QString("SELECT `title` FROM `runs` WHERE `run_id` IN (%1)").arg(lk_RunOutList);
+				ls_RunsOutQuery.exec(ls_ROutQuery);
+				
+				QLinkedList<QString> lk_TitleOutList;
+				while(ls_RunsOutQuery.next())
+				{
+					QString ls_Title = ls_RunsOutQuery.value(0).toString();
+					lk_TitleOutList.append(ls_Title);
+				}
 			}
 		}
 	}
