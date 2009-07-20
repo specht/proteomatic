@@ -23,3 +23,20 @@ QuaZip:
 - make
 - linux: make install
 - win32: copy all .h files to include/quazip/, copy libquazip.a to libs directory
+
+MySQL plugin Windows:
+1. mingw-utils nach C:\Entwicklung\Qt\2009.03\qt\bin entpacken
+2. qt-konsole öffnen
+3. cd C:\Entwicklung\MySql\Server5.1\lib\opt
+4. reimp -d libmysql.lib
+5. dlltool -k --input-def libmysql.def --dllname libmysql.dll --output-lib libmysql.a
+7. die daraus resultierende libmysql.a nach C:\Entwicklung\Qt\2009.03\mingw\lib kopieren
+8. cd %QTDIR%
+9. configure.exe -debug-and-release -stl -qt-zlib -qt-gif -qt-libpng -qt-libmng -qt-libtiff -qt-libjpeg -qmake -qt-sql-sqlite -qt-sql-mysql -l mysql -I c:\Entwicklung\MySQL\Server5.1\include -L c:\Entwicklung\MySQL\Server5.1\lib\opt -platform win32-g++
+10. cd %QTDIR%\src\plugins\sqldrivers\mysql
+11. qmake "INCLUDEPATH+=C:\Entwicklung\MySQL\Server5.1\include" "LIBS+=C:\Entwicklung\MySQL\Server5.1\lib\opt\libmysql.a" mysql.pro
+12. cd %QTDIR%
+13. mingw32-make
+14. plugin-cache in registry löschen:
+HKEY_CURRENT_USER\Software\Trolltech\OrganizationDefaults\Qt Plugin Cache 4.5.debug
+HKEY_CURRENT_USER\Software\Trolltech\OrganizationDefaults\Qt Plugin Cache 4.5.false
