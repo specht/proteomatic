@@ -89,7 +89,7 @@ protected:
 	
 	float mf_SceneWidth2; 
 	float mf_SceneHeight2;
-	r_NodeInfo mk_FocusNode;
+	r_NodeInfo mr_FocusNode;
 	
 	QList<RefPtr<k_FileTrackerNode> > mk_Nodes;
 	QList<k_FileTrackerNode*> mk_LeftNodes;
