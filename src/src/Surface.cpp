@@ -337,6 +337,7 @@ void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
 			// QTableWidget* lk_FilenameTable_ = new QTableWidget(lk_PaneWidget_);
 			// lk_VLayout_->addWidget(lk_FilenameTable_);
 			QTableWidget* lk_TableWidget_ = new QTableWidget(2, 4, this);
+			//Eigenes Widget erstelllen mit QLAbel fuer Param, und fuer stdout
 		}
 	} 
 	else if (ar_NodeInfo.me_Type == r_NodeType::Run)
