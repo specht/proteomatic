@@ -61,37 +61,42 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	QWidget* lk_MainWidget_ = new QWidget(this);
 	setCentralWidget(lk_MainWidget_);
 	
-	mk_ParamLabel.setText("Parameters will be shown!");
+	//mk_ParamLabel.setText("Parameters will be shown!");
 	
-	QBoxLayout* lk_HLayoutParam_ = new QHBoxLayout(this);
-	lk_HLayoutParam_->addWidget(&mk_ParamLabel);
+	//QBoxLayout* lk_HLayoutParam_ = new QHBoxLayout(this);
+	//lk_HLayoutParam_->addWidget(&mk_ParamLabel);
 	
-	QGroupBox* lk_ParamGroup_ = new QGroupBox("Parameters");
-	lk_ParamGroup_->setLayout(lk_HLayoutParam_);
+	//QGroupBox* lk_ParamGroup_ = new QGroupBox("Parameters");
+	//lk_ParamGroup_->setLayout(lk_HLayoutParam_);
 	
-	mk_StdoutTextEdit.setReadOnly(true);
-	mk_StdoutTextEdit.setCurrentFont(mk_ConsoleFont);
-	mk_StdoutTextEdit.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	//mk_StdoutTextEdit.setReadOnly(true);
+	//mk_StdoutTextEdit.setCurrentFont(mk_ConsoleFont);
+	//mk_StdoutTextEdit.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	//mk_StdoutTextEdit.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	mk_StdoutTextEdit.setText("Further Information");
+	//mk_StdoutTextEdit.setText("Further Information");
 
+	QSplitter* lk_Splitter = new QSplitter(this);
+	lk_Splitter->setChildrenCollapsible(false);
+	lk_Splitter->setOrientation(Qt::Horizontal);
+	lk_Splitter->addWidget(&mk_Surface);
+	lk_Splitter->addWidget(&mk_PaneScrollArea);
 	
-	QBoxLayout* lk_VLayoutInfo_ = new QVBoxLayout(this);
-	lk_VLayoutInfo_->addWidget(lk_ParamGroup_);
-	lk_VLayoutInfo_->addWidget(&mk_StdoutTextEdit);
+	//QBoxLayout* lk_VLayoutInfo_ = new QVBoxLayout(this);
+	//lk_VLayoutInfo_->addWidget(lk_ParamGroup_);
+	//lk_VLayoutInfo_->addWidget(&mk_StdoutTextEdit);
 	
-	QBoxLayout* lk_HLayout_ = new QHBoxLayout(this);
-	lk_HLayout_->addWidget(&mk_Surface);
-	lk_HLayout_->addLayout(lk_VLayoutInfo_); //(lk_InfoGruoup_);
+	//QBoxLayout* lk_HLayout_ = new QHBoxLayout(this);
+	//lk_HLayout_->addWidget(&mk_Surface);
+	//lk_HLayout_->addLayout(lk_VLayoutInfo_); //(lk_InfoGruoup_);
 	
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_MainWidget_);
 	lk_VLayout_->addWidget(lk_LoadFileButton_);
-	lk_VLayout_->addLayout(lk_HLayout_);
-	lk_VLayout_->addWidget(&mk_HashLabel);
+	//lk_VLayout_->addLayout(lk_HLayout_);
+	//lk_VLayout_->addWidget(&mk_HashLabel);
 	//mk_Surface_ = new k_Surface(this);
 	//mk_pSurface = RefPtr<k_Surface>(new k_Surface(this));
-	
-	lk_VLayout_->addWidget(&mk_PaneScrollArea);
+	lk_VLayout_->addWidget(lk_Splitter);
+	//lk_VLayout_->addWidget(&mk_PaneScrollArea);
 }
 
 

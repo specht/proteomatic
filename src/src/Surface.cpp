@@ -94,8 +94,7 @@ void k_Surface::createNodes()
 									FROM `filewithname` WHERE `filecontent_id` = '%1' LIMIT 1").arg(mr_FocusNode.mi_Id);
 		ls_FileWithNameQueryCentralNode.exec(ls_Query);
 		ls_FileWithNameQueryCentralNode.next();
-		QString ls_CodeBasename 			= ls_FileWithNameQueryCentralNode.value(0).toString();
-		
+		QString ls_CodeBasename = ls_FileWithNameQueryCentralNode.value(0).toString();
 		mk_CentralNode_->setLabels(QStringList() << ls_CodeBasename);
 		
 		//Query for all files matching with inputfile
@@ -124,7 +123,7 @@ void k_Surface::createNodes()
 				int li_RunId = ls_RunWithNameQueryIn.value(0).toInt();
 				lk_RunInList.append(li_RunId);
 			}
-			printf("\n");
+			//printf("\n");
 			
 			//searching for runs with file used as outputfile
 			QSqlQuery ls_RunWithNameQueryOut;
@@ -237,10 +236,16 @@ void k_Surface::createNodes()
 			{
 				QString ls_CodeBasename = ls_FilesInQuery.value(0).toString();
 				int li_FileWithNameId = ls_FilesInQuery.value(1).toInt();
+				
+				QSqlQuery lk_FilecontentIdQuery;
+				QString ls_FilecontentQuery = QString("SELECT `filecontent_id` FROM ´´WHERE `filewithname_id`='%1'").arg(li_FileWithNameId);
+				lk_FilecontentIdQuery.exec(ls_FilecontentQuery);
+				
+				lk_FilecontentIdQuery.next();
 				// additional query filecontent_id for li_FileWithNameId
 				// ...
 				//
-				int li_FileContentId = 0;
+				int li_FileContentId = lk_FilecontentIdQuery.value(0).toInt();
 				lk_Node_ = new k_FileTrackerNode();
 				mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 				mk_LeftNodes.append(lk_Node_);
@@ -331,6 +336,7 @@ void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
 			// QTableWidget mit file name, directory, creation time, modification time
 			// QTableWidget* lk_FilenameTable_ = new QTableWidget(lk_PaneWidget_);
 			// lk_VLayout_->addWidget(lk_FilenameTable_);
+			QTableWidget* lk_TableWidget_ = new QTableWidget(2, 4, this);
 		}
 	} 
 	else if (ar_NodeInfo.me_Type == r_NodeType::Run)
