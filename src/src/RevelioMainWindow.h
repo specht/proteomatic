@@ -31,7 +31,6 @@ public:
 	virtual ~k_RevelioMainWindow();
 	QString md5ForFile(QString as_Path);
 	virtual void adjustLayout();
-	QFont& consoleFont();
 	QScrollArea& paneScrollArea();
 	
 public slots:
@@ -45,9 +44,9 @@ protected:
 	//k_Surface* mk_Surface_;
 	k_Surface mk_Surface;
 	//RefPtr<k_Surface> mk_pSurface;
-	QLabel mk_HashLabel;
-	QLabel mk_ParamLabel;
-	QTextEdit mk_StdoutTextEdit;
-	QFont mk_ConsoleFont;
+	//QLabel mk_HashLabel;
+	//QLabel mk_ParamLabel;
+	//QTextEdit mk_StdoutTextEdit;
+
 	QScrollArea mk_PaneScrollArea;
 };

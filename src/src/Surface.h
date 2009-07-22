@@ -71,7 +71,8 @@ public:
 	virtual void adjustNodes();
 	virtual bool createConnection();
 	virtual void focusFile(QString as_Path, QString as_Md5);
-
+	QFont& consoleFont();
+	
 public slots:
 
 signals:
@@ -97,6 +98,7 @@ protected:
 	k_FileTrackerNode* mk_CentralNode_;
 	QSqlDatabase mk_Database;
 	QHash<QGraphicsItem*, r_NodeInfo> mk_NodeInfoHash;
+	QFont mk_ConsoleFont;
 };
 
 

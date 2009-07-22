@@ -20,11 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "RevelioMainWindow.h"
 #include <md5.h>
 
-#ifdef WIN32
-	#define FILE_URL_PREFIX "file:///"
-#else
-	#define FILE_URL_PREFIX "file://"
-#endif
+
 
 k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	: mk_Surface(*this, this)
@@ -38,25 +34,6 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	lk_LoadFileButton_->setIcon(QIcon(":/icons/document-open.png"));
 	lk_LoadFileButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	connect(lk_LoadFileButton_, SIGNAL(pressed()), this, SLOT(loadFile()));
-	
-	
-	QFontDatabase lk_FontDatabase;
-	QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
-	while (!lk_Fonts.empty())
-	{
-		QString ls_Font = lk_Fonts.takeFirst();
-		if (lk_FontDatabase.families().contains(ls_Font))
-		{
-			mk_ConsoleFont = QFont(ls_Font);
-			mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.8);
-#ifdef WIN32			
-			mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.9);
-#endif
-			break;
-		}
-	}
-	
-	
 	
 	QWidget* lk_MainWidget_ = new QWidget(this);
 	setCentralWidget(lk_MainWidget_);
@@ -134,7 +111,7 @@ void k_RevelioMainWindow::loadFile()
 	if (!ls_Path.isEmpty())
 	{
 		QString ls_Md5 = md5ForFile(ls_Path);
-		mk_HashLabel.setText(ls_Md5);
+		//mk_HashLabel.setText(ls_Md5);
 		mk_Surface.focusFile(ls_Path, ls_Md5);
 		//mk_Surface.mk_pNode->setLabels(QStringList() << QFileInfo(ls_Path).completeBaseName() << ls_SaveString);
 	}
@@ -145,20 +122,10 @@ void k_RevelioMainWindow::adjustLayout()
 	mk_Surface.adjustNodes();
 }
 
-QFont& k_RevelioMainWindow::consoleFont()
-{
-	return mk_ConsoleFont;
-}
+
 
 
 QScrollArea& k_RevelioMainWindow::paneScrollArea()
 {
 	return mk_PaneScrollArea;
 }
-
-/*void k_RevelioMainWindow::showParam()
-{
-
-}
-*/
-
