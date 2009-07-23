@@ -340,27 +340,29 @@ void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
 		QTableWidget* lk_FilenameTable_ = new QTableWidget(lk_PaneWidget_);
 		lk_FilenameTable_->setColumnCount(4);
 		lk_FilenameTable_->setRowCount(1);
-		lk_FilenameTable_->setHorizontalHeaderLabels(QStringList() << "Title" << "Directory" << "Create Time" << "Mean Time");
+		lk_FilenameTable_->setHorizontalHeaderLabels(QStringList() << "Title" << "Directory" << "Create Time" << "Modification Time");
+		QTableWidgetItem lk_CodeBasenameItem;
+		//QTableWidgetItem lk_DirectoryItem = new QTableWidgetItem(ls_Directory);
+		//QTableWidgetItem lk_CTimeItem = new QTableWidgetItem(ls_CTime);
+		//QTableWidgetItem lk_MTimeItem = new QTableWidgetItem(ls_MTime);
 		lk_VLayout_->addWidget(lk_FilenameTable_);
-		//int row =0;
-
 		while (ls_FileInformation.next())
 		{
 			QString ls_CodeBasename 			= ls_FileInformation.value(0).toString();
 			QString ls_Directory 				= ls_FileInformation.value(1).toString();
 			QString ls_CTime					= ls_FileInformation.value(2).toString();
 			QString ls_MTime					= ls_FileInformation.value(3).toString();
-			//row = row + 1;
-			QTableWidgetItem lk_CodeBasenameItem, lk_DirectoryItem, lk_CTimeItem, lk_MTimeItem;
-			lk_FilenameTable_->setItem(1, 1, &lk_CodeBasenameItem);
-			lk_FilenameTable_->setItem(1, 2, &lk_DirectoryItem);
-			lk_FilenameTable_->setItem(1, 3, &lk_CTimeItem);
-			lk_FilenameTable_->setItem(1, 4, &lk_MTimeItem);
+			
 			lk_CodeBasenameItem.setText(ls_CodeBasename);
-			lk_DirectoryItem.setText(ls_Directory);
-			lk_CTimeItem.setText(ls_CTime);
-			lk_MTimeItem.setText(ls_MTime);
+			
 		}
+		lk_FilenameTable_->setItem(1, 1, &lk_CodeBasenameItem);
+		//QTableWidgetItem* lk_CodeBasenameItem = new QTableWidgetItem(QString("blabla"));
+		//lk_FilenameTable_->setItem(1, 1, lk_CodeBasenameItem);
+		//lk_FilenameTable_->setItem(1, 2, lk_DirectoryItem);
+		//lk_FilenameTable_->setItem(1, 3, lk_CTimeItem);
+		//lk_FilenameTable_->setItem(1, 4, lk_MTimeItem);
+
 	} 
 	else if (ar_NodeInfo.me_Type == r_NodeType::Run)
 	{
@@ -457,6 +459,15 @@ void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 	}
 }
 
+void k_Surface::mousePressEvent(QMouseEvent* clickEvent)
+{
+	QGraphicsItem* lk_Item_ = NULL;
+	if (lk_Item_ = itemAt(clickEvent->pos()))
+	{
+		mr_FocusNode = mk_NodeInfoHash[lk_Item_];
+		//updateInfoPane(r_NodeInfo ar_NodeInfo);
+	}
+}
 
 QString k_Surface::listToString(QLinkedList<int> ak_List)
 {

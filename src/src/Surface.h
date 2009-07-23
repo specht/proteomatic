@@ -83,6 +83,7 @@ protected:
 	virtual void createNodes();
 	virtual void updateInfoPane(r_NodeInfo ar_NodeInfo);
 	virtual void mouseDoubleClickEvent(QMouseEvent* mouseEvent);
+	virtual void mousePressEvent(QMouseEvent* clickEvent);
 	virtual QString listToString(QLinkedList<int> ak_List);
 	
 	k_RevelioMainWindow& mk_RevelioMainWindow;
