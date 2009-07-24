@@ -18,14 +18,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "RevelioMainWindow.h"
-#include <md5.h>
+#include "Proteomatic.h"
 
 
-
-k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
-	: mk_Surface(*this, this)
+k_RevelioMainWindow::k_RevelioMainWindow(k_Proteomatic& ak_Proteomatic, QWidget* ak_Parent_)
+	: mk_Proteomatic(ak_Proteomatic)
+	, mk_Surface(*this, ak_Proteomatic, this)
 {
-	resize(640, 480);
+	mk_Proteomatic.setMessageBoxParent(this);
+	resize(800, 480);
 	setWindowTitle("Revelio");
 	setWindowIcon(QIcon(":/icons/revelio.png"));
 	
@@ -57,6 +58,8 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	lk_Splitter->setOrientation(Qt::Horizontal);
 	lk_Splitter->addWidget(&mk_Surface);
 	lk_Splitter->addWidget(&mk_PaneScrollArea);
+	lk_Splitter->setSizes(QList<int>() << width() * 3 / 4 << width() * 1 / 4);
+	mk_PaneScrollArea.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	
 	//QBoxLayout* lk_VLayoutInfo_ = new QVBoxLayout(this);
 	//lk_VLayoutInfo_->addWidget(lk_ParamGroup_);
@@ -74,6 +77,9 @@ k_RevelioMainWindow::k_RevelioMainWindow(QWidget* ak_Parent_)
 	//mk_pSurface = RefPtr<k_Surface>(new k_Surface(this));
 	lk_VLayout_->addWidget(lk_Splitter);
 	//lk_VLayout_->addWidget(&mk_PaneScrollArea);
+	
+	QStatusBar* lk_StatusBar_ = new QStatusBar(this);
+	setStatusBar(lk_StatusBar_);
 }
 
 
@@ -81,48 +87,19 @@ k_RevelioMainWindow::~k_RevelioMainWindow()
 {
 }
 
-QString k_RevelioMainWindow::md5ForFile(QString as_Path)
-{	
-	
-	QFile lk_File(as_Path);
-	lk_File.open(QIODevice::ReadOnly);
-	// calculate MD5 of file content
-	md5_state_s lk_Md5State;
-	md5_init(&lk_Md5State);
-	while (!lk_File.atEnd())
-	{
-		QByteArray lk_Bytes = lk_File.read(8 * 1024 * 1024);
-		md5_append(&lk_Md5State, (md5_byte_t*)lk_Bytes.constData(), lk_Bytes.size());
-	}
-	lk_File.close();
-	unsigned char lk_Md5[16];
-	md5_finish(&lk_Md5State, (md5_byte_t*)(&lk_Md5));
-	QString ls_HashString;
-	for (int i = 0; i < 16; ++i)
-		ls_HashString.append(QString("%1").arg(lk_Md5[i], 2, 16, QChar('0')));
-	return ls_HashString;
-	//	printf("%02x", lk_Md5[i]);
-	//printf("\n");
-}
 
 void k_RevelioMainWindow::loadFile()
 {
 	QString ls_Path = QFileDialog::getOpenFileName(this, "Load file");
 	if (!ls_Path.isEmpty())
-	{
-		QString ls_Md5 = md5ForFile(ls_Path);
-		//mk_HashLabel.setText(ls_Md5);
-		mk_Surface.focusFile(ls_Path, ls_Md5);
-		//mk_Surface.mk_pNode->setLabels(QStringList() << QFileInfo(ls_Path).completeBaseName() << ls_SaveString);
-	}
+		mk_Surface.focusFile(ls_Path);
 }
+
 
 void k_RevelioMainWindow::adjustLayout()
 {
 	mk_Surface.adjustNodes();
 }
-
-
 
 
 QScrollArea& k_RevelioMainWindow::paneScrollArea()

@@ -39,10 +39,13 @@ public slots:
 	virtual void setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment);
 	virtual void setPosition(const QPointF ak_Position);
 	virtual void setLabels(QStringList ak_Labels);
+	virtual void setMaximumWidth(int ai_MaxWidth);
+	virtual void setFrameColor(QString as_Color);
 	
 protected:
 	virtual void paintEvent(QPaintEvent* event);
 	virtual void resizeEvent(QResizeEvent* event);
+	virtual int nodeWidth();
 	
 	virtual void adjustPosition();
 	
@@ -50,5 +53,7 @@ protected:
 	float mf_VerticalAlignment;
 	QPointF mk_Position;
 	QList<RefPtr<QWidget> > mk_LabelWidgets;
+	int mi_MaximumWidth;
+	QPen mk_FramePen;
 };
 

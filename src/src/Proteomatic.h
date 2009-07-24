@@ -87,7 +87,7 @@ class k_Proteomatic: public QObject
 {
 	Q_OBJECT
 public:
-	k_Proteomatic(QString as_ApplicationPath);
+	k_Proteomatic(QString as_ApplicationPath, bool ab_NeedScripts = true);
 	virtual ~k_Proteomatic();
 	
 	void checkForUpdates();
@@ -118,6 +118,7 @@ public:
 	QString scriptsVersion();
 	bool fileUpToDate(QString as_Path, QStringList ak_Dependencies);
 	static void openFileLink(QString as_Path);
+	QString md5ForFile(QString as_Path);
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);

@@ -25,6 +25,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class k_RevelioMainWindow;
+class k_Proteomatic;
 
 
 struct r_NodeType
@@ -64,13 +65,13 @@ class k_Surface: public QGraphicsView
 {
 	Q_OBJECT
 public:
-	k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_ = NULL);
+	k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, k_Proteomatic& ak_Proteomatic, QWidget* ak_Parent_ = NULL);
 	virtual ~k_Surface();
 	
 	virtual QGraphicsScene& graphicsScene();
 	virtual void adjustNodes();
 	virtual bool createConnection();
-	virtual void focusFile(QString as_Path, QString as_Md5);
+	virtual void focusFile(QString as_Path);
 	QFont& consoleFont();
 	
 public slots:
@@ -84,22 +85,33 @@ protected:
 	virtual void updateInfoPane(r_NodeInfo ar_NodeInfo);
 	virtual void mouseDoubleClickEvent(QMouseEvent* mouseEvent);
 	virtual void mousePressEvent(QMouseEvent* clickEvent);
+	virtual void wheelEvent(QWheelEvent* wheelEvent);
+	virtual void dragEnterEvent(QDragEnterEvent* event);
+	virtual void dragMoveEvent(QDragMoveEvent* event);
+	virtual void dropEvent(QDropEvent* event);
 	virtual QString listToString(QLinkedList<int> ak_List);
+	virtual void updateNodesMaxWidth();
+	virtual double curveXForY(double y) const;
 	
 	k_RevelioMainWindow& mk_RevelioMainWindow;
+	k_Proteomatic& mk_Proteomatic;
 	QGraphicsScene mk_GraphicsScene;
 	
 	float mf_SceneWidth2; 
 	float mf_SceneHeight2;
 	r_NodeInfo mr_FocusNode;
+	double md_LeftScrollOffset;
+	double md_RightScrollOffset;
+	QGraphicsPathItem* mk_ScrollLinesPathItem_;
 	
 	QList<RefPtr<k_FileTrackerNode> > mk_Nodes;
 	QList<k_FileTrackerNode*> mk_LeftNodes;
 	QList<k_FileTrackerNode*> mk_RightNodes;
 	k_FileTrackerNode* mk_CentralNode_;
+	
 	QSqlDatabase mk_Database;
 	QHash<QGraphicsItem*, r_NodeInfo> mk_NodeInfoHash;
 	QFont mk_ConsoleFont;
+	QPainterPath mk_CurvePath;
+	double md_NodeHeight;
 };
-
-

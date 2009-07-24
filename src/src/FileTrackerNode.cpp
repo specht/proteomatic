@@ -25,9 +25,12 @@ k_FileTrackerNode::k_FileTrackerNode()
 	: mf_HorizontalAlignment(0.0)
 	, mf_VerticalAlignment(0.0)
 	, mk_Position(0.0, 0.0)
+	, mi_MaximumWidth(-1)
+	, mk_FramePen(TANGO_ALUMINIUM_3)
 {	
 	setAttribute(Qt::WA_OpaquePaintEvent, true);	
 	QBoxLayout* lk_Layout_ = new QHBoxLayout(this);
+	mk_FramePen.setWidthF(1.5);
 
 	/*
 	QSpinBox* lk_SpinHorizontal = new QSpinBox;
@@ -67,21 +70,15 @@ const QPointF k_FileTrackerNode::position() const
 
 void k_FileTrackerNode::setHorizontalAlignment(float af_HorizontalAlignment)
 {	
-	//this->mf_HorizontalAlignment = af_HorizontalAlignment;
-	
 	mf_HorizontalAlignment = qBound(0.0f, af_HorizontalAlignment, 1.0f);	
-	
 	adjustPosition();
 }
 
 
 void k_FileTrackerNode::setVerticalAlignment(float af_VerticalAlignment)
 {
-	
 	mf_VerticalAlignment = qBound(0.0f, af_VerticalAlignment, 1.0f);
-	
 	adjustPosition();
-	
 }
 
 
@@ -89,7 +86,6 @@ void k_FileTrackerNode::setAlignment(float af_HorizontalAlignment, float af_Vert
 {	
 	mf_HorizontalAlignment = qBound(0.0f, af_HorizontalAlignment, 1.0f);
 	mf_VerticalAlignment = qBound(0.0f, af_VerticalAlignment, 1.0f);
-	
 	adjustPosition();
 }
 
@@ -119,24 +115,43 @@ void k_FileTrackerNode::setLabels(QStringList ak_Labels)
 		}
 		QString ls_Text = ak_Labels[i];
 		QLabel* lk_Label_ = new QLabel(ls_Text, this);
+		lk_Label_->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
 		lk_Layout_->addWidget(lk_Label_);
 		mk_LabelWidgets.append(RefPtr<QWidget>(lk_Label_));
 	}
+	
 	resize(1, 1);
+}
+
+
+void k_FileTrackerNode::setMaximumWidth(int ai_MaxWidth)
+{
+	mi_MaximumWidth = ai_MaxWidth;
+	QWidget::setMaximumWidth(mi_MaximumWidth);
+	updateGeometry();
+	adjustPosition();
+}
+
+
+void k_FileTrackerNode::setFrameColor(QString as_Color)
+{
+	mk_FramePen = QPen(as_Color);
+	mk_FramePen.setWidthF(1.5);
 }
 
 
 void k_FileTrackerNode::paintEvent(QPaintEvent* event)
 {
 	QPainter lk_Painter(this);
-	QPen lk_Pen(TANGO_ALUMINIUM_3);
 	float lf_PenWidth = 1.5;
-	lk_Pen.setWidthF(lf_PenWidth);
-	lk_Painter.setPen(lk_Pen);
+	lk_Painter.setPen(mk_FramePen);
 	QBrush lk_Brush(TANGO_ALUMINIUM_0);
 	lk_Painter.setBrush(lk_Brush);
-	lk_Painter.drawRoundedRect(QRectF(lf_PenWidth * 0.5, lf_PenWidth * 0.5, (qreal)width() - lf_PenWidth, (qreal)height() - lf_PenWidth), 8.0, 8.0);
-	 
+	lk_Painter.drawRoundedRect(QRectF(lf_PenWidth * 0.5, lf_PenWidth * 0.5, (qreal)nodeWidth() - lf_PenWidth, (qreal)height() - lf_PenWidth), 8.0, 8.0);
+/*	lk_Painter.setPen(mk_FramePen);
+	lk_Brush = QBrush(TANGO_ALUMINIUM_0);
+	lk_Painter.setBrush(lk_Brush);
+	lk_Painter.drawRoundedRect(QRectF(lf_PenWidth * 0.5 + 3.0, lf_PenWidth * 0.5 + 3.0, (qreal)nodeWidth() - lf_PenWidth - 6.0, (qreal)height() - lf_PenWidth - 6.0), 5.0, 5.0);*/
 }
 
 
@@ -147,11 +162,19 @@ void k_FileTrackerNode::resizeEvent(QResizeEvent* event)
 }
 
 
+int k_FileTrackerNode::nodeWidth()
+{
+	int li_Width = width();
+	if (mi_MaximumWidth >= 0)
+		li_Width = qMin<int>(li_Width, mi_MaximumWidth);
+	return li_Width;
+}
+
+
 void k_FileTrackerNode::adjustPosition()
 {
-	float x = (float)width() * mf_HorizontalAlignment;
+	float x = (float)nodeWidth() * mf_HorizontalAlignment;
 	float y = (float)height() * mf_VerticalAlignment;
-	
 	
 	move((mk_Position - QPointF(x, y)).toPoint());
 	// take mf_HorizontalAlignment, mf_VerticalAlignment and mk_Position, width() and height()

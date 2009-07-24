@@ -23,13 +23,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Surface.h"
 #include "FileTrackerNode.h"
 
+class k_Proteomatic;
+
+
 class k_RevelioMainWindow: public QMainWindow
 {
 	Q_OBJECT
 public:
-	k_RevelioMainWindow(QWidget* ak_Parent_ = NULL);
+	k_RevelioMainWindow(k_Proteomatic& ak_Proteomatic, QWidget* ak_Parent_ = NULL);
 	virtual ~k_RevelioMainWindow();
-	QString md5ForFile(QString as_Path);
 	virtual void adjustLayout();
 	QScrollArea& paneScrollArea();
 	
@@ -42,6 +44,7 @@ protected slots:
 	
 protected:
 	//k_Surface* mk_Surface_;
+	k_Proteomatic& mk_Proteomatic;
 	k_Surface mk_Surface;
 	//RefPtr<k_Surface> mk_pSurface;
 	//QLabel mk_HashLabel;

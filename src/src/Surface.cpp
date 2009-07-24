@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Surface.h"
 #include "Tango.h"
+#include "Proteomatic.h"
 #include "RevelioMainWindow.h"
 
 #ifdef WIN32
@@ -27,14 +28,19 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 	#define FILE_URL_PREFIX "file://"
 #endif
 
-k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Parent_)
+k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, 
+					  k_Proteomatic& ak_Proteomatic, 
+					  QWidget* ak_Parent_)
 	: QGraphicsView(ak_Parent_)
 	, mk_RevelioMainWindow(ak_RevelioMainWindow)
+	, mk_Proteomatic(ak_Proteomatic)
 	, mk_GraphicsScene(this)
 	, mf_SceneWidth2(1.0)
 	, mf_SceneHeight2(1.0)
 	, mk_CentralNode_(NULL)
-
+	, md_LeftScrollOffset(0.0)
+	, md_RightScrollOffset(0.0)
+	, md_NodeHeight(40.0)
 {	
 	setRenderHint(QPainter::Antialiasing, true);
 	setRenderHint(QPainter::TextAntialiasing, true);
@@ -45,6 +51,7 @@ k_Surface::k_Surface(k_RevelioMainWindow& ak_RevelioMainWindow, QWidget* ak_Pare
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	createNodes();
 	createConnection();
+	mk_ScrollLinesPathItem_ = mk_GraphicsScene.addPath(QPainterPath(), QPen(TANGO_ALUMINIUM_2));
 }
 
 
@@ -67,6 +74,19 @@ void k_Surface::resizeEvent(QResizeEvent* event)
 	mk_GraphicsScene.setSceneRect(-mf_SceneWidth2, -mf_SceneHeight2, mf_SceneWidth2 * 2, mf_SceneHeight2 * 2);
 	centerOn(0.0, 0.0);
 	
+	mk_CurvePath = QPainterPath();
+	float d = mf_SceneWidth2 * 2.0 * 0.15;
+	float d2 = mf_SceneWidth2 * 2.0 * 0.2;
+	mk_CurvePath.moveTo(d - pow(mf_SceneHeight2 / 60.0, 2.0), -mf_SceneHeight2);
+	mk_CurvePath.quadTo(d2, 0.0, d - pow(mf_SceneHeight2 / 60.0, 2.0), mf_SceneHeight2);
+	
+	QPainterPath lk_Path;
+	lk_Path.addPath(mk_CurvePath);
+	lk_Path.addPath(mk_CurvePath * QMatrix().scale(-1.0, 1.0));
+	
+	mk_ScrollLinesPathItem_->setPath(lk_Path);
+	
+	updateNodesMaxWidth();
 	adjustNodes();
 }
 
@@ -75,6 +95,9 @@ void k_Surface::createNodes()
 {	
 	if (!mr_FocusNode.mb_IsGood)
 		return;
+	
+	md_LeftScrollOffset = 0.0;
+	md_RightScrollOffset = 0.0;
 
 	bool lb_HaveResults = false;
 	if (mr_FocusNode.me_Type == r_NodeType::File)
@@ -153,17 +176,18 @@ void k_Surface::createNodes()
 			if (lk_RunInList.size() != 0)
 			{
 				QSqlQuery ls_RunsInQuery;
-				QString ls_RInQuery = QString("SELECT `title`, `run_id` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunInList));
+				QString ls_RInQuery = QString("SELECT `title`, `run_id`, `start_time` FROM `runs` WHERE `run_id` IN (%1) ORDER BY `start_time`").arg(listToString(lk_RunInList));
 				ls_RunsInQuery.exec(ls_RInQuery);
 				QLinkedList<QString> lk_TitleInList;
 				while(ls_RunsInQuery.next())
 				{
 					QString ls_Title = ls_RunsInQuery.value(0).toString();
 					int li_RunId = ls_RunsInQuery.value(1).toInt();
+					QString ls_Time = ls_RunsInQuery.value(2).toDateTime().toString(Qt::SystemLocaleShortDate);
 					lk_Node_ = new k_FileTrackerNode();
 					mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 					mk_RightNodes.append(lk_Node_);
-					lk_Node_->setLabels(QStringList() << ls_Title);
+					lk_Node_->setLabels(QStringList() << ls_Title << ls_Time);
 					lk_TitleInList.append(ls_Title);
 					mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = r_NodeInfo(r_NodeType::Run, li_RunId);
 				}
@@ -176,23 +200,24 @@ void k_Surface::createNodes()
 			QLinkedList<int> lk_RunOutList;
 			while(ls_RunWithNameQueryOut.next())
 			{
-				int li_RunId		= ls_RunWithNameQueryOut.value(0).toInt();
+				int li_RunId = ls_RunWithNameQueryOut.value(0).toInt();
 				lk_RunOutList.append(li_RunId);
 			}			
 			if (lk_RunOutList.size() != 0)
 			{
 				QSqlQuery ls_RunsOutQuery;
-				QString ls_ROutQuery = QString("SELECT `title`, `run_id` FROM `runs` WHERE `run_id` IN (%1)").arg(listToString(lk_RunOutList));
+				QString ls_ROutQuery = QString("SELECT `title`, `run_id`, `start_time` FROM `runs` WHERE `run_id` IN (%1) ORDER BY `start_time`").arg(listToString(lk_RunOutList));
 				ls_RunsOutQuery.exec(ls_ROutQuery);
 				QLinkedList<QString> lk_TitleOutList;
 				while(ls_RunsOutQuery.next())
 				{
 					QString ls_Title = ls_RunsOutQuery.value(0).toString();
 					int li_RunId = ls_RunsOutQuery.value(1).toInt();
+					QString ls_Time = ls_RunsOutQuery.value(2).toDateTime().toString(Qt::SystemLocaleShortDate);
 					lk_Node_ = new k_FileTrackerNode();
 					mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
 					mk_LeftNodes.append(lk_Node_);
-					lk_Node_->setLabels(QStringList() << ls_Title);
+					lk_Node_->setLabels(QStringList() << ls_Title << ls_Time);
 					lk_TitleOutList.append(ls_Title);
 					mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = r_NodeInfo(r_NodeType::Run, li_RunId);
 				}
@@ -277,49 +302,32 @@ void k_Surface::createNodes()
 			}
 		}
 	}
-/*	
-	for (int i = 0; i< 2; ++i)
+	
+	md_LeftScrollOffset = (mk_LeftNodes.size() - 1) * 0.5;
+	md_RightScrollOffset = (mk_RightNodes.size() - 1) * 0.5;
+
+	foreach (k_FileTrackerNode* lk_Node_, mk_LeftNodes)
+		lk_Node_->setAlignment(1.0 , 0.5);
+	foreach (k_FileTrackerNode* lk_Node_, mk_RightNodes)
+		lk_Node_->setAlignment(0.0 , 0.5);
+	if (mk_CentralNode_)
+		mk_CentralNode_->setAlignment(0.5, 0.5);
+	
+	foreach (RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
 	{
-		lk_Node_ = new k_FileTrackerNode();
-		mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
-		mk_LeftNodes.append(lk_Node_);
+		k_FileTrackerNode* lk_Node_ = lk_pNode.get_Pointer();
+		if (lk_Node_ == mk_CentralNode_)
+			lk_Node_->setFrameColor(mr_FocusNode.me_Type == r_NodeType::File? TANGO_ALUMINIUM_3 : TANGO_SKY_BLUE_2);
+		else
+			lk_Node_->setFrameColor(mr_FocusNode.me_Type == r_NodeType::File? TANGO_SKY_BLUE_2 : TANGO_ALUMINIUM_3);
 	}
 	
-	for (int j = 0; j< 7; ++j)
-	{
-		lk_Node_ = new k_FileTrackerNode();
-		mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
-		mk_RightNodes.append(lk_Node_);
-		
-	}
-	
-*/
-	// insert nodes into graphics scene
-	/*
-	foreach(RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
-		mk_GraphicsScene.addWidget(lk_pNode.get_Pointer());
-	*/
-	
+	updateNodesMaxWidth();
 	adjustNodes();
 	updateInfoPane(mr_FocusNode);
 }
-/*
-QFontDatabase lk_FontDatabase;
-	QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
-	while (!lk_Fonts.empty())
-	{
-		QString ls_Font = lk_Fonts.takeFirst();
-		if (lk_FontDatabase.families().contains(ls_Font))
-		{
-			mk_ConsoleFont = QFont(ls_Font);
-			mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.8);
-#ifdef WIN32			
-			mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.9);
-#endif
-			break;
-		}
-	}
-*/	
+
+
 void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
 {
 	if (mk_RevelioMainWindow.paneScrollArea().widget())
@@ -337,32 +345,15 @@ void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
 		ls_FileInformation.exec(ls_Query);
 		
 		//QTableWidget mit file name, directory, creation time, modification time
-		QTableWidget* lk_FilenameTable_ = new QTableWidget(lk_PaneWidget_);
-		lk_FilenameTable_->setColumnCount(4);
-		lk_FilenameTable_->setRowCount(1);
-		lk_FilenameTable_->setHorizontalHeaderLabels(QStringList() << "Title" << "Directory" << "Create Time" << "Modification Time");
-		QTableWidgetItem lk_CodeBasenameItem;
-		//QTableWidgetItem lk_DirectoryItem = new QTableWidgetItem(ls_Directory);
-		//QTableWidgetItem lk_CTimeItem = new QTableWidgetItem(ls_CTime);
-		//QTableWidgetItem lk_MTimeItem = new QTableWidgetItem(ls_MTime);
-		lk_VLayout_->addWidget(lk_FilenameTable_);
+		QLabel* lk_FilenameLabel_ = new QLabel(lk_PaneWidget_);
+		lk_FilenameLabel_->setWordWrap(true);
+		lk_VLayout_->addWidget(lk_FilenameLabel_);
+		QString ls_FilenameLabelString;
+		ls_FilenameLabelString += "<b>Seen at:</b><br /><ul>";
 		while (ls_FileInformation.next())
-		{
-			QString ls_CodeBasename 			= ls_FileInformation.value(0).toString();
-			QString ls_Directory 				= ls_FileInformation.value(1).toString();
-			QString ls_CTime					= ls_FileInformation.value(2).toString();
-			QString ls_MTime					= ls_FileInformation.value(3).toString();
-			
-			lk_CodeBasenameItem.setText(ls_CodeBasename);
-			
-		}
-		lk_FilenameTable_->setItem(1, 1, &lk_CodeBasenameItem);
-		//QTableWidgetItem* lk_CodeBasenameItem = new QTableWidgetItem(QString("blabla"));
-		//lk_FilenameTable_->setItem(1, 1, lk_CodeBasenameItem);
-		//lk_FilenameTable_->setItem(1, 2, lk_DirectoryItem);
-		//lk_FilenameTable_->setItem(1, 3, lk_CTimeItem);
-		//lk_FilenameTable_->setItem(1, 4, lk_MTimeItem);
-
+			ls_FilenameLabelString += QString("<li>%1/%2</li>").arg(ls_FileInformation.value(1).toString()).arg(ls_FileInformation.value(0).toString());
+		ls_FilenameLabelString += "</ul>";
+		lk_FilenameLabel_->setText(ls_FilenameLabelString);
 	} 
 	else if (ar_NodeInfo.me_Type == r_NodeType::Run)
 	{
@@ -376,7 +367,7 @@ void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
 		//standardout Information
 		QTextEdit* lk_StdoutTextEdit_ = new QTextEdit(lk_PaneWidget_);
 		lk_StdoutTextEdit_->setReadOnly(true);
-		//lk_StdoutTextEdit_->setCurrentFont(mk_ConsoleFont);
+		lk_StdoutTextEdit_->setCurrentFont(mk_Proteomatic.consoleFont());
 		lk_StdoutTextEdit_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		lk_StdoutTextEdit_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 		lk_StdoutTextEdit_->setText("Further Information");
@@ -399,7 +390,7 @@ void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
 		lk_RunsInformation_->setText(ls_RunInformation);
 		QSqlQuery ls_ParamQuery;
 		QString ls_PQuery = QString("SELECT `code_key`,`code_value`\
-									FROM `parameters` WHERE `run_id` ='%1'").arg(mr_FocusNode.mi_Id);
+									FROM `parameters` WHERE `run_id` ='%1'").arg(ar_NodeInfo.mi_Id);
 		ls_ParamQuery.exec(ls_PQuery);
 		QString ls_ParameterInformation;
 		while(ls_ParamQuery.next())
@@ -420,54 +411,108 @@ void k_Surface::updateInfoPane(r_NodeInfo ar_NodeInfo)
 
 void k_Surface::adjustNodes()
 {	
-	float lf_NodeSpacing = 50.0;
+	float lf_NodeSpacing = md_NodeHeight + 4.0;
 	if (mk_CentralNode_)
-	{
-		lf_NodeSpacing = mk_CentralNode_->height() + 20.0;
 		mk_CentralNode_->setPosition(QPointF(0.0, 0.0));
-		mk_CentralNode_->setAlignment(0.5, 0.5);
-	}
+/*		printf("central node height is %d.\n", mk_CentralNode_->height());
+		lf_NodeSpacing = mk_CentralNode_->height() + 8.0;*/
 	
-	float lf_xLeft = -(mf_SceneWidth2 / 3.0);
-	float lf_xRight = (mf_SceneWidth2 / 3.0);
-		
-	float y = -(float)(mk_LeftNodes.size() - 1) * lf_NodeSpacing * 0.5;
+	float y = -md_LeftScrollOffset * lf_NodeSpacing;
 	for	(int i = 0; i < mk_LeftNodes.size(); ++i)
 	{
-
-		mk_LeftNodes[i]->setPosition(QPointF(lf_xLeft, y));
+		if (fabs(y) <= mf_SceneHeight2 + lf_NodeSpacing)
+		{
+			mk_LeftNodes[i]->setPosition(QPointF(-12.0 - curveXForY(y), y));
+			mk_LeftNodes[i]->show();
+		}
+		else
+			mk_LeftNodes[i]->hide();
+			
 		y += lf_NodeSpacing;
-		mk_LeftNodes[i]->setAlignment(1.0 , 0.5);
 	};
 
-	y = -(float)(mk_RightNodes.size() - 1) * lf_NodeSpacing * 0.5;
+	y = -md_RightScrollOffset * lf_NodeSpacing;
 	for (int i = 0; i < mk_RightNodes.size(); ++i)
 	{
-		mk_RightNodes[i]->setPosition(QPointF(lf_xRight, y));
+		if (fabs(y) <= mf_SceneHeight2 + lf_NodeSpacing)
+		{
+			mk_RightNodes[i]->setPosition(QPointF(12.0 + curveXForY(y), y));
+			mk_RightNodes[i]->show();
+		}
+		else
+			mk_RightNodes[i]->hide();
+		
 		y += lf_NodeSpacing;
-		mk_RightNodes[i]->setAlignment(0.0 , 0.5);
 	}
 }
+
 
 void k_Surface::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 {	
 	QGraphicsItem* lk_Item_ = NULL;
-	if (lk_Item_ = itemAt(mouseEvent->pos()))
+	if ((lk_Item_ = itemAt(mouseEvent->pos())) != NULL)
 	{
 		mr_FocusNode = mk_NodeInfoHash[lk_Item_];
 		createNodes();
 	}
 }
 
+
 void k_Surface::mousePressEvent(QMouseEvent* clickEvent)
 {
 	QGraphicsItem* lk_Item_ = NULL;
-	if (lk_Item_ = itemAt(clickEvent->pos()))
+	if ((lk_Item_ = itemAt(clickEvent->pos())) != NULL)
 	{
-		mr_FocusNode = mk_NodeInfoHash[lk_Item_];
-		//updateInfoPane(r_NodeInfo ar_NodeInfo);
+		updateInfoPane(mk_NodeInfoHash[lk_Item_]);
 	}
 }
+
+
+void k_Surface::wheelEvent(QWheelEvent* wheelEvent)
+{
+	bool lb_LeftSide = (float)wheelEvent->x() < mf_SceneWidth2;
+	if (fabs((float)wheelEvent->x() - mf_SceneWidth2) > curveXForY(wheelEvent->x() - mf_SceneHeight2))
+	{
+		if (lb_LeftSide)
+		{
+			md_LeftScrollOffset -= (double)wheelEvent->delta() / 20.0 / 8.0;
+			md_LeftScrollOffset = qBound<double>(0.0, md_LeftScrollOffset, (double)(mk_LeftNodes.size() - 1));
+		}
+		else
+		{
+			md_RightScrollOffset -= (double)wheelEvent->delta() / 20.0 / 8.0;
+			md_RightScrollOffset = qBound<double>(0.0, md_RightScrollOffset, (double)(mk_RightNodes.size() - 1));
+		}
+	}
+	adjustNodes();
+}
+
+
+void k_Surface::dragEnterEvent(QDragEnterEvent* event)
+{
+	event->acceptProposedAction();
+}
+
+
+void k_Surface::dragMoveEvent(QDragMoveEvent* event)
+{
+	event->acceptProposedAction();
+}
+
+
+void k_Surface::dropEvent(QDropEvent* event)
+{
+	event->accept();
+	QList<QUrl> lk_Urls = event->mimeData()->urls();
+	if (!lk_Urls.empty())
+	{
+		QString ls_Path = lk_Urls.first().toLocalFile();
+		if (!ls_Path.isEmpty())
+			if (QFileInfo(ls_Path).isFile())
+				focusFile(ls_Path);
+	}
+}
+
 
 QString k_Surface::listToString(QLinkedList<int> ak_List)
 {
@@ -478,14 +523,32 @@ QString k_Surface::listToString(QLinkedList<int> ak_List)
 }
 
 
+void k_Surface::updateNodesMaxWidth()
+{
+	if (mk_CentralNode_)
+		mk_CentralNode_->setMaximumWidth(curveXForY(0.0) * 2.0 - 16.0);
+	foreach(k_FileTrackerNode* lk_Node_, mk_LeftNodes)
+		lk_Node_->setMaximumWidth(mf_SceneWidth2 - curveXForY(0.0) - 16.0);
+	foreach(k_FileTrackerNode* lk_Node_, mk_RightNodes)
+		lk_Node_->setMaximumWidth(mf_SceneWidth2 - curveXForY(0.0) - 16.0);
+}
+
+
+double k_Surface::curveXForY(double y) const
+{
+	double d = qBound<double>(0.0, (y + mf_SceneHeight2) / (mf_SceneHeight2 * 2.0), 1.0);
+	return mk_CurvePath.pointAtPercent(d).x();
+}
+
+
 bool k_Surface::createConnection()
 {
 
 	mk_Database = QSqlDatabase::addDatabase("QMYSQL");
 	mk_Database.setHostName("peaks.uni-muenster.de");
 	mk_Database.setDatabaseName("filetracker");
-	mk_Database.setUserName("testuser");
-	mk_Database.setPassword("user");
+	mk_Database.setUserName("akhippler");
+	mk_Database.setPassword("akhippler");
 	mk_Database.setPort(3306);
 
 	
@@ -498,11 +561,12 @@ bool k_Surface::createConnection()
 }
 
 
-void k_Surface::focusFile(QString as_Path, QString as_Md5)
+void k_Surface::focusFile(QString as_Path)
 {	
+	QString ls_Md5 = mk_Proteomatic.md5ForFile(as_Path);
 	QSqlQuery ls_FilecontentQuery;
 	QString ls_Query = QString("SELECT `filecontent_id`\
-								FROM `filecontents` WHERE `identifier` = 'md5%1' AND `size` = '%2' LIMIT 1").arg(as_Md5).arg(QFileInfo(as_Path).size());
+								FROM `filecontents` WHERE `identifier` = 'md5%1' AND `size` = '%2' LIMIT 1").arg(ls_Md5).arg(QFileInfo(as_Path).size());
 	ls_FilecontentQuery.exec(ls_Query);
 	if (ls_FilecontentQuery.size() != 1)
 	{

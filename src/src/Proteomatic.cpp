@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "RubyWindow.h"
 #include "Yaml.h"
 #include "version.h"
+#include <md5.h>
 
 
 #ifdef WIN32
@@ -31,7 +32,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 
-k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
+k_Proteomatic::k_Proteomatic(QString as_ApplicationPath, bool ab_NeedScripts)
 	: mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
@@ -44,8 +45,6 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 
 	this->loadConfiguration();
 
-	this->checkRuby();
-	
 	QFontDatabase lk_FontDatabase;
 	QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
 	while (!lk_Fonts.empty())
@@ -62,15 +61,20 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath)
 		}
 	}
 	
-	// create scripts subdirectory if it doesn't exist
-	if (!QFile::exists(ms_ScriptPath))
-		QDir().mkdir(ms_ScriptPath);
+	if (ab_NeedScripts)
+	{
+		this->checkRuby();
 		
-	// determine currently used script package
-	ms_ScriptPackage = findCurrentScriptPackage();
-		
-	collectScriptInfo();
-	createProteomaticScriptsMenu();
+		// create scripts subdirectory if it doesn't exist
+		if (!QFile::exists(ms_ScriptPath))
+			QDir().mkdir(ms_ScriptPath);
+			
+		// determine currently used script package
+		ms_ScriptPackage = findCurrentScriptPackage();
+			
+		collectScriptInfo();
+		createProteomaticScriptsMenu();
+	}
 }
 
 
@@ -932,3 +936,38 @@ void k_Proteomatic::openFileLink(QString as_Path)
 {
 	QDesktopServices::openUrl(QUrl(QString(FILE_URL_PREFIX) + as_Path, QUrl::TolerantMode));
 }
+
+
+QString k_Proteomatic::md5ForFile(QString as_Path)
+{	
+	QProgressDialog lk_ProgressDialog("Determining MD5 hash...", "Cancel", 0, QFileInfo(as_Path).size(), mk_MessageBoxParent_);
+	lk_ProgressDialog.setWindowModality(Qt::ApplicationModal);
+	lk_ProgressDialog.setWindowFlags(lk_ProgressDialog.windowFlags() | Qt::WindowStaysOnTopHint);
+
+	QFile lk_File(as_Path);
+	lk_File.open(QIODevice::ReadOnly);
+	// calculate MD5 of file content
+	md5_state_s lk_Md5State;
+	md5_init(&lk_Md5State);
+	qint64 li_BytesRead = 0;
+	while (!lk_File.atEnd())
+	{
+		if (lk_ProgressDialog.wasCanceled())
+			return QString();
+		QByteArray lk_Bytes = lk_File.read(8 * 1024 * 1024);
+		li_BytesRead += lk_Bytes.size();
+		lk_ProgressDialog.setValue(li_BytesRead);
+		md5_append(&lk_Md5State, (md5_byte_t*)lk_Bytes.constData(), lk_Bytes.size());
+	}
+	lk_ProgressDialog.setValue(QFileInfo(as_Path).size());
+	lk_File.close();
+	unsigned char lk_Md5[16];
+	md5_finish(&lk_Md5State, (md5_byte_t*)(&lk_Md5));
+	QString ls_HashString;
+	for (int i = 0; i < 16; ++i)
+		ls_HashString.append(QString("%1").arg(lk_Md5[i], 2, 16, QChar('0')));
+	return ls_HashString;
+	//	printf("%02x", lk_Md5[i]);
+	//printf("\n");
+}
+
