@@ -1,0 +1,7 @@
+Proteomatic
+ProteomaticPipeline
+Revelio
+proteomatic.conf.yaml
+obj/
+Makefile.*
+
