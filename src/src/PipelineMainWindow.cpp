@@ -60,7 +60,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	statusBar()->show();
 	mk_StatusBarMessage_ = new QLabel("", this);
 	statusBar()->addWidget(mk_StatusBarMessage_);
-	statusBar()->addPermanentWidget(new QLabel("Filetracker is disabled.", this));
 	updateStatusBar();
 	
 	QToolBar* lk_AddToolBar_ = new QToolBar(this);
