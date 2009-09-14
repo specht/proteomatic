@@ -60,10 +60,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	statusBar()->show();
 	mk_StatusBarMessage_ = new QLabel("", this);
 	statusBar()->addWidget(mk_StatusBarMessage_);
-	QLabel* lk_FiletrackerIconLabel_ = new QLabel("", this);
-	lk_FiletrackerIconLabel_->setPixmap(QPixmap(":icons/revelio.png").scaledToHeight(16, Qt::SmoothTransformation));
-	lk_FiletrackerIconLabel_->setEnabled(false);
-	statusBar()->addPermanentWidget(lk_FiletrackerIconLabel_);
 	statusBar()->addPermanentWidget(new QLabel("Filetracker is disabled.", this));
 	updateStatusBar();
 	
