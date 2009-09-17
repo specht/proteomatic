@@ -4,4 +4,4 @@ Revelio
 proteomatic.conf.yaml
 obj/
 Makefile.*
-
+cache/

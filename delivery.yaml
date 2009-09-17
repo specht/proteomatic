@@ -9,5 +9,4 @@ versionInject:
     #include <QtCore>
     QString gs_ProteomaticVersion = "#{VERSION}";
 externals: [helper]
-specialAddScripts: trunk
-#specialWrappers: makewrappers.rb
+specialAddScripts: 0.3.11
