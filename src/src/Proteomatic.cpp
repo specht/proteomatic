@@ -782,6 +782,7 @@ void k_Proteomatic::checkRuby()
 	lk_IconLabel_ ->setPixmap(QPixmap(":/icons/dialog-warning.png"));
 	lk_HLayout_->addWidget(lk_IconLabel_);
 	QLabel* lk_ErrorLabel_ = new QLabel(&mk_CheckRubyDialog);
+	lk_ErrorLabel_->setOpenExternalLinks(true);
 	lk_HLayout_->addWidget(lk_ErrorLabel_);
 	lk_VLayout_->addLayout(lk_HLayout_);
 	
