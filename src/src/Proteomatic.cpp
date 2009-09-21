@@ -65,10 +65,6 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath, bool ab_NeedScripts)
 	{
 		this->checkRuby();
 		
-		// create scripts subdirectory if it doesn't exist
-		if (!QFile::exists(ms_ScriptPath))
-			QDir().mkdir(ms_ScriptPath);
-			
 		// determine currently used script package
 		ms_ScriptPackage = findCurrentScriptPackage();
 			
@@ -260,6 +256,11 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_SCRIPTS_URL] = "ftp://gpf.uni-muenster.de/download/proteomatic-scripts";
 		lb_InsertedDefaultValue = true;
 	}
+	if (!mk_Configuration.contains(CONFIG_SCRIPTS_PATH) || mk_Configuration[CONFIG_SCRIPTS_PATH].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_SCRIPTS_PATH] = "";
+		lb_InsertedDefaultValue = true;
+	}
 	if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
 	{
 		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
@@ -275,6 +276,9 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_CACHE_SCRIPT_INFO] = true;
 		lb_InsertedDefaultValue = true;
 	}
+	
+	if (!mk_Configuration[CONFIG_SCRIPTS_PATH].toString().isEmpty())
+		ms_ScriptPath = mk_Configuration[CONFIG_SCRIPTS_PATH].toString();
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)
@@ -893,7 +897,12 @@ void k_Proteomatic::checkRubySearchDialog()
 
 QString k_Proteomatic::findCurrentScriptPackage()
 {
-	QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
+	
+	QStringList lk_Temp = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
+	QStringList lk_AvailableVersions;
+	foreach (QString ls_Path, lk_Temp)
+		if (ls_Path.contains("proteomatic-scripts"))
+			lk_AvailableVersions << ls_Path;
 	if (lk_AvailableVersions.empty())
 		return "";
 	else
