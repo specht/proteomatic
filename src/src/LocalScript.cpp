@@ -47,8 +47,8 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 	{
 		QString ls_Response;
 		bool lb_UseCache = mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && mk_Proteomatic.fileUpToDate(ls_CacheFilename, QStringList() << as_ScriptPath);
-		// disable cache if we're trunk!
-		if (mk_Proteomatic.version() == "trunk")
+		// disable cache if we're in develop!
+		if (mk_Proteomatic.version() == "develop")
 			lb_UseCache = false;
 			
 		if (lb_UseCache)

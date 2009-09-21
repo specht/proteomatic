@@ -19,4 +19,4 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-QString gs_ProteomaticVersion = "trunk";
+QString gs_ProteomaticVersion = "develop";

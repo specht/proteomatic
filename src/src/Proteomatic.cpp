@@ -101,8 +101,8 @@ k_Proteomatic::~k_Proteomatic()
 
 void k_Proteomatic::checkForUpdates()
 {
-	// don't do updates if this is trunk!
-	if (gs_ProteomaticVersion == "trunk")
+	// don't do updates if this is in develop!
+	if (gs_ProteomaticVersion == "develop")
 		return;
 	
 	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
@@ -330,8 +330,8 @@ void k_Proteomatic::collectScriptInfo()
 			QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
 			bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
 			
-			// disable cache if we're trunk!
-			if (version() == "trunk")
+			// disable cache if we're in develop!
+			if (version() == "develop")
 			  lb_UseCache = false;
 			  
 			if (lb_UseCache)
