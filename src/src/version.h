@@ -19,4 +19,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-QString gs_ProteomaticVersion = "develop";
+#include <QtCore>
+
+extern QString gs_ProteomaticVersion;

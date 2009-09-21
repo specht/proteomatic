@@ -32,14 +32,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 
-k_Proteomatic::k_Proteomatic(QString as_ApplicationPath, bool ab_NeedScripts)
-	: mk_MessageBoxParent_(NULL)
+k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts)
+	: mk_Application(ak_Application)
+	, mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
-	, ms_ScriptPath(as_ApplicationPath + "/scripts")
-	, ms_ConfigurationPath(as_ApplicationPath + "/proteomatic.conf.yaml")
+	, ms_ScriptPath(ak_Application.applicationDirPath() + "/scripts")
+	, ms_ConfigurationPath(ak_Application.applicationDirPath() + "/proteomatic.conf.yaml")
 {
-	QDir::setCurrent(as_ApplicationPath);
+	QDir::setCurrent(ak_Application.applicationDirPath());
 	if (QFileInfo(QDir::homePath() + "/proteomatic.conf.yaml").exists())
 		ms_ConfigurationPath = QDir::homePath() + "/proteomatic.conf.yaml";
 
@@ -286,20 +287,22 @@ void k_Proteomatic::loadConfiguration()
 }
 
 
-void k_Proteomatic::collectScriptInfo()
+void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 {
-
 	mk_ScriptInfo.clear();
 	QDir lk_Dir(ms_ScriptPath + "/" + ms_ScriptPackage);
 	QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb", QDir::Files);
-	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size() - 1);
+	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size() - 1, mk_MessageBoxParent_);
 	lk_ProgressDialog.setCancelButton(0);
 	lk_ProgressDialog.setWindowTitle("Proteomatic");
 	lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
-	lk_ProgressDialog.setMinimumDuration(2000);
+	lk_ProgressDialog.setMinimumDuration(ab_ShowImmediately ? 0 : 2000);
+	if (ab_ShowImmediately)
+		lk_ProgressDialog.show();
 	int li_Count = 0;
 	foreach (QString ls_Path, lk_Scripts)
 	{
+		mk_Application.processEvents();
 		++li_Count;
 		lk_ProgressDialog.setValue(li_Count);
 		if (ls_Path.contains(".defunct."))
@@ -981,3 +984,9 @@ QString k_Proteomatic::md5ForFile(QString as_Path)
 	//printf("\n");
 }
 
+
+void k_Proteomatic::reloadScripts()
+{
+	collectScriptInfo(true);
+	createProteomaticScriptsMenu();
+}

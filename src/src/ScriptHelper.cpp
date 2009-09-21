@@ -26,6 +26,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "LocalScript.h"
 #include "RemoteScript.h"
 #include "TicketWindow.h"
+#include "version.h"
 #include <limits.h>
 #include <float.h>
 
@@ -232,6 +233,12 @@ void k_ScriptHelper::dragEnterEvent(QDragEnterEvent* ak_Event_)
 }
 
 
+void k_ScriptHelper::dragMoveEvent(QDragMoveEvent* event)
+{
+	event->acceptProposedAction();
+}
+
+
 void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 {
 	ak_Event_->accept();
@@ -248,6 +255,20 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 			}
 		}
 	}
+}
+
+
+void k_ScriptHelper::keyPressEvent(QKeyEvent* ak_Event_)
+{
+	if (gs_ProteomaticVersion == "develop")
+	{
+		if ((ak_Event_->key() == Qt::Key_R) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
+		{
+			mk_Proteomatic.reloadScripts();
+			return;
+		}
+	}
+	QMainWindow::keyPressEvent(ak_Event_);
 }
 
 
@@ -764,7 +785,7 @@ bool k_ScriptHelper::checkVersionChanged()
 
 void k_ScriptHelper::updateWindowTitle()
 {
-	QString ls_ScriptsVersion = "(no scripts available)";
+	QString ls_ScriptsVersion = "(using scripts develop)";
 	if (mk_Proteomatic.scriptsVersion() != "")
 	{
 		ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion() + ")";

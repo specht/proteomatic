@@ -88,7 +88,7 @@ class k_Proteomatic: public QObject
 {
 	Q_OBJECT
 public:
-	k_Proteomatic(QString as_ApplicationPath, bool ab_NeedScripts = true);
+	k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts = true);
 	virtual ~k_Proteomatic();
 	
 	void checkForUpdates();
@@ -120,6 +120,7 @@ public:
 	bool fileUpToDate(QString as_Path, QStringList ak_Dependencies);
 	static void openFileLink(QString as_Path);
 	QString md5ForFile(QString as_Path);
+	void reloadScripts();
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);
@@ -139,11 +140,12 @@ protected slots:
 
 protected:
 	void loadConfiguration();
-	void collectScriptInfo();
+	void collectScriptInfo(bool ab_ShowImmediately = false);
 	void createProteomaticScriptsMenu();
 	void checkRuby();
 	QString findCurrentScriptPackage();
 	
+	QCoreApplication& mk_Application;
 	// uri / path => uri, title, group, description, optional: parameters
 	QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
 	QWidget* mk_MessageBoxParent_;

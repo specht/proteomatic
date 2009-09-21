@@ -37,7 +37,9 @@ public:
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* ak_Event_);
+	virtual void dragMoveEvent(QDragMoveEvent* ak_Event_);
 	virtual void dropEvent(QDropEvent* ak_Event_);
+	virtual void keyPressEvent(QKeyEvent* ak_Event_);
 
 protected slots:
 	void reset();
