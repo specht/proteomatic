@@ -151,6 +151,11 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
 		lk_AdditionalParameters << ls_Key;
 		lk_AdditionalParameters << ak_AdditionalParameters[ls_Key];
 	}
+	if (!mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString().isEmpty())
+	{
+		lk_AdditionalParameters << "--useFileTracker";
+		lk_AdditionalParameters << mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString();
+	}
 	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << this->uri()) + commandLineArguments() + lk_AdditionalParameters + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
 	return QString();
 }

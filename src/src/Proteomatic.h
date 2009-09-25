@@ -36,6 +36,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_AUTO_CHECK_FOR_UPDATES "autoCheckForUpdates"
 #define CONFIG_WARN_ABOUT_MIXED_PROFILES "warnAboutMixedProfiles"
 #define CONFIG_CACHE_SCRIPT_INFO "cacheScriptInfo"
+#define CONFIG_FILETRACKER_URL "fileTrackerUrl"
 
 
 struct r_RemoteRequestType
