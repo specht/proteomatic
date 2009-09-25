@@ -50,6 +50,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_HSplitter_->setOrientation(Qt::Horizontal);
 	mk_PaneLayoutWidget_ = new QWidget(this);
 	mk_PaneLayout_ = new QVBoxLayout(mk_PaneLayoutWidget_);
+	mk_PaneLayout_->setContentsMargins(0, 0, 0, 0);
 	mk_PaneLayoutWidget_->hide();
 	
 	setCentralWidget(mk_HSplitter_);
