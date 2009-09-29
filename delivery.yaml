@@ -1,3 +1,4 @@
+# there's a no-op change here!
 projects:
   - src/projects/Proteomatic
   - src/projects/ProteomaticPipeline
