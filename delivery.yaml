@@ -2,6 +2,7 @@
 projects:
   - src/projects/Proteomatic
   - src/projects/ProteomaticPipeline
+  - src/projects/Revelio
 #binaryPath: bin
 qt: [core, gui, network]
 versionInject:
