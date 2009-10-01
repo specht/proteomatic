@@ -27,12 +27,19 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_F
 	, mb_ReallyRemoveItems(ab_ReallyRemoveItems)
 	, mb_FileMode(ab_FileMode)
 	, mb_Refreshing(false)
+	, mk_OpenFileAction(QIcon(":icons/document-open.png"), "&Open file", this)
+	, mk_OpenContainingFolderAction(QIcon(":icons/folder.png"), "Open containing &folder", this)
 {
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	setAcceptDrops(true);
 	setDragDropMode(QAbstractItemView::DropOnly);
 	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 	connect(this, SIGNAL(myItemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
+	connect(this, SIGNAL(myItemRightClicked(QListWidgetItem*)), this, SLOT(showFilePopupMenu(QListWidgetItem*)));
+	connect(&mk_OpenFileAction, SIGNAL(triggered()), this, SLOT(menuOpenFileSlot()));
+	connect(&mk_OpenContainingFolderAction, SIGNAL(triggered()), this, SLOT(menuOpenContainingDirectorySlot()));
+	mk_PopupMenu.addAction(&mk_OpenFileAction);
+	mk_PopupMenu.addAction(&mk_OpenContainingFolderAction);
 }
 
 
@@ -200,8 +207,28 @@ void k_FileList::keyPressEvent(QKeyEvent* ak_Event_)
 		ak_Event_->accept();
 		removeSelection();
 	}
+	else if (ak_Event_->key() == Qt::Key_Menu && currentItem())
+	{
+		ak_Event_->accept();
+		showFilePopupMenu(currentItem(), mapToGlobal(pos()));
+	}
 	else
 		QListWidget::keyPressEvent(ak_Event_);
+}
+
+
+void k_FileList::mousePressEvent(QMouseEvent* event)
+{
+	// always let the parent handle this event and then show
+	// the popup menu if there's a popup menu to show
+	QListWidget::mousePressEvent(event);
+	
+	QListWidgetItem* lk_Item_ = itemAt(event->pos());
+	if (lk_Item_ && event->button() == Qt::RightButton)
+	{
+		event->accept();
+		emit myItemRightClicked(lk_Item_);
+	}
 }
 
 
@@ -315,8 +342,50 @@ void k_FileList::refresh()
 void k_FileList::itemDoubleClicked(QListWidgetItem* ak_Item_)
 {
 	//printf("double click: %s\n", ak_Item_->data(Qt::UserRole).toString().toStdString().c_str());
+	openFile(ak_Item_);
+}
+
+
+void k_FileList::showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point)
+{
+	if (ak_Point == QPoint())
+		ak_Point = QCursor::pos();
+	QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
+	mk_PopupMenu.exec(ak_Point);
+	//if (QFileInfo(ls_Path).exists())
+		//k_Proteomatic::openFileLink(ls_Path);
+}
+
+
+void k_FileList::menuOpenFileSlot()
+{
+	openFile(currentItem());
+}
+
+
+void k_FileList::menuOpenContainingDirectorySlot()
+{
+	openContainingDirectory(currentItem());
+}
+
+
+void k_FileList::openFile(QListWidgetItem* ak_Item_)
+{
+	if (!ak_Item_)
+		return;
+	
 	QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
 	if (QFileInfo(ls_Path).exists())
 		k_Proteomatic::openFileLink(ls_Path);
 }
 
+
+void k_FileList::openContainingDirectory(QListWidgetItem* ak_Item_)
+{
+	if (!ak_Item_)
+		return;
+
+	QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
+	if (QFileInfo(ls_Path).exists())
+		k_Proteomatic::openFileLink(QFileInfo(ls_Path).absolutePath());
+}

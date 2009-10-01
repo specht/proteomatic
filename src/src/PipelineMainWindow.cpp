@@ -24,6 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IScriptBox.h"
 #include "ProfileManager.h"
 #include "Proteomatic.h"
+#include "version.h"
 #include "Yaml.h"
 
 
@@ -42,13 +43,14 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	connect(mk_Desktop_, SIGNAL(selectionChanged()), this, SLOT(updateStatusBar()));
 
 	setWindowIcon(QIcon(":/icons/proteomatic-pipeline.png"));
-	setWindowTitle("Proteomatic Pipeline");
+	updateWindowTitle();
 	resize(1000, 600);
 	
 	mk_HSplitter_ = new QSplitter(this);
 	mk_HSplitter_->setOrientation(Qt::Horizontal);
 	mk_PaneLayoutWidget_ = new QWidget(this);
 	mk_PaneLayout_ = new QVBoxLayout(mk_PaneLayoutWidget_);
+	mk_PaneLayout_->setContentsMargins(0, 0, 0, 0);
 	mk_PaneLayoutWidget_->hide();
 	
 	setCentralWidget(mk_HSplitter_);
@@ -85,15 +87,16 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	lk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	lk_AddToolBar_->addWidget(lk_ProteomaticButton_);
 
-	QToolButton* lk_AddScriptButton_ = new QToolButton(lk_AddToolBar_);
-	lk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
-	lk_AddScriptButton_->setText("Add script");
-	lk_AddScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
-	lk_AddScriptButton_->setPopupMode(QToolButton::InstantPopup);
-	lk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	lk_AddToolBar_->addWidget(lk_AddScriptButton_);
+	mk_AddScriptButton_ = new QToolButton(lk_AddToolBar_);
+	mk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
+	mk_AddScriptButton_->setText("Add script");
+	mk_AddScriptButton_->setPopupMode(QToolButton::InstantPopup);
+	mk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	lk_AddToolBar_->addWidget(mk_AddScriptButton_);
+	mk_AddScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
 	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), this, SLOT(addScript(QAction*)));
-	mk_AddScriptAction_ = lk_AddScriptButton_;
+	mk_AddScriptAction_ = mk_AddScriptButton_;
+	connect(&mk_Proteomatic, SIGNAL(scriptMenuChanged()), this, SLOT(scriptMenuChanged()));
 
 	mk_AddFileListAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
 
@@ -167,6 +170,20 @@ void k_PipelineMainWindow::closeEvent(QCloseEvent* event)
 		event->accept();
 	else
 		event->ignore();
+}
+
+
+void k_PipelineMainWindow::keyPressEvent(QKeyEvent* ak_Event_)
+{
+	if (gs_ProteomaticVersion == "develop")
+	{
+		if ((ak_Event_->key() == Qt::Key_R) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
+		{
+			mk_Proteomatic.reloadScripts();
+			return;
+		}
+	}
+	QMainWindow::keyPressEvent(ak_Event_);
 }
 
 
@@ -356,9 +373,33 @@ void k_PipelineMainWindow::updateStatusBar()
 }
 
 
+void k_PipelineMainWindow::scriptMenuChanged()
+{
+	mk_AddScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
+	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), this, SLOT(addScript(QAction*)));
+	updateWindowTitle();
+}
+
+
+void k_PipelineMainWindow::updateWindowTitle()
+{
+	QString ls_ScriptsVersion = "(using scripts develop)";
+	if (mk_Proteomatic.scriptsVersion() != "")
+	{
+		ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion() + ")";
+	}
+	QString ls_WindowTitle = QString("%1%2 - Proteomatic Pipeline %3 %4")
+		.arg(ms_PipelineFilename.isEmpty()? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName())
+		.arg(mk_Desktop_->hasUnsavedChanges() ? " [modified]" : "")
+		.arg(mk_Proteomatic.version())
+		.arg(ls_ScriptsVersion);
+	setWindowTitle(ls_WindowTitle);
+}
+
+
 void k_PipelineMainWindow::toggleUi()
 {
-	setWindowTitle(QString("%1%2 - Proteomatic Pipeline %3").arg(ms_PipelineFilename.isEmpty()? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName()).arg(mk_Desktop_->hasUnsavedChanges() ? " [modified]" : "").arg(mk_Proteomatic.version()));
+	updateWindowTitle();
 	mk_NewPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_LoadPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_SavePipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());

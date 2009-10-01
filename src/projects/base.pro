@@ -65,6 +65,7 @@ HEADERS += \
 	../../src/Tango.h \
 	../../src/TicketWindow.h \
 	../../src/UnclickableLabel.h \
+	../../src/version.h \
 	../../src/Yaml.h \
 	../../src/YamlEmitter.h \
 	../../src/YamlParser.h \
@@ -86,6 +87,7 @@ SOURCES += \
     ../../src/StopWatch.cpp \
 	../../src/TicketWindow.cpp \
 	../../src/UnclickableLabel.cpp \
+	../../src/version.cpp \
 	../../src/Yaml.cpp \
 	../../src/YamlEmitter.cpp \
 	../../src/YamlParser.cpp \

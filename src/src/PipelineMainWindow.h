@@ -45,6 +45,7 @@ signals:
 	
 protected:
 	virtual void closeEvent(QCloseEvent* event);
+	virtual void keyPressEvent(QKeyEvent* ak_Event_);
 	virtual bool askForSaveIfNecessary();
 
 protected slots:
@@ -61,6 +62,8 @@ protected slots:
 	void showProfileManager();
 	void showAll();
 	void updateStatusBar();
+	void scriptMenuChanged();
+	void updateWindowTitle();
 
 protected:
 	k_Desktop* mk_Desktop_;
@@ -70,6 +73,7 @@ protected:
 	QAction* mk_SavePipelineAction_;
 	QAction* mk_SavePipelineAsAction_;
 	QAction* mk_QuitAction_;
+	QToolButton* mk_AddScriptButton_;
 	QAction* mk_AddFileListAction_;
 	QAction* mk_StartAction_;
 	QAction* mk_AbortAction_;

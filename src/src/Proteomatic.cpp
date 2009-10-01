@@ -32,14 +32,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 
-k_Proteomatic::k_Proteomatic(QString as_ApplicationPath, bool ab_NeedScripts)
-	: mk_MessageBoxParent_(NULL)
+k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts)
+	: mk_Application(ak_Application)
+	, mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
-	, ms_ScriptPath(as_ApplicationPath + "/scripts")
-	, ms_ConfigurationPath(as_ApplicationPath + "/proteomatic.conf.yaml")
+	, ms_ScriptPath(ak_Application.applicationDirPath() + "/scripts")
+	, ms_ConfigurationPath(ak_Application.applicationDirPath() + "/proteomatic.conf.yaml")
 {
-	QDir::setCurrent(as_ApplicationPath);
+	QDir::setCurrent(ak_Application.applicationDirPath());
 	if (QFileInfo(QDir::homePath() + "/proteomatic.conf.yaml").exists())
 		ms_ConfigurationPath = QDir::homePath() + "/proteomatic.conf.yaml";
 
@@ -65,10 +66,6 @@ k_Proteomatic::k_Proteomatic(QString as_ApplicationPath, bool ab_NeedScripts)
 	{
 		this->checkRuby();
 		
-		// create scripts subdirectory if it doesn't exist
-		if (!QFile::exists(ms_ScriptPath))
-			QDir().mkdir(ms_ScriptPath);
-			
 		// determine currently used script package
 		ms_ScriptPackage = findCurrentScriptPackage();
 			
@@ -105,8 +102,8 @@ k_Proteomatic::~k_Proteomatic()
 
 void k_Proteomatic::checkForUpdates()
 {
-	// don't do updates if this is trunk!
-	if (gs_ProteomaticVersion == "trunk")
+	// don't do updates if this is in develop!
+	if (gs_ProteomaticVersion == "develop")
 		return;
 	
 	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
@@ -260,6 +257,11 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_SCRIPTS_URL] = "ftp://gpf.uni-muenster.de/download/proteomatic-scripts";
 		lb_InsertedDefaultValue = true;
 	}
+	if (!mk_Configuration.contains(CONFIG_SCRIPTS_PATH) || mk_Configuration[CONFIG_SCRIPTS_PATH].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_SCRIPTS_PATH] = "";
+		lb_InsertedDefaultValue = true;
+	}
 	if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
 	{
 		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
@@ -275,6 +277,9 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_CACHE_SCRIPT_INFO] = true;
 		lb_InsertedDefaultValue = true;
 	}
+	
+	if (!mk_Configuration[CONFIG_SCRIPTS_PATH].toString().isEmpty())
+		ms_ScriptPath = mk_Configuration[CONFIG_SCRIPTS_PATH].toString();
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)
@@ -282,20 +287,22 @@ void k_Proteomatic::loadConfiguration()
 }
 
 
-void k_Proteomatic::collectScriptInfo()
+void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 {
-
 	mk_ScriptInfo.clear();
 	QDir lk_Dir(ms_ScriptPath + "/" + ms_ScriptPackage);
 	QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb", QDir::Files);
-	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size() - 1);
+	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size() - 1, mk_MessageBoxParent_);
 	lk_ProgressDialog.setCancelButton(0);
 	lk_ProgressDialog.setWindowTitle("Proteomatic");
 	lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
-	lk_ProgressDialog.setMinimumDuration(2000);
+	lk_ProgressDialog.setMinimumDuration(ab_ShowImmediately ? 0 : 2000);
+	if (ab_ShowImmediately)
+		lk_ProgressDialog.show();
 	int li_Count = 0;
 	foreach (QString ls_Path, lk_Scripts)
 	{
+		mk_Application.processEvents();
 		++li_Count;
 		lk_ProgressDialog.setValue(li_Count);
 		if (ls_Path.contains(".defunct."))
@@ -326,8 +333,8 @@ void k_Proteomatic::collectScriptInfo()
 			QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
 			bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
 			
-			// disable cache if we're trunk!
-			if (version() == "trunk")
+			// disable cache if we're in develop!
+			if (version() == "develop")
 			  lb_UseCache = false;
 			  
 			if (lb_UseCache)
@@ -782,6 +789,7 @@ void k_Proteomatic::checkRuby()
 	lk_IconLabel_ ->setPixmap(QPixmap(":/icons/dialog-warning.png"));
 	lk_HLayout_->addWidget(lk_IconLabel_);
 	QLabel* lk_ErrorLabel_ = new QLabel(&mk_CheckRubyDialog);
+	lk_ErrorLabel_->setOpenExternalLinks(true);
 	lk_HLayout_->addWidget(lk_ErrorLabel_);
 	lk_VLayout_->addLayout(lk_HLayout_);
 	
@@ -892,7 +900,12 @@ void k_Proteomatic::checkRubySearchDialog()
 
 QString k_Proteomatic::findCurrentScriptPackage()
 {
-	QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
+	
+	QStringList lk_Temp = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
+	QStringList lk_AvailableVersions;
+	foreach (QString ls_Path, lk_Temp)
+		if (ls_Path.contains("proteomatic-scripts"))
+			lk_AvailableVersions << ls_Path;
 	if (lk_AvailableVersions.empty())
 		return "";
 	else
@@ -971,3 +984,9 @@ QString k_Proteomatic::md5ForFile(QString as_Path)
 	//printf("\n");
 }
 
+
+void k_Proteomatic::reloadScripts()
+{
+	collectScriptInfo(true);
+	createProteomaticScriptsMenu();
+}

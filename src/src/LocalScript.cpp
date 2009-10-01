@@ -47,8 +47,8 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 	{
 		QString ls_Response;
 		bool lb_UseCache = mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && mk_Proteomatic.fileUpToDate(ls_CacheFilename, QStringList() << as_ScriptPath);
-		// disable cache if we're trunk!
-		if (mk_Proteomatic.version() == "trunk")
+		// disable cache if we're in develop!
+		if (mk_Proteomatic.version() == "develop")
 			lb_UseCache = false;
 			
 		if (lb_UseCache)
@@ -150,6 +150,11 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
 	{
 		lk_AdditionalParameters << ls_Key;
 		lk_AdditionalParameters << ak_AdditionalParameters[ls_Key];
+	}
+	if (!mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString().isEmpty())
+	{
+		lk_AdditionalParameters << "--useFileTracker";
+		lk_AdditionalParameters << mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString();
 	}
 	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << this->uri()) + commandLineArguments() + lk_AdditionalParameters + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
 	return QString();
