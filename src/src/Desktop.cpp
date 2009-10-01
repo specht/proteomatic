@@ -45,6 +45,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, md_BoxZ(0.0)
 	, mb_HasUnsavedChanges(false)
 	, mb_Moving(false)
+	, mb_UseFileTrackerIfAvailable(true)
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
 	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
@@ -585,6 +586,12 @@ QSet<IDesktopBox*> k_Desktop::selectedBoxes() const
 }
 
 
+bool k_Desktop::useFileTrackerIfAvailable() const
+{
+	return mb_UseFileTrackerIfAvailable;
+}
+
+
 void k_Desktop::clearAll()
 {
 	while (!mk_Boxes.empty())
@@ -608,8 +615,9 @@ void k_Desktop::redraw()
 }
 
 
-void k_Desktop::start()
+void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
 {
+	mb_UseFileTrackerIfAvailable = ab_UseFileTrackingIfAvailable;
 	// collect all script boxes
 	mk_RemainingScriptBoxes.clear();
 	foreach (IDesktopBox* lk_Box_, mk_Boxes)

@@ -61,11 +61,13 @@ public:
 	virtual bool hasUnsavedChanges() const;
 	virtual QSet<IDesktopBox*> selectedBoxes() const;
 	
+	virtual bool useFileTrackerIfAvailable() const;
+	
 public slots:
 	virtual void clearAll();
 	virtual void refresh();
 	virtual void redraw();
-	virtual void start();
+	virtual void start(bool ab_UseFileTrackingIfAvailable = true);
 	virtual void abort();
 	virtual void showAll();
 	virtual void clearPrefixForAllScripts();
@@ -162,4 +164,6 @@ protected:
 	QHash<IDesktopBox*, QPoint> mk_MoveSelectionStartPositions;
 	QPointF mk_MoveStartPoint;
 	bool mb_Moving;
+	
+	bool mb_UseFileTrackerIfAvailable;
 };

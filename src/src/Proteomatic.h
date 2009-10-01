@@ -129,7 +129,11 @@ signals:
 	void remoteHubReady();
 	void remoteHubLineBatch(QStringList ak_Lines);
 	void remoteHubRequestFinished(int ai_SocketId, bool ab_Error, QString as_Response);
+	void configurationChanged();
 
+public slots:
+	void showConfigurationDialog();
+	
 protected slots:
 	void remoteHubReadyReadSlot();
 	void scriptMenuScriptClickedInternal();

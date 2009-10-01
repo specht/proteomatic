@@ -558,6 +558,56 @@ QWidget* k_Proteomatic::messageBoxParent() const
 }
 
 
+void k_Proteomatic::showConfigurationDialog()
+{
+	RefPtr<QDialog> lk_pDialog(new QDialog(mk_MessageBoxParent_));
+	lk_pDialog->setWindowTitle("Preferences");
+	lk_pDialog->setWindowIcon(QIcon(":icons/proteomatic.png"));
+
+	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
+	QCheckBox* lk_AutoCheckForUpdates_ = new QCheckBox("Check for scripts updates on startup", lk_pDialog.get_Pointer());
+	lk_AutoCheckForUpdates_->setCheckState(getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool() ? Qt::Checked : Qt::Unchecked);
+	lk_VLayout_->addWidget(lk_AutoCheckForUpdates_);
+	
+	QBoxLayout* lk_HLayout_ = NULL;
+	
+	lk_HLayout_ = new QHBoxLayout(NULL);
+	lk_HLayout_->addWidget(new QLabel("Scripts URL:", lk_pDialog.get_Pointer()));
+	QLineEdit* lk_ScriptsUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
+	lk_ScriptsUrlLineEdit_->setText(getConfiguration(CONFIG_SCRIPTS_URL).toString());
+	lk_ScriptsUrlLineEdit_->home(false);
+	lk_HLayout_->addWidget(lk_ScriptsUrlLineEdit_);
+	lk_VLayout_->addLayout(lk_HLayout_);
+	
+	lk_HLayout_ = new QHBoxLayout(NULL);
+	lk_HLayout_->addWidget(new QLabel("Filetracker URL:", lk_pDialog.get_Pointer()));
+	QLineEdit* lk_FileTrackerUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
+	lk_FileTrackerUrlLineEdit_->setText(getConfiguration(CONFIG_FILETRACKER_URL).toString());
+	lk_FileTrackerUrlLineEdit_->home(false);
+	lk_HLayout_->addWidget(lk_FileTrackerUrlLineEdit_);
+	lk_VLayout_->addLayout(lk_HLayout_);
+	
+	lk_HLayout_ = new QHBoxLayout(NULL);
+	QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":icons/dialog-cancel.png"), "Cancel", lk_pDialog.get_Pointer());
+	connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(reject()));
+	lk_HLayout_->addStretch();
+	lk_HLayout_->addWidget(lk_CancelButton_);
+	QPushButton* lk_OkButton_ = new QPushButton(QIcon(":icons/dialog-ok.png"), "Ok", lk_pDialog.get_Pointer());
+	lk_OkButton_->setDefault(true);
+	connect(lk_OkButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(accept()));
+	lk_HLayout_->addWidget(lk_OkButton_);
+	lk_VLayout_->addLayout(lk_HLayout_);
+	if (lk_pDialog->exec())
+	{
+		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = lk_AutoCheckForUpdates_->checkState() == Qt::Checked;
+		mk_Configuration[CONFIG_SCRIPTS_URL] = lk_ScriptsUrlLineEdit_->text();
+		mk_Configuration[CONFIG_FILETRACKER_URL] = lk_FileTrackerUrlLineEdit_->text();
+		this->saveConfiguration();
+		emit configurationChanged();
+	}
+}
+
+
 void k_Proteomatic::remoteHubReadyReadSlot()
 {
 	QString ls_Result = QString(mk_pRemoteHubProcess->readAll());

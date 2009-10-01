@@ -449,7 +449,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 	}
 
 	ms_Output.clear();
-	mk_pScript->start(lk_InputFiles, lk_Parameters);
+	mk_pScript->start(lk_InputFiles, lk_Parameters, mk_Desktop_->useFileTrackerIfAvailable());
 }
 
 

@@ -34,7 +34,7 @@ public:
 	virtual QString readAll();
 	
 public slots:
-	virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash());
+	virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash(), bool ab_UseFileTrackerIfAvailable = true);
 	virtual void kill(const QString& as_Ticket = QString());
 	
 protected slots:

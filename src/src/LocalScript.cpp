@@ -143,7 +143,7 @@ k_LocalScript::~k_LocalScript()
 }
 
 
-QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak_AdditionalParameters)
+QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak_AdditionalParameters, bool ab_UseFileTrackerIfAvailable)
 {
 	QStringList lk_AdditionalParameters;
 	foreach (QString ls_Key, ak_AdditionalParameters.keys())
@@ -151,7 +151,7 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
 		lk_AdditionalParameters << ls_Key;
 		lk_AdditionalParameters << ak_AdditionalParameters[ls_Key];
 	}
-	if (!mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString().isEmpty())
+	if (ab_UseFileTrackerIfAvailable && (!mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString().isEmpty()))
 	{
 		lk_AdditionalParameters << "--useFileTracker";
 		lk_AdditionalParameters << mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString();
