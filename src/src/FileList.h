@@ -42,6 +42,7 @@ signals:
 	void selectionChanged(bool);
 	void doubleClick();
 	void myItemDoubleClicked(QListWidgetItem*);
+	void myItemRightClicked(QListWidgetItem*);
 	void changed();
 
 public slots:
@@ -51,9 +52,15 @@ public slots:
 	
 protected slots:
 	virtual void itemDoubleClicked(QListWidgetItem* ak_Item_);
+	virtual void showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point = QPoint());
+	virtual void menuOpenFileSlot();
+	virtual void menuOpenContainingDirectorySlot();
+	virtual void openFile(QListWidgetItem* ak_Item_);
+	virtual void openContainingDirectory(QListWidgetItem* ak_Item_);
 
 protected:
 	virtual void keyPressEvent(QKeyEvent* ak_Event_);
+	virtual void mousePressEvent(QMouseEvent* event);
 	virtual void mouseDoubleClickEvent(QMouseEvent* event);
 	virtual void dragEnterEvent(QDragEnterEvent* event);
 	virtual void dragMoveEvent(QDragMoveEvent* event);
@@ -64,6 +71,9 @@ protected:
 	QHash<QString, QString> mk_Labels;
 	QHash<QString, QStringList> mk_Extensions;
 	QHash<QString, QMap<QString, bool> > mk_Files;
+	QAction mk_OpenFileAction;
+	QAction mk_OpenContainingFolderAction;
+	QMenu mk_PopupMenu;
 
 private:
 	bool mb_ReallyRemoveItems;
