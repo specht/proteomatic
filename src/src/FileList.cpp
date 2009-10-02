@@ -33,6 +33,7 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_F
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	setAcceptDrops(true);
 	setDragDropMode(QAbstractItemView::DropOnly);
+	setSortingEnabled(true);
 	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 	connect(this, SIGNAL(myItemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 	connect(this, SIGNAL(myItemRightClicked(QListWidgetItem*)), this, SLOT(showFilePopupMenu(QListWidgetItem*)));

@@ -120,9 +120,7 @@ void k_OutFileListBox::toggleUi()
 	mk_FileList.setVisible(mb_ListMode);
 	mk_FileList.refresh();
 	
-	// disable batch mode as of now!
-	//mk_BatchModeButton.setVisible(mb_ListMode);
-	mk_BatchModeButton.setVisible(false);
+	mk_BatchModeButton.setVisible(mb_ListMode);
 	
 	QString ls_String = "<b>" + ms_Label + "</b>";
 	//QString ls_String = ms_Label;

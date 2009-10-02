@@ -287,7 +287,7 @@ void k_ScriptBox::updateOutputFilenames()
 						ls_OutFilename.remove(ls_OutFilename.length() - ls_Suffix.length() - 1, ls_Suffix.length() + 1);
 						QString ls_OutPath = ls_OutFilename + "-" + lk_SourceBox_->tagForFilename(ls_Path) + "." + ls_Suffix;
 						ls_OutPath = ls_OutPath;
-						//lk_Filenames.append(QFileInfo(QDir(mk_Desktop_->pipelineMainWindow().outputDirectory()), ls_OutPath).absoluteFilePath());
+						lk_Filenames.append(QFileInfo(QDir(outputDirectory()), ls_OutPath).absoluteFilePath());
 					}
 				}
 			}
