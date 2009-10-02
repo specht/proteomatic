@@ -52,6 +52,9 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	//lk_StatusBar_->addWidget(0, mk_ProteomaticScriptVersionLabel_);
 	//this->setStatusBar(lk_StatusBar_);
 	
+	statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerIconLabel());
+	statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerLabel());
+	
 	QWidget* lk_LowerLayoutWidget_ = new QWidget(this);
 	mk_LowerLayout_ = new QVBoxLayout(lk_LowerLayoutWidget_);
 	mk_LowerLayout_->setContentsMargins(0, 0, 0, 0);
@@ -106,7 +109,9 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	
 	lk_ToolBar_->addSeparator();
 	
-	mk_StartAction_ = lk_ToolBar_->addAction(QIcon(":/icons/dialog-ok.png"), "Start", this, SLOT(start()));
+	lk_ToolBar_->addWidget(mk_Proteomatic.startButton());
+	connect(mk_Proteomatic.startButton(), SIGNAL(clicked()), this, SLOT(start()));
+	connect(mk_Proteomatic.startUntrackedAction(), SIGNAL(triggered()), this, SLOT(startUntracked()));
 	mk_AbortAction_ = lk_ToolBar_->addAction(QIcon(":/icons/dialog-cancel.png"), "Abort", this, SLOT(abortScript()));
 	
 	// TODO: revive remote stuff
@@ -123,6 +128,8 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	lk_PreferencesOptions_->setVisible(false);
 	*/
 	
+	lk_ToolBar_->addSeparator();
+	lk_ToolBar_->addAction(QIcon(":icons/preferences-system.png"), "Preferences", &mk_Proteomatic, SLOT(showConfigurationDialog()));
 	addToolBar(Qt::TopToolBarArea, lk_ToolBar_);
 
 	//connect(&mk_LoadScriptButton, SIGNAL(clicked()), this, SLOT(showScriptMenu()));
@@ -392,7 +399,7 @@ void k_ScriptHelper::activateScript()
 }
 
 
-void k_ScriptHelper::start()
+void k_ScriptHelper::start(bool ab_UseFileTrackerIfAvailable)
 {
 	if (!mk_pScript)
 		return;
@@ -427,9 +434,15 @@ void k_ScriptHelper::start()
 	}
 
 	if (mk_pScript->location() == r_ScriptLocation::Local)
-		mk_pScript->start(lk_Files);
+		mk_pScript->start(lk_Files, tk_StringStringHash(), ab_UseFileTrackerIfAvailable);
 	//else
 		//mk_RemoteRequests[mk_Proteomatic.queryRemoteHub(mk_pScript->uri(), (QStringList() << "---gui") + mk_pScript->commandLineArguments() + lk_Arguments)] = r_RemoteRequest(r_RemoteRequestType::SubmitJob);
+}
+
+
+void k_ScriptHelper::startUntracked()
+{
+	start(false);
 }
 
 
@@ -557,7 +570,7 @@ void k_ScriptHelper::toggleUi()
 	{
 		mk_ResetAction_->setEnabled(false);
 		mk_ReloadScriptAction_->setEnabled(false);
-		mk_StartAction_->setEnabled(false);
+		mk_Proteomatic.startButton()->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(false);
@@ -570,7 +583,7 @@ void k_ScriptHelper::toggleUi()
 			mk_FileListsRemoveButtons[ls_Key]->setEnabled(mk_FileLists[ls_Key]->selectedItems().count() != 0);
 		mk_ResetAction_->setEnabled(mk_pScript);
 		mk_ReloadScriptAction_->setEnabled(mk_pScript);
-		mk_StartAction_->setEnabled(mk_pScript);
+		mk_Proteomatic.startButton()->setEnabled(mk_pScript);
 		mk_CheckTicketAction_->setEnabled(lb_RemoteScriptLoaded);
 		mk_LoadParametersAction_->setEnabled(mk_pScript);
 		mk_SaveParametersAction_->setEnabled(mk_pScript);
@@ -585,7 +598,7 @@ void k_ScriptHelper::toggleUi()
 		mk_ProfilesAction_->setEnabled(false);
 		mk_ResetAction_->setEnabled(false);
 		mk_ReloadScriptAction_->setEnabled(false);
-		mk_StartAction_->setEnabled(false);
+		mk_Proteomatic.startButton()->setEnabled(false);
 		mk_CheckTicketAction_->setEnabled(false);
 		mk_LoadParametersAction_->setEnabled(false);
 		mk_SaveParametersAction_->setEnabled(mk_pScript);

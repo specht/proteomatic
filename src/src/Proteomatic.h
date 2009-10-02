@@ -122,6 +122,10 @@ public:
 	static void openFileLink(QString as_Path);
 	QString md5ForFile(QString as_Path);
 	void reloadScripts();
+	QToolButton* startButton();
+	QAction* startUntrackedAction();
+	QLabel* fileTrackerIconLabel();
+	QLabel* fileTrackerLabel();
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);
@@ -149,6 +153,7 @@ protected:
 	void createProteomaticScriptsMenu();
 	void checkRuby();
 	QString findCurrentScriptPackage();
+	void updateConfigDependentStuff();
 	
 	QCoreApplication& mk_Application;
 	// uri / path => uri, title, group, description, optional: parameters
@@ -177,4 +182,12 @@ protected:
 	QDialog mk_CheckRubyDialog;
 	QPushButton* mk_CheckRubyRetryButton_;
 	QLineEdit* mk_CheckRubyLocation_;
+	
+	// mk_pStartButton starts with file tracking, if configured
+	RefPtr<QToolButton> mk_pStartButton;
+	RefPtr<QLabel> mk_pFileTrackerIconLabel;
+	RefPtr<QLabel> mk_pFileTrackerLabel;
+	QMenu mk_StartButtonMenu;
+	// mk_StartUntrackedAction_ starts without file tracking
+	QAction* mk_StartUntrackedAction_;
 };

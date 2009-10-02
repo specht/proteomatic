@@ -36,8 +36,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	, mk_CurrentScriptBox_(NULL)
 	, ms_PipelineFilename(QString())
 	, mk_WatchedBoxObject_(NULL)
-	, mk_FileTrackerStatusLabel_(new QLabel(this))
-	, mk_FileTrackerStatusIconLabel_(new QLabel(this))
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	
@@ -64,9 +62,8 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	statusBar()->show();
 	mk_StatusBarMessage_ = new QLabel("", this);
 	statusBar()->addWidget(mk_StatusBarMessage_);
-	mk_FileTrackerStatusIconLabel_->setPixmap(QPixmap(":icons/revelio.png").scaledToHeight(16, Qt::SmoothTransformation));
-	statusBar()->addPermanentWidget(mk_FileTrackerStatusIconLabel_);
-	statusBar()->addPermanentWidget(mk_FileTrackerStatusLabel_);
+	statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerIconLabel());
+	statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerLabel());
 	
 	QToolBar* lk_AddToolBar_ = new QToolBar(this);
 	lk_AddToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -107,18 +104,10 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	mk_ProposePrefixForAllScriptsAction_ = lk_AddToolBar_->addAction(QIcon(":icons/select-continuous-area.png"), "Propose prefixes", mk_Desktop_, SLOT(proposePrefixForAllScripts()));
 	mk_RefreshAction_ = lk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
-	mk_StartButton_ = new QToolButton(lk_AddToolBar_);
-	mk_StartButton_->setIcon(QIcon(":icons/dialog-ok.png"));
-	mk_StartButton_->setText("Start");
-	mk_StartButton_->setPopupMode(QToolButton::DelayedPopup);
-	mk_StartButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	lk_AddToolBar_->addWidget(mk_StartButton_);
-	connect(mk_StartButton_, SIGNAL(clicked()), this, SLOT(start()));
+	lk_AddToolBar_->addWidget(mk_Proteomatic.startButton());
+	connect(mk_Proteomatic.startButton(), SIGNAL(clicked()), this, SLOT(start()));
 	
-	mk_StartButtonMenu_ = new QMenu(lk_AddToolBar_);
-	mk_StartUntrackedAction_ = new QAction(QIcon(":icons/dialog-ok.png"), "Start untracked", this);
-	connect(mk_StartUntrackedAction_, SIGNAL(triggered()), this, SLOT(startWithoutFiletracking()));
-	mk_StartButtonMenu_->addAction(mk_StartUntrackedAction_);
+	connect(mk_Proteomatic.startUntrackedAction(), SIGNAL(triggered()), this, SLOT(startWithoutFiletracking()));
 	mk_AbortAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "Abort", this, SLOT(abort()));
 
 	lk_AddToolBar_->addSeparator();
@@ -159,11 +148,9 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	
 	addOutput("Welcome to Proteomatic Pipeline.\n");
 
-	updateConfigDependentStuff();
 	updateStatusBar();
 	toggleUi();
 	show();
-	connect(&mk_Proteomatic, SIGNAL(configurationChanged()), this, SLOT(updateConfigDependentStuff()));
 }
 
 
@@ -296,7 +283,7 @@ void k_PipelineMainWindow::start()
 }
 
 
-void k_PipelineMainWindow::startWithoutFiletracking()
+void k_PipelineMainWindow::startUntracked()
 {
 	if (!mk_Desktop_)
 		return;
@@ -431,7 +418,7 @@ void k_PipelineMainWindow::toggleUi()
 	mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_AddScriptAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	mk_AddFileListAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-	mk_StartButton_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
+	mk_Proteomatic.startButton()->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
 	mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());
 	mk_RefreshAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
 	mk_ProfileManagerAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
@@ -439,28 +426,6 @@ void k_PipelineMainWindow::toggleUi()
 	//mk_OutputPrefix_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	//mk_ClearPrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
 	mk_ProposePrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
-}
-
-
-void k_PipelineMainWindow::updateConfigDependentStuff()
-{
-	QString ls_FiletrackerUrl = mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString();
-	if (ls_FiletrackerUrl.isEmpty())
-	{
-		mk_FileTrackerStatusIconLabel_->setEnabled(false);
-		mk_FileTrackerStatusLabel_->setText("No file tracker defined.");
-		mk_StartButton_->setText("Start");
-		mk_StartButton_->setPopupMode(QToolButton::DelayedPopup);
-		mk_StartButton_->setMenu(NULL);
-	}
-	else
-	{
-		mk_FileTrackerStatusIconLabel_->setEnabled(true);
-		mk_FileTrackerStatusLabel_->setText("File tracker: " + ls_FiletrackerUrl);
-		mk_StartButton_->setText("Start && track");
-		mk_StartButton_->setPopupMode(QToolButton::MenuButtonPopup);
-		mk_StartButton_->setMenu(mk_StartButtonMenu_);
-	}
 }
 
 

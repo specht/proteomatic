@@ -43,7 +43,8 @@ protected:
 
 protected slots:
 	void reset();
-	void start();
+	void start(bool ab_UseFileTrackerIfAvailable = true);
+	void startUntracked();
 	void processStarted();
 	void processFinished(int ai_ExitCode);
 	void processReadyRead();
@@ -98,7 +99,6 @@ protected:
 	RefPtr<k_ProfileManager> mk_pProfileManager;
 	
 	QAction* mk_ProfilesAction_;
-	QAction* mk_StartAction_;
 	QAction* mk_AbortAction_;
 	QAction* mk_LoadParametersAction_;
 	QAction* mk_SaveParametersAction_;

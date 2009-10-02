@@ -38,7 +38,6 @@ public:
 	
 public slots:
 	void toggleUi();
-	void updateConfigDependentStuff();
 	
 signals:
 	//void outputPrefixChanged(const QString& as_Prefix);
@@ -57,7 +56,7 @@ protected slots:
 	void quit();
 	void addScript(QAction* ak_Action_);
 	void start();
-	void startWithoutFiletracking();
+	void startUntracked();
 	void abort();
 	void addFileListBox();
 	void resetParameters();
@@ -77,11 +76,6 @@ protected:
 	QAction* mk_QuitAction_;
 	QToolButton* mk_AddScriptButton_;
 	QAction* mk_AddFileListAction_;
-	// mk_StartButton_ starts with file tracking, if configured
-	QToolButton* mk_StartButton_;
-	QMenu* mk_StartButtonMenu_;
-	// mk_StartUntrackedAction_ starts without file tracking
-	QAction* mk_StartUntrackedAction_;
 	QAction* mk_AbortAction_;
 	QAction* mk_RefreshAction_;
 	QAction* mk_ProfileManagerAction_;
@@ -100,7 +94,4 @@ protected:
 	QSplitter* mk_HSplitter_;
 	QLabel* mk_StatusBarMessage_;
 	QObject* mk_WatchedBoxObject_;
-	
-	QLabel* mk_FileTrackerStatusLabel_;
-	QLabel* mk_FileTrackerStatusIconLabel_;
 };

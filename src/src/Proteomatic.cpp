@@ -40,6 +40,18 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
 	, ms_ScriptPath(ak_Application.applicationDirPath() + "/scripts")
 	, ms_ConfigurationPath(ak_Application.applicationDirPath() + "/proteomatic.conf.yaml")
 {
+	mk_pStartButton = RefPtr<QToolButton>(new QToolButton(NULL));
+	mk_pStartButton->setIcon(QIcon(":icons/dialog-ok.png"));
+	mk_pStartButton->setText("Start");
+	mk_pStartButton->setPopupMode(QToolButton::DelayedPopup);
+	mk_pStartButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	
+	mk_StartUntrackedAction_ = mk_StartButtonMenu.addAction(QIcon(":icons/dialog-ok.png"), "Start untracked");
+	
+	mk_pFileTrackerIconLabel = RefPtr<QLabel>(new QLabel(NULL));
+	mk_pFileTrackerLabel = RefPtr<QLabel>(new QLabel(NULL));
+	mk_pFileTrackerIconLabel->setPixmap(QPixmap(":icons/revelio.png").scaledToHeight(16, Qt::SmoothTransformation));
+	
 	QDir::setCurrent(ak_Application.applicationDirPath());
 	if (QFileInfo(QDir::homePath() + "/proteomatic.conf.yaml").exists())
 		ms_ConfigurationPath = QDir::homePath() + "/proteomatic.conf.yaml";
@@ -72,6 +84,8 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
 		collectScriptInfo();
 		createProteomaticScriptsMenu();
 	}
+	
+	updateConfigDependentStuff();
 }
 
 
@@ -283,7 +297,10 @@ void k_Proteomatic::loadConfiguration()
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)
+	{
 		this->saveConfiguration();
+		updateConfigDependentStuff();
+	}
 }
 
 
@@ -603,6 +620,7 @@ void k_Proteomatic::showConfigurationDialog()
 		mk_Configuration[CONFIG_SCRIPTS_URL] = lk_ScriptsUrlLineEdit_->text();
 		mk_Configuration[CONFIG_FILETRACKER_URL] = lk_FileTrackerUrlLineEdit_->text();
 		this->saveConfiguration();
+		updateConfigDependentStuff();
 		emit configurationChanged();
 	}
 }
@@ -769,6 +787,7 @@ void k_Proteomatic::remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error)
 						lk_RemoteScriptList.push_back(lk_Uri);
 						mk_Configuration[CONFIG_REMOTE_SCRIPTS] = lk_RemoteScriptList;
 						this->saveConfiguration();
+						updateConfigDependentStuff();
 					}
 				}
 				if (lr_RemoteRequest.mk_AdditionalInfo.contains("feedback"))
@@ -887,6 +906,7 @@ void k_Proteomatic::checkRuby()
 			*/
 			// we have found a local Ruby, hooray!
 			this->saveConfiguration();
+			updateConfigDependentStuff();
 			return;
 			/*
 		}
@@ -914,6 +934,7 @@ void k_Proteomatic::checkRuby()
 			*/
 			// if we're here, we have found a Ruby! Now we save the configuration so that the dialog won't pop up the next time.
 			this->saveConfiguration();
+			updateConfigDependentStuff();
 		}
 		if (ls_Error != "")
 		{
@@ -974,6 +995,28 @@ QString k_Proteomatic::findCurrentScriptPackage()
 				return ls_Path;
 		}
 		return QFileInfo(lk_AvailableVersions.first()).fileName();
+	}
+}
+
+
+void k_Proteomatic::updateConfigDependentStuff()
+{
+	QString ls_FiletrackerUrl = getConfiguration(CONFIG_FILETRACKER_URL).toString();
+	if (ls_FiletrackerUrl.isEmpty())
+	{
+		mk_pFileTrackerIconLabel->setEnabled(false);
+		mk_pFileTrackerLabel->setText("No file tracker defined.");
+		mk_pStartButton->setText("Start");
+		mk_pStartButton->setPopupMode(QToolButton::DelayedPopup);
+		mk_pStartButton->setMenu(NULL);
+	}
+	else
+	{
+		mk_pFileTrackerIconLabel->setEnabled(true);
+		mk_pFileTrackerLabel->setText("File tracker: " + ls_FiletrackerUrl);
+		mk_pStartButton->setText("Start && track");
+		mk_pStartButton->setPopupMode(QToolButton::MenuButtonPopup);
+		mk_pStartButton->setMenu(&mk_StartButtonMenu);
 	}
 }
 
@@ -1039,4 +1082,28 @@ void k_Proteomatic::reloadScripts()
 {
 	collectScriptInfo(true);
 	createProteomaticScriptsMenu();
+}
+
+
+QToolButton* k_Proteomatic::startButton()
+{
+	return mk_pStartButton.get_Pointer();
+}
+
+
+QAction* k_Proteomatic::startUntrackedAction()
+{
+	return mk_StartUntrackedAction_;
+}
+
+
+QLabel* k_Proteomatic::fileTrackerIconLabel()
+{
+	return mk_pFileTrackerIconLabel.get_Pointer();
+}
+
+
+QLabel* k_Proteomatic::fileTrackerLabel()
+{
+	return mk_pFileTrackerLabel.get_Pointer();
 }
