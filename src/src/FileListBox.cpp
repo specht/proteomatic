@@ -142,7 +142,6 @@ void k_FileListBox::setupLayout()
 	lk_HLayout_->addWidget(&mk_BatchModeButton);
 	connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(setBatchMode(bool)));
 	connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_BatchModeButton, SLOT(setEnabled(bool)));
-	mk_BatchModeButton.hide();
 	
 	lk_HLayout_ = new QHBoxLayout();
 	lk_HLayout_->addWidget(&mk_FileList);

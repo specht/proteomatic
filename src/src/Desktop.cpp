@@ -65,7 +65,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	lk_Pen.setWidthF(1.5);
 	lk_Pen.setStyle(Qt::DashLine);
 	mk_SelectionGraphicsPathItem_ = mk_GraphicsScene.addPath(QPainterPath(), lk_Pen);
-	mk_SelectionGraphicsPathItem_->setZValue(-2.0);
+	mk_SelectionGraphicsPathItem_->setZValue(-4.0);
 	
 	lk_Pen.setStyle(Qt::SolidLine);
 	lk_Pen.setColor(QColor(TANGO_SCARLET_RED_2));
@@ -901,22 +901,32 @@ void k_Desktop::updateArrow(QGraphicsPathItem* ak_Arrow_)
 	lk_End = intersectLineWithBox(lk_Start, lk_End, lk_ArrowEndBox_);
 	
 	QPen lk_Pen(TANGO_ALUMINIUM_3);
+	QBrush lk_Brush(TANGO_ALUMINIUM_3);
 	if ((dynamic_cast<IFileBox*>(lk_ArrowStartBox_)) && lk_ArrowStartBox_->batchMode())
+	{
 		lk_Pen = QPen(TANGO_BUTTER_2);
+		lk_Brush = QBrush(TANGO_BUTTER_2);
+	}
 	ak_Arrow_->setPen(lk_Pen);
+	ak_Arrow_->setBrush(lk_Brush);
 	
 	updateArrowInternal(ak_Arrow_, lk_Start, lk_End);
 	mk_ArrowProxy[ak_Arrow_]->setLine(QLineF(QPointF(lk_Start), QPointF(lk_End)));
 }
 
 
-void k_Desktop::redrawSelection()
+void k_Desktop::redrawSelection(bool ab_DontCallOthers)
 {
 	QPainterPath lk_Path;
 	
 	foreach (IDesktopBox* lk_Box_, mk_SelectedBoxes)
 	{
-		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, 3 + (lk_Box_ == mk_CurrentScriptBox_ ? 3 : 0)));
+		int li_Grow = 3;
+		if (lk_Box_ == mk_CurrentScriptBox_)
+			li_Grow += 3;
+		if (lk_Box_->batchMode())
+			li_Grow += 4;
+		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, li_Grow));
 	}
 	
 	foreach (QGraphicsPathItem* lk_Arrow_, mk_SelectedArrows)
@@ -963,7 +973,8 @@ void k_Desktop::redrawSelection()
 	
 	mk_CurrentScriptBoxGraphicsPathItem_->setPath(lk_Path);
 	
-	redrawBatchFrame();
+	if (!ab_DontCallOthers)
+		redrawBatchFrame(true);
 }
 
 
@@ -998,12 +1009,15 @@ void k_Desktop::deleteSelected()
 }
 
 
-void k_Desktop::redrawBatchFrame()
+void k_Desktop::redrawBatchFrame(bool ab_DontCallOthers)
 {
 	QPainterPath lk_Path;
 	foreach (IDesktopBox* lk_Box_, mk_BatchBoxes)
 	{
-		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, (mk_SelectedBoxes.contains(lk_Box_) || lk_Box_ == mk_CurrentScriptBox_) ? 7 : 3));
+		int li_Grow = 3;
+		if (lk_Box_ == mk_CurrentScriptBox_)
+			li_Grow += 4;
+		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, li_Grow));
 		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
 		if (lk_FileBox_)
 		{
@@ -1048,6 +1062,8 @@ void k_Desktop::redrawBatchFrame()
 		}
 	}
 	mk_BatchGraphicsPathItem_->setPath(lk_Path);
+	if (!ab_DontCallOthers)
+		redrawSelection(true);
 }
 
 

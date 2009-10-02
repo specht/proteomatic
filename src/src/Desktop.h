@@ -85,9 +85,9 @@ protected slots:
 	virtual void arrowReleased();
 	virtual void boxBatchModeChanged(bool ab_Enabled);
 	virtual void updateArrow(QGraphicsPathItem* ak_Arrow_);
-	virtual void redrawSelection();
+	virtual void redrawSelection(bool ab_DontCallOthers = false);
 	virtual void deleteSelected();
-	virtual void redrawBatchFrame();
+	virtual void redrawBatchFrame(bool ab_DontCallOthers = false);
 	virtual void clearSelection();
 	virtual void scriptStarted();
 	virtual void scriptFinished(int ai_ExitCode);
