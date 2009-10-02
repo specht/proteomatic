@@ -309,7 +309,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 	mk_ScriptInfo.clear();
 	QDir lk_Dir(ms_ScriptPath + "/" + ms_ScriptPackage);
 	QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb", QDir::Files);
-	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size() - 1, mk_MessageBoxParent_);
+	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size(), mk_MessageBoxParent_);
 	lk_ProgressDialog.setCancelButton(0);
 	lk_ProgressDialog.setWindowTitle("Proteomatic");
 	lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
