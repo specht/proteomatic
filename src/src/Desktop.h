@@ -153,6 +153,7 @@ protected:
 	bool mb_Running;
 	bool mb_Error;
 	QSet<IScriptBox*> mk_RemainingScriptBoxes;
+	QHash<IScriptBox*, QStringList> mk_RemainingScriptBoxIterationKeys;
 	
 	// mk_DeleteBoxStackSet is there to prevent recursive
 	// deletion of boxes which might happen when boxes

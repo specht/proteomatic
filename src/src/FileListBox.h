@@ -38,6 +38,7 @@ public:
 
 	virtual QStringList filenames() const;	
 	virtual QString tagForFilename(const QString& as_Filename) const;
+	virtual QStringList filenamesForTag(const QString& as_Tag) const;
 	virtual QString prefixWithoutTags() const;
 	virtual void addPath(const QString& as_Path);
 	
@@ -60,5 +61,6 @@ protected:
 	QToolButton mk_RemoveSelectionButton;
 	QToolButton mk_BatchModeButton;
 	QHash<QString, QString> mk_TagForFilename;
+	QHash<QString, QStringList> mk_FilenamesForTag;
 	QString ms_PrefixWithoutTags;
 };

@@ -28,7 +28,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_Proteomatic;
 
-class k_InputGroupProxyBox: public k_DesktopBox, public IFileBox
+class k_InputGroupProxyBox: public k_DesktopBox
 {
 	Q_OBJECT
 public:
@@ -37,14 +37,9 @@ public:
 	
 	virtual const QString& groupKey() const;
 
-	// IFileBox
-	virtual QStringList filenames() const;
-	virtual QString tagForFilename(const QString& as_Filename) const;
-	virtual QString prefixWithoutTags() const;
+	virtual QList<IFileBox*> fileBoxes() const;
 	
 signals:
-	virtual void arrowPressed();
-	virtual void arrowReleased();
 	virtual void filenamesChanged();
 	
 protected slots:
@@ -56,4 +51,5 @@ protected:
 	
 	QString ms_Label;
 	QString ms_GroupKey;
+	QList<IFileBox*> mk_FileBoxes;
 };

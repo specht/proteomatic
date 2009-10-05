@@ -54,6 +54,15 @@ QString k_FileListBox::tagForFilename(const QString& as_Filename) const
 }
 
 
+QStringList k_FileListBox::filenamesForTag(const QString& as_Tag) const
+{
+	if (mk_FilenamesForTag.contains(as_Tag))
+		return mk_FilenamesForTag[as_Tag];
+	else
+		return QStringList();
+}
+
+
 QString k_FileListBox::prefixWithoutTags() const
 {
 	return ms_PrefixWithoutTags;
@@ -118,7 +127,20 @@ void k_FileListBox::toggleUi()
 void k_FileListBox::updateFilenameTags()
 {
 	mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
+	// :TODO: attention, code duplication here (OutFileListBox.cpp)
+	
+	// build tag => filename hash
+	mk_FilenamesForTag.clear();
+	foreach (QString ls_Filename, mk_TagForFilename.keys())
+	{
+		QString ls_Tag = mk_TagForFilename[ls_Filename];
+		if (!mk_FilenamesForTag.contains(ls_Tag))
+			mk_FilenamesForTag[ls_Tag] = QStringList();
+		mk_FilenamesForTag[ls_Tag] << ls_Filename;
+	}
+	
 	mk_Desktop_->setHasUnsavedChanges(true);
+	emit filenamesChanged();
 }
 
 
@@ -147,7 +169,6 @@ void k_FileListBox::setupLayout()
 	lk_HLayout_->addWidget(&mk_FileList);
 	connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(toggleUi()));
-	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(filenamesChanged()));
 	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(updateFilenameTags()));
 	mk_FileList.resize(100, 100);
 	

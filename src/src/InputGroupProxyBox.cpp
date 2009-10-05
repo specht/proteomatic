@@ -45,30 +45,9 @@ const QString& k_InputGroupProxyBox::groupKey() const
 }
 
 
-QStringList k_InputGroupProxyBox::filenames() const
+QList<IFileBox*> k_InputGroupProxyBox::fileBoxes() const
 {
-	QStringList lk_Files;
-	foreach (IDesktopBox* lk_Box_, incomingBoxes())
-	{
-		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-		if (lk_FileBox_)
-			lk_Files += lk_FileBox_->filenames();
-	}
-	return lk_Files;
-}
-
-
-QString k_InputGroupProxyBox::tagForFilename(const QString& as_Filename) const
-{
-	//TODO: fix this
-	return QString();
-}
-
-
-QString k_InputGroupProxyBox::prefixWithoutTags() const
-{
-	//TODO: fix this
-	return QString();
+	return mk_FileBoxes;
 }
 
 
@@ -78,7 +57,7 @@ void k_InputGroupProxyBox::boxConnectedSlot(IDesktopBox* ak_Other_, bool ab_Inco
 	{
 		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(ak_Other_);
 		if (lk_FileBox_)
-			connect(dynamic_cast<QObject*>(lk_FileBox_), SIGNAL(filenamesChanged()), this, SIGNAL(filenamesChanged()));
+			mk_FileBoxes.append(lk_FileBox_);
 	}
 }
 
@@ -89,7 +68,7 @@ void k_InputGroupProxyBox::boxDisconnectedSlot(IDesktopBox* ak_Other_, bool ab_I
 	{
 		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(ak_Other_);
 		if (lk_FileBox_)
-			disconnect(dynamic_cast<QObject*>(lk_FileBox_), SIGNAL(filenamesChanged()), this, SIGNAL(filenamesChanged()));
+			mk_FileBoxes.removeOne(lk_FileBox_);
 	}
 }
 

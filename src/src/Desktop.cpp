@@ -296,6 +296,7 @@ void k_Desktop::createFilenameTags(QStringList ak_Filenames, QHash<QString, QStr
 {
 	QHash<QString, QString> lk_Result;
 	QStringList lk_Files = ak_Filenames;
+	qSort(lk_Files.begin(), lk_Files.end());
 	QHash<QString, QSet<QString> > lk_TagInFilenames;
 	QHash<QString, int> lk_MinTagCountInFilenames;
 	QHash<QString, QStringList> lk_AllChopped;
@@ -662,14 +663,16 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
 	foreach (IScriptBox* lk_Box_, lk_ScriptBoxesWithExistingOutputFiles)
 		if (lk_Box_->script()->type() == r_ScriptType::Processor)
 			mk_RemainingScriptBoxes.remove(lk_Box_);
-	
+		
+	foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
+		mk_RemainingScriptBoxIterationKeys[lk_Box_] = lk_Box_->iterationKeys();
+
 	// pick a box, start it
 	IScriptBox* lk_Box_ = pickNextScriptBox();
 	if (lk_Box_)
 	{
-		lk_Box_->start("");
-		mk_PipelineMainWindow.clearOutput();
-		mk_PipelineMainWindow.addOutput("Starting pipeline...\n");
+		QString ls_IterationKey = mk_RemainingScriptBoxIterationKeys[lk_Box_].takeFirst();
+		lk_Box_->start(ls_IterationKey);
 		emit pipelineIdle(false);
 	}
 }
@@ -1080,10 +1083,13 @@ void k_Desktop::scriptStarted()
 	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
 	setCurrentScriptBoxForce(lk_ScriptBox_);
 	lk_ScriptBox_->showOutputBox(true);
-	mk_RemainingScriptBoxes.remove(lk_ScriptBox_);
+	if (mk_RemainingScriptBoxIterationKeys[lk_ScriptBox_].empty())
+	{
+		mk_RemainingScriptBoxes.remove(lk_ScriptBox_);
+		mk_RemainingScriptBoxIterationKeys.remove(lk_ScriptBox_);
+	}
 	mb_Running = true;
 	mb_Error = false;
-	mk_PipelineMainWindow.addOutput(QString("%1: ").arg(lk_ScriptBox_->script()->title()));
 	redrawSelection();
 	mk_PipelineMainWindow.toggleUi();
 }
@@ -1094,22 +1100,25 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
 	if (ai_ExitCode == 0)
 	{
-		mk_PipelineMainWindow.addOutput("done.\n");
-		IScriptBox* lk_NextBox_ = pickNextScriptBox();
+		// do next iteration if there are still some left from sender
+		IScriptBox* lk_NextBox_ = lk_ScriptBox_;
+		// if there are no iterations left, pick next script box
+		if ((!mk_RemainingScriptBoxIterationKeys.contains(lk_ScriptBox_)) || (mk_RemainingScriptBoxIterationKeys[lk_ScriptBox_].empty()))
+			lk_NextBox_ = pickNextScriptBox();
 		if (lk_NextBox_)
-			lk_NextBox_->start("");
+		{
+			QString ls_IterationKey = mk_RemainingScriptBoxIterationKeys[lk_NextBox_].takeFirst();
+			lk_NextBox_->start(ls_IterationKey);
+		}
 		else
 		{
 			mb_Running = false;
-			mk_PipelineMainWindow.addOutput("Pipeline finished.\n\n");
 			emit pipelineIdle(true);
 		}
 	}
 	else
 	{
 		mb_Running = false;
-		mk_PipelineMainWindow.addOutput("error.\n");
-		mk_PipelineMainWindow.addOutput("The pipeline was aborted after an error occured.\n");
 		lk_ScriptBox_->showOutputBox(true);
 		mb_Error = true;
 		emit pipelineIdle(true);

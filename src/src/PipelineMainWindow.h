@@ -32,8 +32,6 @@ public:
 	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
 	virtual ~k_PipelineMainWindow();
 	//QString outputPrefix();
-	virtual void addOutput(QString as_String);
-	virtual void clearOutput();
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
 	
 public slots:
@@ -85,7 +83,6 @@ protected:
 	QAction* mk_ProposePrefixForAllScriptsAction_;
 	k_Proteomatic& mk_Proteomatic;
 	QFileSystemWatcher mk_FileSystemWatcher;
-	QTextEdit* mk_Log_;
 	k_ConsoleString ms_Log;
 	IScriptBox* mk_CurrentScriptBox_;
 	QWidget* mk_PaneLayoutWidget_;

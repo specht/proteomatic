@@ -1,6 +1,9 @@
 Proteomatic
 ProteomaticPipeline
 Revelio
+Proteomatic_debug
+ProteomaticPipeline_debug
+Revelio_debug
 proteomatic.conf.yaml
 obj/
 Makefile.*

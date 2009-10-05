@@ -72,6 +72,7 @@ protected slots:
 	virtual void chooseOutputDirectory();
 	virtual void hidingBuddy();
 	virtual void showingBuddy();
+	virtual void outputBoxIterationKeyChooserChanged();
 	
 signals:
 	virtual void scriptStarted();
@@ -88,12 +89,17 @@ protected:
 	RefPtr<QWidget> mk_pParameterProxyWidget;
 	QHash<QString, IDesktopBox*> mk_OutputFileBoxes;
 	QHash<QString, QCheckBox*> mk_Checkboxes;
+	QString ms_CurrentIterationKeyRunning;
+	QString ms_CurrentIterationKeyShowing;
 	
 	k_HintLineEdit mk_Prefix;
 	k_HintLineEdit mk_OutputDirectory;
 
-	k_ConsoleString ms_Output;
-	QTextEdit mk_OutputBox;
+	QHash<QString, RefPtr<k_ConsoleString> > mk_Output;
+	QWidget* mk_OutputBoxContainer_;
+	QWidget* mk_OutputBoxIterationKeyChooserContainer_;
+	QComboBox* mk_OutputBoxIterationKeyChooser_;
+	QTextEdit* mk_OutputBox_;
 	QTabWidget* mk_TabWidget_;
 	QString ms_ConverterFilenamePattern;
 	QSet<QString> mk_ConverterFilenameAffectingParameters;

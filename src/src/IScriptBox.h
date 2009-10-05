@@ -29,6 +29,9 @@ struct IScriptBox
 	virtual IScript* script() = 0;
 	virtual bool checkReady(QString& as_Error) = 0;
 	virtual bool checkReadyToGo() = 0;
+	
+	// iterationKeys returns an empty QStringList if something bad happened
+	// like: there are multiple input file batches which cannot be matched
 	virtual QStringList iterationKeys() = 0;
 	virtual void start(const QString& as_IterationKey) = 0;
 	virtual void abort() = 0;

@@ -58,6 +58,15 @@ QString k_OutFileListBox::tagForFilename(const QString& as_Filename) const
 }
 
 
+QStringList k_OutFileListBox::filenamesForTag(const QString& as_Tag) const
+{
+	if (mk_FilenamesForTag.contains(as_Tag))
+		return mk_FilenamesForTag[as_Tag];
+	else
+		return QStringList();
+}
+
+
 QString k_OutFileListBox::prefixWithoutTags() const
 {
 	return ms_PrefixWithoutTags;
@@ -144,6 +153,19 @@ void k_OutFileListBox::toggleUi()
 void k_OutFileListBox::updateFilenameTags()
 {
 	mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
+	// :TODO: attention, code duplication here (FileListBox.cpp)
+	
+	// build tag => filename hash
+	mk_FilenamesForTag.clear();
+	foreach (QString ls_Filename, mk_TagForFilename.keys())
+	{
+		QString ls_Tag = mk_TagForFilename[ls_Filename];
+		if (!mk_FilenamesForTag.contains(ls_Tag))
+			mk_FilenamesForTag[ls_Tag] = QStringList();
+		mk_FilenamesForTag[ls_Tag] << ls_Filename;
+	}
+	
+	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
