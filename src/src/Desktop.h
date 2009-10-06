@@ -101,6 +101,7 @@ protected:
 	virtual void mouseMoveEvent(QMouseEvent* event);
 	virtual void wheelEvent(QWheelEvent* event);
 	virtual void updateUserArrow(QPointF ak_MousePosition);
+	virtual IDesktopBox* connectionAllowed(IDesktopBox* ak_StartBox_, IDesktopBox* ak_EndBox_);
 	virtual QPoint boxLocation(IDesktopBox* ak_Box_) const;
 	virtual void moveBoxTo(IDesktopBox* ak_Box_, QPoint ak_Position);
 	virtual IDesktopBox* boxAt(QPointF ak_Point) const;
@@ -133,6 +134,9 @@ protected:
 	IDesktopBox* mk_ArrowStartBox_;
 	IDesktopBox* mk_ArrowEndBox_;
 	QGraphicsPathItem* mk_UserArrowPathItem_;
+	QPointF mk_ArrowEndPoint;
+	QPointF mk_ArrowDirection;
+	IDesktopBox* mk_ArrowStartBoxAutoConnect_;
 	
 	// all arrows are kept in this hash
 	QHash<QGraphicsPathItem*, tk_BoxPair> mk_Arrows;

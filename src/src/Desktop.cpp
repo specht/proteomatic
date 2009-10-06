@@ -39,6 +39,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mk_ArrowStartBox_(NULL)
 	, mk_ArrowEndBox_(NULL)
 	, mk_UserArrowPathItem_(NULL)
+	, mk_ArrowStartBoxAutoConnect_(NULL)
 	, mb_Running(false)
 	, mb_Error(false)
 	, mk_CurrentScriptBox_(NULL)
@@ -142,7 +143,23 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri)
 				connectBoxes(lk_ProxyBox_, lk_Box_);
 			}
 		}
+		if (mk_ArrowStartBoxAutoConnect_)
+		{
+			if (connectionAllowed(mk_ArrowStartBoxAutoConnect_, lk_Box_))
+				connectBoxes(mk_ArrowStartBoxAutoConnect_, lk_Box_);
+			k_DesktopBox* lk_ScriptDesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_ScriptBox_);
+			if (lk_ScriptDesktopBox_)
+			{
+				QSize lk_Size = lk_ScriptDesktopBox_->size();
+				double ld_Length = sqrt(mk_ArrowDirection.x() * mk_ArrowDirection.x() + mk_ArrowDirection.y() * mk_ArrowDirection.y());
+				mk_ArrowDirection /= ld_Length;
+				lk_Size.setWidth(lk_Size.width() * (1.0 - mk_ArrowDirection.x()) * 0.5 + 0.5);
+				lk_Size.setHeight(lk_Size.height() * (1.0 - mk_ArrowDirection.x()) * 0.5 + 0.5);
+				lk_ScriptDesktopBox_->move(mk_ArrowEndPoint.toPoint() - QPoint(lk_Size.width(), lk_Size.height()));
+			}
+		}
 	}
+	mk_ArrowStartBoxAutoConnect_ = NULL;
 	return lk_Box_;
 }
 
@@ -847,6 +864,18 @@ void k_Desktop::arrowReleased()
 	if (mk_ArrowStartBox_ && mk_ArrowEndBox_)
 		connectBoxes(mk_ArrowStartBox_, mk_ArrowEndBox_);
 	
+	if (mk_ArrowStartBox_ && !mk_ArrowEndBox_)
+	{
+		// show scripts menu and insert a script box here
+		if (!boxAt(mk_ArrowEndPoint))
+		{
+			mk_ArrowStartBoxAutoConnect_ = mk_ArrowStartBox_;
+			QAction* lk_Action_ = mk_Proteomatic.proteomaticScriptsMenu()->exec(mapFromScene(mk_ArrowEndPoint) + mapToGlobal(pos()) - QPoint(8, 8));
+			if (!lk_Action_)
+				mk_ArrowStartBoxAutoConnect_ = NULL;
+		}
+	}
+	
 	mk_ArrowStartBox_ = NULL;
 	mk_ArrowEndBox_ = NULL;
 	if (mk_UserArrowPathItem_)
@@ -1217,36 +1246,7 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* event)
 	if (mk_ArrowStartBox_)
 	{
 		mk_ArrowEndBox_ = boxAt(mapToScene(event->pos()));
-		if (((dynamic_cast<IScriptBox*>(mk_ArrowEndBox_) == NULL) && (dynamic_cast<k_InputGroupProxyBox*>(mk_ArrowEndBox_) == NULL)) || mk_ArrowEndBox_ == mk_ArrowStartBox_)
-			mk_ArrowEndBox_ = NULL;
-		// make sure that the output of one script is not connected to one of its input proxy boxes
-		foreach (IDesktopBox* lk_Box_, mk_ArrowStartBox_->incomingBoxes())
-		{
-			foreach (IDesktopBox* lk_PreviousBox_, lk_Box_->incomingBoxes())
-			{
-				k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_PreviousBox_);
-				if (lk_ProxyBox_ && lk_ProxyBox_ == mk_ArrowEndBox_)
-				{
-					mk_ArrowEndBox_ = NULL;
-					break;
-				}
-			}
-		}
-		// make sure the arrow end box is not a script box which has ambiguous input groups
-		// in that case, the files should go to one of the proxy boxes
-		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(mk_ArrowEndBox_);
-		if (lk_ScriptBox_)
-		{
-			if (!lk_ScriptBox_->script()->ambiguousInputGroups().empty())
-				mk_ArrowEndBox_ = NULL;
-		}
-		if (mk_ArrowEndBox_)
-		{
-			if (mk_ArrowEndBox_ && mk_ArrowStartBox_->incomingBoxes().contains(mk_ArrowEndBox_))
-				mk_ArrowEndBox_ = NULL;
-			if (mk_ArrowEndBox_ && mk_ArrowStartBox_->outgoingBoxes().contains(mk_ArrowEndBox_))
-				mk_ArrowEndBox_ = NULL;
-		}
+		mk_ArrowEndBox_ = connectionAllowed(mk_ArrowStartBox_, mk_ArrowEndBox_);
 		updateUserArrow(mapToScene(event->pos()));
 	}
 	if (mb_Moving)
@@ -1293,6 +1293,48 @@ void k_Desktop::updateUserArrow(QPointF ak_MousePosition)
 		lk_End = intersectLineWithBox(lk_Start, lk_End, mk_ArrowEndBox_);
 	
 	updateArrowInternal(mk_UserArrowPathItem_, lk_Start, lk_End);
+	mk_ArrowEndPoint = lk_End;
+	mk_ArrowDirection = lk_End - lk_Start;
+}
+
+
+IDesktopBox* k_Desktop::connectionAllowed(IDesktopBox* ak_StartBox_, IDesktopBox* ak_EndBox_)
+{
+	if (!ak_EndBox_)
+		return NULL;
+	
+	// don't connect if the end box is not an input proxy or script box
+	// and don't connect if the end box is the start box
+	if (((dynamic_cast<IScriptBox*>(ak_EndBox_) == NULL) && (dynamic_cast<k_InputGroupProxyBox*>(ak_EndBox_) == NULL)) || ak_EndBox_ == ak_StartBox_)
+		return NULL;
+	
+	// make sure that the output of one script is not connected to one of its input proxy boxes
+	foreach (IDesktopBox* lk_Box_, ak_StartBox_->incomingBoxes())
+	{
+		foreach (IDesktopBox* lk_PreviousBox_, lk_Box_->incomingBoxes())
+		{
+			k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_PreviousBox_);
+			if (lk_ProxyBox_ && lk_ProxyBox_ == ak_EndBox_)
+			{
+				return NULL;
+			}
+		}
+	}
+	// make sure the arrow end box is not a script box which has ambiguous input groups
+	// in that case, the files should go to one of the proxy boxes
+	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(ak_EndBox_);
+	if (lk_ScriptBox_)
+	{
+		if (!lk_ScriptBox_->script()->ambiguousInputGroups().empty())
+			return NULL;
+	}
+	
+	if (ak_StartBox_->incomingBoxes().contains(ak_EndBox_))
+		return NULL;
+	if (ak_StartBox_->outgoingBoxes().contains(ak_EndBox_))
+		return NULL;
+	
+	return ak_EndBox_;
 }
 
 
