@@ -41,6 +41,7 @@ public:
 	virtual QStringList filenamesForTag(const QString& as_Tag) const;
 	virtual QString prefixWithoutTags() const;
 	virtual void addPath(const QString& as_Path);
+	virtual void addPaths(const QStringList& ak_Paths);
 	
 signals:
 	virtual void arrowPressed();

@@ -78,6 +78,15 @@ void k_FileListBox::addPath(const QString& as_Path)
 }
 
 
+void k_FileListBox::addPaths(const QStringList& ak_Paths)
+{
+	mk_FileList.addInputFiles(ak_Paths, false);
+	mk_FileList.refresh();
+	toggleUi();
+	mk_Desktop_->setHasUnsavedChanges(true);
+}
+
+
 void k_FileListBox::setBatchMode(bool ab_Enabled)
 {
 	k_DesktopBox::setBatchMode(ab_Enabled);

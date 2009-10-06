@@ -321,10 +321,10 @@ void k_ScriptBox::updateOutputFilenames()
 					IFileBox* lk_SourceBox_ = dynamic_cast<IFileBox*>(lk_Box_);
 					foreach (QString ls_Path, lk_SourceBox_->filenames())
 					{
-						QString ls_OutFilename = mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"];
+						QString ls_OutFilename = mk_pScript->outputFileDetails(ls_Key)["filename"];
 						QString ls_Suffix = QFileInfo(ls_OutFilename).completeSuffix();
 						ls_OutFilename.remove(ls_OutFilename.length() - ls_Suffix.length() - 1, ls_Suffix.length() + 1);
-						QString ls_OutPath = ls_OutFilename + "-" + lk_SourceBox_->tagForFilename(ls_Path) + "." + ls_Suffix;
+						QString ls_OutPath = mk_Prefix.text() + lk_SourceBox_->tagForFilename(ls_Path) + "-" + ls_OutFilename + "." + ls_Suffix;
 						ls_OutPath = ls_OutPath;
 						lk_Filenames.append(QFileInfo(QDir(outputDirectory()), ls_OutPath).absoluteFilePath());
 					}
@@ -481,6 +481,8 @@ void k_ScriptBox::clearPrefixButtonClicked()
 {
 	mk_Prefix.setText(QString());
 	mk_Desktop_->setHasUnsavedChanges(true);
+	emit outputPrefixChanged();
+	updateOutputFilenames();
 }
 
 
@@ -488,6 +490,8 @@ void k_ScriptBox::clearOutputDirectoryButtonClicked()
 {
 	mk_OutputDirectory.setText(QString());
 	mk_Desktop_->setHasUnsavedChanges(true);
+	emit outputDirectoryChanged();
+	updateOutputFilenames();
 }
 
 
@@ -639,6 +643,8 @@ void k_ScriptBox::showPopupMenu()
 
 void k_ScriptBox::setupLayout()
 {
+	setAcceptDrops(true);
+	
 	QBoxLayout* lk_VLayout_;
 	QBoxLayout* lk_HLayout_;
 	
@@ -928,4 +934,40 @@ void k_ScriptBox::determineOutputDirectoryDefiningInputFile()
 	ms_OutputDirectoryDefiningInputPath = lk_InterestingInputFiles.first();
 	if (ms_OutputDirectoryDefiningInputPath != ls_OldValue)
 		emit outputDirectoryChanged();
+}
+
+
+void k_ScriptBox::dragEnterEvent(QDragEnterEvent* event)
+{
+	event->acceptProposedAction();
+}
+
+
+void k_ScriptBox::dragMoveEvent(QDragMoveEvent* event)
+{
+	event->acceptProposedAction();
+}
+
+
+void k_ScriptBox::dropEvent(QDropEvent* event)
+{
+	event->accept();
+	foreach (QUrl lk_Url, event->mimeData()->urls())
+	{
+		QString ls_Path = lk_Url.toLocalFile();
+		if (!ls_Path.isEmpty())
+		{
+			if (QFileInfo(ls_Path).isDir())
+			{
+				mk_OutputDirectory.setText(ls_Path);
+				emit outputDirectoryChanged();
+			}
+		}
+	}
+}
+
+
+Qt::DropActions k_ScriptBox::supportedDropActions() const
+{
+	return Qt::ActionMask;
 }

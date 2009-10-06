@@ -1503,3 +1503,58 @@ QSet<IScriptBox*> k_Desktop::incomingScriptBoxes(IDesktopBox* ak_Box_) const
 	}
 	return lk_Result;
 }
+
+
+void k_Desktop::dragEnterEvent(QDragEnterEvent* event)
+{
+	event->acceptProposedAction();
+}
+
+
+void k_Desktop::dragMoveEvent(QDragMoveEvent* event)
+{
+	if (!boxAt(mapToScene(event->pos())))
+		event->acceptProposedAction();
+	else
+		QGraphicsView::dragMoveEvent(event);
+}
+
+
+void k_Desktop::dropEvent(QDropEvent* event)
+{
+	// only accept this if there is no box under the mouse pointer
+	if (boxAt(mapToScene(event->pos())))
+	{
+		QGraphicsView::dropEvent(event);
+		return;
+	}
+	event->accept();
+	QStringList lk_Files;
+	foreach (QUrl lk_Url, event->mimeData()->urls())
+	{
+		QString ls_Path = lk_Url.toLocalFile();
+		if (!ls_Path.isEmpty())
+		{
+			if (QFileInfo(ls_Path).isFile())
+				lk_Files << ls_Path;
+		}
+	}
+	if (!lk_Files.empty())
+	{
+		k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(addInputFileListBox());
+		if (lk_FileListBox_)
+		{
+			lk_FileListBox_->addPaths(lk_Files);
+			QSize lk_Size = lk_FileListBox_->size();
+			lk_Size.setWidth(lk_Size.width() * 0.5);
+			lk_Size.setHeight(lk_Size.width() * 0.1);
+			lk_FileListBox_->move(mapToScene(event->pos()).toPoint() - QPoint(lk_Size.width(), lk_Size.height()));
+		}
+	}
+}
+
+
+Qt::DropActions k_Desktop::supportedDropActions() const
+{
+	return Qt::ActionMask;
+}

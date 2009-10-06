@@ -84,6 +84,10 @@ signals:
 protected:
 	virtual void setupLayout();
 	virtual void determineOutputDirectoryDefiningInputFile();
+	virtual void dragEnterEvent(QDragEnterEvent* event);
+	virtual void dragMoveEvent(QDragMoveEvent* event);
+	virtual void dropEvent(QDropEvent* event);
+	virtual Qt::DropActions supportedDropActions() const;
 	
 	RefPtr<IScript> mk_pScript;
 	RefPtr<QWidget> mk_pParameterProxyWidget;
