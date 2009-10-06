@@ -55,10 +55,12 @@ void k_InputGroupProxyBox::boxConnectedSlot(IDesktopBox* ak_Other_, bool ab_Inco
 {
 	if (ab_Incoming)
 	{
+		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(batchModeChanged(bool)), this, SLOT(updateBatchMode()));
 		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(ak_Other_);
 		if (lk_FileBox_)
 			mk_FileBoxes.append(lk_FileBox_);
 	}
+	updateBatchMode();
 }
 
 
@@ -66,10 +68,12 @@ void k_InputGroupProxyBox::boxDisconnectedSlot(IDesktopBox* ak_Other_, bool ab_I
 {
 	if (ab_Incoming)
 	{
+		disconnect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(batchModeChanged(bool)), this, SLOT(updateBatchMode()));
 		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(ak_Other_);
 		if (lk_FileBox_)
 			mk_FileBoxes.removeOne(lk_FileBox_);
 	}
+	updateBatchMode();
 }
 
 
@@ -80,4 +84,22 @@ void k_InputGroupProxyBox::setupLayout()
 
 	QLabel* lk_Label_ = new k_UnclickableLabel(ms_Label, this);
 	lk_Layout_->addWidget(lk_Label_);
+}
+
+
+void k_InputGroupProxyBox::updateBatchMode()
+{
+	// batch mode this box if at least one incoming box is in batch mode
+	bool lb_BatchMode = false;
+	// converter scripts never go into batch mode! 
+	// in converter script, batch mode goes into you!!
+	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+	{
+		if (lk_Box_->batchMode())
+		{
+			lb_BatchMode = true;
+			break;
+		}
+	}
+	setBatchMode(lb_BatchMode);
 }

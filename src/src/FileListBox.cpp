@@ -56,6 +56,9 @@ QString k_FileListBox::tagForFilename(const QString& as_Filename) const
 
 QStringList k_FileListBox::filenamesForTag(const QString& as_Tag) const
 {
+	if (!batchMode())
+		return mk_FileList.files();
+	
 	if (mk_FilenamesForTag.contains(as_Tag))
 		return mk_FilenamesForTag[as_Tag];
 	else

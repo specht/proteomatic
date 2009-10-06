@@ -45,6 +45,7 @@ signals:
 protected slots:
 	virtual void boxConnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void boxDisconnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
+	virtual void updateBatchMode();
 	
 protected:
 	virtual void setupLayout();

@@ -106,25 +106,38 @@ QStringList k_ScriptBox::iterationKeys()
 	
 	QStringList lk_AllTags;
 	// combine files from all batch mode input file list boxes
+	QSet<IFileBox*> lk_FileBoxes;
 	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
 	{
-		if (lk_Box_->batchMode())
+		QStringList lk_Tags;
+		IFileBox* lk_SourceBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+		if (lk_SourceBox_ && lk_Box_->batchMode())
+			lk_FileBoxes << lk_SourceBox_;
+		else
 		{
-			QStringList lk_Tags;
-			IFileBox* lk_SourceBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-			foreach (QString ls_Path, lk_SourceBox_->filenames())
+			k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
+			if (lk_ProxyBox_ && lk_ProxyBox_->batchMode())
 			{
-				QString ls_Tag = lk_SourceBox_->tagForFilename(ls_Path);
-				lk_Tags.append(ls_Tag);
+				foreach (IFileBox* lk_FileBox_, lk_ProxyBox_->fileBoxes())
+					lk_FileBoxes << lk_FileBox_;
 			}
-			qSort(lk_Tags.begin(), lk_Tags.end());
-			if (lk_AllTags.empty())
-				lk_AllTags = lk_Tags;
-			if (lk_Tags != lk_AllTags)
-			{
-				printf("Ooops, incoming file batches cannot be matched!!!\n");
-				return QStringList();
-			}
+		}
+	}
+	foreach (IFileBox* lk_FileBox_, lk_FileBoxes)
+	{
+		QStringList lk_Tags;
+		foreach (QString ls_Path, lk_FileBox_->filenames())
+		{
+			QString ls_Tag = lk_FileBox_->tagForFilename(ls_Path);
+			lk_Tags.append(ls_Tag);
+		}
+		qSort(lk_Tags.begin(), lk_Tags.end());
+		if (lk_AllTags.empty())
+			lk_AllTags = lk_Tags;
+		if (lk_Tags != lk_AllTags)
+		{
+			printf("Ooops, incoming file batches cannot be matched!!!\n");
+			return QStringList();
 		}
 	}
 	return lk_AllTags;
@@ -312,22 +325,32 @@ void k_ScriptBox::updateOutputFilenames()
 		foreach (QString ls_Key, mk_OutputFileBoxes.keys())
 		{
 			k_OutFileListBox* lk_OutBox_ = dynamic_cast<k_OutFileListBox*>(mk_OutputFileBoxes[ls_Key]);
-			QStringList lk_Filenames;
-			// combine files from all batch mode input file list boxes
+			QSet<IFileBox*> lk_FileBoxes;
 			foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
 			{
-				if (lk_Box_->batchMode())
+				IFileBox* lk_SourceBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+				if (lk_SourceBox_ && lk_Box_->batchMode())
+					lk_FileBoxes << lk_SourceBox_;
+				else
 				{
-					IFileBox* lk_SourceBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-					foreach (QString ls_Path, lk_SourceBox_->filenames())
-					{
-						QString ls_OutFilename = mk_pScript->outputFileDetails(ls_Key)["filename"];
-						QString ls_Suffix = QFileInfo(ls_OutFilename).completeSuffix();
-						ls_OutFilename.remove(ls_OutFilename.length() - ls_Suffix.length() - 1, ls_Suffix.length() + 1);
-						QString ls_OutPath = mk_Prefix.text() + lk_SourceBox_->tagForFilename(ls_Path) + "-" + ls_OutFilename + "." + ls_Suffix;
-						ls_OutPath = ls_OutPath;
-						lk_Filenames.append(QFileInfo(QDir(outputDirectory()), ls_OutPath).absoluteFilePath());
-					}
+					k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
+					if (lk_ProxyBox_ && lk_ProxyBox_->batchMode())
+						foreach (IFileBox* lk_FileBox_, lk_ProxyBox_->fileBoxes())
+							lk_FileBoxes << lk_FileBox_;
+				}
+			}
+			QStringList lk_Filenames;
+			// combine files from all batch mode input file list boxes
+			foreach (IFileBox* lk_FileBox_, lk_FileBoxes)
+			{
+				foreach (QString ls_Path, lk_FileBox_->filenames())
+				{
+					QString ls_OutFilename = mk_pScript->outputFileDetails(ls_Key)["filename"];
+					QString ls_Suffix = QFileInfo(ls_OutFilename).completeSuffix();
+					ls_OutFilename.remove(ls_OutFilename.length() - ls_Suffix.length() - 1, ls_Suffix.length() + 1);
+					QString ls_OutPath = mk_Prefix.text() + lk_FileBox_->tagForFilename(ls_Path) + "-" + ls_OutFilename + "." + ls_Suffix;
+					ls_OutPath = ls_OutPath;
+					lk_Filenames.append(QFileInfo(QDir(outputDirectory()), ls_OutPath).absoluteFilePath());
 				}
 			}
 			lk_OutBox_->setFilenames(lk_Filenames);
@@ -504,7 +527,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 		lk_Parameters["-outputDirectory"] = this->outputDirectory();
 
 	// set output prefix
-	lk_Parameters["-outputPrefix"] = /*mk_Desktop_->pipelineMainWindow().outputPrefix() + */mk_Prefix.text();
+	lk_Parameters["-outputPrefix"] = mk_Prefix.text() + as_IterationKey + (as_IterationKey.isEmpty() ? "" : "-");
 	
 	// set output files
 	foreach (QString ls_Key, mk_pScript->outputFileKeys())

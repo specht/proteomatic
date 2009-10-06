@@ -934,7 +934,8 @@ void k_Desktop::updateArrow(QGraphicsPathItem* ak_Arrow_)
 	
 	QPen lk_Pen(TANGO_ALUMINIUM_3);
 	QBrush lk_Brush(TANGO_ALUMINIUM_3);
-	if ((dynamic_cast<IFileBox*>(lk_ArrowStartBox_)) && lk_ArrowStartBox_->batchMode())
+	if (((dynamic_cast<IFileBox*>(lk_ArrowStartBox_)) && lk_ArrowStartBox_->batchMode()) ||
+		((dynamic_cast<k_InputGroupProxyBox*>(lk_ArrowStartBox_)) && lk_ArrowStartBox_->batchMode()))
 	{
 		lk_Pen = QPen(TANGO_BUTTER_2);
 		lk_Brush = QBrush(TANGO_BUTTER_2);
@@ -1050,12 +1051,15 @@ void k_Desktop::redrawBatchFrame(bool ab_DontCallOthers)
 		if (lk_Box_ == mk_CurrentScriptBox_)
 			li_Grow += 4;
 		lk_Path = lk_Path.united(grownPathForBox(lk_Box_, li_Grow));
-		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-		if (lk_FileBox_)
+		bool lb_FirstIsFileBox = dynamic_cast<IFileBox*>(lk_Box_);
+		bool lb_FirstIsProxyBox = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
+		if (lb_FirstIsFileBox || lb_FirstIsProxyBox)
 		{
 			foreach (IDesktopBox* lk_PeerBox_, lk_Box_->outgoingBoxes())
 			{
-				if (!dynamic_cast<IScriptBox*>(lk_PeerBox_))
+				bool lb_SecondIsScriptBox = dynamic_cast<IScriptBox*>(lk_PeerBox_);
+				bool lb_SecondIsProxyBox = dynamic_cast<k_InputGroupProxyBox*>(lk_PeerBox_);
+				if (!(lb_SecondIsScriptBox || lb_SecondIsProxyBox))
 					continue;
 				QPointF p0 = boxLocation(lk_Box_);
 				QPointF p1 = boxLocation(lk_PeerBox_);
