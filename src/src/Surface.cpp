@@ -545,10 +545,10 @@ bool k_Surface::createConnection()
 {
 
 	mk_Database = QSqlDatabase::addDatabase("QMYSQL");
-	mk_Database.setHostName("localhost");
+	mk_Database.setHostName("peaks.uni-muenster.de");
 	mk_Database.setDatabaseName("filetracker");
-	mk_Database.setUserName("test");
-	mk_Database.setPassword("test");
+	mk_Database.setUserName("akhippler");
+	mk_Database.setPassword("chlamy09");
 	mk_Database.setPort(3306);
 
 	
@@ -593,10 +593,3 @@ void k_Surface::focusFile(QString as_Path)
 	}
 
 }
-
-/*
-QFont& k_Surface::consoleFont()
-{
-	return mk_ConsoleFont;
-}
-*/

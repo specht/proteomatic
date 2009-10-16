@@ -111,7 +111,6 @@ protected:
 	
 	QSqlDatabase mk_Database;
 	QHash<QGraphicsItem*, r_NodeInfo> mk_NodeInfoHash;
-	QFont mk_ConsoleFont;
 	QPainterPath mk_CurvePath;
 	double md_NodeHeight;
 };

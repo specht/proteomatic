@@ -45,7 +45,6 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 {
 	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
-	//connect(&ak_Parent_->pipelineMainWindow(), SIGNAL(outputPrefixChanged(const QString&)), this, SLOT(updateOutputFilenames()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(readyRead()), this, SIGNAL(readyRead()));
@@ -269,10 +268,8 @@ void k_ScriptBox::handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming
 			mk_Checkboxes[ls_Key]->setChecked(Qt::Unchecked);
 	}
 	updateBatchMode();
-	if (mk_pScript->type() == r_ScriptType::Converter)
-		updateOutputFilenames();
-	else
-		updateOutputDirectory();
+	updateOutputFilenames();
+	updateOutputDirectory();
 	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -304,6 +301,7 @@ void k_ScriptBox::updateBatchMode()
 			lk_OutFileListBox_->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
 	}
 	
+	updateOutputDirectory();
 	updateOutputFilenames();
 	mk_Desktop_->setHasUnsavedChanges(true);
 }

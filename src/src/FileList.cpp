@@ -387,6 +387,6 @@ void k_FileList::openContainingDirectory(QListWidgetItem* ak_Item_)
 		return;
 
 	QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
-	if (QFileInfo(ls_Path).exists())
+	if (QFileInfo(QFileInfo(ls_Path).absolutePath()).isDir())
 		k_Proteomatic::openFileLink(QFileInfo(ls_Path).absolutePath());
 }
