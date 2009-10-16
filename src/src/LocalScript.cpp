@@ -39,11 +39,19 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 	lk_File.open(QIODevice::ReadOnly);
 	QString ls_Marker;
 	QTextStream lk_Stream(&lk_File);
-	while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#")))
+	bool lb_SeenProteomatic = false;
+	while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#") || ls_Marker.startsWith("//") || ls_Marker.startsWith("<?")))
+	{
 		ls_Marker = lk_Stream.readLine().trimmed();
+		if (ls_Marker.toLower().contains("proteomatic"))
+		{
+			lb_SeenProteomatic = true;
+			break;
+		}
+	}
 	lk_File.close();
 		
-	if (ls_Marker == "require 'include/proteomatic'" || ls_Marker == "require \"include/proteomatic\"")
+	if (lb_SeenProteomatic)
 	{
 		QString ls_Response;
 		bool lb_UseCache = mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && mk_Proteomatic.fileUpToDate(ls_CacheFilename, QStringList() << as_ScriptPath);
@@ -73,7 +81,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 		}
 		else
 		{
-			ls_Response = mk_Proteomatic.syncRuby(QStringList() << as_ScriptPath << "---getParameters");
+			ls_Response = mk_Proteomatic.syncScript(QStringList() << as_ScriptPath << "---getParameters");
 			if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
 			{
 				// update cached information
@@ -106,7 +114,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 					RefPtr<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(mk_Proteomatic, QStringList() << as_ScriptPath << "--resolveDependencies", "Installing external tools", ":/icons/package-x-generic.png"));
 					lk_pRubyWindow->exec();
 					// retry loading the script
-					ls_Response = mk_Proteomatic.syncRuby(QStringList() << as_ScriptPath << "---getParameters");
+					ls_Response = mk_Proteomatic.syncScript(QStringList() << as_ScriptPath << "---getParameters");
 					if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
 					{
 						// update cached information
@@ -156,7 +164,7 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
 		lk_AdditionalParameters << "--useFileTracker";
 		lk_AdditionalParameters << mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString();
 	}
-	mk_Process.start(mk_Proteomatic.getConfiguration(CONFIG_PATH_TO_RUBY).toString(), (QStringList() << this->uri()) + commandLineArguments() + lk_AdditionalParameters + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	mk_Process.start(mk_Proteomatic.interpreterForScript(this->uri()), (QStringList() << this->uri()) + commandLineArguments() + lk_AdditionalParameters + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
 	return QString();
 }
 

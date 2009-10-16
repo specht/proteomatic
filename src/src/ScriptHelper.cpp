@@ -41,6 +41,7 @@ k_ScriptHelper::k_ScriptHelper(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mk_ProgressDialog_(NULL)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
+	setAcceptDrops(true);
 	connect(&mk_Proteomatic, SIGNAL(remoteHubLineBatch(QStringList)), this, SLOT(remoteHubLineBatch(QStringList)));
 	connect(&mk_Proteomatic, SIGNAL(remoteHubRequestFinished(int, bool, QString)), this, SLOT(remoteHubRequestFinished(int, bool, QString)));
 	setWindowIcon(QIcon(":/icons/proteomatic.png"));
@@ -252,13 +253,21 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 	foreach (QUrl lk_Url, ak_Event_->mimeData()->urls())
 	{
 		QString ls_Path = lk_Url.toLocalFile();
-		if (ls_Path != "" && mk_pScript)
+		QFileInfo lk_FileInfo(ls_Path);
+		if (!ls_Path.isEmpty())
 		{
-			QFileInfo lk_FileInfo(ls_Path);
-			if (lk_FileInfo.isDir())
+			if (mk_pScript)
 			{
-				if (mk_pScript)
-					mk_pScript->setOutputDirectory(ls_Path);
+				if (lk_FileInfo.isDir())
+				{
+					if (mk_pScript)
+						mk_pScript->setOutputDirectory(ls_Path);
+				}
+			}
+			if (lk_FileInfo.isFile())
+			{
+				if (!mk_Proteomatic.interpreterForScript(ls_Path).isEmpty())
+					setScript(ls_Path);
 			}
 		}
 	}
@@ -389,8 +398,6 @@ void k_ScriptHelper::activateScript()
 			connect(lk_LocalScript_, SIGNAL(scriptFinished(int)), this, SLOT(processFinished(int)));
 			connect(lk_LocalScript_, SIGNAL(readyRead()), this, SLOT(processReadyRead()));
 		}
-	
-		setAcceptDrops(true);
 	}
 	else
 		mk_pScript = RefPtr<IScript>(NULL);
@@ -488,8 +495,6 @@ void k_ScriptHelper::addOutput(QString as_Text)
 
 void k_ScriptHelper::reset()
 {
-	setAcceptDrops(false);
-
 	mk_pScript = RefPtr<IScript>(NULL);
 	mk_pProfileManager = RefPtr<k_ProfileManager>(NULL);
 	
