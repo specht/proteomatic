@@ -38,10 +38,49 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
 	, mb_IncludeOutputFiles(ab_IncludeOutputFiles)
 	, mb_ProfileMode(ab_ProfileMode)
 	, mb_IsGood(false)
-	, ms_Title(ak_Proteomatic.scriptInfo(as_ScriptUri, "title"))
-	, ms_Description(ak_Proteomatic.scriptInfo(as_ScriptUri, "description"))
+	, ms_Title(QString())
+	, ms_Description(QString())
 	, mb_HasParameters(false)
 {
+	if (mk_Proteomatic.hasScriptInfo(ms_Uri))
+	{
+		// if this script is from the scripts menu, title and description are
+		// already known
+		ms_Title = mk_Proteomatic.scriptInfo(ms_Uri, "title");
+		ms_Description = mk_Proteomatic.scriptInfo(ms_Uri, "description");
+	}
+	else
+	{
+		// retrieve script info (title, description)
+		QProcess lk_QueryProcess;
+		QFileInfo lk_FileInfo(ms_Uri);
+		lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+		QStringList lk_Arguments;
+		lk_Arguments << ms_Uri << "---info";
+		lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+		
+		lk_QueryProcess.start(mk_Proteomatic.interpreterForScript(ms_Uri), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+		if (lk_QueryProcess.waitForFinished())
+		{
+			QString ls_Response = lk_QueryProcess.readAll();
+			if (ls_Response.length() > 0)
+			{
+				QStringList lk_Response = ls_Response.split(QChar('\n'));
+				if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---info")
+				{
+					ms_Title = lk_Response.takeFirst().trimmed();
+					QString ls_Group = lk_Response.takeFirst().trimmed();
+					ms_Description = "";
+					while (!lk_Response.empty())
+					{
+						if (!ms_Description.isEmpty())
+							ms_Description += "\n";
+						ms_Description += lk_Response.takeFirst().trimmed();
+					}
+				}
+			}
+		}
+	}
 }
 
 

@@ -25,6 +25,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Yaml.h"
 
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
+#define CONFIG_PATH_TO_PYTHON "pathToPython"
+#define CONFIG_PATH_TO_PHP "pathToPhp"
 #define CONFIG_REMOTE_SCRIPTS "remoteScripts"
 #define CONFIG_PROFILES "profiles"
 #define CONFIG_REMEMBER_PROFILE_PATH "rememberProfilePath"
@@ -94,11 +96,14 @@ public:
 	
 	void checkForUpdates();
 
+	QString interpreterForScript(QString as_Path);
 	QStringList availableScripts();
 	QHash<QString, QString> scriptInfo(QString as_ScriptPath);
 	QString scriptInfo(QString as_ScriptPath, QString as_Key);
+	bool hasScriptInfo(QString as_ScriptPath);
 	QMenu* proteomaticScriptsMenu() const;
 	QString syncRuby(QStringList ak_Arguments);
+	QString syncScript(QStringList ak_Arguments);
 	QString syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
 	QString rubyPath();
 	QString version();
@@ -112,7 +117,7 @@ public:
 	QWidget* messageBoxParent() const;
 	int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);
 	QFont& consoleFont();
-	QString scriptPath() const;
+	QStringList scriptPaths() const;
 	QString scriptPathAndPackage() const;
 	QVariant getConfiguration(QString as_Key);
 	tk_YamlMap& getConfigurationRoot();
@@ -165,7 +170,7 @@ protected:
 	QString ms_RemoteHubStdout;
 	RefPtr<QHttp> mk_pRemoteHubHttp;
 	QFont mk_ConsoleFont;
-	QString ms_ScriptPath;
+	QStringList mk_ScriptPaths;
 	QString ms_ConfigurationPath;
 	QString ms_ScriptPackage;
 	

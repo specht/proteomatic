@@ -37,7 +37,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
 	, mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
-	, ms_ScriptPath(ak_Application.applicationDirPath() + "/scripts")
+	, mk_ScriptPaths(QStringList() << ak_Application.applicationDirPath() + "/scripts")
 	, ms_ConfigurationPath(ak_Application.applicationDirPath() + "/proteomatic.conf.yaml")
 {
 	mk_pStartButton = RefPtr<QToolButton>(new QToolButton(NULL));
@@ -128,7 +128,7 @@ void k_Proteomatic::checkForUpdates()
 			ls_Result.replace("CURRENT-VERSION:", "");
 			QString ls_LatestVersion = ls_Result.replace(".tar.bz2", "").trimmed();
 			QString ls_Version = ls_Result.replace(".tar.bz2", "").replace("proteomatic-scripts-", "").trimmed();
-			QStringList lk_AvailableVersions = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
+			QStringList lk_AvailableVersions = QDir(mk_ScriptPaths.first()).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
 			QString ls_InstalledVersion = ms_ScriptPackage;
 			ls_InstalledVersion.replace("proteomatic-scripts-", "").trimmed();
 			if (ls_Version != ls_InstalledVersion)
@@ -139,14 +139,14 @@ void k_Proteomatic::checkForUpdates()
 					":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
 				{
 					QStringList lk_Arguments;
-					lk_Arguments = QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << ms_ScriptPath;
+					lk_Arguments = QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << mk_ScriptPaths.first();
 					if (!ms_ScriptPackage.isEmpty())
-						lk_Arguments << "--oldpath" << ms_ScriptPath + "/" + ms_ScriptPackage;
+						lk_Arguments << "--oldpath" << mk_ScriptPaths.first() + "/" + ms_ScriptPackage;
 					k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
 					lk_RubyWindow.exec();
 					
 					ms_ScriptPackage = ls_LatestVersion;
-					QFile lk_File(ms_ScriptPath + "/which.txt");
+					QFile lk_File(mk_ScriptPaths.first() + "/which.txt");
 					lk_File.open(QIODevice::WriteOnly);
 					QTextStream lk_Stream(&lk_File);
 					lk_Stream << ms_ScriptPackage;
@@ -166,6 +166,20 @@ void k_Proteomatic::checkForUpdates()
 }
 
 
+QString k_Proteomatic::interpreterForScript(QString as_Path)
+{
+	QString ls_Suffix = QFileInfo(as_Path).suffix().toLower();
+	if (ls_Suffix == "rb")
+		return mk_Configuration[CONFIG_PATH_TO_RUBY].toString();
+	else if (ls_Suffix == "py")
+		return mk_Configuration[CONFIG_PATH_TO_PYTHON].toString();
+	else if (ls_Suffix.startsWith("php"))
+		return mk_Configuration[CONFIG_PATH_TO_PHP].toString();
+	
+	return QString();
+}
+
+
 QStringList k_Proteomatic::availableScripts()
 {
 	return mk_ScriptInfo.keys();
@@ -175,6 +189,12 @@ QStringList k_Proteomatic::availableScripts()
 QHash<QString, QString> k_Proteomatic::scriptInfo(QString as_ScriptPath)
 {
 	return mk_ScriptInfo[as_ScriptPath];
+}
+
+
+bool k_Proteomatic::hasScriptInfo(QString as_ScriptPath)
+{
+	return mk_ScriptInfo.contains(as_ScriptPath);
 }
 
 
@@ -198,6 +218,21 @@ QString k_Proteomatic::syncRuby(QStringList ak_Arguments)
 	lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
 	lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
 	lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	if (lk_QueryProcess.waitForFinished())
+		return lk_QueryProcess.readAll();
+	else
+		return QString();
+}
+
+
+QString k_Proteomatic::syncScript(QStringList ak_Arguments)
+{
+	QProcess lk_QueryProcess;
+
+	QFileInfo lk_FileInfo(ak_Arguments.first());
+	lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+	lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+	lk_QueryProcess.start(interpreterForScript(ak_Arguments.first()), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 	if (lk_QueryProcess.waitForFinished())
 		return lk_QueryProcess.readAll();
 	else
@@ -236,6 +271,16 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_PATH_TO_RUBY] = "ruby";
 		lb_InsertedDefaultValue = true;
 	}
+	if (!mk_Configuration.contains(CONFIG_PATH_TO_PYTHON) || mk_Configuration[CONFIG_PATH_TO_PYTHON].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_PATH_TO_PYTHON] = "python";
+		lb_InsertedDefaultValue = true;
+	}
+	if (!mk_Configuration.contains(CONFIG_PATH_TO_PHP) || mk_Configuration[CONFIG_PATH_TO_PHP].type() != QVariant::String)
+	{
+		mk_Configuration[CONFIG_PATH_TO_PHP] = "php";
+		lb_InsertedDefaultValue = true;
+	}
 	if (!mk_Configuration.contains(CONFIG_REMOTE_SCRIPTS) || mk_Configuration[CONFIG_REMOTE_SCRIPTS].type() != QVariant::List)
 	{
 		mk_Configuration[CONFIG_REMOTE_SCRIPTS] = QList<QVariant>();
@@ -271,11 +316,16 @@ void k_Proteomatic::loadConfiguration()
 		mk_Configuration[CONFIG_SCRIPTS_URL] = "ftp://gpf.uni-muenster.de/download/proteomatic-scripts";
 		lb_InsertedDefaultValue = true;
 	}
-	if (!mk_Configuration.contains(CONFIG_SCRIPTS_PATH) || mk_Configuration[CONFIG_SCRIPTS_PATH].type() != QVariant::String)
+	if (mk_Configuration.contains(CONFIG_SCRIPTS_PATH) && (mk_Configuration[CONFIG_SCRIPTS_PATH].type() != QVariant::List))
 	{
-		mk_Configuration[CONFIG_SCRIPTS_PATH] = "";
+		// if a single script path is defined as a string, upgrade to string array!
+		tk_YamlSequence lk_Paths;
+		if (mk_Configuration[CONFIG_SCRIPTS_PATH].type() == QVariant::String)
+			lk_Paths << mk_Configuration[CONFIG_SCRIPTS_PATH].toString();
+		mk_Configuration[CONFIG_SCRIPTS_PATH] = lk_Paths;
 		lb_InsertedDefaultValue = true;
 	}
+	
 	if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
 	{
 		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
@@ -292,8 +342,12 @@ void k_Proteomatic::loadConfiguration()
 		lb_InsertedDefaultValue = true;
 	}
 	
-	if (!mk_Configuration[CONFIG_SCRIPTS_PATH].toString().isEmpty())
-		ms_ScriptPath = mk_Configuration[CONFIG_SCRIPTS_PATH].toString();
+	if (!mk_Configuration[CONFIG_SCRIPTS_PATH].toList().empty())
+	{
+		mk_ScriptPaths = QStringList();
+		foreach (QVariant lk_Variant, mk_Configuration[CONFIG_SCRIPTS_PATH].toList())
+			mk_ScriptPaths << lk_Variant.toString();
+	}
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)
@@ -307,124 +361,139 @@ void k_Proteomatic::loadConfiguration()
 void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 {
 	mk_ScriptInfo.clear();
-	QDir lk_Dir(ms_ScriptPath + "/" + ms_ScriptPackage);
-	QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb", QDir::Files);
-	QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size(), mk_MessageBoxParent_);
-	lk_ProgressDialog.setCancelButton(0);
-	lk_ProgressDialog.setWindowTitle("Proteomatic");
-	lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
-	lk_ProgressDialog.setMinimumDuration(ab_ShowImmediately ? 0 : 2000);
-	if (ab_ShowImmediately)
-		lk_ProgressDialog.show();
-	int li_Count = 0;
-	foreach (QString ls_Path, lk_Scripts)
+	foreach (QString ls_ScriptPath, mk_ScriptPaths)
 	{
-		mk_Application.processEvents();
-		++li_Count;
-		lk_ProgressDialog.setValue(li_Count);
-		if (ls_Path.contains(".defunct."))
-			continue;
-		ls_Path = lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
-		QString ls_Title = "";
-		QString ls_Group = "";
-		QString ls_Description = "";
-
-		QFile lk_File(ls_Path);
-		lk_File.open(QIODevice::ReadOnly);
-		QString ls_Marker;
-		QTextStream lk_Stream(&lk_File);
-		while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#")))
-			ls_Marker = lk_Stream.readLine().trimmed();
-		lk_File.close();
-			
-		if (ls_Marker == "require 'include/proteomatic'" || ls_Marker == "require \"include/proteomatic\"")
+		QString ls_Path = ls_ScriptPath;
+		if (ls_ScriptPath == mk_ScriptPaths.first())
+			ls_Path += "/" + ms_ScriptPackage;
+		QDir lk_Dir(ls_Path);
+		QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb" << "*.py" << "*.php" << "*.php5" << "*.php4", QDir::Files);
+		QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size(), mk_MessageBoxParent_);
+		lk_ProgressDialog.setCancelButton(0);
+		lk_ProgressDialog.setWindowTitle("Proteomatic");
+		lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
+		lk_ProgressDialog.setMinimumDuration(ab_ShowImmediately ? 0 : 2000);
+		if (ab_ShowImmediately)
+			lk_ProgressDialog.show();
+		int li_Count = 0;
+		foreach (QString ls_Path, lk_Scripts)
 		{
-			if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists("cache")))
-			{
-				QDir lk_Dir;
-				lk_Dir.mkdir("cache");
-			}
+			mk_Application.processEvents();
+			++li_Count;
+			lk_ProgressDialog.setValue(li_Count);
+			if (ls_Path.contains(".defunct."))
+				continue;
+			ls_Path = lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
+			QString ls_Title = "";
+			QString ls_Group = "";
+			QString ls_Description = "";
 
-			QFileInfo lk_FileInfo(ls_Path);
-			QString ls_Response;
-			QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
-			bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
-			
-			// disable cache if we're in develop!
-			if (version() == "develop")
-			  lb_UseCache = false;
-			  
-			if (lb_UseCache)
+			QFile lk_File(ls_Path);
+			lk_File.open(QIODevice::ReadOnly);
+			QString ls_Marker;
+			QTextStream lk_Stream(&lk_File);
+			bool lb_SeenProteomatic = false;
+			while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#") || ls_Marker.startsWith("//") || ls_Marker.startsWith("<?")))
 			{
-				// see if cached info showed no errors or unresolved dependencies
-				QFile lk_File(ls_CacheFilename);
-				lk_File.open(QIODevice::ReadOnly);
-				QTextStream lk_Stream(&lk_File);
-				QString ls_Line = lk_Stream.readLine().trimmed();
-				if (ls_Line != "---info")
-					lb_UseCache = false;
-			}
-			if (lb_UseCache)
-			{
-				// re-use cached information
-				QFile lk_File(ls_CacheFilename);
-				if (lk_File.open(QIODevice::ReadOnly))
+				ls_Marker = lk_Stream.readLine().trimmed();
+				if (ls_Marker.toLower().contains("proteomatic"))
 				{
-					ls_Response = lk_File.readAll();
-					lk_File.close();
+					lb_SeenProteomatic = true;
+					break;
 				}
 			}
-			else
+			lk_File.close();
+				
+			if (lb_SeenProteomatic)
 			{
-				// retrieve information from script
-				QProcess lk_QueryProcess;
-				lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
-				QStringList lk_Arguments;
-				lk_Arguments << ls_Path << "---info";
-				lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-				lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
-				if (lk_QueryProcess.waitForFinished())
+				if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists("cache")))
 				{
-					ls_Response = lk_QueryProcess.readAll();
-					if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
+					QDir lk_Dir;
+					lk_Dir.mkdir("cache");
+				}
+
+				QFileInfo lk_FileInfo(ls_Path);
+				QString ls_Response;
+				QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
+				bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
+				
+				// disable cache if we're in develop!
+				if (version() == "develop")
+					lb_UseCache = false;
+				
+				if (lb_UseCache)
+				{
+					// see if cached info showed no errors or unresolved dependencies
+					QFile lk_File(ls_CacheFilename);
+					lk_File.open(QIODevice::ReadOnly);
+					QTextStream lk_Stream(&lk_File);
+					QString ls_Line = lk_Stream.readLine().trimmed();
+					if (ls_Line != "---info")
+						lb_UseCache = false;
+				}
+				if (lb_UseCache)
+				{
+					// re-use cached information
+					QFile lk_File(ls_CacheFilename);
+					if (lk_File.open(QIODevice::ReadOnly))
 					{
-						// update cached information
-						QFile lk_File(ls_CacheFilename);
-						if (lk_File.open(QIODevice::WriteOnly))
+						ls_Response = lk_File.readAll();
+						lk_File.close();
+					}
+				}
+				else
+				{
+					// retrieve information from script
+					QProcess lk_QueryProcess;
+					lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+					QStringList lk_Arguments;
+					lk_Arguments << ls_Path << "---info";
+					lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+					
+					lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+					if (lk_QueryProcess.waitForFinished())
+					{
+						ls_Response = lk_QueryProcess.readAll();
+						if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
 						{
-							QTextStream lk_Stream(&lk_File);
-							lk_Stream << ls_Response;
-							lk_Stream.flush();
-							lk_File.close();
+							// update cached information
+							QFile lk_File(ls_CacheFilename);
+							if (lk_File.open(QIODevice::WriteOnly))
+							{
+								QTextStream lk_Stream(&lk_File);
+								lk_Stream << ls_Response;
+								lk_Stream.flush();
+								lk_File.close();
+							}
+						}
+					}
+				}
+				if (ls_Response.length() > 0)
+				{
+					QStringList lk_Response = ls_Response.split(QChar('\n'));
+					if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---info")
+					{
+						ls_Title = lk_Response.takeFirst().trimmed();
+						ls_Group = lk_Response.takeFirst().trimmed();
+						while (!lk_Response.empty())
+						{
+							if (!ls_Description.isEmpty())
+								ls_Description += "\n";
+							ls_Description += lk_Response.takeFirst().trimmed();
 						}
 					}
 				}
 			}
-			if (ls_Response.length() > 0)
-			{
-				QStringList lk_Response = ls_Response.split(QChar('\n'));
-				if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---info")
-				{
-					ls_Title = lk_Response.takeFirst().trimmed();
-					ls_Group = lk_Response.takeFirst().trimmed();
-					while (!lk_Response.empty())
-					{
-						if (!ls_Description.isEmpty())
-							ls_Description += "\n";
-						ls_Description += lk_Response.takeFirst().trimmed();
-					}
-				}
-			}
-		}
 
-		if (ls_Title.length() > 0)
-		{
-			QHash<QString, QString> lk_Script;
-			lk_Script["title"] = ls_Title;
-			lk_Script["group"] = ls_Group;
-			lk_Script["description"] = ls_Description;
-			lk_Script["uri"] = ls_Path;
-			mk_ScriptInfo.insert(ls_Path, lk_Script);
+			if (ls_Title.length() > 0)
+			{
+				QHash<QString, QString> lk_Script;
+				lk_Script["title"] = ls_Title;
+				lk_Script["group"] = ls_Group;
+				lk_Script["description"] = ls_Description;
+				lk_Script["uri"] = ls_Path;
+				mk_ScriptInfo.insert(ls_Path, lk_Script);
+			}
 		}
 	}
 }
@@ -494,19 +563,19 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 //     lk_Menu_->addSeparator();
 //    	lk_Menu_->addMenu(mk_RemoteMenu_);
 
-	mk_pProteomaticScriptsMenu = RefPtr<QMenu>(lk_Menu_);
-	emit scriptMenuChanged();
-
-	ms_RemoteHubStdout = "";
-	mk_pRemoteHubHttp = RefPtr<QHttp>(NULL);
+ 	mk_pProteomaticScriptsMenu = RefPtr<QMenu>(lk_Menu_);
+ 	emit scriptMenuChanged();
+// 
+// 	ms_RemoteHubStdout = "";
+// 	mk_pRemoteHubHttp = RefPtr<QHttp>(NULL);
 
 	// (re-)start remote hub
-	QFileInfo lk_FileInfo(ms_ScriptPath + "/" + ms_ScriptPackage + "/remote.rb");
+/*	QFileInfo lk_FileInfo(ms_ScriptPath + "/" + ms_ScriptPackage + "/remote.rb");
 	mk_pRemoteHubProcess = RefPtr<QProcess>(new QProcess());
 	connect(mk_pRemoteHubProcess.get_Pointer(), SIGNAL(readyRead()), this, SLOT(remoteHubReadyReadSlot()));
 	mk_pRemoteHubProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
 	mk_pRemoteHubProcess->setProcessChannelMode(QProcess::MergedChannels);
-	mk_pRemoteHubProcess->start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), QStringList() << "remote.rb" << "--hub", QIODevice::ReadOnly | QIODevice::Unbuffered);
+	mk_pRemoteHubProcess->start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), QStringList() << "remote.rb" << "--hub", QIODevice::ReadOnly | QIODevice::Unbuffered);*/
 }
 
 
@@ -529,15 +598,15 @@ QFont& k_Proteomatic::consoleFont()
 }
 
 
-QString k_Proteomatic::scriptPath() const
+QStringList k_Proteomatic::scriptPaths() const
 {
-	return ms_ScriptPath;
+	return mk_ScriptPaths;
 }
 
 
 QString k_Proteomatic::scriptPathAndPackage() const
 {
-	return ms_ScriptPath + "/" + ms_ScriptPackage;
+	return mk_ScriptPaths.first() + "/" + ms_ScriptPackage;
 }
 
 
@@ -972,7 +1041,7 @@ void k_Proteomatic::checkRubySearchDialog()
 QString k_Proteomatic::findCurrentScriptPackage()
 {
 	
-	QStringList lk_Temp = QDir(ms_ScriptPath).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
+	QStringList lk_Temp = QDir(mk_ScriptPaths.first()).entryList(QDir::NoDotAndDotDot | QDir::AllDirs);
 	QStringList lk_AvailableVersions;
 	foreach (QString ls_Path, lk_Temp)
 		if (ls_Path.contains("proteomatic-scripts"))
@@ -982,7 +1051,7 @@ QString k_Proteomatic::findCurrentScriptPackage()
 	else
 	{
 		QString ls_Current;
-		QFile lk_File(ms_ScriptPath + "/which.txt");
+		QFile lk_File(mk_ScriptPaths.first() + "/which.txt");
 		if (lk_File.open(QIODevice::ReadOnly))
 		{
 			QTextStream lk_Stream(&lk_File);
