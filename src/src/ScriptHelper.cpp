@@ -280,7 +280,13 @@ void k_ScriptHelper::keyPressEvent(QKeyEvent* ak_Event_)
 	{
 		if ((ak_Event_->key() == Qt::Key_R) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
 		{
-			mk_Proteomatic.reloadScripts();
+            if ((ak_Event_->modifiers() & Qt::ShiftModifier) != 0)
+            {
+                if (mk_pScript)
+                    setScript(mk_pScript->uri());
+            }
+            else
+                mk_Proteomatic.reloadScripts();
 			return;
 		}
 	}
