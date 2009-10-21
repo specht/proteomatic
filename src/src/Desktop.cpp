@@ -125,7 +125,9 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri)
 		foreach (QString ls_GroupKey, lk_ScriptBox_->script()->ambiguousInputGroups())
 		{
 			QString ls_GroupLabel = lk_ScriptBox_->script()->inputGroupLabel(ls_GroupKey);
-			IDesktopBox* lk_ProxyBox_ = k_DesktopBoxFactory::makeInputGroupProxyBox(this, mk_Proteomatic, ls_GroupLabel, ls_GroupKey);
+            if (ls_GroupLabel.length() > 0)
+                ls_GroupLabel[0] = ls_GroupLabel[0].toUpper();
+			IDesktopBox* lk_ProxyBox_ = k_DesktopBoxFactory::makeInputGroupProxyBox(this, mk_Proteomatic, ls_GroupLabel + " files", ls_GroupKey);
 			if (lk_ProxyBox_)
 			{
 				addBox(lk_ProxyBox_);

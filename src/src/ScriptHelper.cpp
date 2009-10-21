@@ -370,7 +370,9 @@ void k_ScriptHelper::activateScript()
 				if (ls_Key != "")
 					ls_GroupLabel = mk_pScript->inputGroupLabel(ls_Key);
 				
-				QLabel* lk_Label_ = new QLabel("<b>" + ls_GroupLabel + "</b>", mk_pInputFilesContainer.get_Pointer());
+                if (ls_GroupLabel.length() > 0)
+                    ls_GroupLabel[0] = ls_GroupLabel[0].toUpper();
+				QLabel* lk_Label_ = new QLabel("<b>" + ls_GroupLabel + " files</b>", mk_pInputFilesContainer.get_Pointer());
 				lk_VLayout_->addWidget(lk_Label_);
 
 				mk_FileLists[ls_Key] = RefPtr<k_FileList>(new k_FileList(NULL, true, true));
