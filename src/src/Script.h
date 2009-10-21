@@ -132,7 +132,7 @@ protected slots:
 
 protected:
 	void addChoiceItems(QString as_Key, QStringList ak_Choices);
-	void createParameterWidget(QStringList ak_Definition);
+	void createParameterWidget(QString as_Info);
 	void adjustDependentParameters();
 	QStringList commandLineArguments() const;
 

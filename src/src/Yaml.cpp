@@ -39,6 +39,13 @@ QVariant k_Yaml::parseFromFile(QString as_Path)
 }
 
 
+QVariant k_Yaml::parseFromString(QString as_Yaml)
+{
+    k_YamlParser lk_Parser;
+    return lk_Parser.parseFromString(as_Yaml);
+}
+
+
 void k_Yaml::emitToFile(QVariant ak_Node, QString as_Path)
 {
 	k_YamlEmitter lk_Emitter;

@@ -21,7 +21,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "RubyWindow.h"
 #include "Proteomatic.h"
 
-
 k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
 	: k_Script(r_ScriptLocation::Local, as_ScriptPath, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
 {
@@ -81,7 +80,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 		}
 		else
 		{
-			ls_Response = mk_Proteomatic.syncScript(QStringList() << as_ScriptPath << "---getParameters");
+			ls_Response = mk_Proteomatic.syncScript(QStringList() << as_ScriptPath << "---yamlInfo");
 			if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
 			{
 				// update cached information
@@ -95,6 +94,15 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 				}
 			}
 		}
+        if (ls_Response.startsWith("---yamlInfo\n"))
+        {
+            ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
+            createParameterWidget(ls_Response);
+            mk_DefaultConfiguration = configuration();
+            mb_IsGood = true;
+            return;
+        }
+        
 		QStringList lk_Response = ls_Response.split(QChar('\n'));
 		if (!lk_Response.empty())
 		{
@@ -130,13 +138,6 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 					lk_Response = ls_Response.split(QChar('\n'));
 					ls_FirstLine = lk_Response.takeFirst().trimmed();
 				}
-			}
-			
-			if (ls_FirstLine == "---getParameters")
-			{
-				createParameterWidget(lk_Response);
-				mk_DefaultConfiguration = configuration();
-				mb_IsGood = true;
 			}
 		}
 	}
