@@ -824,11 +824,6 @@ void k_Script::resetDialog()
 
 void k_Script::createParameterWidget(QString as_Info)
 {
-    std::basic_istringstream<char> lk_InfoStream(as_Info.toStdString());
-    YAML::Parser lk_Parser(lk_InfoStream);
-    YAML::Node lk_Document;
-    lk_Parser.GetNextDocument(lk_Document);
-
     ms_DefaultOutputDirectory.clear();
 	mk_ProposePrefixList.clear();
 	mk_AmbiguousInputGroups.clear();
@@ -841,72 +836,19 @@ void k_Script::createParameterWidget(QString as_Info)
 	QList<QString> lk_ParametersOrder;
 	QHash<QString, QHash<QString, QString> > lk_Parameters;
 	QHash<QString, QList<QVariant> > lk_ParametersValues;
+    
+    tk_YamlMap lk_Info = k_Yaml::parseFromString(as_Info).toMap();
 
-	QString ls_Parameter;
-    if (lk_Document.GetType() == YAML::CT_MAP)
+    if (lk_Info.contains("info"))
     {
-        const YAML::Node* lk_Node_ = lk_Document.FindValue("info");
-        if (lk_Node_ && lk_Node_->GetType() == YAML::CT_MAP)
+        foreach (QString ls_Key, lk_Info["info"].toMap().keys())
         {
-            for (YAML::Iterator i = lk_Node_->begin(); i != lk_Node_->end(); ++i)
-            {
-                QString ls_Key(static_cast<std::string>(i.first()));
-                QString ls_Value(i.second());
-                mk_Info[ls_Key] = ls_Value;
-                if (ls_Key == "type")
-                    me_Type = (ls_Value == "processor") ? r_ScriptType::Processor : r_ScriptType::Converter;
-            }
-        }
-        lk_Node_ = lk_Document.FindValue("parameters");
-        if (lk_Node_ && lk_Node_->GetType() == YAML::CT_SEQUENCE)
-        {
-            for (YAML::Iterator lk_ParameterNode = lk_Node_->begin(); lk_ParameterNode != lk_Node_->end(); ++lk_ParameterNode)
-            {
-                if ((*lk_ParameterNode).GetType() == YAML::CT_MAP)
-                {
-                    QHash<QString, QString> lk_Parameter;
-                    QList<QVariant> lk_EnumValues;
-                    for (YAML::Iterator lk_Iter = (*lk_ParameterNode).begin(); lk_Iter != (*lk_ParameterNode).end(); ++lk_Iter)
-                    {
-                        std::string ls_Key, ls_Value;
-                        lk_Iter.first() >> ls_Key;
-                        lk_Iter.second() >> ls_Value;
-                    }
-
-/*                    foreach (QString ls_Key, lk_ParameterMap.toMap().keys())
-                    {
-                        if (ls_Key == "choices")
-                            foreach (QVariant lk_Choice, lk_ParameterMap.toMap()[ls_Key].toList())
-                                lk_EnumValues << lk_Choice;
-                        else
-                            lk_Parameter[ls_Key] = lk_ParameterMap.toMap()[ls_Key].toString();
-                    }
-                    if (lk_Parameter["key"].length() > 0)
-                    {
-                        lk_Parameters[lk_Parameter["key"]] = lk_Parameter;
-                        lk_ParametersValues[lk_Parameter["key"]] = lk_EnumValues;
-                        lk_ParametersOrder.push_back(lk_Parameter["key"]);
-                    }
-                    foreach (QVariant lk_Item, lk_ParametersValues[lk_Parameter["key"]])
-                    {
-                        QString ls_Key, ls_Label;
-                        if (lk_Item.canConvert<tk_YamlMap>())
-                        {
-                            ls_Key = lk_Item.toMap().keys().first();
-                            ls_Label = lk_Item.toMap()[ls_Key].toString();
-                        }
-                        else
-                            ls_Key = ls_Label = lk_Item.toString();
-                        
-                        if (!mk_ParameterValueLabels.contains(lk_Parameter["key"]))
-                            mk_ParameterValueLabels[lk_Parameter["key"]] = QHash<QString, QString>();
-                        mk_ParameterValueLabels[lk_Parameter["key"]][ls_Key] = ls_Label;
-                    }*/
-                }
-            }
+            QString ls_Value = lk_Info["info"].toMap()[ls_Key].toString();
+            mk_Info[ls_Key] = ls_Value;
+            if (ls_Key == "type")
+                me_Type = (ls_Value == "processor") ? r_ScriptType::Processor : r_ScriptType::Converter;
         }
     }
-    /*
     if (lk_Info.contains("parameters"))
     {
         foreach (QVariant lk_ParameterMap, lk_Info["parameters"].toList())
@@ -984,7 +926,6 @@ void k_Script::createParameterWidget(QString as_Info)
         foreach (QVariant lk_Item, lk_Info["ambiguousInputGroups"].toList())
             mk_AmbiguousInputGroups << lk_Item.toString();
     }
-    */
 	
 	// TODO: finish this. Right now only leading {...} are stripped but
 	// not taken into account for sorting the parameter groups.

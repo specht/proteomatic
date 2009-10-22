@@ -20,7 +20,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtCore>
-#include <yaml.h>
+#include <Yaml.h>
+#include <yaml-cpp/yaml.h>
 
 
 class k_YamlEmitter
@@ -30,14 +31,12 @@ public:
 	virtual ~k_YamlEmitter();
 	
 	QString emitToString(QVariant ak_Node);
-	void emitToFile(QVariant ak_Node, QString as_Path);
 	
 protected:
 	void emitAny(QVariant ak_Node);
-	void emitSequence(QList<QVariant> ak_Node);
-	void emitMapping(QMap<QString, QVariant> ak_Node);
-
-	yaml_emitter_t mk_Emitter;
-	yaml_event_t mk_Event;
-	bool mb_Error;
+    void emitScalar(QString as_Node);
+	void emitSequence(tk_YamlSequence ak_Node);
+	void emitMap(tk_YamlMap ak_Node);
+    
+    YAML::Emitter mk_Emitter;
 };
