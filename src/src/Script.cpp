@@ -58,29 +58,24 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
 		QFileInfo lk_FileInfo(ms_Uri);
 		lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
 		QStringList lk_Arguments;
-		lk_Arguments << ms_Uri << "---info";
+		lk_Arguments << ms_Uri << "---yamlInfo" << "--short";
 		lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
 		
 		lk_QueryProcess.start(mk_Proteomatic.interpreterForScript(ms_Uri), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 		if (lk_QueryProcess.waitForFinished())
 		{
 			QString ls_Response = lk_QueryProcess.readAll();
-			if (ls_Response.length() > 0)
-			{
-				QStringList lk_Response = ls_Response.split(QChar('\n'));
-				if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---info")
-				{
-					ms_Title = lk_Response.takeFirst().trimmed();
-					QString ls_Group = lk_Response.takeFirst().trimmed();
-					ms_Description = "";
-					while (!lk_Response.empty())
-					{
-						if (!ms_Description.isEmpty())
-							ms_Description += "\n";
-						ms_Description += lk_Response.takeFirst().trimmed();
-					}
-				}
-			}
+            if (ls_Response.startsWith("---yamlInfo\n"))
+            {
+                ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
+                QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
+                if (lk_Response.canConvert<tk_YamlMap>())
+                {
+                    ms_Title = lk_Response.toMap()["title"].toString();
+                    if (lk_Response.toMap().contains("description"))
+                        ms_Description = lk_Response.toMap()["description"].toString();
+                }
+            }
 		}
 	}
 }

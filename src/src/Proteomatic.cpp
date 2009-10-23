@@ -447,7 +447,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 					QProcess lk_QueryProcess;
 					lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
 					QStringList lk_Arguments;
-					lk_Arguments << ls_Path << "---info";
+					lk_Arguments << ls_Path << "---yamlInfo" << "--short";
 					lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
 					
 					lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
@@ -466,33 +466,23 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 								lk_File.close();
 							}
 						}
+                        if (ls_Response.startsWith("---yamlInfo\n"))
+                        {
+                            ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
+                            QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
+                            if (lk_Response.canConvert<tk_YamlMap>())
+                            {
+                                QHash<QString, QString> lk_Script;
+                                
+                                lk_Script["title"] = lk_Response.toMap()["title"].toString();
+                                lk_Script["group"] = lk_Response.toMap()["group"].toString();
+                                lk_Script["description"] = lk_Response.toMap()["description"].toString();
+                                lk_Script["uri"] = ls_Path;
+                                mk_ScriptInfo.insert(ls_Path, lk_Script);
+                            }
+                        }
 					}
 				}
-				if (ls_Response.length() > 0)
-				{
-					QStringList lk_Response = ls_Response.split(QChar('\n'));
-					if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---info")
-					{
-						ls_Title = lk_Response.takeFirst().trimmed();
-						ls_Group = lk_Response.takeFirst().trimmed();
-						while (!lk_Response.empty())
-						{
-							if (!ls_Description.isEmpty())
-								ls_Description += "\n";
-							ls_Description += lk_Response.takeFirst().trimmed();
-						}
-					}
-				}
-			}
-
-			if (ls_Title.length() > 0)
-			{
-				QHash<QString, QString> lk_Script;
-				lk_Script["title"] = ls_Title;
-				lk_Script["group"] = ls_Group;
-				lk_Script["description"] = ls_Description;
-				lk_Script["uri"] = ls_Path;
-				mk_ScriptInfo.insert(ls_Path, lk_Script);
 			}
 		}
 	}

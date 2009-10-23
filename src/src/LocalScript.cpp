@@ -102,44 +102,47 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
             mb_IsGood = true;
             return;
         }
+        if (ls_Response.startsWith("---hasUnresolvedDependencies\n"))
+        {
+            ls_Response = ls_Response.right(ls_Response.length() - QString("---hasUnresolvedDependencies\n").length());
+            QStringList lk_Response = ls_Response.split(QChar('\n'));
+            QStringList lk_Tools;
+            foreach (QString ls_Tool, lk_Response)
+                if (ls_Tool != "")
+                    lk_Tools << ls_Tool.trimmed();
+            QString ls_MissingTools = lk_Tools.join(", ");
+                    
+            int li_Result = mk_Proteomatic.showMessageBox("Unresolved dependencies", "This script requires the following external tools that are currently not installed:\n\n"
+            + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
+            if (li_Result == QMessageBox::Yes)
+            {
+                RefPtr<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(mk_Proteomatic, QStringList() << as_ScriptPath << "--resolveDependencies", "Installing external tools", ":/icons/package-x-generic.png"));
+                lk_pRubyWindow->exec();
+                // retry loading the script
+                ls_Response = mk_Proteomatic.syncScript(QStringList() << as_ScriptPath << "---yamlInfo");
+                if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
+                {
+                    // update cached information
+                    QFile lk_File(ls_CacheFilename);
+                    if (lk_File.open(QIODevice::WriteOnly))
+                    {
+                        QTextStream lk_Stream(&lk_File);
+                        lk_Stream << ls_Response;
+                        lk_Stream.flush();
+                        lk_File.close();
+                    }
+                }
+                if (ls_Response.startsWith("---yamlInfo\n"))
+                {
+                    ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
+                    createParameterWidget(ls_Response);
+                    mk_DefaultConfiguration = configuration();
+                    mb_IsGood = true;
+                    return;
+                }
+            }
+        }
         
-		QStringList lk_Response = ls_Response.split(QChar('\n'));
-		if (!lk_Response.empty())
-		{
-			QString ls_FirstLine = lk_Response.takeFirst().trimmed();
-			if (ls_FirstLine == "---getParametersUnresolvedDependencies")
-			{
-				QStringList lk_Tools;
-				foreach (QString ls_Tool, lk_Response)
-					if (ls_Tool != "")
-						lk_Tools << ls_Tool.trimmed();
-				QString ls_MissingTools = lk_Tools.join(", ");
-						
-				int li_Result = mk_Proteomatic.showMessageBox("Unresolved dependencies", "This script requires the following external tools that are currently not installed:\n\n"
-				+ ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
-				if (li_Result == QMessageBox::Yes)
-				{
-					RefPtr<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(mk_Proteomatic, QStringList() << as_ScriptPath << "--resolveDependencies", "Installing external tools", ":/icons/package-x-generic.png"));
-					lk_pRubyWindow->exec();
-					// retry loading the script
-					ls_Response = mk_Proteomatic.syncScript(QStringList() << as_ScriptPath << "---getParameters");
-					if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
-					{
-						// update cached information
-						QFile lk_File(ls_CacheFilename);
-						if (lk_File.open(QIODevice::WriteOnly))
-						{
-							QTextStream lk_Stream(&lk_File);
-							lk_Stream << ls_Response;
-							lk_Stream.flush();
-							lk_File.close();
- 						}
-					}
-					lk_Response = ls_Response.split(QChar('\n'));
-					ls_FirstLine = lk_Response.takeFirst().trimmed();
-				}
-			}
-		}
 	}
 }
 
