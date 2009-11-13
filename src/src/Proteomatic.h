@@ -166,9 +166,9 @@ protected:
 	QWidget* mk_MessageBoxParent_;
 	RefPtr<QMenu> mk_pProteomaticScriptsMenu;
 	QMenu* mk_RemoteMenu_;
-	RefPtr<QProcess> mk_pRemoteHubProcess;
+// 	RefPtr<QProcess> mk_pRemoteHubProcess;
 	QString ms_RemoteHubStdout;
-	RefPtr<QHttp> mk_pRemoteHubHttp;
+// 	RefPtr<QHttp> mk_pRemoteHubHttp;
 	QFont mk_ConsoleFont;
 	QStringList mk_ScriptPaths;
 	QString ms_ConfigurationPath;

@@ -101,7 +101,7 @@ k_Proteomatic::~k_Proteomatic()
 		
 	// save configuration
 	this->saveConfiguration();
-	if (mk_pRemoteHubHttp.get_Pointer())
+/*	if (mk_pRemoteHubHttp.get_Pointer())
 	{
 		mk_pRemoteHubHttp->abort();
 		mk_pRemoteHubHttp = RefPtr<QHttp>(NULL);
@@ -110,7 +110,7 @@ k_Proteomatic::~k_Proteomatic()
 	{
 		mk_pRemoteHubProcess->kill();
 		mk_pRemoteHubProcess = RefPtr<QProcess>(NULL);
-	}
+	}*/
 }
 
 
@@ -581,14 +581,14 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 
 int k_Proteomatic::queryRemoteHub(QString as_Uri, QStringList ak_Arguments)
 {
-	if (mk_pRemoteHubHttp.get_Pointer() == NULL)
+/*	if (mk_pRemoteHubHttp.get_Pointer() == NULL)
 		return -1;
 		
 	QString ls_Arguments = QString("%1\r\n").arg(as_Uri);
 	foreach (QString ls_Argument, ak_Arguments)
 		ls_Arguments += QString("%1\r\n").arg(ls_Argument);
 	
-	return mk_pRemoteHubHttp->post("/", ls_Arguments.toAscii());
+	return mk_pRemoteHubHttp->post("/", ls_Arguments.toAscii());*/
 }
 
 
@@ -697,7 +697,7 @@ void k_Proteomatic::showConfigurationDialog()
 
 void k_Proteomatic::remoteHubReadyReadSlot()
 {
-	QString ls_Result = QString(mk_pRemoteHubProcess->readAll());
+/*	QString ls_Result = QString(mk_pRemoteHubProcess->readAll());
 	
 	ms_RemoteHubPortion += ls_Result;
 	if (ms_RemoteHubPortion.contains(QChar('\n')))
@@ -731,7 +731,7 @@ void k_Proteomatic::remoteHubReadyReadSlot()
  		}
  				
 		emit remoteHubReady();
-	}
+	}*/
 }
 
 
@@ -796,7 +796,7 @@ void k_Proteomatic::addRemoteScriptDialog()
 
 void k_Proteomatic::remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error)
 {
-	QString ls_Response = QString(mk_pRemoteHubHttp->readAll());
+/*	QString ls_Response = QString(mk_pRemoteHubHttp->readAll());
 	
 	if (mk_RemoteRequests.contains(ai_SocketId))
 	{
@@ -865,7 +865,7 @@ void k_Proteomatic::remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error)
 		}
 	}
 	else
-		emit remoteHubRequestFinished(ai_SocketId, ab_Error, ls_Response);
+		emit remoteHubRequestFinished(ai_SocketId, ab_Error, ls_Response);*/
 }
 
 
