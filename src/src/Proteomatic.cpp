@@ -323,7 +323,7 @@ void k_Proteomatic::loadConfiguration()
 	}
 	if (mk_Configuration.contains(CONFIG_SCRIPTS_PATH))
     {
-        if (mk_Configuration[CONFIG_SCRIPTS_PATH].type() != QVariant::List))
+        if (mk_Configuration[CONFIG_SCRIPTS_PATH].type() != QVariant::List)
         {
             // if a single script path is defined as a string, upgrade to string array!
             tk_YamlSequence lk_Paths;
@@ -336,7 +336,7 @@ void k_Proteomatic::loadConfiguration()
     else
     {
         tk_YamlSequence lk_Paths;
-            lk_Paths << "scripts"
+        lk_Paths << "scripts";
         mk_Configuration[CONFIG_SCRIPTS_PATH] = lk_Paths;
         lb_InsertedDefaultValue = true;
     }
