@@ -27,6 +27,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "RubyWindow.h"
 #include <limits.h>
 #include <float.h>
+#include <sstream>
+#include <yaml-cpp/yaml.h>
 
 
 k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
@@ -56,29 +58,24 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
 		QFileInfo lk_FileInfo(ms_Uri);
 		lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
 		QStringList lk_Arguments;
-		lk_Arguments << ms_Uri << "---info";
+		lk_Arguments << ms_Uri << "---yamlInfo" << "--short";
 		lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
 		
 		lk_QueryProcess.start(mk_Proteomatic.interpreterForScript(ms_Uri), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 		if (lk_QueryProcess.waitForFinished())
 		{
 			QString ls_Response = lk_QueryProcess.readAll();
-			if (ls_Response.length() > 0)
-			{
-				QStringList lk_Response = ls_Response.split(QChar('\n'));
-				if (!lk_Response.empty() && lk_Response.takeFirst().trimmed() == "---info")
-				{
-					ms_Title = lk_Response.takeFirst().trimmed();
-					QString ls_Group = lk_Response.takeFirst().trimmed();
-					ms_Description = "";
-					while (!lk_Response.empty())
-					{
-						if (!ms_Description.isEmpty())
-							ms_Description += "\n";
-						ms_Description += lk_Response.takeFirst().trimmed();
-					}
-				}
-			}
+            if (ls_Response.startsWith("---yamlInfo\n"))
+            {
+                ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
+                QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
+                if (lk_Response.canConvert<tk_YamlMap>())
+                {
+                    ms_Title = lk_Response.toMap()["title"].toString();
+                    if (lk_Response.toMap().contains("description"))
+                        ms_Description = lk_Response.toMap()["description"].toString();
+                }
+            }
 		}
 	}
 }
@@ -820,9 +817,9 @@ void k_Script::resetDialog()
 }
 
 
-void k_Script::createParameterWidget(QStringList ak_Definition)
+void k_Script::createParameterWidget(QString as_Info)
 {
-	ms_DefaultOutputDirectory.clear();
+    ms_DefaultOutputDirectory.clear();
 	mk_ProposePrefixList.clear();
 	mk_AmbiguousInputGroups.clear();
 	mk_InputGroupKeys.clear();
@@ -830,143 +827,100 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 	mk_InputGroupDescriptions.clear();
 	mk_InputGroupExtensions.clear();
 	mk_pParameterWidget = RefPtr<QWidget>(new QWidget());
-#ifdef DEBUG	
-	printf("yay!\n");
-	mk_pParameterWidget.print();
-#endif
 
 	QList<QString> lk_ParametersOrder;
 	QHash<QString, QHash<QString, QString> > lk_Parameters;
-	QHash<QString, QList<QString> > lk_ParametersValues;
+	QHash<QString, QList<QVariant> > lk_ParametersValues;
+    
+    tk_YamlMap lk_Info = k_Yaml::parseFromString(as_Info).toMap();
 
-	QString ls_Parameter;
-	while (!ak_Definition.empty())
-	{
-		ls_Parameter = ak_Definition.takeFirst().trimmed();
-		QHash<QString, QString> lk_Parameter;
-		QList<QString> lk_EnumValues;
-		if (ls_Parameter == "!!!begin info")
-		{
-			// collect key/value pairs
-			while (true)
-			{
-				QString ls_Key = ak_Definition.takeFirst().trimmed();
-				if (ls_Key == "!!!end info")
-					break;
-				QString ls_Value = ak_Definition.takeFirst().trimmed();
-				mk_Info[ls_Key] = ls_Value;
-				if (ls_Key == "type")
-					me_Type = (ls_Value == "processor") ? r_ScriptType::Processor : r_ScriptType::Converter;
-			}
-		}
-		if (ls_Parameter == "!!!begin parameter")
-		{
-			// collect key/value pairs
-			while (true)
-			{
-				QString ls_Key = ak_Definition.takeFirst().trimmed();
-				if (ls_Key == "!!!end parameter")
-					break;
-				if (ls_Key == "!!!begin values")
-				{
-					while (true)
-					{
-						QString ls_Value = ak_Definition.takeFirst().trimmed();
-						if (ls_Value == "!!!end values")
-							break;
-						lk_EnumValues.push_back(ls_Value);
-					}
-				}
-				else
-				{
-					QString ls_Value = ak_Definition.takeFirst().trimmed();
-					lk_Parameter[ls_Key] = ls_Value;
-				}
-			}
-		}
-		if (ls_Parameter == "!!!begin input")
-		{
-			// collect key/value pairs
-			QString ls_InputFileKey;
-			while (true)
-			{
-				QString ls_Key = ak_Definition.takeFirst().trimmed();
-				if (ls_Key == "!!!end input")
-					break;
-				
-				QString ls_Value = ak_Definition.takeFirst().trimmed();
-				if (ls_Key == "key")
-				{
-					ls_InputFileKey = ls_Value;
-					mk_InputGroupKeys.push_back(ls_InputFileKey);
-				}
-				else if (ls_Key == "label")
-					mk_InputGroupLabels[ls_InputFileKey] = ls_Value;
-				else if (ls_Key == "description")
-					mk_InputGroupDescriptions[ls_InputFileKey] = ls_Value;
-				else if (ls_Key == "extensions")
-					mk_InputGroupExtensions[ls_InputFileKey] = ls_Value.split("/");
-				else if (ls_Key == "min")
-					mk_InputGroupMinimum[ls_InputFileKey] = ls_Value.toInt();
-				else if (ls_Key == "max")
-					mk_InputGroupMaximum[ls_InputFileKey] = ls_Value.toInt();
-			}
-		}
-		if (ls_Parameter == "!!!begin defaultOutputDirectory")
-		{
-			while (true)
-			{
-				QString ls_Key = ak_Definition.takeFirst().trimmed();
-				if (ls_Key == "!!!end defaultOutputDirectory")
-					break;
-				ms_DefaultOutputDirectory = ls_Key;
-			}
-		}
-		if (ls_Parameter == "!!!begin proposePrefixList")
-		{
-			while (true)
-			{
-				QString ls_Key = ak_Definition.takeFirst().trimmed();
-				if (ls_Key == "!!!end proposePrefixList")
-					break;
-				mk_ProposePrefixList.push_back(ls_Key);
-			}
-		}
-		if (ls_Parameter == "!!!begin ambiguousInputGroups")
-		{
-			while (true)
-			{
-				QString ls_Key = ak_Definition.takeFirst().trimmed();
-				if (ls_Key == "!!!end ambiguousInputGroups")
-					break;
-				// ls_Key is an ambiguous input file group now,
-				// so we will need an extra input box for this
-				mk_AmbiguousInputGroups.push_back(ls_Key);
-			}
-		}
-		if (lk_Parameter["key"].length() > 0)
-		{
-			lk_Parameters[lk_Parameter["key"]] = lk_Parameter;
-			lk_ParametersValues[lk_Parameter["key"]] = lk_EnumValues;
-			lk_ParametersOrder.push_back(lk_Parameter["key"]);
-		}
-		
-		// remember labels for enum and csvString values
-		foreach (QString ls_Item, lk_ParametersValues[lk_Parameter["key"]])
-		{
-			QString ls_Key = ls_Item;
-			QString ls_Label = ls_Item;
-			if (ls_Item.contains(QChar(':')))
-			{
-				QStringList lk_Item = ls_Item.split(":");
-				ls_Key = lk_Item[0].trimmed();
-				ls_Label = lk_Item[1].trimmed();
-			}
-			if (!mk_ParameterValueLabels.contains(lk_Parameter["key"]))
-				mk_ParameterValueLabels[lk_Parameter["key"]] = QHash<QString, QString>();
-			mk_ParameterValueLabels[lk_Parameter["key"]][ls_Key] = ls_Label;
-		}
-	}
+    if (lk_Info.contains("info"))
+    {
+        foreach (QString ls_Key, lk_Info["info"].toMap().keys())
+        {
+            QString ls_Value = lk_Info["info"].toMap()[ls_Key].toString();
+            mk_Info[ls_Key] = ls_Value;
+            if (ls_Key == "type")
+                me_Type = (ls_Value == "processor") ? r_ScriptType::Processor : r_ScriptType::Converter;
+        }
+    }
+    if (lk_Info.contains("parameters"))
+    {
+        foreach (QVariant lk_ParameterMap, lk_Info["parameters"].toList())
+        {
+            QHash<QString, QString> lk_Parameter;
+            QList<QVariant> lk_EnumValues;
+            foreach (QString ls_Key, lk_ParameterMap.toMap().keys())
+            {
+                if (ls_Key == "choices")
+                    foreach (QVariant lk_Choice, lk_ParameterMap.toMap()[ls_Key].toList())
+                        lk_EnumValues << lk_Choice;
+                else
+                    lk_Parameter[ls_Key] = lk_ParameterMap.toMap()[ls_Key].toString();
+            }
+            if (lk_Parameter["key"].length() > 0)
+            {
+                lk_Parameters[lk_Parameter["key"]] = lk_Parameter;
+                lk_ParametersValues[lk_Parameter["key"]] = lk_EnumValues;
+                lk_ParametersOrder.push_back(lk_Parameter["key"]);
+            }
+            foreach (QVariant lk_Item, lk_ParametersValues[lk_Parameter["key"]])
+            {
+                QString ls_Key, ls_Label;
+                if (lk_Item.canConvert<tk_YamlMap>())
+                {
+                    ls_Key = lk_Item.toMap().keys().first();
+                    ls_Label = lk_Item.toMap()[ls_Key].toString();
+                }
+                else
+                    ls_Key = ls_Label = lk_Item.toString();
+                
+                if (!mk_ParameterValueLabels.contains(lk_Parameter["key"]))
+                    mk_ParameterValueLabels[lk_Parameter["key"]] = QHash<QString, QString>();
+                mk_ParameterValueLabels[lk_Parameter["key"]][ls_Key] = ls_Label;
+            }
+        }
+    }
+    if (lk_Info.contains("input"))
+    {
+        foreach (QVariant lk_InputMap, lk_Info["input"].toList())
+        {
+            tk_YamlMap lk_Map;
+            foreach (QString ls_Key, lk_InputMap.toMap().keys())
+            {
+                QString ls_Value = lk_InputMap.toMap()[ls_Key].toString();
+                lk_Map[ls_Key] = ls_Value;
+            }
+            mk_InputGroupKeys << lk_Map["key"].toString();
+            if (lk_Map.contains("label"))
+                mk_InputGroupLabels[lk_Map["key"].toString()] = lk_Map["label"].toString();
+            if (lk_Map.contains("description"))
+                mk_InputGroupDescriptions[lk_Map["key"].toString()] = lk_Map["description"].toString();
+            if (lk_Map.contains("extensions"))
+                mk_InputGroupExtensions[lk_Map["key"].toString()] = lk_Map["extensions"].toString().split("/");
+            if (lk_Map.contains("min"))
+                mk_InputGroupMinimum[lk_Map["key"].toString()] = lk_Map["min"].toString().toInt();
+            if (lk_Map.contains("max"))
+                mk_InputGroupMaximum[lk_Map["key"].toString()] = lk_Map["max"].toString().toInt();
+        }
+    }
+    
+    if (lk_Info.contains("defaultOutputDirectory"))
+        ms_DefaultOutputDirectory = lk_Info["defaultOutputDirectory"].toString();
+
+    if (lk_Info.contains("proposePrefixList"))
+    {
+        mk_ProposePrefixList.clear();
+        foreach (QVariant lk_Item, lk_Info["proposePrefixList"].toList())
+            mk_ProposePrefixList << lk_Item.toString();
+    }
+
+    if (lk_Info.contains("ambiguousInputGroups"))
+    {
+        mk_AmbiguousInputGroups.clear();
+        foreach (QVariant lk_Item, lk_Info["ambiguousInputGroups"].toList())
+            mk_AmbiguousInputGroups << lk_Item.toString();
+    }
 	
 	// TODO: finish this. Right now only leading {...} are stripped but
 	// not taken into account for sorting the parameter groups.
@@ -1230,24 +1184,6 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 		}
 		else if (ls_Type == "flag")
 		{
-		/*
-			QString ls_Label = lk_Parameter["label"];
-			if (ls_Key.startsWith("output"))
-				ls_Label += QString(" (%1)").arg(lk_Parameter["filename"]);
-			QCheckBox* lk_CheckBox_ = new QCheckBox(ls_Label, lk_Container_);
-			lk_Widget_ = lk_CheckBox_;
-			lk_CheckBox_->setChecked((lk_Parameter["default"] == "true") || (lk_Parameter["default"] == "yes"));
-			if (lk_Parameter.contains("force"))
-				lk_CheckBox_->setEnabled(false);
-			if (!ls_Description.isEmpty() && !ls_Key.startsWith("output"))
-				lk_CheckBox_->setToolTip(ls_Description);
-			lb_AddLabel = false;
-			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_CheckBox_;
-				
-			lk_CheckBox_->setProperty("key", QVariant(ls_Key));
-			if (!ls_Key.startsWith("output"))
-				connect(lk_CheckBox_, SIGNAL(stateChanged(int)), this, SLOT(parameterChanged()));
-		*/
 			if (mb_ProfileMode)
 			{
 				QComboBox* lk_ComboBox_ = new QComboBox(lk_Container_);
@@ -1276,17 +1212,19 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 			lk_Widget_ = lk_ComboBox_;
 			int li_Index = 0;
 			int li_DefaultIndex = 0;
-			foreach (QString ls_Item, lk_ParametersValues[ls_Key])
+			foreach (QVariant lk_Item, lk_ParametersValues[ls_Key])
 			{
-				QString ls_Key = ls_Item;
-				QString ls_Label = ls_Item;
-				if (ls_Item.contains(QChar(':')))
-				{
-					QStringList lk_Item = ls_Item.split(":");
-					ls_Key = lk_Item[0].trimmed();
-					ls_Label = lk_Item[1].trimmed();
-				}
-				lk_ComboBox_->addItem(ls_Label, QVariant(ls_Key));
+                QString ls_ValueKey;
+                QString ls_Label;
+                if (lk_Item.canConvert<tk_YamlMap>())
+                {
+                    ls_ValueKey = lk_Item.toMap().keys().first();
+                    ls_Label = lk_Item.toMap()[ls_ValueKey].toString();
+                }
+                else
+                    ls_ValueKey = ls_Label = lk_Item.toString();
+                
+				lk_ComboBox_->addItem(ls_Label, QVariant(ls_ValueKey));
 				if (ls_Key == lk_Parameter["default"])
 					li_DefaultIndex = li_Index;
 				li_Index += 1;
@@ -1308,17 +1246,19 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				lk_Widget_ = new QWidget(lk_Container_);
 				QHBoxLayout* lk_WidgetLayout_ = new QHBoxLayout(lk_Widget_);
 				lk_WidgetLayout_->addStretch();
-				foreach (QString ls_Item, lk_ParametersValues[ls_Key])
+				foreach (QVariant lk_Item, lk_ParametersValues[ls_Key])
 				{
 					QCheckBox* lk_CheckBox_ = new QCheckBox(lk_Widget_);
-					QString ls_ValueKey = ls_Item;
-					QString ls_Label = ls_Item;
-					if (ls_Item.contains(QChar(':')))
-					{
-						QStringList lk_Item = ls_Item.split(":");
-						ls_ValueKey = lk_Item[0].trimmed();
-						ls_Label = lk_Item[1].trimmed();
-					}
+                    QString ls_ValueKey;
+                    QString ls_Label;
+                    if (lk_Item.canConvert<tk_YamlMap>())
+                    {
+                        ls_ValueKey = lk_Item.toMap().keys().first();
+                        ls_Label = lk_Item.toMap()[ls_ValueKey].toString();
+                    }
+                    else
+                        ls_ValueKey = ls_Label = lk_Item.toString();
+                    
 					lk_CheckBox_->setText(ls_Label);
 					lk_WidgetLayout_->addWidget(lk_CheckBox_);
 					lk_CheckBox_->setChecked(lk_DefaultChecks.contains(ls_ValueKey));
@@ -1394,18 +1334,19 @@ void k_Script::createParameterWidget(QStringList ak_Definition)
 				connect(lk_Dialog_, SIGNAL(rejected()), this, SLOT(resetDialog()));
 				connect(lk_ListWidget_, SIGNAL(remove(QList<QListWidgetItem *>)), this, SLOT(removeChoiceItems(QList<QListWidgetItem *>)));
 				connect(lk_ChoicesWidget_, SIGNAL(doubleClick()), lk_Dialog_, SLOT(accept()));
-				foreach (QString ls_Item, lk_ParametersValues[ls_Key])
+				foreach (QVariant lk_Item, lk_ParametersValues[ls_Key])
 				{
-					QString ls_Key = ls_Item;
-					QString ls_Label = ls_Item;
-					if (ls_Item.contains(QChar(':')))
-					{
-						QStringList lk_Item = ls_Item.split(":");
-						ls_Key = lk_Item[0].trimmed();
-						ls_Label = lk_Item[1].trimmed();
-					}
+                    QString ls_ValueKey;
+                    QString ls_Label;
+                    if (lk_Item.canConvert<tk_YamlMap>())
+                    {
+                        ls_ValueKey = lk_Item.toMap().keys().first();
+                        ls_Label = lk_Item.toMap()[ls_ValueKey].toString();
+                    }
+                    else
+                        ls_ValueKey = ls_Label = lk_Item.toString();
 					k_CiListWidgetItem * lk_Item_ = new k_CiListWidgetItem(ls_Label, lk_ChoicesWidget_);
-					lk_Item_->setData(Qt::UserRole, QVariant(ls_Key));
+					lk_Item_->setData(Qt::UserRole, QVariant(ls_ValueKey));
 				}
 			}
 			mk_ParameterMultiChoiceWidgets[ls_Key] = lk_CheckWidgets;

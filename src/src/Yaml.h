@@ -33,5 +33,7 @@ public:
 	virtual ~k_Yaml();
 	
 	static QVariant parseFromFile(QString as_Path);
+    static QVariant parseFromString(QString as_Yaml);
 	static void emitToFile(QVariant ak_Node, QString as_Path);
+    static QString emitToString(QVariant ak_Node);
 };

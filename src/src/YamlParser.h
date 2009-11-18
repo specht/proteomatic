@@ -19,7 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <yaml.h>
+#include <yaml-cpp/yaml.h>
 
 
 class k_YamlParser
@@ -28,19 +28,11 @@ public:
 	k_YamlParser();
 	virtual ~k_YamlParser();
 	
-	QVariant parseFromFile(QString as_Filename);
 	QVariant parseFromString(QString as_Yaml);
-	
+    
 protected:
- 	QVariant parse();
-	void fetchNextEvent();
-	QVariant parseAny();
-	QVariant parseMapping();
-	QVariant parseSequence();
-
-	yaml_parser_t mk_Parser;
-	yaml_event_t mk_Event;
-	int mi_Type;
-	QString ms_Value;
-	bool mb_Error;
+    QVariant parseAny(const YAML::Node* ak_Node_);
+    QVariant parseScalar(const YAML::Node* ak_Node_);
+    QVariant parseSequence(const YAML::Node* ak_Node_);
+    QVariant parseMap(const YAML::Node* ak_Node_);
 };

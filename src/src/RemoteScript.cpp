@@ -30,7 +30,7 @@ k_RemoteScript::k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomat
 		QString ls_FirstLine = lk_Response.takeFirst().trimmed();
 		if (ls_FirstLine == "---getParameters")
 		{
-			createParameterWidget(lk_Response);
+			createParameterWidget(lk_Response.join("\n"));
 			mk_DefaultConfiguration = configuration();
 			mb_IsGood = true;
 		}

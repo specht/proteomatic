@@ -35,12 +35,37 @@ k_Yaml::~k_Yaml()
 QVariant k_Yaml::parseFromFile(QString as_Path)
 {
 	k_YamlParser lk_Parser;
-	return lk_Parser.parseFromFile(as_Path);
+    QFile lk_File(as_Path);
+    if (!lk_File.open(QIODevice::ReadOnly))
+        return QVariant();
+    QString ls_Yaml = lk_File.readAll();
+    lk_File.close();
+	return lk_Parser.parseFromString(ls_Yaml);
+}
+
+
+QVariant k_Yaml::parseFromString(QString as_Yaml)
+{
+    k_YamlParser lk_Parser;
+    return lk_Parser.parseFromString(as_Yaml);
 }
 
 
 void k_Yaml::emitToFile(QVariant ak_Node, QString as_Path)
 {
-	k_YamlEmitter lk_Emitter;
-	lk_Emitter.emitToFile(ak_Node, as_Path);
+	QString ls_Yaml = emitToString(ak_Node);
+    QFile lk_File(as_Path);
+    if (!lk_File.open(QIODevice::WriteOnly))
+        return;
+    QTextStream lk_Stream(&lk_File);
+    lk_Stream << ls_Yaml;
+    lk_Stream.flush();
+    lk_File.close();
+}
+
+
+QString k_Yaml::emitToString(QVariant ak_Node)
+{
+    k_YamlEmitter lk_Emitter;
+    return lk_Emitter.emitToString(ak_Node);
 }
