@@ -20,7 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtCore>
-#include <Yaml.h>
+#include "Yaml.h"
 #include <yaml-cpp/yaml.h>
 
 
