@@ -30,4 +30,5 @@ versionInject:
     
     QString gs_ProteomaticVersion = "#{VERSION}";
 externals: [helper]
-specialAddScripts: 0.3.25
+#specialAddScripts: 0.3.25
+specialAddScripts: yamlinfo
