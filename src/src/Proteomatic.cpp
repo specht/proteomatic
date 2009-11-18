@@ -466,6 +466,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 								lk_File.close();
 							}
 						}
+						ls_Response.replace("---yamlInfo\r\n", "---yamlInfo\n");
                         if (ls_Response.startsWith("---yamlInfo\n"))
                         {
                             ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());

@@ -94,6 +94,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 				}
 			}
 		}
+		ls_Response.replace("---yamlInfo\r\n", "---yamlInfo\n");
         if (ls_Response.startsWith("---yamlInfo\n"))
         {
             ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
@@ -102,6 +103,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
             mb_IsGood = true;
             return;
         }
+		ls_Response.replace("---hasUnresolvedDependencies\r\n", "---hasUnresolvedDependencies\n");
         if (ls_Response.startsWith("---hasUnresolvedDependencies\n"))
         {
             ls_Response = ls_Response.right(ls_Response.length() - QString("---hasUnresolvedDependencies\n").length());
@@ -132,6 +134,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
                         lk_File.close();
                     }
                 }
+				ls_Response.replace("---yamlInfo\r\n", "---yamlInfo\n");
                 if (ls_Response.startsWith("---yamlInfo\n"))
                 {
                     ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
