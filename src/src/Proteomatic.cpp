@@ -376,138 +376,140 @@ void k_Proteomatic::loadConfiguration()
 void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 {
 	mk_ScriptInfo.clear();
+    QStringList lk_Scripts;
 	foreach (QString ls_ScriptPath, mk_ScriptPaths)
 	{
 		QString ls_Path = ls_ScriptPath;
 		if (ls_ScriptPath == mk_ScriptPaths.first())
 			ls_Path += "/" + ms_ScriptPackage;
 		QDir lk_Dir(ls_Path);
-		QStringList lk_Scripts = lk_Dir.entryList(QStringList() << "*.rb" << "*.py" << "*.php" << "*.php5" << "*.php4", QDir::Files);
-		QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size(), mk_MessageBoxParent_);
-		lk_ProgressDialog.setCancelButton(0);
-		lk_ProgressDialog.setWindowTitle("Proteomatic");
-		lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
-		lk_ProgressDialog.setMinimumDuration(ab_ShowImmediately ? 0 : 2000);
-		if (ab_ShowImmediately)
-			lk_ProgressDialog.show();
-		int li_Count = 0;
-		foreach (QString ls_Path, lk_Scripts)
-		{
-			mk_Application.processEvents();
-			++li_Count;
-			lk_ProgressDialog.setValue(li_Count);
-			if (ls_Path.contains(".defunct."))
-				continue;
-			ls_Path = lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
-			QString ls_Title = "";
-			QString ls_Group = "";
-			QString ls_Description = "";
+        QStringList lk_Paths = lk_Dir.entryList(QStringList() << "*.rb" << "*.py" << "*.php" << "*.php5" << "*.php4", QDir::Files);
+        foreach (QString ls_Path, lk_Paths)
+            lk_Scripts << lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
+    }
+    QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size(), mk_MessageBoxParent_);
+    lk_ProgressDialog.setCancelButton(0);
+    lk_ProgressDialog.setWindowTitle("Proteomatic");
+    lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
+    lk_ProgressDialog.setMinimumDuration(ab_ShowImmediately ? 0 : 2000);
+    if (ab_ShowImmediately)
+        lk_ProgressDialog.show();
+    int li_Count = 0;
+    foreach (QString ls_Path, lk_Scripts)
+    {
+        mk_Application.processEvents();
+        ++li_Count;
+        lk_ProgressDialog.setValue(li_Count);
+        if (ls_Path.contains(".defunct."))
+            continue;
+        QString ls_Title = "";
+        QString ls_Group = "";
+        QString ls_Description = "";
 
-			QFile lk_File(ls_Path);
-			lk_File.open(QIODevice::ReadOnly);
-			QString ls_Marker;
-			QTextStream lk_Stream(&lk_File);
-			bool lb_SeenProteomatic = false;
-			while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#") || ls_Marker.startsWith("//") || ls_Marker.startsWith("<?")))
-			{
-				ls_Marker = lk_Stream.readLine().trimmed();
-				if (ls_Marker.toLower().contains("proteomatic"))
-				{
-					lb_SeenProteomatic = true;
-					break;
-				}
-			}
-			lk_File.close();
-				
-			if (lb_SeenProteomatic)
-			{
-				if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists("cache")))
-				{
-					QDir lk_Dir;
-					lk_Dir.mkdir("cache");
-				}
+        QFile lk_File(ls_Path);
+        lk_File.open(QIODevice::ReadOnly);
+        QString ls_Marker;
+        QTextStream lk_Stream(&lk_File);
+        bool lb_SeenProteomatic = false;
+        while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#") || ls_Marker.startsWith("//") || ls_Marker.startsWith("<?")))
+        {
+            ls_Marker = lk_Stream.readLine().trimmed();
+            if (ls_Marker.toLower().contains("proteomatic"))
+            {
+                lb_SeenProteomatic = true;
+                break;
+            }
+        }
+        lk_File.close();
+            
+        if (lb_SeenProteomatic)
+        {
+            if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists("cache")))
+            {
+                QDir lk_Dir;
+                lk_Dir.mkdir("cache");
+            }
 
-				QFileInfo lk_FileInfo(ls_Path);
-				QString ls_Response;
-				QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.baseName());
-				bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
-				
-				// disable cache if we're in develop!
-				if (version() == "develop")
-					lb_UseCache = false;
-				
-				if (lb_UseCache)
-				{
-					// see if cached info showed no errors or unresolved dependencies
-					QFile lk_File(ls_CacheFilename);
-					lk_File.open(QIODevice::ReadOnly);
-					QTextStream lk_Stream(&lk_File);
-					QString ls_Line = lk_Stream.readLine().trimmed();
-					if (ls_Line != "---yamlInfo")
-						lb_UseCache = false;
-				}
-                // check if cached file is newer than script
-                if (lb_UseCache)
+            QFileInfo lk_FileInfo(ls_Path);
+            QString ls_Response;
+            QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.fileName());
+            bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
+            
+            // disable cache if we're in develop!
+            if (version() == "develop")
+                lb_UseCache = false;
+            
+            if (lb_UseCache)
+            {
+                // see if cached info showed no errors or unresolved dependencies
+                QFile lk_File(ls_CacheFilename);
+                lk_File.open(QIODevice::ReadOnly);
+                QTextStream lk_Stream(&lk_File);
+                QString ls_Line = lk_Stream.readLine().trimmed();
+                if (ls_Line != "---yamlInfo")
+                    lb_UseCache = false;
+            }
+            // check if cached file is newer than script
+            if (lb_UseCache)
+            {
+                if (!(QFileInfo(ls_CacheFilename).lastModified() > QFileInfo(ls_Path).lastModified()))
+                    lb_UseCache = false;
+            }
+            if (lb_UseCache)
+            {
+                // re-use cached information
+                QFile lk_File(ls_CacheFilename);
+                if (lk_File.open(QIODevice::ReadOnly))
                 {
-                    if (!(QFileInfo(ls_CacheFilename).lastModified() > QFileInfo(ls_Path).lastModified()))
-                        lb_UseCache = false;
+                    ls_Response = lk_File.readAll();
+                    lk_File.close();
                 }
-				if (lb_UseCache)
-				{
-					// re-use cached information
-					QFile lk_File(ls_CacheFilename);
-					if (lk_File.open(QIODevice::ReadOnly))
-					{
-						ls_Response = lk_File.readAll();
-						lk_File.close();
-					}
-				}
-				else
-				{
-					// retrieve information from script
-					QProcess lk_QueryProcess;
-					lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
-					QStringList lk_Arguments;
-					lk_Arguments << ls_Path << "---yamlInfo" << "--short";
-					lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-					
-					lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
-					if (lk_QueryProcess.waitForFinished())
-					{
-						ls_Response = lk_QueryProcess.readAll();
-						if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
-						{
-							// update cached information
-							QFile lk_File(ls_CacheFilename);
-							if (lk_File.open(QIODevice::WriteOnly))
-							{
-								QTextStream lk_Stream(&lk_File);
-								lk_Stream << ls_Response;
-								lk_Stream.flush();
-								lk_File.close();
-							}
-						}
-                    }
-                }
-                ls_Response.replace("---yamlInfo\r\n", "---yamlInfo\n");
-                if (ls_Response.startsWith("---yamlInfo\n"))
+            }
+            else
+            {
+                // retrieve information from script
+                QProcess lk_QueryProcess;
+                lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+                QStringList lk_Arguments;
+                lk_Arguments << ls_Path << "---yamlInfo" << "--short";
+                lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+                
+                lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+                if (lk_QueryProcess.waitForFinished())
                 {
-                    ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
-                    QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
-                    if (lk_Response.canConvert<tk_YamlMap>())
+                    ls_Response = lk_QueryProcess.readAll();
+                    if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
                     {
-                        QHash<QString, QString> lk_Script;
-                        
-                        lk_Script["title"] = lk_Response.toMap()["title"].toString();
-                        lk_Script["group"] = lk_Response.toMap()["group"].toString();
-                        lk_Script["description"] = lk_Response.toMap()["description"].toString();
-                        lk_Script["uri"] = ls_Path;
-                        mk_ScriptInfo.insert(ls_Path, lk_Script);
+                        // update cached information
+                        QFile lk_File(ls_CacheFilename);
+                        if (lk_File.open(QIODevice::WriteOnly))
+                        {
+                            QTextStream lk_Stream(&lk_File);
+                            lk_Stream << ls_Response;
+                            lk_Stream.flush();
+                            lk_File.close();
+                        }
                     }
                 }
-			}
-		}
-	}
+            }
+            ls_Response.replace("---yamlInfo\r\n", "---yamlInfo\n");
+            if (ls_Response.startsWith("---yamlInfo\n"))
+            {
+                ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
+                QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
+                if (lk_Response.canConvert<tk_YamlMap>())
+                {
+                    QHash<QString, QString> lk_Script;
+                    
+                    lk_Script["title"] = lk_Response.toMap()["title"].toString();
+                    lk_Script["group"] = lk_Response.toMap()["group"].toString();
+                    lk_Script["description"] = lk_Response.toMap()["description"].toString();
+                    lk_Script["uri"] = ls_Path;
+                    mk_ScriptInfo.insert(ls_Path, lk_Script);
+                }
+            }
+        }
+    }
 }
 
 
