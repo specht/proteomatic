@@ -446,6 +446,12 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 					if (ls_Line != "---yamlInfo")
 						lb_UseCache = false;
 				}
+                // check if cached file is newer than script
+                if (lb_UseCache)
+                {
+                    if (!(QFileInfo(ls_CacheFilename).lastModified() > QFileInfo(ls_Path).lastModified()))
+                        lb_UseCache = false;
+                }
 				if (lb_UseCache)
 				{
 					// re-use cached information
@@ -481,24 +487,24 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 								lk_File.close();
 							}
 						}
-						ls_Response.replace("---yamlInfo\r\n", "---yamlInfo\n");
-                        if (ls_Response.startsWith("---yamlInfo\n"))
-                        {
-                            ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
-                            QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
-                            if (lk_Response.canConvert<tk_YamlMap>())
-                            {
-                                QHash<QString, QString> lk_Script;
-                                
-                                lk_Script["title"] = lk_Response.toMap()["title"].toString();
-                                lk_Script["group"] = lk_Response.toMap()["group"].toString();
-                                lk_Script["description"] = lk_Response.toMap()["description"].toString();
-                                lk_Script["uri"] = ls_Path;
-                                mk_ScriptInfo.insert(ls_Path, lk_Script);
-                            }
-                        }
-					}
-				}
+                    }
+                }
+                ls_Response.replace("---yamlInfo\r\n", "---yamlInfo\n");
+                if (ls_Response.startsWith("---yamlInfo\n"))
+                {
+                    ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
+                    QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
+                    if (lk_Response.canConvert<tk_YamlMap>())
+                    {
+                        QHash<QString, QString> lk_Script;
+                        
+                        lk_Script["title"] = lk_Response.toMap()["title"].toString();
+                        lk_Script["group"] = lk_Response.toMap()["group"].toString();
+                        lk_Script["description"] = lk_Response.toMap()["description"].toString();
+                        lk_Script["uri"] = ls_Path;
+                        mk_ScriptInfo.insert(ls_Path, lk_Script);
+                    }
+                }
 			}
 		}
 	}

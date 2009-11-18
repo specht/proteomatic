@@ -68,6 +68,12 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 			if (ls_Line != "---yamlInfo")
 				lb_UseCache = false;
 		}
+        // check if cached file is newer than script
+        if (lb_UseCache)
+        {
+            if (!(QFileInfo(ls_CacheFilename).lastModified() > QFileInfo(as_ScriptPath).lastModified()))
+                lb_UseCache = false;
+        }
 		if (lb_UseCache)
 		{
 			// re-use cached information
