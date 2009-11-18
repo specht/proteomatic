@@ -443,7 +443,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 					lk_File.open(QIODevice::ReadOnly);
 					QTextStream lk_Stream(&lk_File);
 					QString ls_Line = lk_Stream.readLine().trimmed();
-					if (ls_Line != "---info")
+					if (ls_Line != "---yamlInfo")
 						lb_UseCache = false;
 				}
 				if (lb_UseCache)
