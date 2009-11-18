@@ -40,17 +40,17 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
 	, mk_ScriptPaths(QStringList() << ak_Application.applicationDirPath() + "/scripts")
 	, ms_ConfigurationPath(ak_Application.applicationDirPath() + "/proteomatic.conf.yaml")
 {
-	mk_pStartButton = RefPtr<QToolButton>(new QToolButton(NULL));
-	mk_pStartButton->setIcon(QIcon(":icons/dialog-ok.png"));
-	mk_pStartButton->setText("Start");
-	mk_pStartButton->setPopupMode(QToolButton::DelayedPopup);
-	mk_pStartButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    mk_StartButton_ = new QToolButton(NULL);
+	mk_StartButton_->setIcon(QIcon(":icons/dialog-ok.png"));
+	mk_StartButton_->setText("Start");
+	mk_StartButton_->setPopupMode(QToolButton::DelayedPopup);
+	mk_StartButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	
 	mk_StartUntrackedAction_ = mk_StartButtonMenu.addAction(QIcon(":icons/dialog-ok.png"), "Start untracked");
 	
-	mk_pFileTrackerIconLabel = RefPtr<QLabel>(new QLabel(NULL));
-	mk_pFileTrackerLabel = RefPtr<QLabel>(new QLabel(NULL));
-	mk_pFileTrackerIconLabel->setPixmap(QPixmap(":icons/revelio.png").scaledToHeight(16, Qt::SmoothTransformation));
+	mk_FileTrackerIconLabel_ = new QLabel(NULL);
+	mk_FileTrackerLabel_ = new QLabel(NULL);
+	mk_FileTrackerIconLabel_->setPixmap(QPixmap(":icons/revelio.png").scaledToHeight(16, Qt::SmoothTransformation));
 	
 	QDir::setCurrent(ak_Application.applicationDirPath());
 	if (QFileInfo(QDir::homePath() + "/proteomatic.conf.yaml").exists())
@@ -1064,19 +1064,19 @@ void k_Proteomatic::updateConfigDependentStuff()
 	QString ls_FiletrackerUrl = getConfiguration(CONFIG_FILETRACKER_URL).toString();
 	if (ls_FiletrackerUrl.isEmpty())
 	{
-		mk_pFileTrackerIconLabel->setEnabled(false);
-		mk_pFileTrackerLabel->setText("No file tracker defined.");
-		mk_pStartButton->setText("Start");
-		mk_pStartButton->setPopupMode(QToolButton::DelayedPopup);
-		mk_pStartButton->setMenu(NULL);
+		mk_FileTrackerIconLabel_->setEnabled(false);
+		mk_FileTrackerLabel_->setText("No file tracker defined.");
+		mk_StartButton_->setText("Start");
+		mk_StartButton_->setPopupMode(QToolButton::DelayedPopup);
+		mk_StartButton_->setMenu(NULL);
 	}
 	else
 	{
-		mk_pFileTrackerIconLabel->setEnabled(true);
-		mk_pFileTrackerLabel->setText("File tracker: " + ls_FiletrackerUrl);
-		mk_pStartButton->setText("Start && track");
-		mk_pStartButton->setPopupMode(QToolButton::MenuButtonPopup);
-		mk_pStartButton->setMenu(&mk_StartButtonMenu);
+		mk_FileTrackerIconLabel_->setEnabled(true);
+		mk_FileTrackerLabel_->setText("File tracker: " + ls_FiletrackerUrl);
+		mk_StartButton_->setText("Start && track");
+		mk_StartButton_->setPopupMode(QToolButton::MenuButtonPopup);
+		mk_StartButton_->setMenu(&mk_StartButtonMenu);
 	}
 }
 
@@ -1147,7 +1147,7 @@ void k_Proteomatic::reloadScripts()
 
 QToolButton* k_Proteomatic::startButton()
 {
-	return mk_pStartButton.get_Pointer();
+	return mk_StartButton_;
 }
 
 
@@ -1159,11 +1159,11 @@ QAction* k_Proteomatic::startUntrackedAction()
 
 QLabel* k_Proteomatic::fileTrackerIconLabel()
 {
-	return mk_pFileTrackerIconLabel.get_Pointer();
+	return mk_FileTrackerIconLabel_;
 }
 
 
 QLabel* k_Proteomatic::fileTrackerLabel()
 {
-	return mk_pFileTrackerLabel.get_Pointer();
+	return mk_FileTrackerLabel_;
 }

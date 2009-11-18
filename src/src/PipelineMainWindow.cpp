@@ -107,7 +107,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	lk_AddToolBar_->addWidget(mk_Proteomatic.startButton());
 	connect(mk_Proteomatic.startButton(), SIGNAL(clicked()), this, SLOT(start()));
 	
-	connect(mk_Proteomatic.startUntrackedAction(), SIGNAL(triggered()), this, SLOT(startWithoutFiletracking()));
+	connect(mk_Proteomatic.startUntrackedAction(), SIGNAL(triggered()), this, SLOT(startUntracked()));
 	mk_AbortAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "Abort", this, SLOT(abort()));
 
 	lk_AddToolBar_->addSeparator();
