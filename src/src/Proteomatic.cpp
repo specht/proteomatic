@@ -674,6 +674,7 @@ void k_Proteomatic::showConfigurationDialog()
 	connect(lk_OkButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(accept()));
 	lk_HLayout_->addWidget(lk_OkButton_);
 	lk_VLayout_->addLayout(lk_HLayout_);
+    lk_pDialog->resize(400, 10);
 	if (lk_pDialog->exec())
 	{
 		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = lk_AutoCheckForUpdates_->checkState() == Qt::Checked;
