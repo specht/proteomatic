@@ -189,9 +189,9 @@ protected:
 	QLineEdit* mk_CheckRubyLocation_;
 	
 	// mk_pStartButton starts with file tracking, if configured
-	RefPtr<QToolButton> mk_pStartButton;
-	RefPtr<QLabel> mk_pFileTrackerIconLabel;
-	RefPtr<QLabel> mk_pFileTrackerLabel;
+	QToolButton* mk_StartButton_;
+	QLabel* mk_FileTrackerIconLabel_;
+	QLabel* mk_FileTrackerLabel_;
 	QMenu mk_StartButtonMenu;
 	// mk_StartUntrackedAction_ starts without file tracking
 	QAction* mk_StartUntrackedAction_;
