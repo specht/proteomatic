@@ -41,7 +41,7 @@ macx {
 	MYLIBPATH = /Users/michael/programming/ext/lib
 }
 
-LIBS += $$MYLIBPATH/libyaml.a $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
+LIBS += $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
 
 
 # Input files
