@@ -65,7 +65,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 			lk_File.open(QIODevice::ReadOnly);
 			QTextStream lk_Stream(&lk_File);
 			QString ls_Line = lk_Stream.readLine().trimmed();
-			if (ls_Line != "---getParameters")
+			if (ls_Line != "---yamlInfo")
 				lb_UseCache = false;
 		}
 		if (lb_UseCache)
