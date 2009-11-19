@@ -443,10 +443,6 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.fileName());
             bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
             
-            // disable cache if we're in develop!
-            if (version() == "develop")
-                lb_UseCache = false;
-            
             if (lb_UseCache)
             {
                 // see if cached info showed no errors or unresolved dependencies
@@ -576,6 +572,10 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 		QString ls_Group = lk_ScriptInfo["group"];
 		QMenu* lk_TargetMenu_ = lk_GroupMenus[ls_Group];
 		QAction* lk_Action_ = new QAction(QIcon(":/icons/proteomatic.png"), ls_Title, lk_TargetMenu_);
+        QTextDocument doc;
+        doc.setHtml(lk_ScriptInfo["description"]);
+        doc.setHtml(doc.toPlainText());
+		lk_Action_->setStatusTip(doc.toPlainText());
 		lk_Action_->setData(lk_ScriptInfo["uri"]);
 		lk_TargetMenu_->addAction(lk_Action_);
 		connect(lk_Action_, SIGNAL(triggered()), this, SLOT(scriptMenuScriptClickedInternal()));
@@ -611,6 +611,7 @@ int k_Proteomatic::queryRemoteHub(QString as_Uri, QStringList ak_Arguments)
 		ls_Arguments += QString("%1\r\n").arg(ls_Argument);
 	
 	return mk_pRemoteHubHttp->post("/", ls_Arguments.toAscii());*/
+	return 0;
 }
 
 

@@ -276,19 +276,16 @@ void k_ScriptHelper::dropEvent(QDropEvent* ak_Event_)
 
 void k_ScriptHelper::keyPressEvent(QKeyEvent* ak_Event_)
 {
-	if (gs_ProteomaticVersion == "develop")
+	if ((ak_Event_->key() == Qt::Key_R) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
 	{
-		if ((ak_Event_->key() == Qt::Key_R) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
+		if ((ak_Event_->modifiers() & Qt::ShiftModifier) != 0)
 		{
-            if ((ak_Event_->modifiers() & Qt::ShiftModifier) != 0)
-            {
-                if (mk_pScript)
-                    setScript(mk_pScript->uri());
-            }
-            else
-                mk_Proteomatic.reloadScripts();
-			return;
+			if (mk_pScript)
+				setScript(mk_pScript->uri());
 		}
+		else
+			mk_Proteomatic.reloadScripts();
+		return;
 	}
 	QMainWindow::keyPressEvent(ak_Event_);
 }

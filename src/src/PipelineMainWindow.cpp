@@ -169,13 +169,10 @@ void k_PipelineMainWindow::closeEvent(QCloseEvent* event)
 
 void k_PipelineMainWindow::keyPressEvent(QKeyEvent* ak_Event_)
 {
-	if (gs_ProteomaticVersion == "develop")
+	if ((ak_Event_->key() == Qt::Key_R) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
 	{
-		if ((ak_Event_->key() == Qt::Key_R) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
-		{
-			mk_Proteomatic.reloadScripts();
-			return;
-		}
+		mk_Proteomatic.reloadScripts();
+		return;
 	}
 	QMainWindow::keyPressEvent(ak_Event_);
 }
