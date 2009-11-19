@@ -100,7 +100,7 @@ k_Proteomatic::~k_Proteomatic()
 	*/
 		
 	// save configuration
-	this->saveConfiguration();
+// 	this->saveConfiguration();
 /*	if (mk_pRemoteHubHttp.get_Pointer())
 	{
 		mk_pRemoteHubHttp->abort();
@@ -170,11 +170,11 @@ QString k_Proteomatic::interpreterForScript(QString as_Path)
 {
 	QString ls_Suffix = QFileInfo(as_Path).suffix().toLower();
 	if (ls_Suffix == "rb")
-		return mk_Configuration[CONFIG_PATH_TO_RUBY].toString();
+		return mk_ScriptInterpreter["ruby"];
 	else if (ls_Suffix == "py")
-		return mk_Configuration[CONFIG_PATH_TO_PYTHON].toString();
+        return mk_ScriptInterpreter["python"];
 	else if (ls_Suffix.startsWith("php"))
-		return mk_Configuration[CONFIG_PATH_TO_PHP].toString();
+        return mk_ScriptInterpreter["php"];
 	
 	return QString();
 }
@@ -217,7 +217,7 @@ QString k_Proteomatic::syncRuby(QStringList ak_Arguments)
 	QFileInfo lk_FileInfo(ak_Arguments.first());
 	lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
 	lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
-	lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+	lk_QueryProcess.start(mk_ScriptInterpreter["ruby"], ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 	if (lk_QueryProcess.waitForFinished())
 		return lk_QueryProcess.readAll();
 	else
@@ -237,6 +237,19 @@ QString k_Proteomatic::syncScript(QStringList ak_Arguments)
 		return lk_QueryProcess.readAll();
 	else
 		return QString();
+}
+
+
+QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Language)
+{
+    QProcess lk_QueryProcess;
+
+    lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+    lk_QueryProcess.start(scriptInterpreter(as_Language), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+    if (lk_QueryProcess.waitForFinished())
+        return lk_QueryProcess.readAll();
+    else
+        return QString();
 }
 
 
@@ -363,6 +376,10 @@ void k_Proteomatic::loadConfiguration()
 		foreach (QVariant lk_Variant, mk_Configuration[CONFIG_SCRIPTS_PATH].toList())
 			mk_ScriptPaths << lk_Variant.toString();
 	}
+    
+    mk_ScriptInterpreter["ruby"] = mk_Configuration[CONFIG_PATH_TO_RUBY].toString();
+    mk_ScriptInterpreter["python"] = mk_Configuration[CONFIG_PATH_TO_PYTHON].toString();
+    mk_ScriptInterpreter["php"] = mk_Configuration[CONFIG_PATH_TO_PHP].toString();
 		
 	// write user configuration if it doesn't already exist
 	if (lb_InsertedDefaultValue)
@@ -686,7 +703,56 @@ void k_Proteomatic::showConfigurationDialog()
 	lk_FileTrackerUrlLineEdit_->home(false);
 	lk_HLayout_->addWidget(lk_FileTrackerUrlLineEdit_);
 	lk_VLayout_->addLayout(lk_HLayout_);
-	
+
+    QStringList lk_Languages;
+    lk_Languages << "ruby";
+    lk_Languages << "python";
+    lk_Languages << "php";
+    
+    QHash<QString, QLineEdit*> lk_LanguagePathLineEdits;
+    foreach (QString ls_Language, lk_Languages)
+    {
+        lk_HLayout_ = new QHBoxLayout(NULL);
+        QString ls_Label;
+        QString ls_Key;
+        if (ls_Language == "ruby")
+        {
+            ls_Label = "Ruby";
+            ls_Key = CONFIG_PATH_TO_RUBY;
+        }
+        else if (ls_Language == "python")
+        {
+            ls_Label = "Python";
+            ls_Key = CONFIG_PATH_TO_PYTHON;
+        }
+        else if (ls_Language == "php")
+        {
+            ls_Label = "PHP";
+            ls_Key = CONFIG_PATH_TO_PHP;
+        }
+        lk_HLayout_->addWidget(new QLabel(ls_Label + ":", lk_pDialog.get_Pointer()));
+        QLineEdit* lk_PathLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
+        lk_PathLineEdit_->setText(getConfiguration(ls_Key).toString());
+        lk_PathLineEdit_->home(false);
+        lk_HLayout_->addWidget(lk_PathLineEdit_);
+        lk_VLayout_->addLayout(lk_HLayout_);
+        if (mk_ScriptInterpreter[ls_Language] != getConfiguration(ls_Key).toString())
+        {
+            QLabel* lk_PixmapLabel_ = new QLabel(lk_pDialog.get_Pointer());
+            lk_PixmapLabel_->setPixmap(QPixmap(":icons/view-refresh.png").scaledToHeight(16, Qt::SmoothTransformation));
+            lk_HLayout_->addWidget(lk_PixmapLabel_);
+            lk_VLayout_->addWidget(new QLabel("<b>Note:</b> A local " + ls_Label + " has been found and is used instead.", lk_pDialog.get_Pointer()));
+        }
+        if (mk_ScriptInterpreterWorking[ls_Language] != true)
+        {
+            QLabel* lk_PixmapLabel_ = new QLabel(lk_pDialog.get_Pointer());
+            lk_PixmapLabel_->setPixmap(QPixmap(":icons/dialog-warning.png").scaledToHeight(16, Qt::SmoothTransformation));
+            lk_HLayout_->addWidget(lk_PixmapLabel_);
+            lk_VLayout_->addWidget(new QLabel("<b>Note:</b> " + ls_Label + " is not available.", lk_pDialog.get_Pointer()));
+        }
+        lk_LanguagePathLineEdits[ls_Language] = lk_PathLineEdit_;
+    }
+    
 	lk_HLayout_ = new QHBoxLayout(NULL);
 	QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":icons/dialog-cancel.png"), "Cancel", lk_pDialog.get_Pointer());
 	connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(reject()));
@@ -703,8 +769,12 @@ void k_Proteomatic::showConfigurationDialog()
 		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = lk_AutoCheckForUpdates_->checkState() == Qt::Checked;
 		mk_Configuration[CONFIG_SCRIPTS_URL] = lk_ScriptsUrlLineEdit_->text();
 		mk_Configuration[CONFIG_FILETRACKER_URL] = lk_FileTrackerUrlLineEdit_->text();
+        mk_Configuration[CONFIG_PATH_TO_RUBY] = lk_LanguagePathLineEdits["ruby"]->text();
+        mk_Configuration[CONFIG_PATH_TO_PYTHON] = lk_LanguagePathLineEdits["python"]->text();
+        mk_Configuration[CONFIG_PATH_TO_PHP] = lk_LanguagePathLineEdits["php"]->text();
 		this->saveConfiguration();
 		updateConfigDependentStuff();
+        checkRuby();
 		emit configurationChanged();
 	}
 }
@@ -975,28 +1045,26 @@ void k_Proteomatic::checkRuby()
 	
 	// see whether there's a local Ruby installed and prefer that
 	// if there is a local Ruby then overwrite the configuration
-	QString ls_OldRubyPath = mk_Configuration[CONFIG_PATH_TO_RUBY].toString();
-	mk_Configuration[CONFIG_PATH_TO_RUBY] = "ruby";
-	QString ls_Version = syncRuby(QStringList() << "-v");
-	if (ls_Version.startsWith("ruby"))
-	{
-		/*
-		ls_Version.replace("ruby", "");
-		ls_Version = ls_Version.trimmed();
-		QStringList lk_Tokens = ls_Version.split(" ");
-		ls_Version = lk_Tokens.first();
-		if (ls_Version == "1.8.6")
-		{
-			*/
-			// we have found a local Ruby, hooray!
-			this->saveConfiguration();
-			updateConfigDependentStuff();
-			return;
-			/*
-		}
-		*/
-	}
-	mk_Configuration[CONFIG_PATH_TO_RUBY] = ls_OldRubyPath;
+    QStringList lk_Languages;
+    lk_Languages << "ruby";
+    lk_Languages << "python";
+    lk_Languages << "php";
+    
+    foreach (QString ls_Language, lk_Languages)
+    {
+        QString ls_Key;
+        if (ls_Language == "ruby")
+            ls_Key = CONFIG_PATH_TO_RUBY;
+        else if (ls_Language == "python")
+            ls_Key = CONFIG_PATH_TO_PYTHON;
+        else if (ls_Language == "php")
+            ls_Key = CONFIG_PATH_TO_PHP;
+        QString ls_OldPath = getConfiguration(ls_Key).toString();
+        mk_ScriptInterpreter[ls_Language] = ls_Language;
+        if (!syncScriptNoFile(QStringList() << "--version", ls_Language).toLower().startsWith(ls_Language))
+            mk_ScriptInterpreter[ls_Language] = ls_OldPath;
+        mk_ScriptInterpreterWorking[ls_Language] = (syncScriptNoFile(QStringList() << "--version", ls_Language).toLower().startsWith(ls_Language));
+    }
 	
 	while (true)
 	{
@@ -1190,4 +1258,10 @@ QLabel* k_Proteomatic::fileTrackerIconLabel()
 QLabel* k_Proteomatic::fileTrackerLabel()
 {
 	return mk_FileTrackerLabel_;
+}
+
+
+QString k_Proteomatic::scriptInterpreter(const QString& as_Language)
+{
+    return mk_ScriptInterpreter[as_Language];
 }

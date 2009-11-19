@@ -104,6 +104,7 @@ public:
 	QMenu* proteomaticScriptsMenu() const;
 	QString syncRuby(QStringList ak_Arguments);
 	QString syncScript(QStringList ak_Arguments);
+    QString syncScriptNoFile(QStringList ak_Arguments, QString as_Language);
 	QString syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
 	QString rubyPath();
 	QString version();
@@ -131,6 +132,7 @@ public:
 	QAction* startUntrackedAction();
 	QLabel* fileTrackerIconLabel();
 	QLabel* fileTrackerLabel();
+    QString scriptInterpreter(const QString& as_Language);
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);
@@ -195,4 +197,6 @@ protected:
 	QMenu mk_StartButtonMenu;
 	// mk_StartUntrackedAction_ starts without file tracking
 	QAction* mk_StartUntrackedAction_;
+    QHash<QString, QString> mk_ScriptInterpreter;
+    QHash<QString, bool> mk_ScriptInterpreterWorking;
 };
