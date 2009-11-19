@@ -426,17 +426,8 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
         QFile lk_File(ls_Path);
         lk_File.open(QIODevice::ReadOnly);
         QString ls_Marker;
-        QTextStream lk_Stream(&lk_File);
-        bool lb_SeenProteomatic = false;
-        while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#") || ls_Marker.startsWith("//") || ls_Marker.startsWith("<?")))
-        {
-            ls_Marker = lk_Stream.readLine().trimmed();
-            if (ls_Marker.toLower().contains("proteomatic"))
-            {
-                lb_SeenProteomatic = true;
-                break;
-            }
-        }
+		QByteArray lk_Head = lk_File.read(1024);
+		bool lb_SeenProteomatic =  lk_Head.toLower().contains("proteomatic");
         lk_File.close();
             
         if (lb_SeenProteomatic)

@@ -35,11 +35,18 @@ k_YamlParser::~k_YamlParser()
 QVariant k_YamlParser::parseFromString(QString as_Yaml)
 {
     std::basic_istringstream<char> lk_InfoStream(as_Yaml.toStdString());
-    YAML::Parser lk_Parser(lk_InfoStream);
-    YAML::Node lk_Document;
-    lk_Parser.GetNextDocument(lk_Document);
-    
-    return parseAny(&lk_Document);
+    try {
+        YAML::Parser lk_Parser(lk_InfoStream);
+        YAML::Node lk_Document;
+        lk_Parser.GetNextDocument(lk_Document);
+        
+        return parseAny(&lk_Document);
+    }
+    catch (YAML::ParserException& e)
+    {
+        //there was a parsing error!
+        return QVariant();
+    }
 }
 
 

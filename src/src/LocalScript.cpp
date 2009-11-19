@@ -37,19 +37,10 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 	QFile lk_File(as_ScriptPath);
 	lk_File.open(QIODevice::ReadOnly);
 	QString ls_Marker;
-	QTextStream lk_Stream(&lk_File);
-	bool lb_SeenProteomatic = false;
-	while (!lk_Stream.atEnd() && (ls_Marker.isEmpty() || ls_Marker.startsWith("#") || ls_Marker.startsWith("//") || ls_Marker.startsWith("<?")))
-	{
-		ls_Marker = lk_Stream.readLine().trimmed();
-		if (ls_Marker.toLower().contains("proteomatic"))
-		{
-			lb_SeenProteomatic = true;
-			break;
-		}
-	}
+	QByteArray lk_Head = lk_File.read(1024);
+	bool lb_SeenProteomatic =  lk_Head.toLower().contains("proteomatic");
 	lk_File.close();
-		
+	
 	if (lb_SeenProteomatic)
 	{
 		QString ls_Response;
