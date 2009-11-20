@@ -8,3 +8,7 @@ proteomatic.conf.yaml
 obj/
 Makefile.*
 cache/
+doxygen/
+Proteomatic.exe
+ProteomaticPipeline.exe
+Revelio.exe
