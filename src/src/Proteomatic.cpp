@@ -53,8 +53,6 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
 	mk_FileTrackerIconLabel_->setPixmap(QPixmap(":icons/revelio.png").scaledToHeight(16, Qt::SmoothTransformation));
 	
 	QDir::setCurrent(ak_Application.applicationDirPath());
-	if (QFileInfo(QDir::homePath() + "/proteomatic.conf.yaml").exists())
-		ms_ConfigurationPath = QDir::homePath() + "/proteomatic.conf.yaml";
 
 	this->loadConfiguration();
 
