@@ -1225,7 +1225,7 @@ void k_Script::createParameterWidget(QString as_Info)
                     ls_ValueKey = ls_Label = lk_Item.toString();
                 
 				lk_ComboBox_->addItem(ls_Label, QVariant(ls_ValueKey));
-				if (ls_Key == lk_Parameter["default"])
+				if (ls_ValueKey == lk_Parameter["default"])
 					li_DefaultIndex = li_Index;
 				li_Index += 1;
 			}
