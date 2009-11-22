@@ -33,8 +33,9 @@ class k_OutFileListBox: public k_DesktopBox, public IFileBox
 {
 	Q_OBJECT
 public:
-	k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label,
-					  bool ab_ItemsDeletable = true);
+	k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, 
+					 QString as_Key, QString as_Label,
+					 bool ab_ItemsDeletable = true);
 	virtual ~k_OutFileListBox();
 
 	virtual QStringList filenames() const;
@@ -42,7 +43,6 @@ public:
 	virtual QStringList filenamesForTag(const QString& as_Tag) const;
 	virtual QString prefixWithoutTags() const;
 	
-	virtual void setFilenames(QStringList ak_Filenames);
 	virtual void setListMode(bool ab_Enabled);
 	virtual bool listMode() const;
 	virtual QString label() const;
@@ -51,17 +51,18 @@ public:
 signals:
 	virtual void arrowPressed();
 	virtual void arrowReleased();
-	virtual void filenamesChanged();
 	
 protected slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void toggleUi();
 	virtual void updateFilenameTags();
 	virtual void filenameDoubleClicked();
+	virtual void update();
 	
 protected:
 	virtual void setupLayout();
 
+	QString ms_Key;
 	QString ms_Label;
 	k_FileList mk_FileList;
 	QLabel* mk_Label_;

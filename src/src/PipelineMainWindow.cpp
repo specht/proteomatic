@@ -349,7 +349,7 @@ void k_PipelineMainWindow::updateStatusBar()
 		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
 		if (lk_ScriptBox_)
 		{
-			QString ls_OutputDirectory = lk_ScriptBox_->outputDirectory();
+			QString ls_OutputDirectory = lk_ScriptBox_->scriptOutputDirectory();
 			if (ls_OutputDirectory.isEmpty())
 				ls_OutputDirectory = "<i>undefined</i>";
 			mk_StatusBarMessage_->setText("<b>Output directory:</b> " + ls_OutputDirectory);

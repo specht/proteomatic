@@ -41,13 +41,13 @@ public:
 	virtual bool checkReady(QString& as_Error);
 	virtual bool checkReadyToGo();
 	virtual QStringList iterationKeys();
-	virtual QString outputDirectory() const;
+	virtual QString scriptOutputDirectory() const;
+	virtual QStringList outputFilesForKey(QString as_Key) const;
 	virtual QWidget* paneWidget();
 	virtual bool hasExistingOutputFiles();
 	virtual bool outputFileActivated(const QString& as_Key);
 	virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag);
 	virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key);
-	virtual QString boxOutputDirectory() const;
 	virtual QString boxOutputPrefix() const;
 	
 public slots:
@@ -60,11 +60,7 @@ public slots:
 	
 protected slots:
 	virtual void outputFileActionToggled();
-	virtual void handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
-	virtual void updateBatchMode();
-	virtual void updateOutputFilenames();
-	virtual void updateOutputDirectory();
 	virtual void readyReadSlot();
 	virtual void addOutput(QString as_String);
 	virtual void showOutputBox(bool ab_Flag = true);
@@ -73,17 +69,15 @@ protected slots:
 	virtual void hidingBuddy();
 	virtual void showingBuddy();
 	virtual void outputBoxIterationKeyChooserChanged();
+    virtual void update();
 	
 signals:
 	virtual void scriptStarted();
 	virtual void scriptFinished(int ai_ExitCode);
 	virtual void readyRead();
-	virtual void outputPrefixChanged();
-	virtual void outputDirectoryChanged();
 	
 protected:
 	virtual void setupLayout();
-	virtual void determineOutputDirectoryDefiningInputFile();
 	virtual void dragEnterEvent(QDragEnterEvent* event);
 	virtual void dragMoveEvent(QDragMoveEvent* event);
 	virtual void dropEvent(QDropEvent* event);
@@ -108,5 +102,9 @@ protected:
 	QString ms_ConverterFilenamePattern;
 	QSet<QString> mk_ConverterFilenameAffectingParameters;
 	QSize mk_LastUserAdjustedSize;
+	
+	// this is the path to the input file which has been chosen 
+	// for determining the automatic output directory 
 	QString ms_OutputDirectoryDefiningInputPath;
+	QHash<QString, QStringList> mk_OutputFilesForKey;
 };

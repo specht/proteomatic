@@ -25,9 +25,13 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Proteomatic.h"
 
 
-k_OutFileListBox::k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
-									QString as_Label, bool ab_ItemsDeletable/* = true*/)
+k_OutFileListBox::k_OutFileListBox(k_Desktop* ak_Parent_, 
+								   k_Proteomatic& ak_Proteomatic,
+								   QString as_Key, 
+								   QString as_Label, 
+								   bool ab_ItemsDeletable/* = true*/)
 	: k_DesktopBox(ak_Parent_, ak_Proteomatic, true)
+	, ms_Key(as_Key)
 	, ms_Label(as_Label)
 	, mk_FileList(this, ab_ItemsDeletable, true)
 	, mb_ListMode(false)
@@ -73,16 +77,6 @@ QString k_OutFileListBox::prefixWithoutTags() const
 }
 
 
-void k_OutFileListBox::setFilenames(QStringList ak_Filenames)
-{
-	mk_FileList.resetAll(false);
-	mk_FileList.addInputFiles(ak_Filenames);
-	
-	toggleUi();
-	updateFilenameTags();
-}
-
-
 void k_OutFileListBox::setListMode(bool ab_Enabled)
 {
 	mb_ListMode = ab_Enabled;
@@ -119,6 +113,7 @@ void k_OutFileListBox::setBatchMode(bool ab_Enabled)
 	k_DesktopBox::setBatchMode(ab_Enabled);
 	if (mk_BatchModeButton.isChecked() != ab_Enabled)
 		mk_BatchModeButton.setChecked(ab_Enabled);
+	emit changed();
 }
 
 
@@ -177,6 +172,37 @@ void k_OutFileListBox::filenameDoubleClicked()
 }
 
 
+void k_OutFileListBox::update()
+{
+	if (mk_ConnectedIncomingBoxes.size() == 0)
+		return;
+	
+	IDesktopBox* lk_DesktopScriptBox_ = mk_ConnectedIncomingBoxes.toList().first();
+	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_DesktopScriptBox_);
+	if (!lk_ScriptBox_)
+		return;
+	
+	// ----------------------------------------------
+	// HANDLE BATCH MODE / SCRIPT TYPE
+	// ----------------------------------------------
+	if (lk_ScriptBox_->script()->type() == r_ScriptType::Processor)
+		setListMode(lk_DesktopScriptBox_->batchMode());
+	else
+		setListMode(true);
+	
+	// ----------------------------------------------
+	// UPDATE FILENAMES
+	// ----------------------------------------------
+	
+	mk_FileList.resetAll(false);
+	mk_FileList.addInputFiles(lk_ScriptBox_->outputFilesForKey(ms_Key), true, false);
+	
+	toggleUi();
+	
+	emit changed();
+}
+
+
 void k_OutFileListBox::setupLayout()
 {
 	QBoxLayout* lk_VLayout_;
@@ -221,7 +247,7 @@ void k_OutFileListBox::setupLayout()
 	
 	connect(this, SIGNAL(resized()), this, SLOT(toggleUi()));
 	
-	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(filenamesChanged()));
+	connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
 	
 	resize(300, 100);
 	emit resized();

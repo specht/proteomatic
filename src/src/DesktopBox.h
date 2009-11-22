@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IDesktopBox.h"
 #include <QtCore>
 #include <QtGui>
+#include "RefPtr.h"
 
 
 class k_Desktop;
@@ -65,6 +66,7 @@ public slots:
 	virtual QRectF rect();
 	
 signals:
+    virtual void changed();
 	virtual void batchModeChanged(bool);
 	virtual void moved(QPoint ak_Delta);
 	virtual void resized();
@@ -79,7 +81,12 @@ protected:
 	virtual void mousePressEvent(QMouseEvent* event);
 	virtual void mouseReleaseEvent(QMouseEvent* event);
 	virtual void mouseMoveEvent(QMouseEvent* event);
+    virtual void update();
+    
+private slots:
+    virtual void updateSlot();
 
+protected:
 	k_Desktop* mk_Desktop_;
 	k_Proteomatic& mk_Proteomatic;
 	bool mb_ResizableX, mb_ResizableY;

@@ -45,7 +45,8 @@ struct IDesktopBox
 	virtual QRectF rect() = 0;
 	
 	// signals
-	virtual void batchModeChanged(bool) = 0;
+	virtual void changed() = 0;
+    virtual void batchModeChanged(bool) = 0;
 	virtual void moved(QPoint ak_Delta) = 0;
 	virtual void resized() = 0;
 	virtual void clicked(QMouseEvent* event) = 0;

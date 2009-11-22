@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesktopBox.h"
 #include "Desktop.h"
 #include "Tango.h"
+#include "RefPtr.h"
 
 
 k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, 
@@ -93,7 +94,9 @@ void k_DesktopBox::connectIncomingBox(IDesktopBox* ak_Other_)
 
 	mk_ConnectedIncomingBoxes.insert(ak_Other_);
 	ak_Other_->connectOutgoingBox(this);
-	emit boxConnected(ak_Other_, true);
+    emit boxConnected(ak_Other_, true);
+    connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(changed()), this, SLOT(updateSlot()), Qt::QueuedConnection);
+    updateSlot();
 }
 
 
@@ -116,6 +119,8 @@ void k_DesktopBox::disconnectIncomingBox(IDesktopBox* ak_Other_)
 	mk_ConnectedIncomingBoxes.remove(ak_Other_);
 	ak_Other_->disconnectOutgoingBox(this);
 	emit boxDisconnected(ak_Other_, true);
+    disconnect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(changed()), this, SLOT(updateSlot()));
+    updateSlot();
 }
 
 
@@ -238,4 +243,15 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 		this->resize(mk_OldSize + QSize(mb_ResizableX ? lk_Delta.x() : 0, mb_ResizableY ? lk_Delta.y() : 0));
 		event->accept();
 	}
+}
+
+
+void k_DesktopBox::update()
+{
+}
+
+
+void k_DesktopBox::updateSlot()
+{
+    this->update();
 }

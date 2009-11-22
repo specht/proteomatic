@@ -97,7 +97,10 @@ void k_FileListBox::setBatchMode(bool ab_Enabled)
 		mk_BatchModeButton.setChecked(ab_Enabled);
 	toggleUi();
 	if (ab_Enabled)
+        // changed() is emitted here
 		updateFilenameTags();
+    else
+        emit changed();
 	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -152,7 +155,7 @@ void k_FileListBox::updateFilenameTags()
 	}
 	
 	mk_Desktop_->setHasUnsavedChanges(true);
-	emit filenamesChanged();
+	emit changed();
 }
 
 

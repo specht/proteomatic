@@ -48,11 +48,12 @@ k_DesktopBoxFactory::makeFileListBox(k_Desktop* ak_Parent_,
 
 IDesktopBox*
 k_DesktopBoxFactory::makeOutFileListBox(k_Desktop* ak_Parent_, 
-										 k_Proteomatic& ak_Proteomatic,
-										 QString as_Label,
-										 bool ab_ItemsDeleteable)
+										k_Proteomatic& ak_Proteomatic,
+										QString as_Key,
+										QString as_Label,
+										bool ab_ItemsDeleteable)
 {
-	return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Label, ab_ItemsDeleteable);
+	return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Key, as_Label, ab_ItemsDeleteable);
 }
 
 

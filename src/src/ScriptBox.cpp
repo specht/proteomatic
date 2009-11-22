@@ -43,7 +43,6 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 	, ms_CurrentIterationKeyRunning(QString())
 	, ms_CurrentIterationKeyShowing(QString())
 {
-	connect(this, SIGNAL(boxConnected(IDesktopBox*, bool)), this, SLOT(handleBoxConnected(IDesktopBox*, bool)));
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
@@ -143,19 +142,30 @@ QStringList k_ScriptBox::iterationKeys()
 }
 
 
-QString k_ScriptBox::outputDirectory() const
+QString k_ScriptBox::scriptOutputDirectory() const
 {
 	if (!mk_OutputDirectory.text().isEmpty())
+	{
 		return mk_OutputDirectory.text();
+	}
 	
 	// if no output directory has been set, return the directory of one of the
 	// output directory specifying input files
 	
-	// ...but, if it's empty, return nothing!
+	// ...but, if it's empty, return home path!
 	if (ms_OutputDirectoryDefiningInputPath.isEmpty())
-		return QString();
+		return QDir::homePath();
 
 	return QFileInfo(ms_OutputDirectoryDefiningInputPath).dir().path();
+}
+
+
+QStringList k_ScriptBox::outputFilesForKey(QString as_Key) const
+{
+	if (mk_OutputFilesForKey.contains(as_Key))
+		return mk_OutputFilesForKey[as_Key];
+	else
+		return QStringList();
 }
 
 
@@ -201,12 +211,6 @@ IDesktopBox* k_ScriptBox::boxForOutputFileKey(const QString& as_Key)
 }
 
 
-QString k_ScriptBox::boxOutputDirectory() const
-{
-	return mk_OutputDirectory.text();
-}
-
-
 QString k_ScriptBox::boxOutputPrefix() const
 {
 	return mk_Prefix.text();
@@ -221,14 +225,12 @@ void k_ScriptBox::outputFileActionToggled()
 	{
 		IDesktopBox* lk_Box_ = 
 		k_DesktopBoxFactory::makeOutFileListBox(
-			mk_Desktop_, mk_Proteomatic, 
+			mk_Desktop_, mk_Proteomatic, ls_Key,
 			mk_pScript->outputFileDetails(ls_Key)["label"], false);
 		dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
 		mk_OutputFileBoxes[ls_Key] = lk_Box_;
 		mk_Desktop_->addBox(lk_Box_);
 		mk_Desktop_->connectBoxes(this, lk_Box_);
-		dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
-		updateOutputFilenames();
 	}
 	else
 	{
@@ -244,19 +246,6 @@ void k_ScriptBox::outputFileActionToggled()
 }
 
 
-void k_ScriptBox::handleBoxConnected(IDesktopBox* ak_Other_, bool ab_Incoming)
-{
-	if (ab_Incoming)
-	{
-		updateBatchMode();
-		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(batchModeChanged(bool)), this, SLOT(updateBatchMode()));
-		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(filenamesChanged()), this, SLOT(updateOutputFilenames()));
-		connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(filenamesChanged()), this, SLOT(updateOutputDirectory()));
-	}
-	mk_Desktop_->setHasUnsavedChanges(true);
-}
-
-
 void k_ScriptBox::handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming)
 {
 	if (!ab_Incoming)
@@ -267,56 +256,13 @@ void k_ScriptBox::handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming
 		if (!ls_Key.isEmpty())
 			mk_Checkboxes[ls_Key]->setChecked(Qt::Unchecked);
 	}
-	updateBatchMode();
-	updateOutputFilenames();
-	updateOutputDirectory();
-	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
-void k_ScriptBox::updateBatchMode()
-{
-	// batch mode this box if at least one incoming box is in batch mode
-	bool lb_BatchMode = false;
-	// converter scripts never go into batch mode! 
-	// in converter script, batch mode goes into you!!
-	if (mk_pScript->type() != r_ScriptType::Converter)
-	{
-		foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
-		{
-			if (lk_Box_->batchMode())
-			{
-				lb_BatchMode = true;
-				break;
-			}
-		}
-	}
-	setBatchMode(lb_BatchMode);
-	
-	// if this box is in batch mode, put all output boxes in list mode
-	foreach (IDesktopBox* lk_Box_, mk_OutputFileBoxes.values())
-	{
-		k_OutFileListBox* lk_OutFileListBox_ = dynamic_cast<k_OutFileListBox*>(lk_Box_);
-		if (lk_OutFileListBox_)
-			lk_OutFileListBox_->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
-	}
-	
-	updateOutputDirectory();
-	updateOutputFilenames();
-	mk_Desktop_->setHasUnsavedChanges(true);
-}
-
-
+/*
 void k_ScriptBox::updateOutputFilenames()
 {
 	this->determineOutputDirectoryDefiningInputFile();
-	
-	// auto-prefix if not converter script!
-	// no, don't!!
-	// or should we...?
-	// nah, maybe not.
-/*	if (mk_pScript->type() != r_ScriptType::Converter)
-		this->proposePrefixButtonClicked(false);*/
 	
 	if (batchMode())
 	{
@@ -362,7 +308,7 @@ void k_ScriptBox::updateOutputFilenames()
 			k_OutFileListBox* lk_OutBox_ = dynamic_cast<k_OutFileListBox*>(mk_OutputFileBoxes[ls_Key]);
 			QStringList lk_Filenames;
 			if (mk_pScript->type() == r_ScriptType::Processor)
-				lk_Filenames.append(outputDirectory() + "/" + /*mk_Desktop_->pipelineMainWindow().outputPrefix() + */mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
+				lk_Filenames.append(outputDirectory() + "/" + mk_Prefix.text() + mk_pScript->outputFileDetails(ls_Key)["filename"]);
 			else
 			{
 				foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
@@ -435,10 +381,6 @@ void k_ScriptBox::updateOutputFilenames()
 			mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->count() - 1);
 	}
 
-/*
-			mk_OutputBoxIterationKeyChooser_->addItem(ls_Key);
-			mk_Output[ls_Key] = RefPtr<k_ConsoleString>(new k_ConsoleString());
-			*/
 	// remove all old iteration keys
 	QList<int> lk_DeleteIndices;
 	for (int i = 0; i < mk_OutputBoxIterationKeyChooser_->count(); ++i)
@@ -466,6 +408,7 @@ void k_ScriptBox::updateOutputDirectory()
 	if (ls_OldOutputDirectory != ls_NewOutputDirectory)
 		this->updateOutputFilenames();
 }
+*/
 
 
 void k_ScriptBox::proposePrefixButtonClicked(bool ab_NotifyOnFailure)
@@ -502,8 +445,7 @@ void k_ScriptBox::clearPrefixButtonClicked()
 {
 	mk_Prefix.setText(QString());
 	mk_Desktop_->setHasUnsavedChanges(true);
-	emit outputPrefixChanged();
-	updateOutputFilenames();
+	update();
 }
 
 
@@ -511,8 +453,7 @@ void k_ScriptBox::clearOutputDirectoryButtonClicked()
 {
 	mk_OutputDirectory.setText(QString());
 	mk_Desktop_->setHasUnsavedChanges(true);
-	emit outputDirectoryChanged();
-	updateOutputFilenames();
+	update();
 }
 
 
@@ -521,8 +462,8 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 	QHash<QString, QString> lk_Parameters;
 
 	// set output directory
-	if (!this->outputDirectory().isEmpty())
-		lk_Parameters["-outputDirectory"] = this->outputDirectory();
+	if (!this->scriptOutputDirectory().isEmpty())
+		lk_Parameters["-outputDirectory"] = this->scriptOutputDirectory();
 
 	// set output prefix
 	lk_Parameters["-outputPrefix"] = mk_Prefix.text() + as_IterationKey + (as_IterationKey.isEmpty() ? "" : "-");
@@ -608,7 +549,7 @@ void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 {
 	if (mk_pScript->type() == r_ScriptType::Converter)
 		if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
-			updateOutputFilenames();
+			update();
 	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -647,6 +588,82 @@ void k_ScriptBox::outputBoxIterationKeyChooserChanged()
 		mk_OutputBox_->moveCursor(QTextCursor::End);
 		mk_OutputBox_->ensureCursorVisible();
 	}
+}
+
+
+void k_ScriptBox::update()
+{
+	static int li_Count = 0;
+	++li_Count;
+	fprintf(stderr, "update script box: %d\n", li_Count);
+	// ----------------------------------------------
+	// UPDATE BATCH MODE
+	// ----------------------------------------------
+	
+	// batch mode this box if at least one incoming box is in batch mode
+	bool lb_BatchMode = false;
+	// converter scripts never go into batch mode! 
+	// in converter script, batch mode goes into you!!
+	if (mk_pScript->type() != r_ScriptType::Converter)
+	{
+		foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+		{
+			if (lk_Box_->batchMode())
+			{
+				lb_BatchMode = true;
+				break;
+			}
+		}
+	}
+	setBatchMode(lb_BatchMode);
+	
+	// ----------------------------------------------
+	// UPDATE OUTPUT DIRECTORY
+	// ----------------------------------------------
+
+	// determine file that automatically defines input directory
+	QString ls_OldValue = ms_OutputDirectoryDefiningInputPath;
+	ms_OutputDirectoryDefiningInputPath = QString();
+	QStringList lk_InterestingInputFiles;
+	foreach (IDesktopBox* lk_Box_, this->incomingBoxes())
+	{
+		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+		if (lk_FileBox_)
+		{
+			foreach (QString ls_Path, lk_FileBox_->filenames())
+			{
+				if (mk_pScript->inputGroupForFilename(ls_Path) == mk_pScript->defaultOutputDirectoryInputGroup())
+					lk_InterestingInputFiles.push_back(ls_Path);
+			}
+		}
+	}
+	if (!lk_InterestingInputFiles.empty())
+	{
+		QString ls_SmallestPath = lk_InterestingInputFiles.first();
+		foreach (QString ls_Path, lk_InterestingInputFiles)
+			if (ls_Path < ls_SmallestPath)
+				ls_SmallestPath = ls_Path;
+		ms_OutputDirectoryDefiningInputPath = ls_SmallestPath;
+	}
+	
+	// ----------------------------------------------
+	// UPDATE OUTPUT FILENAMES
+	// ----------------------------------------------
+	
+	if (mk_pScript->type() == r_ScriptType::Processor)
+	{
+		mk_OutputFilesForKey.clear();
+		foreach (QString ls_Key, mk_Checkboxes.keys())
+		{
+			if (mk_Checkboxes[ls_Key]->checkState() == Qt::Checked)
+			{
+				mk_OutputFilesForKey[ls_Key] = QStringList();
+				mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + "out.txt";
+			}
+		}
+	}
+
+	emit changed();
 }
 
 
@@ -818,8 +835,7 @@ void k_ScriptBox::setupLayout()
 		mk_Prefix.setHint("output file prefix");
 		lk_HLayout_->addWidget(&mk_Prefix);
 		connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
-		connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SIGNAL(outputPrefixChanged()));
-		connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputFilenames()));
+		connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(update()));
 
 		QToolButton* lk_ClearPrefixButton_ = new QToolButton(this);
 		lk_ClearPrefixButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
@@ -842,8 +858,7 @@ void k_ScriptBox::setupLayout()
 		mk_OutputDirectory.setHint("output directory");
 		mk_OutputDirectory.setReadOnly(true);
 		lk_HLayout_->addWidget(&mk_OutputDirectory);
-		connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SIGNAL(outputDirectoryChanged()));
-		connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(updateOutputDirectory()));
+		connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(update()));
 
 		QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(this);
 		lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
@@ -906,7 +921,7 @@ void k_ScriptBox::setupLayout()
 			mk_Checkboxes[ls_Key] = lk_CheckBox_;
 			lk_CheckBox_->setChecked(true);
 			
-			updateOutputFilenames();
+			update();
 			
 			// collect parameters that affect the output filename
 			QString ls_DestinationFilename = ms_ConverterFilenamePattern;
@@ -932,32 +947,6 @@ void k_ScriptBox::setupLayout()
 }
 
 
-void k_ScriptBox::determineOutputDirectoryDefiningInputFile()
-{
-	QString ls_OldValue = ms_OutputDirectoryDefiningInputPath;
-	ms_OutputDirectoryDefiningInputPath = QString();
-	QStringList lk_InterestingInputFiles;
-	foreach (IDesktopBox* lk_Box_, this->incomingBoxes())
-	{
-		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-		if (lk_FileBox_)
-		{
-			foreach (QString ls_Path, lk_FileBox_->filenames())
-			{
-				if (mk_pScript->inputGroupForFilename(ls_Path) == mk_pScript->defaultOutputDirectoryInputGroup())
-					lk_InterestingInputFiles.push_back(ls_Path);
-			}
-		}
-	}
-	if (lk_InterestingInputFiles.empty())
-		return;
-	qSort(lk_InterestingInputFiles.begin(), lk_InterestingInputFiles.end());
-	ms_OutputDirectoryDefiningInputPath = lk_InterestingInputFiles.first();
-	if (ms_OutputDirectoryDefiningInputPath != ls_OldValue)
-		emit outputDirectoryChanged();
-}
-
-
 void k_ScriptBox::dragEnterEvent(QDragEnterEvent* event)
 {
 	event->acceptProposedAction();
@@ -979,10 +968,7 @@ void k_ScriptBox::dropEvent(QDropEvent* event)
 		if (!ls_Path.isEmpty())
 		{
 			if (QFileInfo(ls_Path).isDir())
-			{
 				mk_OutputDirectory.setText(ls_Path);
-				emit outputDirectoryChanged();
-			}
 		}
 	}
 }
