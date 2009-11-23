@@ -50,6 +50,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
 	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
+    connect(&mk_AnimationTimer, SIGNAL(timeout()), this, SLOT(animationTimeout()));
 	setAcceptDrops(true);
 	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 	setScene(&mk_GraphicsScene);
@@ -234,7 +235,6 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri)
                 {
                     k_DesktopBox* lk_OtherDesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Other_);
                     lk_OtherDesktopBox_->move((lk_OtherDesktopBox_->pos() + mk_ArrowEndPoint.toPoint() - QPoint(lk_Size.width(), lk_Size.height()) - lk_AllBoxesBoundingRect.topLeft()).toPoint());
-                    //lk_OtherDesktopBox_->move(lk_OtherDesktopBox_->pos());
                 }
 			}
 		}
@@ -242,6 +242,7 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri)
 	}
 	mk_ArrowStartBoxAutoConnect_ = NULL;
     emit selectionChanged();
+    animateAdjustView();
 	return lk_Box_;
 }
 
@@ -271,6 +272,8 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox)
 	redraw();
 	mb_HasUnsavedChanges = true;
 	mk_PipelineMainWindow.toggleUi();
+    if (ab_PlaceBox)
+        animateAdjustView();
 }
 
 
@@ -796,6 +799,8 @@ void k_Desktop::abort()
 
 void k_Desktop::showAll()
 {
+    animateAdjustView();
+    return;
 	if (mk_Boxes.empty())
 		return;
 
@@ -1254,6 +1259,76 @@ void k_Desktop::setCurrentScriptBoxForce(IScriptBox* ak_ScriptBox_)
 {
 	mk_CurrentScriptBox_ = dynamic_cast<IDesktopBox*>(ak_ScriptBox_);
 	mk_PipelineMainWindow.setCurrentScriptBox(ak_ScriptBox_);
+}
+
+
+void k_Desktop::animationTimeout()
+{
+    double t = mk_StopWatch.get_Time() / 0.5;
+    if (t > 1.0)
+    {
+        t = 1.0;
+        mk_AnimationTimer.stop();
+    }
+    t = pow(t, 0.5);
+    md_Scale = (md_AnimationEndScale - md_AnimationStartScale) * t + md_AnimationStartScale;
+    QPointF lk_Center = (mk_AnimationEndCenter - mk_AnimationStartCenter) * t + mk_AnimationStartCenter;
+    centerOn(lk_Center);
+    QMatrix lk_Matrix = this->matrix();
+    lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
+    this->setMatrix(lk_Matrix);
+}
+
+
+void k_Desktop::animateAdjustView()
+{
+    if (mk_Boxes.empty())
+        return;
+
+    // determine bounding box
+    QRectF lk_Rect;
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        lk_Rect = lk_Rect.united(lk_Box_->rect());
+    lk_Rect.adjust(-10.0, -10.0, 10.0, 10.0);
+    
+    // if everything's visible: return
+    QRectF lk_ViewRect(mapToScene(QPoint(0, 0)), mapToScene(QPoint(frameRect().width(), frameRect().height())));
+    if (lk_ViewRect.contains(lk_Rect))
+        return;
+
+    md_AnimationStartScale = md_Scale;
+    md_AnimationEndScale = md_AnimationStartScale;
+    mk_AnimationStartCenter = lk_ViewRect.center();
+    
+    // reset scaling to 1.0
+    md_Scale = 1.0;
+    
+    // center
+    //centerOn(lk_Rect.center());
+    mk_AnimationEndCenter = lk_Rect.center();
+    
+    // adjust scaling
+    QPointF lk_A = mapToScene(QPoint(0, 0)) + (mk_AnimationEndCenter - mk_AnimationStartCenter);
+    QPointF lk_B = mapToScene(QPoint(frameRect().width(), frameRect().height())) + (mk_AnimationEndCenter - mk_AnimationStartCenter);
+    double ld_WindowX = lk_B.x() - lk_A.x();
+    double ld_WindowY = lk_B.y() - lk_A.y();
+    double ld_SceneX = lk_Rect.width();
+    double ld_SceneY = lk_Rect.height();
+    double a = ld_WindowX / ld_SceneX;
+    if (ld_WindowY / ld_SceneY < a)
+        a = ld_WindowY / ld_SceneY;
+    if (a < 1.0)
+    {
+        md_Scale *= a;
+        md_Scale = std::max<double>(md_Scale, 0.3);
+        md_Scale = std::min<double>(md_Scale, 1.0);
+        md_AnimationEndScale = md_Scale;
+        //this->setMatrix(lk_Matrix);
+    }
+    md_Scale = md_AnimationStartScale;
+    mk_AnimationTimer.setSingleShot(false);
+    mk_StopWatch.reset();
+    mk_AnimationTimer.start(20);
 }
 
 

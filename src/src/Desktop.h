@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
+#include "StopWatch.h"
 #include "Yaml.h"
 
 
@@ -93,6 +94,8 @@ protected slots:
 	virtual void scriptFinished(int ai_ExitCode);
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
 	virtual void setCurrentScriptBoxForce(IScriptBox* ak_ScriptBox_);
+    virtual void animationTimeout();
+    virtual void animateAdjustView();
 	
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
@@ -176,4 +179,10 @@ protected:
 	bool mb_Moving;
 	
 	bool mb_UseFileTrackerIfAvailable;
+    k_StopWatch mk_StopWatch;
+    QTimer mk_AnimationTimer;
+    QPointF mk_AnimationStartCenter;
+    QPointF mk_AnimationEndCenter;
+    double md_AnimationStartScale;
+    double md_AnimationEndScale;
 };
