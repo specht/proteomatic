@@ -98,16 +98,6 @@ QString k_OutFileListBox::label() const
 }
 
 
-bool k_OutFileListBox::hasExistingFiles()
-{
-	foreach (QString ls_Path, mk_FileList.files())
-		if (QFileInfo(ls_Path).exists())
-			return true;
-		
-	return false;
-}
-
-
 void k_OutFileListBox::setBatchMode(bool ab_Enabled)
 {
 	k_DesktopBox::setBatchMode(ab_Enabled);
@@ -127,7 +117,6 @@ void k_OutFileListBox::toggleUi()
 	mk_BatchModeButton.setVisible(mb_ListMode);
 	
 	QString ls_String = "<b>" + ms_Label + "</b>";
-	//QString ls_String = ms_Label;
 	mk_Label_->setText(ls_String);
 	if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
 	{
@@ -142,25 +131,6 @@ void k_OutFileListBox::toggleUi()
 		else
 			mk_FileName_->setText(QString("<span style='color: %1'>").arg(TANGO_ALUMINIUM_3) + ls_PrintPath + "</span>");
 	}
-}
-
-
-void k_OutFileListBox::updateFilenameTags()
-{
-	mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
-	// :TODO: attention, code duplication here (FileListBox.cpp)
-	
-	// build tag => filename hash
-	mk_FilenamesForTag.clear();
-	foreach (QString ls_Filename, mk_TagForFilename.keys())
-	{
-		QString ls_Tag = mk_TagForFilename[ls_Filename];
-		if (!mk_FilenamesForTag.contains(ls_Tag))
-			mk_FilenamesForTag[ls_Tag] = QStringList();
-		mk_FilenamesForTag[ls_Tag] << ls_Filename;
-	}
-	
-	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -196,10 +166,27 @@ void k_OutFileListBox::update()
 	
 	mk_FileList.resetAll(false);
 	mk_FileList.addInputFiles(lk_ScriptBox_->outputFilesForKey(ms_Key), true, false);
-	
+    
+    // ----------------------------------
+    // UPDATE ITERATION TAGS
+    // ----------------------------------
+    
+    mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
+    // :TODO: attention, code duplication here (OutFileListBox.cpp)
+    
+    // build tag => filename hash
+    mk_FilenamesForTag.clear();
+    foreach (QString ls_Filename, mk_TagForFilename.keys())
+    {
+        QString ls_Tag = mk_TagForFilename[ls_Filename];
+        if (!mk_FilenamesForTag.contains(ls_Tag))
+            mk_FilenamesForTag[ls_Tag] = QStringList();
+        mk_FilenamesForTag[ls_Tag] << ls_Filename;
+    }
+    
+    mk_Desktop_->setHasUnsavedChanges(true);
+    emit changed();
 	toggleUi();
-	
-	emit changed();
 }
 
 
@@ -223,7 +210,6 @@ void k_OutFileListBox::setupLayout()
 	lk_VLayout_->addWidget(&mk_FileList);
 	
 	lk_VLayout_ = new QVBoxLayout();
-	lk_HLayout_->addLayout(lk_VLayout_);
 	
 	mk_BatchModeButton.setIcon(QIcon(":icons/cycle.png"));
 	mk_BatchModeButton.setCheckable(true);
@@ -237,6 +223,7 @@ void k_OutFileListBox::setupLayout()
 	lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation));
 	lk_VLayout_->addStretch();
 	lk_VLayout_->addWidget(lk_ArrowLabel_);
+    lk_HLayout_->addLayout(lk_VLayout_);
 	
 	mk_FileList.hide();
 	setResizable(false, false);
@@ -251,4 +238,5 @@ void k_OutFileListBox::setupLayout()
 	
 	resize(300, 100);
 	emit resized();
+    toggleUi();
 }

@@ -46,7 +46,6 @@ public:
 	virtual void setListMode(bool ab_Enabled);
 	virtual bool listMode() const;
 	virtual QString label() const;
-	virtual bool hasExistingFiles();
 	
 signals:
 	virtual void arrowPressed();
@@ -55,7 +54,6 @@ signals:
 protected slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void toggleUi();
-	virtual void updateFilenameTags();
 	virtual void filenameDoubleClicked();
 	virtual void update();
 	

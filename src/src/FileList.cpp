@@ -30,6 +30,7 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_F
 	, mk_OpenFileAction(QIcon(":icons/document-open.png"), "&Open file", this)
 	, mk_OpenContainingFolderAction(QIcon(":icons/folder.png"), "Open containing &folder", this)
 {
+    setMinimumWidth(200);
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	setAcceptDrops(true);
 	setDragDropMode(QAbstractItemView::DropOnly);

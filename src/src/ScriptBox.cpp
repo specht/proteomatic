@@ -81,18 +81,12 @@ bool k_ScriptBox::checkReady(QString& as_Error)
 bool k_ScriptBox::checkReadyToGo()
 {
 	// check whether all input files are there
-	QStringList lk_InputFiles;
-	
-	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
-	{
-		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-		if (lk_FileBox_)
-		{
-			foreach (QString ls_Path, lk_FileBox_->filenames())
-				if (!QFileInfo(ls_Path).exists())
-					return false;
-		}
-	}
+    foreach (QString ls_Key, mk_InputFilesForKey.keys())
+    {
+        foreach (QString ls_Path, mk_InputFilesForKey[ls_Key])
+            if (!QFileInfo(ls_Path).exists())
+                return false;
+    }
 	return true;
 }
 
@@ -103,7 +97,7 @@ QStringList k_ScriptBox::iterationKeys()
 		return QStringList() << "";
     
     if (mb_IterationsTagsDontMatch)
-        return QStringList() << "";
+        return QStringList();
     
     return mk_IterationTags;
 }
@@ -144,13 +138,11 @@ QWidget* k_ScriptBox::paneWidget()
 
 bool k_ScriptBox::hasExistingOutputFiles()
 {
-	foreach (IDesktopBox* lk_Box_, mk_OutputFileBoxes.values())
-	{
-		k_OutFileListBox* lk_OutFileListBox_ = dynamic_cast<k_OutFileListBox*>(lk_Box_);
-		if (lk_OutFileListBox_ && lk_OutFileListBox_->hasExistingFiles())
-			return true;
-	}
-	return false;
+    foreach (QString ls_Key, mk_OutputFilesForKey.keys())
+        foreach (QString ls_Path, mk_OutputFilesForKey[ls_Key])
+            if (QFileInfo(ls_Path).exists())
+                return true;
+    return false;
 }
 
 
@@ -196,7 +188,7 @@ void k_ScriptBox::outputFileActionToggled()
 			mk_pScript->outputFileDetails(ls_Key)["label"], false);
 		dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
 		mk_OutputFileBoxes[ls_Key] = lk_Box_;
-		mk_Desktop_->addBox(lk_Box_);
+		mk_Desktop_->addBox(lk_Box_, false);
 		mk_Desktop_->connectBoxes(this, lk_Box_);
 	}
 	else
@@ -426,6 +418,7 @@ void k_ScriptBox::clearOutputDirectoryButtonClicked()
 
 void k_ScriptBox::start(const QString& as_IterationKey)
 {
+    fprintf(stderr, "start!\n");
 	QHash<QString, QString> lk_Parameters;
 
 	// set output directory
@@ -581,6 +574,10 @@ void k_ScriptBox::update()
 	}
 	setBatchMode(lb_BatchMode);
     
+    // ----------------------------------------------
+    // UPDATE BATCH MODE ITERATION TAGS
+    // ----------------------------------------------
+    
     mk_IterationTags.clear();
     // determine iteration tags if in batch mode
     mb_IterationsTagsDontMatch = false;
@@ -625,6 +622,10 @@ void k_ScriptBox::update()
                         // iteration tags do not match,
                         // script box is in a bad state!
                         mb_IterationsTagsDontMatch = true;
+                        foreach (QString ls_Tag, lk_ConsensusIterationTags)
+                            fprintf(stderr, "C %s\n", ls_Tag.toStdString().c_str());
+                        foreach (QString ls_Tag, lk_IterationTags)
+                            fprintf(stderr, "T %s\n", ls_Tag.toStdString().c_str());
                     }
                 }
             }
@@ -700,10 +701,56 @@ void k_ScriptBox::update()
 			if (mk_Checkboxes[ls_Key]->checkState() == Qt::Checked)
 			{
 				mk_OutputFilesForKey[ls_Key] = QStringList();
-                mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                if (batchMode())
+                {
+                    if (!mb_IterationsTagsDontMatch)
+                    {
+                        foreach (QString ls_Tag, mk_IterationTags)
+                            mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_Tag + "-" + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                    }
+                }
+                else
+                    mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + mk_pScript->outputFileDetails(ls_Key)["filename"];
 			}
 		}
 	}
+    else if (mk_pScript->type() == r_ScriptType::Converter)
+    {
+        mk_OutputFilesForKey.clear();
+        QString ls_ConverterKey = mk_pScript->info()["converterKey"];
+        mk_OutputFilesForKey[ls_ConverterKey] = QStringList();
+        QString ls_ConverterFilename = mk_pScript->info()["converterFilename"];
+        foreach (QString ls_Path, mk_InputFilesForKey[ls_ConverterKey])
+        {
+            QString ls_OutPath = ls_ConverterFilename;
+            QString ls_Basename = QFileInfo(ls_Path).baseName();
+            QString ls_Extension = QFileInfo(ls_Path).completeSuffix(); 
+            QString ls_Filename = QFileInfo(ls_Path).fileName(); 
+            QRegExp lk_RegExp("(#\\{[a-zA-Z0-9_]+\\})", Qt::CaseSensitive, QRegExp::RegExp2);
+            int li_Position = 0;
+            while ((li_Position = lk_RegExp.indexIn(ls_OutPath)) != -1)
+            {
+                QString ls_Capture = lk_RegExp.cap(1);
+                QString ls_Key = ls_Capture;
+                ls_Key.replace("#{", "");
+                ls_Key.replace("}", "");
+                QString ls_Value = "";
+                if (ls_Key == "basename")
+                    ls_Value = ls_Basename;
+                else if (ls_Key == "extension")
+                    ls_Value = ls_Extension;
+                else if (ls_Key == "filename")
+                    ls_Value = ls_Filename;
+                else
+                {
+                    // it must be a parameter!
+                    ls_Value = mk_pScript->parameterValue(ls_Key);
+                }
+                ls_OutPath.replace(ls_Capture, ls_Value);
+            }
+            mk_OutputFilesForKey[ls_ConverterKey] << scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_OutPath;
+        }
+    }
 
     toggleUi();
 	emit changed();
@@ -713,7 +760,8 @@ void k_ScriptBox::update()
 void k_ScriptBox::toggleUi()
 {
     k_DesktopBox::toggleUi();
-    mk_IterationsTagsDontMatchIcon_->setVisible(mb_IterationsTagsDontMatch);
+    if (mk_IterationsTagsDontMatchIcon_)
+        mk_IterationsTagsDontMatchIcon_->setVisible(mb_IterationsTagsDontMatch);
 }
 
 
@@ -803,7 +851,7 @@ void k_ScriptBox::setupLayout()
 	lk_VLayout_->addWidget(lk_ScriptTitle_);
 
 	// only do this if there are output files for this script!
-	if (!(mk_pScript->type() == r_ScriptType::Processor && mk_pScript->outputFileKeys().empty()))
+	if (!((mk_pScript->type() == r_ScriptType::Processor) && mk_pScript->outputFileKeys().empty()))
 	{
 		// horizontal rule
 		QFrame* lk_Frame_ = new QFrame(this);
@@ -966,11 +1014,11 @@ void k_ScriptBox::setupLayout()
 				ls_Label = mk_pScript->info()["converterLabel"];
 			ms_ConverterFilenamePattern = mk_pScript->info()["converterFilename"];
 			IDesktopBox* lk_Box_ = 
-				k_DesktopBoxFactory::makeOutFileListBox(mk_Desktop_, mk_Proteomatic, ls_Label, false);
+				k_DesktopBoxFactory::makeOutFileListBox(mk_Desktop_, mk_Proteomatic, ls_Key, ls_Label, false);
 			lk_Box_->setProtectedFromUserDeletion(true);
 			dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
 			mk_OutputFileBoxes[ls_Key] = lk_Box_;
-			mk_Desktop_->addBox(lk_Box_);
+			mk_Desktop_->addBox(lk_Box_, false);
 			mk_Desktop_->connectBoxes(this, lk_Box_);
 			// make the output file box of a converter script a list
 			dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
@@ -981,9 +1029,7 @@ void k_ScriptBox::setupLayout()
 			lk_CheckBox_->setProperty("key", ls_Key);
 			mk_Checkboxes[ls_Key] = lk_CheckBox_;
 			lk_CheckBox_->setChecked(true);
-			
-			update();
-			
+            
 			// collect parameters that affect the output filename
 			QString ls_DestinationFilename = ms_ConverterFilenamePattern;
 			QRegExp lk_RegExp("(#\\{[a-zA-Z0-9_]+\\})", Qt::CaseSensitive, QRegExp::RegExp2);

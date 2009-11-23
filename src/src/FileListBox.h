@@ -51,7 +51,7 @@ protected slots:
 	virtual void setBatchMode(bool ab_Enabled);
 	virtual void addFilesButtonClicked();
 	virtual void toggleUi();
-	virtual void updateFilenameTags();
+    virtual void update();
 	
 protected:
 	virtual void setupLayout();

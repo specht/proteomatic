@@ -43,7 +43,7 @@ public:
 	virtual QGraphicsScene& graphicsScene();
 	virtual IDesktopBox* addInputFileListBox();
 	virtual IDesktopBox* addScriptBox(const QString& as_ScriptUri);
-	virtual void addBox(IDesktopBox* ak_Box_);
+	virtual void addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox = true);
 	virtual void removeBox(IDesktopBox* ak_Box_);
 	virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
 	virtual void disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
@@ -88,7 +88,7 @@ protected slots:
 	virtual void redrawSelection(bool ab_DontCallOthers = false);
 	virtual void deleteSelected();
 	virtual void redrawBatchFrame(bool ab_DontCallOthers = false);
-	virtual void clearSelection();
+    virtual void clearSelection();
 	virtual void scriptStarted();
 	virtual void scriptFinished(int ai_ExitCode);
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
@@ -109,9 +109,10 @@ protected:
 	virtual void boxConnector(IDesktopBox* ak_Box0_, IDesktopBox* ak_Box1_, QPointF& ak_Point0, QPointF& ak_Point1);
 	virtual QPointF intersectLineWithBox(const QPointF& ak_Point0, const QPointF& ak_Point1, IDesktopBox* ak_Box_);
 	virtual void updateArrowInternal(QGraphicsPathItem* ak_Arrow_, QPointF ak_Start, QPointF ak_End);
-	virtual QPainterPath grownPathForBox(IDesktopBox* ak_Box_, int ai_Grow);
-	virtual QPainterPath grownPathForArrow(QGraphicsPathItem* ak_Arrow_, int ai_Grow);
-	virtual QPointF findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, IDesktopBox* ak_Box_);
+	virtual QPainterPath grownPathForBox(IDesktopBox* ak_Box_, int ai_Grow = 0);
+	virtual QPainterPath grownPathForArrow(QGraphicsPathItem* ak_Arrow_, int ai_Grow = 0);
+    virtual QPainterPath grownPathForBatchConnector(IDesktopBox* ak_Box_, IDesktopBox* ak_PeerBox_, int ai_Grow = 0);
+	virtual QPointF findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, QRectF ak_BoxRect);
 	virtual IScriptBox* pickNextScriptBox();
 	virtual QSet<IScriptBox*> incomingScriptBoxes(IDesktopBox* ak_Box_) const;
 	virtual void dragEnterEvent(QDragEnterEvent* event);

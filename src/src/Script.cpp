@@ -834,16 +834,14 @@ void k_Script::createParameterWidget(QString as_Info)
     
     tk_YamlMap lk_Info = k_Yaml::parseFromString(as_Info).toMap();
 
-    if (lk_Info.contains("info"))
-    {
-        foreach (QString ls_Key, lk_Info["info"].toMap().keys())
-        {
-            QString ls_Value = lk_Info["info"].toMap()[ls_Key].toString();
-            mk_Info[ls_Key] = ls_Value;
-            if (ls_Key == "type")
-                me_Type = (ls_Value == "processor") ? r_ScriptType::Processor : r_ScriptType::Converter;
-        }
-    }
+    if (lk_Info.contains("type"))
+        me_Type = (lk_Info["type"].toString() == "processor") ? r_ScriptType::Processor : r_ScriptType::Converter;
+    if (lk_Info.contains("converterKey"))
+        mk_Info["converterKey"] = lk_Info["converterKey"].toString();
+    if (lk_Info.contains("converterLabel"))
+        mk_Info["converterLabel"] = lk_Info["converterLabel"].toString();
+    if (lk_Info.contains("converterFilename"))
+        mk_Info["converterFilename"] = lk_Info["converterFilename"].toString();
     if (lk_Info.contains("parameters"))
     {
         foreach (QVariant lk_ParameterMap, lk_Info["parameters"].toList())

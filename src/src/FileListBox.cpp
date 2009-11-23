@@ -95,13 +95,8 @@ void k_FileListBox::setBatchMode(bool ab_Enabled)
 	k_DesktopBox::setBatchMode(ab_Enabled);
 	if (mk_BatchModeButton.isChecked() != ab_Enabled)
 		mk_BatchModeButton.setChecked(ab_Enabled);
-	toggleUi();
-	if (ab_Enabled)
-        // changed() is emitted here
-		updateFilenameTags();
-    else
-        emit changed();
-	mk_Desktop_->setHasUnsavedChanges(true);
+    mk_Desktop_->setHasUnsavedChanges(true);
+    update();
 }
 
 
@@ -139,8 +134,12 @@ void k_FileListBox::toggleUi()
 }
 
 
-void k_FileListBox::updateFilenameTags()
+void k_FileListBox::update()
 {
+    // ----------------------------------
+    // UPDATE ITERATION TAGS
+    // ----------------------------------
+    
 	mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
 	// :TODO: attention, code duplication here (OutFileListBox.cpp)
 	
@@ -156,6 +155,7 @@ void k_FileListBox::updateFilenameTags()
 	
 	mk_Desktop_->setHasUnsavedChanges(true);
 	emit changed();
+    toggleUi();
 }
 
 
@@ -183,8 +183,7 @@ void k_FileListBox::setupLayout()
 	lk_HLayout_ = new QHBoxLayout();
 	lk_HLayout_->addWidget(&mk_FileList);
 	connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
-	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(toggleUi()));
-	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(updateFilenameTags()));
+	connect(&mk_FileList, SIGNAL(changed()), this, SLOT(update()));
 	mk_FileList.resize(100, 100);
 	
 	QBoxLayout* lk_VSubLayout_ = new QVBoxLayout();
