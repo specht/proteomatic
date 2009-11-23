@@ -70,6 +70,7 @@ protected slots:
 	virtual void showingBuddy();
 	virtual void outputBoxIterationKeyChooserChanged();
     virtual void update();
+    virtual void toggleUi();
 	
 signals:
 	virtual void scriptStarted();
@@ -99,6 +100,7 @@ protected:
 	QComboBox* mk_OutputBoxIterationKeyChooser_;
 	QTextEdit* mk_OutputBox_;
 	QTabWidget* mk_TabWidget_;
+    QWidget* mk_IterationsTagsDontMatchIcon_;
 	QString ms_ConverterFilenamePattern;
 	QSet<QString> mk_ConverterFilenameAffectingParameters;
 	QSize mk_LastUserAdjustedSize;
@@ -106,5 +108,8 @@ protected:
 	// this is the path to the input file which has been chosen 
 	// for determining the automatic output directory 
 	QString ms_OutputDirectoryDefiningInputPath;
+	QHash<QString, QStringList> mk_InputFilesForKey;
 	QHash<QString, QStringList> mk_OutputFilesForKey;
+    QStringList mk_IterationTags;
+    bool mb_IterationsTagsDontMatch;
 };

@@ -39,9 +39,11 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 	, mk_OutputBoxIterationKeyChooserContainer_(NULL)
 	, mk_OutputBoxIterationKeyChooser_(NULL)
 	, mk_OutputBox_(NULL)
+    , mk_IterationsTagsDontMatchIcon_(NULL)
 	, mk_LastUserAdjustedSize(0, 0)
 	, ms_CurrentIterationKeyRunning(QString())
 	, ms_CurrentIterationKeyShowing(QString())
+    , mb_IterationsTagsDontMatch(false)
 {
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
@@ -99,46 +101,11 @@ QStringList k_ScriptBox::iterationKeys()
 {
 	if (!batchMode())
 		return QStringList() << "";
-	
-	QStringList lk_IterationKeys;
-	
-	QStringList lk_AllTags;
-	// combine files from all batch mode input file list boxes
-	QSet<IFileBox*> lk_FileBoxes;
-	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
-	{
-		QStringList lk_Tags;
-		IFileBox* lk_SourceBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-		if (lk_SourceBox_ && lk_Box_->batchMode())
-			lk_FileBoxes << lk_SourceBox_;
-		else
-		{
-			k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
-			if (lk_ProxyBox_ && lk_ProxyBox_->batchMode())
-			{
-				foreach (IFileBox* lk_FileBox_, lk_ProxyBox_->fileBoxes())
-					lk_FileBoxes << lk_FileBox_;
-			}
-		}
-	}
-	foreach (IFileBox* lk_FileBox_, lk_FileBoxes)
-	{
-		QStringList lk_Tags;
-		foreach (QString ls_Path, lk_FileBox_->filenames())
-		{
-			QString ls_Tag = lk_FileBox_->tagForFilename(ls_Path);
-			lk_Tags.append(ls_Tag);
-		}
-		qSort(lk_Tags.begin(), lk_Tags.end());
-		if (lk_AllTags.empty())
-			lk_AllTags = lk_Tags;
-		if (lk_Tags != lk_AllTags)
-		{
-			printf("Ooops, incoming file batches cannot be matched!!!\n");
-			return QStringList();
-		}
-	}
-	return lk_AllTags;
+    
+    if (mb_IterationsTagsDontMatch)
+        return QStringList() << "";
+    
+    return mk_IterationTags;
 }
 
 
@@ -593,9 +560,6 @@ void k_ScriptBox::outputBoxIterationKeyChooserChanged()
 
 void k_ScriptBox::update()
 {
-	static int li_Count = 0;
-	++li_Count;
-	fprintf(stderr, "update script box: %d\n", li_Count);
 	// ----------------------------------------------
 	// UPDATE BATCH MODE
 	// ----------------------------------------------
@@ -616,35 +580,113 @@ void k_ScriptBox::update()
 		}
 	}
 	setBatchMode(lb_BatchMode);
+    
+    mk_IterationTags.clear();
+    // determine iteration tags if in batch mode
+    mb_IterationsTagsDontMatch = false;
+    if (batchMode())
+    {
+        // collect all incoming file boxes, 
+        // even those behind an input group proxy box
+        QList<IFileBox*> lk_IncomingFileBoxes;
+        foreach (IDesktopBox* lk_Box_, this->incomingBoxes())
+        {
+            k_InputGroupProxyBox* lk_InputGroupProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
+            if (lk_InputGroupProxyBox_)
+                lk_IncomingFileBoxes += lk_InputGroupProxyBox_->fileBoxes();
+            else
+            {
+                IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+                if (lk_FileBox_)
+                    lk_IncomingFileBoxes << lk_FileBox_;
+            }
+        }
+        QSet<QString> lk_ConsensusIterationTags;
+        bool lb_First = true;
+        foreach (IFileBox* lk_FileBox_, lk_IncomingFileBoxes)
+        {
+            if (dynamic_cast<IDesktopBox*>(lk_FileBox_)->batchMode())
+            {
+                QSet<QString> lk_IterationTags;
+                foreach (QString ls_Path, lk_FileBox_->filenames())
+                {
+                    QString ls_Tag = lk_FileBox_->tagForFilename(ls_Path);
+                    lk_IterationTags << ls_Tag;
+                }
+                if (lb_First)
+                {
+                    lk_ConsensusIterationTags = lk_IterationTags;
+                    lb_First = false;
+                }
+                else
+                {
+                    if (lk_ConsensusIterationTags != lk_IterationTags)
+                    {
+                        // iteration tags do not match,
+                        // script box is in a bad state!
+                        mb_IterationsTagsDontMatch = true;
+                    }
+                }
+            }
+        }
+        mk_IterationTags = lk_ConsensusIterationTags.toList();
+        qSort(mk_IterationTags.begin(), mk_IterationTags.end());
+    }
+	
+	// ----------------------------------------------
+	// UPDATE INPUT FILENAMES
+	// ----------------------------------------------
+	
+	// iterate over all incoming boxes, sort input files into right groups
+	mk_InputFilesForKey.clear();
+    foreach (QString ls_Key, mk_pScript->inputGroupKeys())
+        mk_InputFilesForKey[ls_Key] = QStringList();
+    
+	foreach (IDesktopBox* lk_Box_, this->incomingBoxes())
+	{
+		k_InputGroupProxyBox* lk_InputGroupProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
+		if (lk_InputGroupProxyBox_)
+		{
+            QString ls_InputKey = lk_InputGroupProxyBox_->groupKey();
+            foreach (IFileBox* lk_FileBox_, lk_InputGroupProxyBox_->fileBoxes())
+            {
+                foreach (QString ls_Path, lk_FileBox_->filenames())
+                {
+                    if (ls_InputKey.isEmpty())
+                        ls_InputKey = mk_pScript->inputGroupForFilename(ls_Path);
+                    mk_InputFilesForKey[ls_InputKey] << ls_Path;
+                }
+            }
+		}
+        else
+        {
+            IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+            if (lk_FileBox_)
+            {
+                foreach (QString ls_Path, lk_FileBox_->filenames())
+                {
+                    QString ls_InputKey = mk_pScript->inputGroupForFilename(ls_Path);
+                    mk_InputFilesForKey[ls_InputKey] << ls_Path;
+                }
+            }
+        }
+	}
+	
 	
 	// ----------------------------------------------
 	// UPDATE OUTPUT DIRECTORY
 	// ----------------------------------------------
 
 	// determine file that automatically defines input directory
-	QString ls_OldValue = ms_OutputDirectoryDefiningInputPath;
 	ms_OutputDirectoryDefiningInputPath = QString();
-	QStringList lk_InterestingInputFiles;
-	foreach (IDesktopBox* lk_Box_, this->incomingBoxes())
-	{
-		IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-		if (lk_FileBox_)
-		{
-			foreach (QString ls_Path, lk_FileBox_->filenames())
-			{
-				if (mk_pScript->inputGroupForFilename(ls_Path) == mk_pScript->defaultOutputDirectoryInputGroup())
-					lk_InterestingInputFiles.push_back(ls_Path);
-			}
-		}
-	}
-	if (!lk_InterestingInputFiles.empty())
-	{
-		QString ls_SmallestPath = lk_InterestingInputFiles.first();
-		foreach (QString ls_Path, lk_InterestingInputFiles)
-			if (ls_Path < ls_SmallestPath)
-				ls_SmallestPath = ls_Path;
-		ms_OutputDirectoryDefiningInputPath = ls_SmallestPath;
-	}
+    if (!mk_InputFilesForKey[mk_pScript->defaultOutputDirectoryInputGroup()].empty())
+    {
+        QString ls_SmallestPath = mk_InputFilesForKey[mk_pScript->defaultOutputDirectoryInputGroup()].first();
+        foreach (QString ls_Path, mk_InputFilesForKey[mk_pScript->defaultOutputDirectoryInputGroup()])
+            if (ls_Path < ls_SmallestPath)
+                ls_SmallestPath = ls_Path;
+        ms_OutputDirectoryDefiningInputPath = ls_SmallestPath;
+    }
 	
 	// ----------------------------------------------
 	// UPDATE OUTPUT FILENAMES
@@ -658,12 +700,20 @@ void k_ScriptBox::update()
 			if (mk_Checkboxes[ls_Key]->checkState() == Qt::Checked)
 			{
 				mk_OutputFilesForKey[ls_Key] = QStringList();
-				mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + "out.txt";
+                mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + mk_pScript->outputFileDetails(ls_Key)["filename"];
 			}
 		}
 	}
 
+    toggleUi();
 	emit changed();
+}
+
+
+void k_ScriptBox::toggleUi()
+{
+    k_DesktopBox::toggleUi();
+    mk_IterationsTagsDontMatchIcon_->setVisible(mb_IterationsTagsDontMatch);
 }
 
 
@@ -815,6 +865,17 @@ void k_ScriptBox::setupLayout()
 	/*	lk_HLayout_->addStretch();*/
 		
 		QWidget* lk_Container_ = new QWidget(this);
+        
+        mk_IterationsTagsDontMatchIcon_ = new QWidget(lk_Container_);
+        QBoxLayout* lk_WarningHLayout_ = new QHBoxLayout(mk_IterationsTagsDontMatchIcon_);
+        
+        
+        QLabel* lk_WarningIcon_ = new QLabel("", mk_IterationsTagsDontMatchIcon_);
+        lk_WarningIcon_->setPixmap(QPixmap(":/icons/dialog-warning.png").scaledToHeight(16, Qt::SmoothTransformation));
+        lk_WarningHLayout_->addWidget(lk_WarningIcon_);
+        lk_WarningHLayout_->addWidget(new QLabel("Input file batches don't match!", mk_IterationsTagsDontMatchIcon_));
+        lk_WarningHLayout_->setContentsMargins(0, 0, 0, 0);
+        lk_VLayout_->addWidget(mk_IterationsTagsDontMatchIcon_);
 		
 		k_FoldedHeader* lk_FoldedHeader_ = new k_FoldedHeader("Output files", lk_Container_, this);
 		
@@ -944,6 +1005,7 @@ void k_ScriptBox::setupLayout()
 	}
 	
 	mk_LastUserAdjustedSize = QSize(0, 0);
+    update();
 }
 
 

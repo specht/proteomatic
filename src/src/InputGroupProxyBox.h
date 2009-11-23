@@ -39,13 +39,10 @@ public:
 
 	virtual QList<IFileBox*> fileBoxes() const;
 	
-signals:
-	virtual void filenamesChanged();
-	
 protected slots:
 	virtual void boxConnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void boxDisconnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
-	virtual void updateBatchMode();
+    virtual void update();
 	
 protected:
 	virtual void setupLayout();
