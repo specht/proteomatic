@@ -163,6 +163,19 @@ void k_ScriptBox::setOutputFileActivated(const QString& as_Key, bool ab_Flag)
 }
 
 
+bool k_ScriptBox::useShortIterationTags()
+{
+    return (batchMode() && (mk_UseShortTagsCheckBox_->checkState() == Qt::Checked));
+}
+
+
+void k_ScriptBox::setUseShortIterationTags(bool ab_Flag)
+{
+    if (batchMode())
+        mk_UseShortTagsCheckBox_->setChecked(ab_Flag);
+}
+
+
 IDesktopBox* k_ScriptBox::boxForOutputFileKey(const QString& as_Key)
 {
 	if (!mk_OutputFileBoxes.contains(as_Key))
@@ -426,7 +439,21 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 		lk_Parameters["-outputDirectory"] = this->scriptOutputDirectory();
 
 	// set output prefix
-	lk_Parameters["-outputPrefix"] = mk_Prefix.text() + as_IterationKey + (as_IterationKey.isEmpty() ? "" : "-");
+    QString ls_UseTag = as_IterationKey;
+    if (!useShortIterationTags())
+    {
+        // find only batch mode input file list
+        IFileBox* lk_InFileBox_ = NULL;
+        foreach (IDesktopBox* lk_OtherBox_, incomingBoxes())
+        {
+            lk_InFileBox_ = dynamic_cast<IFileBox*>(lk_OtherBox_);
+            if (lk_InFileBox_)
+                break;
+        }
+        if (lk_InFileBox_)
+            ls_UseTag = lk_InFileBox_->filenamesForTag(as_IterationKey).first();
+    }
+	lk_Parameters["-outputPrefix"] = mk_Prefix.text() + ls_UseTag + (as_IterationKey.isEmpty() ? "" : "-");
 	
 	// set output files
 	foreach (QString ls_Key, mk_pScript->outputFileKeys())

@@ -26,6 +26,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IScriptBox.h"
 #include "ScriptBox.h"
 #include "PipelineMainWindow.h"
+#include "OutFileListBox.h"
 #include "Tango.h"
 #include "Yaml.h"
 
@@ -518,6 +519,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
 			lk_Coordinates.push_back(boxLocation(lk_Box_).x() - 10000);
 			lk_Coordinates.push_back(boxLocation(lk_Box_).y() - 10000);
 			lk_ScriptBoxDescription["position"] = lk_Coordinates;
+            lk_ScriptBoxDescription["shortIterationTags"] = lk_ScriptBox_->useShortIterationTags();
 /*			lk_ScriptBoxDescription["outputPrefix"] = lk_ScriptBox_->boxOutputPrefix();
 			lk_ScriptBoxDescription["outputDirectory"] = lk_ScriptBox_->boxOutputDirectory();*/
 
@@ -533,6 +535,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
 					lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).x() - 10000);
 					lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).y() - 10000);
 					lk_Map["position"] = lk_Coordinates;
+                    lk_Map["batchMode"] = lk_OutputFileBox_->batchMode();
 					lk_Map["id"] = (qint64)lk_OutputFileBox_;
 					lk_ActiveOutputFileBoxes[ls_Key] = lk_Map;
 					lk_UnsavedArrows.remove(tk_BoxPair(lk_Box_, lk_OutputFileBox_));
@@ -589,6 +592,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
 			lk_Coordinates.push_back(boxLocation(lk_Box_).x() - 10000);
 			lk_Coordinates.push_back(boxLocation(lk_Box_).y() - 10000);
 			lk_BoxDescription["position"] = lk_Coordinates;
+            lk_BoxDescription["batchMode"] = lk_Box_->batchMode();
 			tk_YamlSequence lk_Paths;
 			foreach (QString ls_Path, lk_FileListBox_->filenames())
 				lk_Paths.push_back(ls_Path);
@@ -623,6 +627,9 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 {
 	clearAll();
 	QHash<QString, IDesktopBox*> lk_BoxForId;
+    QSet<k_FileListBox*> lk_BatchModeFileListBoxes;
+    QSet<k_OutFileListBox*> lk_BatchModeOutFileListBoxes;
+    QHash<IScriptBox*, bool> lk_ShortIterationTagBoxes;
 	foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
 	{
 		tk_YamlMap lk_BoxDescription = lk_Item.toMap();
@@ -654,16 +661,25 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 					lk_ScriptBox_->script()->setParameter(ls_Key, lk_Parameters[ls_Key].toString());
 				tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
 				moveBoxTo(lk_Box_, QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+                bool lb_ShortTags = false;
+                if (lk_BoxDescription["shortIterationTags"].toString() == "yes" ||
+                    lk_BoxDescription["shortIterationTags"].toString() == "true")
+                    lb_ShortTags = true;
+                lk_ShortIterationTagBoxes[lk_ScriptBox_] = lb_ShortTags;
                 // fix output boxes
 				foreach (QString ls_Key, lk_ScriptBox_->script()->outputFileKeys())
 				{
 					lk_ScriptBox_->setOutputFileActivated(ls_Key, lk_OutputBoxes.contains(ls_Key));
 					if (lk_OutputBoxes.contains(ls_Key))
 					{
+                        IDesktopBox* lk_OutputBox_ = lk_ScriptBox_->boxForOutputFileKey(ls_Key);
 						tk_YamlMap lk_OutBoxDescription = lk_OutputBoxes[ls_Key].toMap();
 						tk_YamlSequence lk_Position = lk_OutBoxDescription["position"].toList();
-						lk_BoxForId[lk_OutBoxDescription["id"].toString()] = lk_ScriptBox_->boxForOutputFileKey(ls_Key);
-						moveBoxTo(lk_ScriptBox_->boxForOutputFileKey(ls_Key), QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+						lk_BoxForId[lk_OutBoxDescription["id"].toString()] = lk_OutputBox_;
+						moveBoxTo(lk_OutputBox_, QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+                        if (lk_OutBoxDescription["batchMode"].toString() == "yes" || 
+                            lk_OutBoxDescription["batchMode"].toString() == "true")
+                            lk_BatchModeOutFileListBoxes << dynamic_cast<k_OutFileListBox*>(lk_OutputBox_);
 					}
 				}
                 // fix converter out box
@@ -702,6 +718,9 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 		tk_YamlSequence lk_Paths = lk_BoxDescription["paths"].toList();
 		foreach (QVariant ls_Path, lk_Paths)
 			dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id])->addPath(ls_Path.toString());
+        if (lk_BoxDescription["batchMode"].toString() == "yes" || 
+            lk_BoxDescription["batchMode"].toString() == "true")
+            lk_BatchModeFileListBoxes << dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id]);
 	}
 	foreach (QVariant lk_Item, ak_Description["connections"].toList())
 	{
@@ -711,6 +730,32 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 	}
 	
     clearSelection();
+    
+    // set batch mode for input file lists
+    foreach (k_FileListBox* lk_Box_, lk_BatchModeFileListBoxes)
+        lk_Box_->setBatchMode(true);
+    
+    // set batch mode for output file lists, 
+    // this may take several rounds
+    while (true)
+    {
+        bool lb_AllBatchModeOk = true;
+        foreach (k_OutFileListBox* lk_Box_, lk_BatchModeOutFileListBoxes)
+        {
+            if (!lk_Box_)
+                continue;
+            lk_Box_->setBatchMode(true);
+            if (!lk_Box_->batchMode())
+                lb_AllBatchModeOk = false;
+        }
+        if (lb_AllBatchModeOk)
+            break;
+    }
+    
+    // set 'use short iteration tags' options
+    foreach (IScriptBox* lk_ScriptBox_, lk_ShortIterationTagBoxes.keys())
+        lk_ScriptBox_->setUseShortIterationTags(lk_ShortIterationTagBoxes[lk_ScriptBox_]);
+    
 	redraw();
 	setHasUnsavedChanges(false);
 	emit showAllRequested();
@@ -1325,11 +1370,12 @@ void k_Desktop::animateAdjustView()
     if (mk_Boxes.empty())
         return;
 
+    double lf_SceneMargin = mapToScene(10, 0).x() - mapToScene(0, 0).x();
     // determine bounding box
     QRectF lk_Rect;
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
         lk_Rect = lk_Rect.united(lk_Box_->rect());
-    lk_Rect.adjust(-10.0, -10.0, 10.0, 10.0);
+    lk_Rect.adjust(-lf_SceneMargin, -lf_SceneMargin, lf_SceneMargin, lf_SceneMargin);
     
     // if everything's visible: return
     QRectF lk_ViewRect(mapToScene(QPoint(0, 0)), mapToScene(QPoint(frameRect().width(), frameRect().height())));
@@ -1362,9 +1408,9 @@ void k_Desktop::animateAdjustView()
         md_Scale *= a;
         md_Scale = std::max<double>(md_Scale, 0.3);
         md_Scale = std::min<double>(md_Scale, 1.0);
-        md_AnimationEndScale = md_Scale;
         //this->setMatrix(lk_Matrix);
     }
+    md_AnimationEndScale = md_Scale;
     md_Scale = md_AnimationStartScale;
     mk_AnimationTimer.setSingleShot(false);
     mk_StopWatch.reset();

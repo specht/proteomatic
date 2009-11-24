@@ -46,13 +46,15 @@ public:
 	virtual void setListMode(bool ab_Enabled);
 	virtual bool listMode() const;
 	virtual QString label() const;
+    
+public slots:
+    virtual void setBatchMode(bool ab_Enabled);
 	
 signals:
 	virtual void arrowPressed();
 	virtual void arrowReleased();
 	
 protected slots:
-	virtual void setBatchMode(bool ab_Enabled);
 	virtual void toggleUi();
 	virtual void filenameDoubleClicked();
 	virtual void update();

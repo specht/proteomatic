@@ -42,13 +42,15 @@ public:
 	virtual QString prefixWithoutTags() const;
 	virtual void addPath(const QString& as_Path);
 	virtual void addPaths(const QStringList& ak_Paths);
+    
+public slots:
+    virtual void setBatchMode(bool ab_Enabled);
 	
 signals:
 	virtual void arrowPressed();
 	virtual void arrowReleased();
 	
 protected slots:
-	virtual void setBatchMode(bool ab_Enabled);
 	virtual void addFilesButtonClicked();
 	virtual void toggleUi();
     virtual void update();

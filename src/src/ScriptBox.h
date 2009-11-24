@@ -47,6 +47,8 @@ public:
 	virtual bool hasExistingOutputFiles();
 	virtual bool outputFileActivated(const QString& as_Key);
 	virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag);
+    virtual bool useShortIterationTags();
+    virtual void setUseShortIterationTags(bool ab_Flag);
 	virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key);
 	virtual QString boxOutputPrefix() const;
 	

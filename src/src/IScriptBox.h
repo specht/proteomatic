@@ -40,6 +40,8 @@ struct IScriptBox
 	virtual bool hasExistingOutputFiles() = 0;
 	virtual bool outputFileActivated(const QString& as_Key) = 0;
 	virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag) = 0;
+    virtual bool useShortIterationTags() = 0;
+    virtual void setUseShortIterationTags(bool ab_Flag) = 0;
 	virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key) = 0;
 	virtual QString boxOutputPrefix() const = 0;
 	virtual QString scriptOutputDirectory() const = 0;

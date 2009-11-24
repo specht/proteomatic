@@ -95,7 +95,7 @@ void k_DesktopBox::connectIncomingBox(IDesktopBox* ak_Other_)
 	mk_ConnectedIncomingBoxes.insert(ak_Other_);
 	ak_Other_->connectOutgoingBox(this);
     emit boxConnected(ak_Other_, true);
-    connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(changed()), this, SLOT(updateSlot()), Qt::QueuedConnection);
+    connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(changed()), this, SLOT(updateSlot()));
     updateSlot();
 }
 

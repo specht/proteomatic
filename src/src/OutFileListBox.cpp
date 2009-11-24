@@ -100,10 +100,14 @@ QString k_OutFileListBox::label() const
 
 void k_OutFileListBox::setBatchMode(bool ab_Enabled)
 {
+    if (!mb_ListMode)
+        ab_Enabled = false;
+    
 	k_DesktopBox::setBatchMode(ab_Enabled);
 	if (mk_BatchModeButton.isChecked() != ab_Enabled)
 		mk_BatchModeButton.setChecked(ab_Enabled);
-	emit changed();
+    emit changed();
+    mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
