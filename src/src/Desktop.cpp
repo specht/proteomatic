@@ -520,7 +520,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
 			lk_ScriptBoxDescription["position"] = lk_Coordinates;
 /*			lk_ScriptBoxDescription["outputPrefix"] = lk_ScriptBox_->boxOutputPrefix();
 			lk_ScriptBoxDescription["outputDirectory"] = lk_ScriptBox_->boxOutputDirectory();*/
-			// now add active output boxes
+
+            // now add active output boxes
 			tk_YamlMap lk_ActiveOutputFileBoxes;
 			foreach (QString ls_Key, lk_ScriptBox_->script()->outputFileKeys())
 			{
@@ -538,6 +539,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
 				}
 			}
 			lk_ScriptBoxDescription["activeOutputFiles"] = lk_ActiveOutputFileBoxes;
+            
+            // add converter out box
 			if (lk_ScriptBox_->script()->type() == r_ScriptType::Converter)
 			{
 				IDesktopBox* lk_OtherBox_ = lk_Box_->outgoingBoxes().toList().first();
@@ -547,6 +550,27 @@ tk_YamlMap k_Desktop::pipelineDescription()
 				lk_ScriptBoxDescription["converterOutputFileBoxPosition"] = lk_Position;
 				lk_ScriptBoxDescription["converterOutputFileBoxId"] = (qint64)lk_OtherBox_;
 			}
+            
+            // now add input proxy boxes
+            tk_YamlMap lk_InputProxyBoxes;
+            foreach (IDesktopBox* lk_ProxyDesktopBox_, dynamic_cast<IDesktopBox*>(lk_ScriptBox_)->incomingBoxes())
+            {
+                k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_ProxyDesktopBox_);
+                if (lk_ProxyBox_)
+                {
+                    QString ls_Key = lk_ProxyBox_->groupKey();
+                    tk_YamlMap lk_Map;
+                    tk_YamlSequence lk_Coordinates;
+                    lk_Coordinates.push_back(boxLocation(lk_ProxyBox_).x() - 10000);
+                    lk_Coordinates.push_back(boxLocation(lk_ProxyBox_).y() - 10000);
+                    lk_Map["position"] = lk_Coordinates;
+                    lk_Map["id"] = (qint64)lk_ProxyDesktopBox_;
+                    lk_InputProxyBoxes[ls_Key] = lk_Map;
+                    lk_UnsavedArrows.remove(tk_BoxPair(lk_ProxyBox_, lk_Box_));
+                }
+            }
+            lk_ScriptBoxDescription["inputProxyBoxes"] = lk_InputProxyBoxes;
+            
 			lk_ScriptBoxes.push_back(lk_ScriptBoxDescription);
 		}
 	}
@@ -606,6 +630,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 		QString ls_Id = lk_BoxDescription["id"].toString();
 		QString ls_CompleteUri = QFileInfo(QDir(mk_Proteomatic.scriptPathAndPackage()), ls_Uri).absoluteFilePath();
 		tk_YamlMap lk_OutputBoxes = lk_BoxDescription["activeOutputFiles"].toMap();
+        tk_YamlMap lk_InputProxyBoxes = lk_BoxDescription["inputProxyBoxes"].toMap();
 		IDesktopBox* lk_Box_ = addScriptBox(ls_CompleteUri);
 		if (!lk_Box_)
 		{
@@ -629,6 +654,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 					lk_ScriptBox_->script()->setParameter(ls_Key, lk_Parameters[ls_Key].toString());
 				tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
 				moveBoxTo(lk_Box_, QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+                // fix output boxes
 				foreach (QString ls_Key, lk_ScriptBox_->script()->outputFileKeys())
 				{
 					lk_ScriptBox_->setOutputFileActivated(ls_Key, lk_OutputBoxes.contains(ls_Key));
@@ -640,12 +666,29 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 						moveBoxTo(lk_ScriptBox_->boxForOutputFileKey(ls_Key), QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
 					}
 				}
+                // fix converter out box
 				if (lk_ScriptBox_->script()->type() == r_ScriptType::Converter && lk_BoxDescription.contains("converterOutputFileBoxPosition"))
 				{
 					tk_YamlSequence lk_Position = lk_BoxDescription["converterOutputFileBoxPosition"].toList();
 					moveBoxTo(lk_Box_->outgoingBoxes().toList().first(), QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
 					lk_BoxForId[lk_BoxDescription["converterOutputFileBoxId"].toString()] = lk_Box_->outgoingBoxes().toList().first();
 				}
+                // fix input proxy boxes
+                foreach (IDesktopBox* lk_ProxyDesktopBox_, dynamic_cast<IDesktopBox*>(lk_ScriptBox_)->incomingBoxes())
+                {
+                    k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_ProxyDesktopBox_);
+                    if (lk_ProxyBox_)
+                    {
+                        QString ls_Key = lk_ProxyBox_->groupKey();
+                        if (lk_InputProxyBoxes.contains(ls_Key))
+                        {
+                            tk_YamlMap lk_BoxDescription = lk_InputProxyBoxes[ls_Key].toMap();
+                            tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+                            lk_BoxForId[lk_BoxDescription["id"].toString()] = lk_ProxyBox_;
+                            moveBoxTo(lk_ProxyBox_, QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+                        }
+                    }
+                }
 			}
 		}
 	}
@@ -667,6 +710,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 			connectBoxes(lk_BoxForId[lk_Pair[0].toString()], lk_BoxForId[lk_Pair[1].toString()]);
 	}
 	
+    clearSelection();
 	redraw();
 	setHasUnsavedChanges(false);
 	emit showAllRequested();
