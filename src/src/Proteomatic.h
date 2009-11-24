@@ -99,6 +99,7 @@ public:
 	void checkForUpdates();
 
 	QString interpreterForScript(QString as_Path);
+    QString interpreterKeyForScript(QString as_Path);
 	QStringList availableScripts();
 	QHash<QString, QString> scriptInfo(QString as_ScriptPath);
 	QString scriptInfo(QString as_ScriptPath, QString as_Key);

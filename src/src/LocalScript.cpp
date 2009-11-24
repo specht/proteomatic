@@ -77,7 +77,12 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 		}
 		else
 		{
-			ls_Response = mk_Proteomatic.syncScript(QStringList() << as_ScriptPath << "---yamlInfo");
+            QStringList lk_Arguments;
+            lk_Arguments << as_ScriptPath << "---yamlInfo";
+            // ignore Ruby warnings for ---yamlInfo
+            if (mk_Proteomatic.interpreterKeyForScript(as_ScriptPath) == "ruby")
+                lk_Arguments.insert(0, "-W0");
+			ls_Response = mk_Proteomatic.syncScript(lk_Arguments);
 			if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
 			{
 				// update cached information
@@ -118,7 +123,12 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
                 RefPtr<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(mk_Proteomatic, QStringList() << as_ScriptPath << "--resolveDependencies", "Installing external tools", ":/icons/package-x-generic.png"));
                 lk_pRubyWindow->exec();
                 // retry loading the script
-                ls_Response = mk_Proteomatic.syncScript(QStringList() << as_ScriptPath << "---yamlInfo");
+                QStringList lk_Arguments;
+                lk_Arguments << as_ScriptPath << "---yamlInfo";
+                // ignore Ruby warnings for ---yamlInfo
+                if (mk_Proteomatic.interpreterKeyForScript(as_ScriptPath) == "ruby")
+                    lk_Arguments.insert(0, "-W0");
+                ls_Response = mk_Proteomatic.syncScript(lk_Arguments);
                 if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
                 {
                     // update cached information

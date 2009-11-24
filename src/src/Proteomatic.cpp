@@ -166,15 +166,21 @@ void k_Proteomatic::checkForUpdates()
 
 QString k_Proteomatic::interpreterForScript(QString as_Path)
 {
-	QString ls_Suffix = QFileInfo(as_Path).suffix().toLower();
-	if (ls_Suffix == "rb")
-		return mk_ScriptInterpreter["ruby"];
-	else if (ls_Suffix == "py")
-        return mk_ScriptInterpreter["python"];
-	else if (ls_Suffix.startsWith("php"))
-        return mk_ScriptInterpreter["php"];
-	
-	return QString();
+    return mk_ScriptInterpreter[interpreterKeyForScript(as_Path)];
+}
+
+
+QString k_Proteomatic::interpreterKeyForScript(QString as_Path)
+{
+    QString ls_Suffix = QFileInfo(as_Path).suffix().toLower();
+    if (ls_Suffix == "rb")
+        return "ruby";
+    else if (ls_Suffix == "py")
+        return "python";
+    else if (ls_Suffix.startsWith("php"))
+        return "php";
+    
+    return QString();
 }
 
 
@@ -484,6 +490,9 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                 lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
                 QStringList lk_Arguments;
                 lk_Arguments << ls_Path << "---yamlInfo" << "--short";
+                // ignore Ruby warnings for ---yamlInfo
+                if (interpreterKeyForScript(ls_Path) == "ruby")
+                    lk_Arguments.insert(0, "-W0");
                 lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
                 
                 lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);

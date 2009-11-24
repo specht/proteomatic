@@ -59,12 +59,17 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
 		lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
 		QStringList lk_Arguments;
 		lk_Arguments << ms_Uri << "---yamlInfo" << "--short";
+        // ignore Ruby warnings for ---yamlInfo
+        if (mk_Proteomatic.interpreterKeyForScript(ms_Uri) == "ruby")
+            lk_Arguments.insert(0, "-W0");
+        
 		lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
 		
 		lk_QueryProcess.start(mk_Proteomatic.interpreterForScript(ms_Uri), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 		if (lk_QueryProcess.waitForFinished())
 		{
 			QString ls_Response = lk_QueryProcess.readAll();
+            ls_Response.replace("---yamlInfo\r\n", "---yamlInfo\n");
             if (ls_Response.startsWith("---yamlInfo\n"))
             {
                 ls_Response = ls_Response.right(ls_Response.length() - QString("---yamlInfo\n").length());
