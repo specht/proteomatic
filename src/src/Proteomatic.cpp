@@ -370,7 +370,7 @@ void k_Proteomatic::loadConfiguration()
 	
 	if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
 	{
-		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
+		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = false;
 		lb_InsertedDefaultValue = true;
 	}
 	if (!mk_Configuration.contains(CONFIG_WARN_ABOUT_MIXED_PROFILES) || mk_Configuration[CONFIG_WARN_ABOUT_MIXED_PROFILES].type() != QVariant::String)
