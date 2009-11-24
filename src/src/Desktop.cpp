@@ -49,6 +49,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mb_Moving(false)
 	, mb_UseFileTrackerIfAvailable(true)
     , mb_Animating(false)
+    , mb_LassoSelecting(false)
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
 	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
@@ -72,6 +73,8 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	lk_Pen.setStyle(Qt::DashLine);
 	mk_SelectionGraphicsPathItem_ = mk_GraphicsScene.addPath(QPainterPath(), lk_Pen);
 	mk_SelectionGraphicsPathItem_->setZValue(-4.0);
+    mk_LassoGraphicsPathItem_ = mk_GraphicsScene.addPath(QPainterPath(), lk_Pen);
+    mk_LassoGraphicsPathItem_->setZValue(-4.0);
 	
 	lk_Pen.setStyle(Qt::SolidLine);
 	lk_Pen.setColor(QColor(TANGO_SCARLET_RED_2));
@@ -82,9 +85,6 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	lk_Pen.setWidthF(1.5);
 	mk_BatchGraphicsPathItem_ = mk_GraphicsScene.addPath(QPainterPath(), lk_Pen, QBrush(QColor(TANGO_BUTTER_0)));
 	mk_BatchGraphicsPathItem_->setZValue(-3.0);
-    
-    //QGraphicsRectItem* lk_Item_ = mk_GraphicsScene.addRect(-10000.0, -10000.0, 20000.0, 20000.0);
-    //delete lk_Item_;
 }
 
 
@@ -248,6 +248,7 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri)
         setCurrentScriptBox(lk_ScriptBox_);
 	}
 	mk_ArrowStartBoxAutoConnect_ = NULL;
+    redrawSelection();
     emit selectionChanged();
     if (mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()))
         animateAdjustView(false, mk_SelectedBoxes);
@@ -978,6 +979,15 @@ void k_Desktop::proposePrefixForAllScripts()
 }
 
 
+void k_Desktop::updatePanMode()
+{
+    if (mk_PipelineMainWindow.panMode())
+        setDragMode(QGraphicsView::ScrollHandDrag);
+    else
+        setDragMode(QGraphicsView::NoDrag);
+}
+
+
 void k_Desktop::boxMovedOrResized(QPoint ak_Delta)
 {
 	IDesktopBox* lk_Sender_ = dynamic_cast<IDesktopBox*>(sender());
@@ -1469,6 +1479,14 @@ void k_Desktop::mousePressEvent(QMouseEvent* event)
 /*			mk_CurrentScriptBox_ = NULL;
 			mk_PipelineMainWindow.setPaneLayoutWidget(NULL);*/
 			redrawSelection();
+            if (!mk_PipelineMainWindow.panMode())
+            {
+                mb_LassoSelecting = true;
+                mk_LassoPath = QPainterPath();
+                mk_LastLassoDevicePoint = event->pos();
+                mk_LassoPath.moveTo(mapToScene(mk_LastLassoDevicePoint));
+                mk_LassoGraphicsPathItem_->setPath(mk_LassoPath);
+            }
 		}
 	}
 	else
@@ -1509,6 +1527,19 @@ void k_Desktop::mousePressEvent(QMouseEvent* event)
 void k_Desktop::mouseReleaseEvent(QMouseEvent* event)
 {
 	mb_Moving = false;
+    if (mb_LassoSelecting)
+    {
+        clearSelection();
+        foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        {
+            if (mk_LassoPath.intersects(dynamic_cast<k_DesktopBox*>(lk_Box_)->frameGeometry()))
+                mk_SelectedBoxes << lk_Box_;
+        }
+        redrawSelection();
+        mk_LassoPath = QPainterPath();
+        mk_LassoGraphicsPathItem_->setPath(mk_LassoPath);
+        mb_LassoSelecting = false;
+    }
 	event->accept();
 	QGraphicsView::mouseReleaseEvent(event);
 }
@@ -1530,6 +1561,16 @@ void k_Desktop::mouseMoveEvent(QMouseEvent* event)
 		else
 			moveSelectedBoxes(mapToScene(event->globalPos()) - mk_MoveStartPoint);
 	}
+    else if (mb_LassoSelecting)
+    {
+        QPoint lk_NewPoint = event->pos();
+        if ((lk_NewPoint - mk_LastLassoDevicePoint).manhattanLength() > 10)
+        {
+            mk_LassoPath.lineTo(mapToScene(lk_NewPoint));
+            mk_LastLassoDevicePoint = lk_NewPoint;
+            mk_LassoGraphicsPathItem_->setPath(mk_LassoPath);
+        }
+    }
 }
 
 

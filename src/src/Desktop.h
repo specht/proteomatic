@@ -73,6 +73,7 @@ public slots:
 	virtual void showAll();
 	virtual void clearPrefixForAllScripts();
 	virtual void proposePrefixForAllScripts();
+    virtual void updatePanMode();
 	
 signals:
 	virtual void pipelineIdle(bool);
@@ -186,4 +187,9 @@ protected:
     double md_AnimationStartScale;
     double md_AnimationEndScale;
     bool mb_Animating;
+    
+    bool mb_LassoSelecting;
+    QPainterPath mk_LassoPath;
+    QPoint mk_LastLassoDevicePoint;
+    QGraphicsPathItem* mk_LassoGraphicsPathItem_;
 };

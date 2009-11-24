@@ -7,6 +7,7 @@
   <file>icons/arrow-semi-transparent.png</file>
   <file>icons/batch.png</file>
   <file>icons/cursor.png</file>
+  <file>icons/cursor-openhand.png</file>
   <file>icons/cycle.png</file>
   <file>icons/dialog-cancel.png</file>
   <file>icons/dialog-ok.png</file>
@@ -40,6 +41,7 @@
   <file>icons/revelio.png</file>
   <file>icons/ruby.png</file>
   <file>icons/select-continuous-area.png</file>
+  <file>icons/select-lasso.png</file>
   <file>icons/size-grip.png</file>
   <file>icons/software-update-available.png</file>
   <file>icons/system-log-out.png</file>

@@ -33,6 +33,7 @@ public:
 	virtual ~k_PipelineMainWindow();
 	//QString outputPrefix();
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
+    virtual bool panMode() const;
 	
 public slots:
 	void toggleUi();
@@ -78,6 +79,8 @@ protected:
 	QAction* mk_RefreshAction_;
 	QAction* mk_ProfileManagerAction_;
 	QAction* mk_ResetParametersAction_;
+    QToolButton* mk_PanButton_;
+    QToolButton* mk_LassoButton_;
 	//QLineEdit* mk_OutputPrefix_;
 	//QAction* mk_ClearPrefixForAllScriptsAction_;
 	QAction* mk_ProposePrefixForAllScriptsAction_;

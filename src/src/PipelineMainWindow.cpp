@@ -98,6 +98,23 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 	lk_AddToolBar_->addSeparator();
 	
+    mk_PanButton_ = new QToolButton(lk_AddToolBar_);
+    mk_PanButton_->setIcon(QIcon(":/icons/cursor-openhand.png"));
+    mk_PanButton_->setText("Pan");
+    mk_PanButton_->setCheckable(true);
+    mk_PanButton_->setAutoExclusive(true);
+    mk_PanButton_->setChecked(true);
+    connect(mk_PanButton_, SIGNAL(toggled(bool)), mk_Desktop_, SLOT(updatePanMode()));
+    lk_AddToolBar_->addWidget(mk_PanButton_);
+
+    mk_LassoButton_ = new QToolButton(lk_AddToolBar_);
+    mk_LassoButton_->setIcon(QIcon(":/icons/select-lasso.png"));
+    mk_LassoButton_->setText("Select");
+    mk_LassoButton_->setCheckable(true);
+    mk_LassoButton_->setAutoExclusive(true);
+    connect(mk_LassoButton_, SIGNAL(toggled(bool)), mk_Desktop_, SLOT(updatePanMode()));
+    lk_AddToolBar_->addWidget(mk_LassoButton_);
+    
 	lk_AddToolBar_->addAction(QIcon(":icons/system-search.png"), "Show all", this, SLOT(showAll()));
 
 	lk_AddToolBar_->addSeparator();
@@ -441,4 +458,10 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 		}
 	}
 	toggleUi();
+}
+
+
+bool k_PipelineMainWindow::panMode() const
+{
+    return mk_PanButton_->isChecked();
 }
