@@ -44,6 +44,7 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 	, ms_CurrentIterationKeyRunning(QString())
 	, ms_CurrentIterationKeyShowing(QString())
     , mb_IterationsTagsDontMatch(false)
+    , mb_MultipleInputBatches(false)
 {
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
@@ -418,7 +419,6 @@ void k_ScriptBox::clearOutputDirectoryButtonClicked()
 
 void k_ScriptBox::start(const QString& as_IterationKey)
 {
-    fprintf(stderr, "start!\n");
 	QHash<QString, QString> lk_Parameters;
 
 	// set output directory
@@ -559,20 +559,29 @@ void k_ScriptBox::update()
 	
 	// batch mode this box if at least one incoming box is in batch mode
 	bool lb_BatchMode = false;
+    IFileBox* lk_FirstBatchFileBox_ = NULL;
 	// converter scripts never go into batch mode! 
 	// in converter script, batch mode goes into you!!
+    int li_InputBatchCount = 0;
 	if (mk_pScript->type() != r_ScriptType::Converter)
 	{
 		foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
 		{
 			if (lk_Box_->batchMode())
 			{
+                if (!lk_FirstBatchFileBox_)
+                    lk_FirstBatchFileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
 				lb_BatchMode = true;
-				break;
+                ++li_InputBatchCount;
+                if (li_InputBatchCount > 1)
+                    break;
 			}
 		}
 	}
+    mb_MultipleInputBatches = li_InputBatchCount > 1;
 	setBatchMode(lb_BatchMode);
+    if (mb_MultipleInputBatches)
+        mk_UseShortTagsCheckBox_->setChecked(true);
     
     // ----------------------------------------------
     // UPDATE BATCH MODE ITERATION TAGS
@@ -622,10 +631,6 @@ void k_ScriptBox::update()
                         // iteration tags do not match,
                         // script box is in a bad state!
                         mb_IterationsTagsDontMatch = true;
-                        foreach (QString ls_Tag, lk_ConsensusIterationTags)
-                            fprintf(stderr, "C %s\n", ls_Tag.toStdString().c_str());
-                        foreach (QString ls_Tag, lk_IterationTags)
-                            fprintf(stderr, "T %s\n", ls_Tag.toStdString().c_str());
                     }
                 }
             }
@@ -706,7 +711,15 @@ void k_ScriptBox::update()
                     if (!mb_IterationsTagsDontMatch)
                     {
                         foreach (QString ls_Tag, mk_IterationTags)
-                            mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_Tag + "-" + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                        {
+                            QString ls_UseTag = ls_Tag;
+                            if ((!mb_MultipleInputBatches) && lk_FirstBatchFileBox_ && (mk_UseShortTagsCheckBox_->checkState() != Qt::Checked))
+                            {
+                                ls_UseTag = lk_FirstBatchFileBox_->filenamesForTag(ls_Tag).first();
+                                ls_UseTag = QFileInfo(ls_UseTag).baseName();
+                            }
+                            mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_UseTag + "-" + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                        }
                     }
                 }
                 else
@@ -762,6 +775,8 @@ void k_ScriptBox::toggleUi()
     k_DesktopBox::toggleUi();
     if (mk_IterationsTagsDontMatchIcon_)
         mk_IterationsTagsDontMatchIcon_->setVisible(mb_IterationsTagsDontMatch);
+    mk_UseShortTagsCheckBox_->setVisible(batchMode());
+    mk_UseShortTagsCheckBox_->setEnabled(!mb_MultipleInputBatches);
 }
 
 
@@ -966,6 +981,7 @@ void k_ScriptBox::setupLayout()
 		connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_OutputDirectory, SLOT(setEnabled(bool)));
 		mk_OutputDirectory.setHint("output directory");
 		mk_OutputDirectory.setReadOnly(true);
+        mk_OutputDirectory.setMinimumWidth(120);
 		lk_HLayout_->addWidget(&mk_OutputDirectory);
 		connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(update()));
 
@@ -990,6 +1006,11 @@ void k_ScriptBox::setupLayout()
 		lk_VLayout_->addWidget(lk_Frame_);
 		*/
 
+        mk_UseShortTagsCheckBox_ = new QCheckBox("Use short batch prefixes", lk_Container_);
+        connect(mk_UseShortTagsCheckBox_, SIGNAL(toggled(bool)), this, SLOT(update()));
+        lk_VLayout_->addWidget(mk_UseShortTagsCheckBox_);
+        mk_UseShortTagsCheckBox_->setChecked(true);
+        
 		// output file checkboxes
 		foreach (QString ls_Key, mk_pScript->outputFileKeys())
 		{

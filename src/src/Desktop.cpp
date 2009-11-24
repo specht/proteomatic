@@ -763,7 +763,6 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
 		if (mk_Proteomatic.showMessageBox("Attention", "Some output files already exist. If you continue, only the missing output files will be generated, and scripts with already existing output files will not be run.", ":icons/emblem-important.png", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok, QMessageBox::Cancel) != QMessageBox::Ok)
 			return;
 
-    fprintf(stderr, "k_Desktop::start\n");
 	// skip all ->processor<- scripts that have already existing output files,
 	// converter script boxes will just silently skip the existing files.
 	foreach (IScriptBox* lk_Box_, lk_ScriptBoxesWithExistingOutputFiles)
@@ -771,17 +770,13 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
 			mk_RemainingScriptBoxes.remove(lk_Box_);
 		
 	foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
-    {
 		mk_RemainingScriptBoxIterationKeys[lk_Box_] = lk_Box_->iterationKeys();
-        fprintf(stderr, "have %d IK for %p.\n", lk_Box_->iterationKeys().size(), lk_Box_);
-    }
 
 	// pick a box, start it
 	IScriptBox* lk_Box_ = pickNextScriptBox();
 	if (lk_Box_)
 	{
 		QString ls_IterationKey = mk_RemainingScriptBoxIterationKeys[lk_Box_].takeFirst();
-        fprintf(stderr, "kicking off IK [%s] for %p.\n", ls_IterationKey.toStdString().c_str(), lk_Box_);
 		lk_Box_->start(ls_IterationKey);
 		emit pipelineIdle(false);
 	}
@@ -1062,7 +1057,8 @@ void k_Desktop::redrawSelection(bool ab_DontCallOthers)
 	
 	foreach (QGraphicsPathItem* lk_Arrow_, mk_SelectedArrows)
     {
-        if (dynamic_cast<IDesktopBox*>(mk_Arrows[lk_Arrow_].first) && mk_Arrows[lk_Arrow_].first->batchMode())
+        if (dynamic_cast<IDesktopBox*>(mk_Arrows[lk_Arrow_].first) && mk_Arrows[lk_Arrow_].first->batchMode() &&
+            dynamic_cast<IDesktopBox*>(mk_Arrows[lk_Arrow_].second) && mk_Arrows[lk_Arrow_].second->batchMode())
             lk_Path = lk_Path.united(grownPathForBatchConnector(mk_Arrows[lk_Arrow_].first, mk_Arrows[lk_Arrow_].second, 10));
         else
             lk_Path = lk_Path.united(grownPathForArrow(lk_Arrow_, 3));

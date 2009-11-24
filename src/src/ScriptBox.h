@@ -101,6 +101,7 @@ protected:
 	QTextEdit* mk_OutputBox_;
 	QTabWidget* mk_TabWidget_;
     QWidget* mk_IterationsTagsDontMatchIcon_;
+    QCheckBox* mk_UseShortTagsCheckBox_;
 	QString ms_ConverterFilenamePattern;
 	QSet<QString> mk_ConverterFilenameAffectingParameters;
 	QSize mk_LastUserAdjustedSize;
@@ -112,4 +113,5 @@ protected:
 	QHash<QString, QStringList> mk_OutputFilesForKey;
     QStringList mk_IterationTags;
     bool mb_IterationsTagsDontMatch;
+    bool mb_MultipleInputBatches;
 };

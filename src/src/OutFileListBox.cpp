@@ -117,6 +117,8 @@ void k_OutFileListBox::toggleUi()
 	mk_BatchModeButton.setVisible(mb_ListMode);
 	
 	QString ls_String = "<b>" + ms_Label + "</b>";
+    if (mb_ListMode && (mk_FileList.fileCount() > 0))
+        ls_String += QString(" (%1 file%2)").arg(mk_FileList.fileCount()).arg(mk_FileList.fileCount() == 1 ? "" : "s");
 	mk_Label_->setText(ls_String);
 	if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
 	{

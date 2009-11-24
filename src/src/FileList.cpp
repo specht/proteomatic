@@ -34,7 +34,6 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_F
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	setAcceptDrops(true);
 	setDragDropMode(QAbstractItemView::DropOnly);
-	setSortingEnabled(true);
 	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 	connect(this, SIGNAL(myItemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 	connect(this, SIGNAL(myItemRightClicked(QListWidgetItem*)), this, SLOT(showFilePopupMenu(QListWidgetItem*)));
@@ -328,7 +327,9 @@ void k_FileList::refresh()
 			QFont lk_Font = lk_Item_->font();
 			lk_Font.setBold(true);
 			lk_Item_->setFont(lk_Font);
-			foreach (QString ls_Path, mk_Files[ls_Key].keys())
+            QStringList lk_Paths = mk_Files[ls_Key].keys();
+            qSort(lk_Paths.begin(), lk_Paths.end());
+			foreach (QString ls_Path, lk_Paths)
 			{
 				QString ls_Filename = QFileInfo(ls_Path).fileName();
 				QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Filename, this);
