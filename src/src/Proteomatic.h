@@ -39,6 +39,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_WARN_ABOUT_MIXED_PROFILES "warnAboutMixedProfiles"
 #define CONFIG_CACHE_SCRIPT_INFO "cacheScriptInfo"
 #define CONFIG_FILETRACKER_URL "fileTrackerUrl"
+#define CONFIG_FOLLOW_NEW_BOXES "followNewBoxes"
+#define CONFIG_ANIMATION "animation"
 
 
 struct r_RemoteRequestType
@@ -133,6 +135,7 @@ public:
 	QLabel* fileTrackerIconLabel();
 	QLabel* fileTrackerLabel();
     QString scriptInterpreter(const QString& as_Language);
+    bool stringToBool(const QString& as_String);
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);

@@ -48,10 +48,13 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mb_HasUnsavedChanges(false)
 	, mb_Moving(false)
 	, mb_UseFileTrackerIfAvailable(true)
+    , mb_Animating(false)
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
 	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
     connect(&mk_AnimationTimer, SIGNAL(timeout()), this, SLOT(animationTimeout()));
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setAcceptDrops(true);
 	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 	setScene(&mk_GraphicsScene);
@@ -59,10 +62,10 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	setRenderHint(QPainter::TextAntialiasing, true);
 	setRenderHint(QPainter::SmoothPixmapTransform, true);
 	setBackgroundBrush(QBrush(QColor("#f8f8f8")));
-	setSceneRect(0.0, 0.0, 20000.0, 20000.0);
+	setSceneRect(-10000.0, -10000.0, 20000.0, 20000.0);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-	centerOn(10000.5, 10000.5);
+	centerOn(0.5, 0.5);
 	
 	QPen lk_Pen(QColor(TANGO_ALUMINIUM_3));
 	lk_Pen.setWidthF(1.5);
@@ -79,6 +82,9 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	lk_Pen.setWidthF(1.5);
 	mk_BatchGraphicsPathItem_ = mk_GraphicsScene.addPath(QPainterPath(), lk_Pen, QBrush(QColor(TANGO_BUTTER_0)));
 	mk_BatchGraphicsPathItem_->setZValue(-3.0);
+    
+    //QGraphicsRectItem* lk_Item_ = mk_GraphicsScene.addRect(-10000.0, -10000.0, 20000.0, 20000.0);
+    //delete lk_Item_;
 }
 
 
@@ -243,7 +249,8 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri)
 	}
 	mk_ArrowStartBoxAutoConnect_ = NULL;
     emit selectionChanged();
-    animateAdjustView();
+    if (mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()))
+        animateAdjustView(false, mk_SelectedBoxes);
 	return lk_Box_;
 }
 
@@ -274,7 +281,7 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox)
 	mb_HasUnsavedChanges = true;
 	mk_PipelineMainWindow.toggleUi();
     if (ab_PlaceBox)
-        animateAdjustView();
+        animateAdjustView(false, QSet<IDesktopBox*>() << ak_Box_);
 }
 
 
@@ -516,8 +523,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
 				lk_ScriptParameters[lk_Iter.key()] = lk_Iter.value();
 			lk_ScriptBoxDescription["parameters"] = lk_ScriptParameters;
 			tk_YamlSequence lk_Coordinates;
-			lk_Coordinates.push_back(boxLocation(lk_Box_).x() - 10000);
-			lk_Coordinates.push_back(boxLocation(lk_Box_).y() - 10000);
+			lk_Coordinates.push_back(boxLocation(lk_Box_).x());
+			lk_Coordinates.push_back(boxLocation(lk_Box_).y());
 			lk_ScriptBoxDescription["position"] = lk_Coordinates;
             lk_ScriptBoxDescription["shortIterationTags"] = lk_ScriptBox_->useShortIterationTags();
 /*			lk_ScriptBoxDescription["outputPrefix"] = lk_ScriptBox_->boxOutputPrefix();
@@ -532,8 +539,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
 					IDesktopBox* lk_OutputFileBox_ = lk_ScriptBox_->boxForOutputFileKey(ls_Key);
 					tk_YamlMap lk_Map;
 					tk_YamlSequence lk_Coordinates;
-					lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).x() - 10000);
-					lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).y() - 10000);
+					lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).x());
+					lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).y());
 					lk_Map["position"] = lk_Coordinates;
                     lk_Map["batchMode"] = lk_OutputFileBox_->batchMode();
 					lk_Map["id"] = (qint64)lk_OutputFileBox_;
@@ -548,8 +555,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
 			{
 				IDesktopBox* lk_OtherBox_ = lk_Box_->outgoingBoxes().toList().first();
 				tk_YamlSequence lk_Position;
-				lk_Position.push_back(boxLocation(lk_OtherBox_).x() - 10000);
-				lk_Position.push_back(boxLocation(lk_OtherBox_).y() - 10000);
+				lk_Position.push_back(boxLocation(lk_OtherBox_).x());
+				lk_Position.push_back(boxLocation(lk_OtherBox_).y());
 				lk_ScriptBoxDescription["converterOutputFileBoxPosition"] = lk_Position;
 				lk_ScriptBoxDescription["converterOutputFileBoxId"] = (qint64)lk_OtherBox_;
 			}
@@ -564,8 +571,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
                     QString ls_Key = lk_ProxyBox_->groupKey();
                     tk_YamlMap lk_Map;
                     tk_YamlSequence lk_Coordinates;
-                    lk_Coordinates.push_back(boxLocation(lk_ProxyBox_).x() - 10000);
-                    lk_Coordinates.push_back(boxLocation(lk_ProxyBox_).y() - 10000);
+                    lk_Coordinates.push_back(boxLocation(lk_ProxyBox_).x());
+                    lk_Coordinates.push_back(boxLocation(lk_ProxyBox_).y());
                     lk_Map["position"] = lk_Coordinates;
                     lk_Map["id"] = (qint64)lk_ProxyDesktopBox_;
                     lk_InputProxyBoxes[ls_Key] = lk_Map;
@@ -589,8 +596,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
 			tk_YamlMap lk_BoxDescription;
 			lk_BoxDescription["id"] = (qint64)lk_Box_;
 			tk_YamlSequence lk_Coordinates;
-			lk_Coordinates.push_back(boxLocation(lk_Box_).x() - 10000);
-			lk_Coordinates.push_back(boxLocation(lk_Box_).y() - 10000);
+			lk_Coordinates.push_back(boxLocation(lk_Box_).x());
+			lk_Coordinates.push_back(boxLocation(lk_Box_).y());
 			lk_BoxDescription["position"] = lk_Coordinates;
             lk_BoxDescription["batchMode"] = lk_Box_->batchMode();
 			tk_YamlSequence lk_Paths;
@@ -660,7 +667,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 				foreach (QString ls_Key, lk_Parameters.keys())
 					lk_ScriptBox_->script()->setParameter(ls_Key, lk_Parameters[ls_Key].toString());
 				tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
-				moveBoxTo(lk_Box_, QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+				moveBoxTo(lk_Box_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                 bool lb_ShortTags = false;
                 if (lk_BoxDescription["shortIterationTags"].toString() == "yes" ||
                     lk_BoxDescription["shortIterationTags"].toString() == "true")
@@ -676,7 +683,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 						tk_YamlMap lk_OutBoxDescription = lk_OutputBoxes[ls_Key].toMap();
 						tk_YamlSequence lk_Position = lk_OutBoxDescription["position"].toList();
 						lk_BoxForId[lk_OutBoxDescription["id"].toString()] = lk_OutputBox_;
-						moveBoxTo(lk_OutputBox_, QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+						moveBoxTo(lk_OutputBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         if (lk_OutBoxDescription["batchMode"].toString() == "yes" || 
                             lk_OutBoxDescription["batchMode"].toString() == "true")
                             lk_BatchModeOutFileListBoxes << dynamic_cast<k_OutFileListBox*>(lk_OutputBox_);
@@ -686,7 +693,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 				if (lk_ScriptBox_->script()->type() == r_ScriptType::Converter && lk_BoxDescription.contains("converterOutputFileBoxPosition"))
 				{
 					tk_YamlSequence lk_Position = lk_BoxDescription["converterOutputFileBoxPosition"].toList();
-					moveBoxTo(lk_Box_->outgoingBoxes().toList().first(), QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+					moveBoxTo(lk_Box_->outgoingBoxes().toList().first(), QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
 					lk_BoxForId[lk_BoxDescription["converterOutputFileBoxId"].toString()] = lk_Box_->outgoingBoxes().toList().first();
 				}
                 // fix input proxy boxes
@@ -701,7 +708,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                             tk_YamlMap lk_BoxDescription = lk_InputProxyBoxes[ls_Key].toMap();
                             tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
                             lk_BoxForId[lk_BoxDescription["id"].toString()] = lk_ProxyBox_;
-                            moveBoxTo(lk_ProxyBox_, QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+                            moveBoxTo(lk_ProxyBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         }
                     }
                 }
@@ -714,7 +721,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 		QString ls_Id = lk_BoxDescription["id"].toString();
 		tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
 		lk_BoxForId[ls_Id] = addInputFileListBox();
-		moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt() + 10000, lk_Position[1].toInt() + 10000));
+		moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
 		tk_YamlSequence lk_Paths = lk_BoxDescription["paths"].toList();
 		foreach (QVariant ls_Path, lk_Paths)
 			dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id])->addPath(ls_Path.toString());
@@ -1349,13 +1356,20 @@ void k_Desktop::setCurrentScriptBoxForce(IScriptBox* ak_ScriptBox_)
 
 void k_Desktop::animationTimeout()
 {
+    if (!mb_Animating)
+        return;
+    
     double t = mk_StopWatch.get_Time() / 0.5;
+    if (!mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_ANIMATION).toString()))
+        t = 1.0;
+    
     if (t > 1.0)
     {
         t = 1.0;
         mk_AnimationTimer.stop();
+        mb_Animating = false;
     }
-    t = pow(t, 0.5);
+    t = pow(t, 0.3);
     md_Scale = (md_AnimationEndScale - md_AnimationStartScale) * t + md_AnimationStartScale;
     QPointF lk_Center = (mk_AnimationEndCenter - mk_AnimationStartCenter) * t + mk_AnimationStartCenter;
     centerOn(lk_Center);
@@ -1365,7 +1379,7 @@ void k_Desktop::animationTimeout()
 }
 
 
-void k_Desktop::animateAdjustView()
+void k_Desktop::animateAdjustView(bool ab_ZoomIn, QSet<IDesktopBox*> ak_FocusOn)
 {
     if (mk_Boxes.empty())
         return;
@@ -1373,13 +1387,15 @@ void k_Desktop::animateAdjustView()
     double lf_SceneMargin = mapToScene(10, 0).x() - mapToScene(0, 0).x();
     // determine bounding box
     QRectF lk_Rect;
-    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+    if (ak_FocusOn.empty())
+        ak_FocusOn = mk_Boxes;
+    foreach (IDesktopBox* lk_Box_, ak_FocusOn)
         lk_Rect = lk_Rect.united(lk_Box_->rect());
     lk_Rect.adjust(-lf_SceneMargin, -lf_SceneMargin, lf_SceneMargin, lf_SceneMargin);
     
     // if everything's visible: return
     QRectF lk_ViewRect(mapToScene(QPoint(0, 0)), mapToScene(QPoint(frameRect().width(), frameRect().height())));
-    if (lk_ViewRect.contains(lk_Rect))
+    if (!ab_ZoomIn && lk_ViewRect.contains(lk_Rect))
         return;
 
     md_AnimationStartScale = md_Scale;
@@ -1387,11 +1403,23 @@ void k_Desktop::animateAdjustView()
     mk_AnimationStartCenter = lk_ViewRect.center();
     
     // reset scaling to 1.0
-    md_Scale = 1.0;
+    if (ab_ZoomIn)
+        md_Scale = 1.0;
     
     // center
     //centerOn(lk_Rect.center());
-    mk_AnimationEndCenter = lk_Rect.center();
+    double x = 0.0;
+    double y = 0.0;
+    if (lk_Rect.right() > lk_ViewRect.right())
+        x -= lk_Rect.right() - lk_ViewRect.right();
+    if (lk_Rect.left() < lk_ViewRect.left())
+        x -= lk_Rect.left() - lk_ViewRect.left();
+    if (lk_Rect.bottom() > lk_ViewRect.bottom())
+        y -= lk_Rect.bottom() - lk_ViewRect.bottom();
+    if (lk_Rect.top() < lk_ViewRect.top())
+        y -= lk_Rect.top() - lk_ViewRect.top();
+    mk_AnimationEndCenter = mk_AnimationStartCenter - QPointF(x, y);
+    //mk_AnimationEndCenter = lk_Rect.center();
     
     // adjust scaling
     QPointF lk_A = mapToScene(QPoint(0, 0)) + (mk_AnimationEndCenter - mk_AnimationStartCenter);
@@ -1414,6 +1442,7 @@ void k_Desktop::animateAdjustView()
     md_Scale = md_AnimationStartScale;
     mk_AnimationTimer.setSingleShot(false);
     mk_StopWatch.reset();
+    mb_Animating = true;
     mk_AnimationTimer.start(20);
 }
 
@@ -1773,15 +1802,15 @@ QPointF k_Desktop::findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, QRectF ak
 	QPointF lk_HalfSize = QPointF(ak_BoxRect.width() * 0.5, ak_BoxRect.height() * 0.5);
 				 
 	if (ai_BoxCount == 0)
-		return QPointF(10000.0, 10000.0) - lk_HalfSize;
+		return QPointF(0.0, 0.0) - lk_HalfSize;
 
 	QRectF lk_Rect = ak_BoundRect.adjusted(-8.0, -8.0, 8.0, 8.0);
 	double p[4] = {lk_Rect.top(), lk_Rect.right(), lk_Rect.bottom(), lk_Rect.left()};
 	int best = 0;
-	double bestd = fabs(p[0] - 10000.0);
+	double bestd = fabs(p[0]);
 	for (int i = 1; i < 4; ++i)
 	{
-		double d = fabs(p[i] - 10000.0);
+		double d = fabs(p[i]);
 		if (d < bestd)
 		{
 			bestd = d;
@@ -1789,13 +1818,13 @@ QPointF k_Desktop::findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, QRectF ak
 		}
 	}
 	if (best == 0)
-		return QPointF(10000.0, lk_Rect.top() - lk_HalfSize.y()) - lk_HalfSize;
+		return QPointF(0.0, lk_Rect.top() - lk_HalfSize.y()) - lk_HalfSize;
 	if (best == 1)
-		return QPointF(lk_Rect.right() + lk_HalfSize.x(), 10000.0) - lk_HalfSize;
+		return QPointF(lk_Rect.right() + lk_HalfSize.x(), 0.0) - lk_HalfSize;
 	if (best == 2)
-		return QPointF(10000.0, lk_Rect.bottom() + lk_HalfSize.y()) - lk_HalfSize;
+		return QPointF(0.0, lk_Rect.bottom() + lk_HalfSize.y()) - lk_HalfSize;
 	if (best == 3)
-		return QPointF(lk_Rect.left() - lk_HalfSize.x(), 10000.0) - lk_HalfSize;
+		return QPointF(lk_Rect.left() - lk_HalfSize.x(), 0.0) - lk_HalfSize;
 	return QPointF() - lk_HalfSize;
 }
 

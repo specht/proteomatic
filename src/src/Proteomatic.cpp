@@ -329,9 +329,19 @@ void k_Proteomatic::loadConfiguration()
 	}
 	if (!mk_Configuration.contains(CONFIG_SCRIPTS_URL) || mk_Configuration[CONFIG_SCRIPTS_URL].type() != QVariant::String)
 	{
-		mk_Configuration[CONFIG_SCRIPTS_URL] = "ftp://gpf.uni-muenster.de/download/proteomatic-scripts";
+		mk_Configuration[CONFIG_SCRIPTS_URL] = "";
 		lb_InsertedDefaultValue = true;
 	}
+    if (!mk_Configuration.contains(CONFIG_FOLLOW_NEW_BOXES) || mk_Configuration[CONFIG_FOLLOW_NEW_BOXES].type() != QVariant::String)
+    {
+        mk_Configuration[CONFIG_FOLLOW_NEW_BOXES] = "yes";
+        lb_InsertedDefaultValue = true;
+    }
+    if (!mk_Configuration.contains(CONFIG_ANIMATION) || mk_Configuration[CONFIG_ANIMATION].type() != QVariant::String)
+    {
+        mk_Configuration[CONFIG_ANIMATION] = "yes";
+        lb_InsertedDefaultValue = true;
+    }
 	if (mk_Configuration.contains(CONFIG_SCRIPTS_PATH))
     {
         if (mk_Configuration[CONFIG_SCRIPTS_PATH].type() != QVariant::List)
@@ -672,6 +682,7 @@ void k_Proteomatic::showConfigurationDialog()
 	lk_pDialog->setWindowIcon(QIcon(":icons/proteomatic.png"));
 
 	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
+    
 	QCheckBox* lk_AutoCheckForUpdates_ = new QCheckBox("Check for scripts updates on startup", lk_pDialog.get_Pointer());
 	lk_AutoCheckForUpdates_->setCheckState(getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool() ? Qt::Checked : Qt::Unchecked);
 	lk_VLayout_->addWidget(lk_AutoCheckForUpdates_);
@@ -743,6 +754,14 @@ void k_Proteomatic::showConfigurationDialog()
         lk_LanguagePathLineEdits[ls_Language] = lk_PathLineEdit_;
     }
     
+    QCheckBox* lk_FollowNewBoxes_ = new QCheckBox("Auto-follow new boxes", lk_pDialog.get_Pointer());
+    lk_FollowNewBoxes_->setCheckState(stringToBool(getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()) ? Qt::Checked : Qt::Unchecked);
+    lk_VLayout_->addWidget(lk_FollowNewBoxes_);
+    
+    QCheckBox* lk_Animation_ = new QCheckBox("Use animation", lk_pDialog.get_Pointer());
+    lk_Animation_->setCheckState(stringToBool(getConfiguration(CONFIG_ANIMATION).toString()) ? Qt::Checked : Qt::Unchecked);
+    lk_VLayout_->addWidget(lk_Animation_);
+    
 	lk_HLayout_ = new QHBoxLayout(NULL);
 	QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":icons/dialog-cancel.png"), "Cancel", lk_pDialog.get_Pointer());
 	connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(reject()));
@@ -762,6 +781,8 @@ void k_Proteomatic::showConfigurationDialog()
         mk_Configuration[CONFIG_PATH_TO_RUBY] = lk_LanguagePathLineEdits["ruby"]->text();
         mk_Configuration[CONFIG_PATH_TO_PYTHON] = lk_LanguagePathLineEdits["python"]->text();
         mk_Configuration[CONFIG_PATH_TO_PHP] = lk_LanguagePathLineEdits["php"]->text();
+        mk_Configuration[CONFIG_FOLLOW_NEW_BOXES] = lk_FollowNewBoxes_->checkState() == Qt::Checked;
+        mk_Configuration[CONFIG_ANIMATION] = lk_Animation_->checkState() == Qt::Checked;
 		this->saveConfiguration();
 		updateConfigDependentStuff();
         checkRuby();
@@ -1254,4 +1275,11 @@ QLabel* k_Proteomatic::fileTrackerLabel()
 QString k_Proteomatic::scriptInterpreter(const QString& as_Language)
 {
     return mk_ScriptInterpreter[as_Language];
+}
+
+
+bool k_Proteomatic::stringToBool(const QString& as_String)
+{
+    QString ls_String = as_String.toLower();
+    return ls_String == "yes" || ls_String == "true" || ls_String == "1";
 }

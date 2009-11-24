@@ -95,7 +95,7 @@ protected slots:
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
 	virtual void setCurrentScriptBoxForce(IScriptBox* ak_ScriptBox_);
     virtual void animationTimeout();
-    virtual void animateAdjustView();
+    virtual void animateAdjustView(bool ab_ZoomIn = true, QSet<IDesktopBox*> ak_FocusOn = QSet<IDesktopBox*>());
 	
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
@@ -185,4 +185,5 @@ protected:
     QPointF mk_AnimationEndCenter;
     double md_AnimationStartScale;
     double md_AnimationEndScale;
+    bool mb_Animating;
 };

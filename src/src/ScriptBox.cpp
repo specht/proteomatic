@@ -45,6 +45,7 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 	, ms_CurrentIterationKeyShowing(QString())
     , mb_IterationsTagsDontMatch(false)
     , mb_MultipleInputBatches(false)
+    , mk_UseShortTagsCheckBox_(NULL)
 {
 	connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
 	connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
@@ -791,6 +792,52 @@ void k_ScriptBox::update()
             mk_OutputFilesForKey[ls_ConverterKey] << scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_OutPath;
         }
     }
+    
+    // ------------------------------------------------
+    // UPDATE ITERATION TAG DROP-DOWN BOX
+    // ------------------------------------------------
+
+    mk_OutputBoxIterationKeyChooserContainer_->setVisible(batchMode());
+    QStringList lk_IterationKeys = iterationKeys();
+    
+    QStringList lk_Items;
+    for (int i = 0; i < mk_OutputBoxIterationKeyChooser_->count(); ++i)
+        lk_Items << mk_OutputBoxIterationKeyChooser_->itemText(i);
+    
+    // insert all new iteration keys
+    foreach (QString ls_Key, lk_IterationKeys)
+    {
+        if (!lk_Items.contains(ls_Key))
+            lk_Items << ls_Key;
+    }
+    
+    qSort(lk_Items.begin(), lk_Items.end());
+
+    QString ls_CurrentText = mk_OutputBoxIterationKeyChooser_->currentText();
+    mk_OutputBoxIterationKeyChooser_->clear();
+    foreach (QString ls_Key, lk_Items)
+    {
+        mk_OutputBoxIterationKeyChooser_->addItem(ls_Key);
+        if (!mk_Output.contains(ls_Key))
+            mk_Output[ls_Key] = RefPtr<k_ConsoleString>(new k_ConsoleString());
+        if (ls_Key == ls_CurrentText)
+            mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->count() - 1);
+    }
+
+    // remove all old iteration keys
+    QList<int> lk_DeleteIndices;
+    for (int i = 0; i < mk_OutputBoxIterationKeyChooser_->count(); ++i)
+    {
+        QString ls_Key = mk_OutputBoxIterationKeyChooser_->itemText(i);
+        if (!lk_IterationKeys.contains(ls_Key))
+            lk_DeleteIndices << i;
+    }
+    for (int i = lk_DeleteIndices.size() - 1; i >= 0; --i)
+    {
+        QString ls_Key = mk_OutputBoxIterationKeyChooser_->itemText(lk_DeleteIndices[i]);
+        mk_OutputBoxIterationKeyChooser_->removeItem(lk_DeleteIndices[i]);
+        mk_Output.remove(ls_Key);
+    }
 
     toggleUi();
 	emit changed();
@@ -802,8 +849,11 @@ void k_ScriptBox::toggleUi()
     k_DesktopBox::toggleUi();
     if (mk_IterationsTagsDontMatchIcon_)
         mk_IterationsTagsDontMatchIcon_->setVisible(mb_IterationsTagsDontMatch);
-    mk_UseShortTagsCheckBox_->setVisible(batchMode());
-    mk_UseShortTagsCheckBox_->setEnabled(!mb_MultipleInputBatches);
+    if (mk_UseShortTagsCheckBox_)
+    {
+        mk_UseShortTagsCheckBox_->setVisible(batchMode());
+        mk_UseShortTagsCheckBox_->setEnabled(!mb_MultipleInputBatches);
+    }
 }
 
 
