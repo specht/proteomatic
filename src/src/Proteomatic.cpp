@@ -248,7 +248,15 @@ QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Lan
 {
     QProcess lk_QueryProcess;
 
+    // :UGLY: specify proper pre-filename arguments
+    int li_Index = 0;
+    if (ak_Arguments[0] == "-W0")
+        ++li_Index;
+    
+    QFileInfo lk_FileInfo(ak_Arguments[li_Index]);
+    lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+    
     lk_QueryProcess.start(scriptInterpreter(as_Language), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
     if (lk_QueryProcess.waitForFinished())
         return lk_QueryProcess.readAll();

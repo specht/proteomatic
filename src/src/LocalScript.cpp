@@ -82,7 +82,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
             // ignore Ruby warnings for ---yamlInfo
             if (mk_Proteomatic.interpreterKeyForScript(as_ScriptPath) == "ruby")
                 lk_Arguments.insert(0, "-W0");
-			ls_Response = mk_Proteomatic.syncScript(lk_Arguments);
+			ls_Response = mk_Proteomatic.syncScriptNoFile(lk_Arguments, mk_Proteomatic.interpreterKeyForScript(as_ScriptPath));
 			if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
 			{
 				// update cached information
@@ -128,7 +128,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
                 // ignore Ruby warnings for ---yamlInfo
                 if (mk_Proteomatic.interpreterKeyForScript(as_ScriptPath) == "ruby")
                     lk_Arguments.insert(0, "-W0");
-                ls_Response = mk_Proteomatic.syncScript(lk_Arguments);
+                ls_Response = mk_Proteomatic.syncScriptNoFile(lk_Arguments, mk_Proteomatic.interpreterKeyForScript(as_ScriptPath));
                 if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
                 {
                     // update cached information
