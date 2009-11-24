@@ -799,6 +799,11 @@ void k_Desktop::clearAll()
 {
 	while (!mk_Boxes.empty())
 		removeBox(mk_Boxes.toList().first());
+    md_Scale = 1.0;
+    centerOn(QPointF(0.0, 0.0));
+    QMatrix lk_Matrix = this->matrix();
+    lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
+    this->setMatrix(lk_Matrix);
 }
 
 
@@ -1405,7 +1410,7 @@ void k_Desktop::animateAdjustView(bool ab_ZoomIn, QSet<IDesktopBox*> ak_FocusOn)
     
     // if everything's visible: return
     QRectF lk_ViewRect(mapToScene(QPoint(0, 0)), mapToScene(QPoint(frameRect().width(), frameRect().height())));
-    if (!ab_ZoomIn && lk_ViewRect.contains(lk_Rect))
+    if ((!ab_ZoomIn) && lk_ViewRect.contains(lk_Rect))
         return;
 
     md_AnimationStartScale = md_Scale;
@@ -1418,22 +1423,30 @@ void k_Desktop::animateAdjustView(bool ab_ZoomIn, QSet<IDesktopBox*> ak_FocusOn)
     
     // center
     //centerOn(lk_Rect.center());
-    double x = 0.0;
-    double y = 0.0;
-    if (lk_Rect.right() > lk_ViewRect.right())
-        x -= lk_Rect.right() - lk_ViewRect.right();
-    if (lk_Rect.left() < lk_ViewRect.left())
-        x -= lk_Rect.left() - lk_ViewRect.left();
-    if (lk_Rect.bottom() > lk_ViewRect.bottom())
-        y -= lk_Rect.bottom() - lk_ViewRect.bottom();
-    if (lk_Rect.top() < lk_ViewRect.top())
-        y -= lk_Rect.top() - lk_ViewRect.top();
-    mk_AnimationEndCenter = mk_AnimationStartCenter - QPointF(x, y);
-    //mk_AnimationEndCenter = lk_Rect.center();
+    if (ab_ZoomIn)
+    {
+        mk_AnimationEndCenter = lk_Rect.center();
+    }
+    else
+    {
+        double x = 0.0;
+        double y = 0.0;
+        if (lk_Rect.right() > lk_ViewRect.right())
+            x -= lk_Rect.right() - lk_ViewRect.right();
+        if (lk_Rect.left() < lk_ViewRect.left())
+            x -= lk_Rect.left() - lk_ViewRect.left();
+        if (lk_Rect.bottom() > lk_ViewRect.bottom())
+            y -= lk_Rect.bottom() - lk_ViewRect.bottom();
+        if (lk_Rect.top() < lk_ViewRect.top())
+            y -= lk_Rect.top() - lk_ViewRect.top();
+        mk_AnimationEndCenter = mk_AnimationStartCenter - QPointF(x, y);
+    }
     
     // adjust scaling
-    QPointF lk_A = mapToScene(QPoint(0, 0)) + (mk_AnimationEndCenter - mk_AnimationStartCenter);
-    QPointF lk_B = mapToScene(QPoint(frameRect().width(), frameRect().height())) + (mk_AnimationEndCenter - mk_AnimationStartCenter);
+    QPointF lk_EndHalfSize = QPointF((double)frameRect().width() / md_Scale, 
+                                     (double)frameRect().height() / md_Scale) / 2.0;
+    QPointF lk_A = mk_AnimationEndCenter - lk_EndHalfSize;
+    QPointF lk_B = mk_AnimationEndCenter + lk_EndHalfSize;
     double ld_WindowX = lk_B.x() - lk_A.x();
     double ld_WindowY = lk_B.y() - lk_A.y();
     double ld_SceneX = lk_Rect.width();
