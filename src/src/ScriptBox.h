@@ -48,6 +48,8 @@ public:
 	virtual QStringList outputFilesForKey(QString as_Key) const;
 	virtual QWidget* paneWidget();
 	virtual bool hasExistingOutputFiles();
+    virtual bool hasExistingOutputFilesForAllIterations();
+    virtual bool iterationHasNoExistingOutputFiles(const QString& as_Key);
 	virtual bool outputFileActivated(const QString& as_Key);
 	virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag);
     virtual bool useShortIterationTags();
@@ -117,6 +119,7 @@ protected:
 	QHash<QString, QStringList> mk_InputFilesForKey;
 	QHash<QString, QStringList> mk_OutputFilesForKey;
     QStringList mk_IterationTags;
+    QHash<QString, QSet<QString> > mk_OutputFilesForIterationTag;
     bool mb_IterationsTagsDontMatch;
     bool mb_MultipleInputBatches;
 };

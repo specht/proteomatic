@@ -166,6 +166,34 @@ bool k_ScriptBox::hasExistingOutputFiles()
 }
 
 
+bool k_ScriptBox::hasExistingOutputFilesForAllIterations()
+{
+    // this functions returns true if there is at least one iteration
+    // which has 0 existing output files
+    if (batchMode())
+    {
+        foreach (QString ls_Tag, mk_IterationTags)
+            if (iterationHasNoExistingOutputFiles(ls_Tag))
+                return false;
+        return true;
+    }
+    else
+        return hasExistingOutputFiles();
+}
+
+
+bool k_ScriptBox::iterationHasNoExistingOutputFiles(const QString& as_Key)
+{
+    if (!mk_OutputFilesForIterationTag.contains(as_Key))
+        return true;
+    
+    foreach (QString ls_Path, mk_OutputFilesForIterationTag[as_Key])
+        if (QFileInfo(ls_Path).exists())
+            return false;
+    return true;
+}
+
+
 bool k_ScriptBox::outputFileActivated(const QString& as_Key)
 {
 	if (!mk_Checkboxes.contains(as_Key))
@@ -690,7 +718,7 @@ void k_ScriptBox::update()
         mk_IterationTags = lk_ConsensusIterationTags.toList();
         qSort(mk_IterationTags.begin(), mk_IterationTags.end());
     }
-	
+    
 	// ----------------------------------------------
 	// UPDATE INPUT FILENAMES
 	// ----------------------------------------------
@@ -750,6 +778,8 @@ void k_ScriptBox::update()
 	// UPDATE OUTPUT FILENAMES
 	// ----------------------------------------------
 	
+    mk_OutputFilesForIterationTag.clear();
+    
 	if (mk_pScript->type() == r_ScriptType::Processor)
 	{
 		mk_OutputFilesForKey.clear();
@@ -770,7 +800,9 @@ void k_ScriptBox::update()
                                 ls_UseTag = lk_FirstBatchFileBox_->filenamesForTag(ls_Tag).first();
                                 ls_UseTag = QFileInfo(ls_UseTag).baseName();
                             }
-                            mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_UseTag + "-" + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                            QString ls_Path = scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_UseTag + "-" + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                            mk_OutputFilesForKey[ls_Key] << ls_Path;
+                            mk_OutputFilesForIterationTag[ls_Tag] << ls_Path;
                         }
                     }
                 }

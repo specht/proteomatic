@@ -883,7 +883,7 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
 	QList<IScriptBox*> lk_ScriptBoxesWithExistingOutputFiles;
 	
 	foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
-		if (lk_Box_->hasExistingOutputFiles())
+		if (lk_Box_->hasExistingOutputFilesForAllIterations())
 			lk_ScriptBoxesWithExistingOutputFiles.push_back(lk_Box_);
 	
 	if (!lk_ScriptBoxesWithExistingOutputFiles.empty())
@@ -897,7 +897,13 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
 			mk_RemainingScriptBoxes.remove(lk_Box_);
 		
 	foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
-		mk_RemainingScriptBoxIterationKeys[lk_Box_] = lk_Box_->iterationKeys();
+    {
+        foreach (QString ls_Tag, lk_Box_->iterationKeys())
+        {
+            if (lk_Box_->iterationHasNoExistingOutputFiles(ls_Tag))
+                mk_RemainingScriptBoxIterationKeys[lk_Box_] << ls_Tag;
+        }
+    }
 
 	// pick a box, start it
 	IScriptBox* lk_Box_ = pickNextScriptBox();
