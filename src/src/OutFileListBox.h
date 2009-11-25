@@ -58,6 +58,9 @@ protected slots:
 	virtual void toggleUi();
 	virtual void filenameDoubleClicked();
 	virtual void update();
+    virtual void showContextMenu();
+    virtual void openFile();
+    virtual void openContainingDirectory();
 	
 protected:
 	virtual void setupLayout();
@@ -72,4 +75,7 @@ protected:
 	QHash<QString, QString> mk_TagForFilename;
 	QHash<QString, QStringList> mk_FilenamesForTag;
 	QString ms_PrefixWithoutTags;
+    QMenu mk_PopupMenu;
+    QAction* mk_OpenFileAction_;
+    QAction* mk_OpenContainingFolderAction_;
 };

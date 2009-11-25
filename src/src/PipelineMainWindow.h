@@ -79,6 +79,7 @@ protected:
 	QAction* mk_RefreshAction_;
 	QAction* mk_ProfileManagerAction_;
 	QAction* mk_ResetParametersAction_;
+    QAction* mk_ShowConfigurationAction_;
     QToolButton* mk_PanButton_;
     QToolButton* mk_LassoButton_;
 	//QLineEdit* mk_OutputPrefix_;

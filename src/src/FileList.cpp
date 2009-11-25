@@ -134,7 +134,9 @@ void k_FileList::addInputFiles(QStringList ak_Paths, bool ab_Refresh, bool ab_Em
 		return;
 	
 	foreach (QString ls_Path, ak_Paths)
+    {
 		this->addInputFile(ls_Path, false, false);
+    }
 
 	if (ab_Refresh)
 		this->refresh();
@@ -309,7 +311,9 @@ void k_FileList::refresh()
 		foreach (QListWidgetItem* lk_Item_, lk_ToBeDeleted)
 			delete takeItem(row(lk_Item_));
 		
-		foreach (QString ls_Path, lk_Paths)
+        QStringList lk_PathsSorted = lk_Paths.toList();
+        qSort(lk_PathsSorted.begin(), lk_PathsSorted.end());
+		foreach (QString ls_Path, lk_PathsSorted)
 		{
 			QListWidgetItem* lk_Item_ = new QListWidgetItem(QFileInfo(ls_Path).fileName(), this);
 			lk_Item_->setData(Qt::UserRole, ls_Path);
@@ -351,12 +355,18 @@ void k_FileList::itemDoubleClicked(QListWidgetItem* ak_Item_)
 
 void k_FileList::showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point)
 {
+    if (!ak_Item_)
+        return;
+    
 	if (ak_Point == QPoint())
 		ak_Point = QCursor::pos();
-	QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
+    
+    QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
+    mk_OpenFileAction.setEnabled(QFileInfo(ls_Path).exists());
+    ls_Path = QFileInfo(ls_Path).absolutePath();
+    mk_OpenContainingFolderAction.setEnabled(QFileInfo(ls_Path).isDir());
+    
 	mk_PopupMenu.exec(ak_Point);
-	//if (QFileInfo(ls_Path).exists())
-		//k_Proteomatic::openFileLink(ls_Path);
 }
 
 

@@ -44,6 +44,10 @@ void k_ClickableLabel::mousePressEvent(QMouseEvent* event)
 	event->accept();
 	emit clicked();
 	emit pressed();
+    if (event->button() == Qt::LeftButton)
+        emit leftClicked();
+    if (event->button() == Qt::RightButton)
+        emit rightClicked();
 }
 
 

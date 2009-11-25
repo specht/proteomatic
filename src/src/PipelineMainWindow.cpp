@@ -132,7 +132,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_ProfileManagerAction_ = lk_AddToolBar_->addAction(QIcon(":icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
 	mk_ResetParametersAction_ = lk_AddToolBar_->addAction(QIcon(":icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
 	lk_AddToolBar_->addSeparator();
-	lk_AddToolBar_->addAction(QIcon(":icons/preferences-system.png"), "Preferences", &mk_Proteomatic, SLOT(showConfigurationDialog()));
+	mk_ShowConfigurationAction_ = lk_AddToolBar_->addAction(QIcon(":icons/preferences-system.png"), "Preferences", &mk_Proteomatic, SLOT(showConfigurationDialog()));
 	
 /*	QToolBar* lk_OtherToolBar_ = new QToolBar(this);
 	lk_OtherToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -428,10 +428,14 @@ void k_PipelineMainWindow::toggleUi()
 	mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());
 	mk_RefreshAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
 	mk_ProfileManagerAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
+    mk_ShowConfigurationAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
 	mk_ResetParametersAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && mk_CurrentScriptBox_);
 	//mk_OutputPrefix_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
 	//mk_ClearPrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
 	mk_ProposePrefixForAllScriptsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
+    mk_LassoButton_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
+    if (mk_Desktop_ && mk_Desktop_->running())
+        mk_PanButton_->setChecked(true);
 }
 
 

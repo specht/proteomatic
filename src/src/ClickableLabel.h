@@ -33,6 +33,8 @@ public:
 
 signals:
 	void clicked();
+    void leftClicked();
+    void rightClicked();
 	void doubleClicked();
 	void pressed();
 	void released();

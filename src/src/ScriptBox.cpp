@@ -506,10 +506,11 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 		QStringList lk_Files;
 		foreach (IFileBox* lk_FileBox_, lk_ProxyBox_->fileBoxes())
 			lk_Files += lk_FileBox_->filenamesForTag(as_IterationKey);
+        
 		if (lk_Files.size() > 0)
 		{
 			lk_InputFiles.push_back("-" + lk_ProxyBox_->groupKey());
-                lk_InputFiles += lk_Files;
+            lk_InputFiles += lk_Files;
 		}
 	}
 	

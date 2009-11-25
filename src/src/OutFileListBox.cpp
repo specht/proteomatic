@@ -35,6 +35,8 @@ k_OutFileListBox::k_OutFileListBox(k_Desktop* ak_Parent_,
 	, ms_Label(as_Label)
 	, mk_FileList(this, ab_ItemsDeletable, true)
 	, mb_ListMode(false)
+    , mk_OpenFileAction_(new QAction(QIcon(":icons/document-open.png"), "&Open file", this))
+    , mk_OpenContainingFolderAction_(new QAction(QIcon(":icons/folder.png"), "Open containing &folder", this))
 {
 	if (!ms_Label.isEmpty())
 		ms_Label[0] = ms_Label[0].toUpper();
@@ -64,6 +66,9 @@ QString k_OutFileListBox::tagForFilename(const QString& as_Filename) const
 
 QStringList k_OutFileListBox::filenamesForTag(const QString& as_Tag) const
 {
+    if (!batchMode())
+        return mk_FileList.files();
+    
 	if (mk_FilenamesForTag.contains(as_Tag))
 		return mk_FilenamesForTag[as_Tag];
 	else
@@ -196,6 +201,39 @@ void k_OutFileListBox::update()
 }
 
 
+void k_OutFileListBox::showContextMenu()
+{
+    QString ls_Path = mk_FileList.files().first();
+    mk_OpenFileAction_->setEnabled(QFileInfo(ls_Path).exists());
+    ls_Path = QFileInfo(ls_Path).absolutePath();
+    mk_OpenContainingFolderAction_->setEnabled(QFileInfo(ls_Path).isDir());
+    mk_PopupMenu.exec(QCursor::pos());
+}
+
+
+void k_OutFileListBox::openFile()
+{
+    if (mk_FileList.files().empty())
+        return;
+    
+    QString ls_Path = mk_FileList.files().first();
+    if (QFileInfo(ls_Path).exists())
+        k_Proteomatic::openFileLink(ls_Path);
+}
+
+
+void k_OutFileListBox::openContainingDirectory()
+{
+    if (mk_FileList.files().empty())
+        return;
+    
+    QString ls_Path = mk_FileList.files().first();
+    ls_Path = QFileInfo(ls_Path).absolutePath();
+    if (QFileInfo(ls_Path).isDir())
+        k_Proteomatic::openFileLink(ls_Path);
+}
+
+
 void k_OutFileListBox::setupLayout()
 {
 	QBoxLayout* lk_VLayout_;
@@ -209,8 +247,14 @@ void k_OutFileListBox::setupLayout()
 	lk_VLayout_ = new QVBoxLayout();
 	lk_HLayout_->addLayout(lk_VLayout_);
 	mk_Label_ = new k_UnclickableLabel("", this);
+    mk_PopupMenu.addAction(mk_OpenFileAction_);
+    mk_PopupMenu.addAction(mk_OpenContainingFolderAction_);
+    connect(mk_OpenFileAction_, SIGNAL(triggered()), this, SLOT(openFile()));
+    connect(mk_OpenContainingFolderAction_, SIGNAL(triggered()), this, SLOT(openContainingDirectory()));
+    
 	mk_FileName_ = new k_ClickableLabel("", this);
 	connect(mk_FileName_, SIGNAL(doubleClicked()), this, SLOT(filenameDoubleClicked()));
+    connect(mk_FileName_, SIGNAL(rightClicked()), this, SLOT(showContextMenu()));
 	lk_VLayout_->addWidget(mk_Label_);
 	lk_VLayout_->addWidget(mk_FileName_);
 	lk_VLayout_->addWidget(&mk_FileList);

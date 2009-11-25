@@ -42,9 +42,9 @@ public:
 
 	virtual k_PipelineMainWindow& pipelineMainWindow() const;
 	virtual QGraphicsScene& graphicsScene();
-	virtual IDesktopBox* addInputFileListBox();
-	virtual IDesktopBox* addScriptBox(const QString& as_ScriptUri);
-	virtual void addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox = true);
+	virtual IDesktopBox* addInputFileListBox(bool ab_AutoAdjust = true);
+	virtual IDesktopBox* addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust = true);
+	virtual void addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox = true, bool ab_AutoAdjust = true);
 	virtual void removeBox(IDesktopBox* ak_Box_);
 	virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
 	virtual void disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
@@ -96,7 +96,7 @@ protected slots:
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
 	virtual void setCurrentScriptBoxForce(IScriptBox* ak_ScriptBox_);
     virtual void animationTimeout();
-    virtual void animateAdjustView(bool ab_ZoomIn = true, QSet<IDesktopBox*> ak_FocusOn = QSet<IDesktopBox*>());
+    virtual void animateAdjustView(bool ab_ZoomIn = true, QSet<IDesktopBox*> ak_FocusOn = QSet<IDesktopBox*>(), bool ab_Animate = true);
 	
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
