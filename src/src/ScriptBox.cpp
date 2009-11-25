@@ -123,6 +123,24 @@ QString k_ScriptBox::scriptOutputDirectory() const
 }
 
 
+QString k_ScriptBox::boxOutputDirectory() const
+{
+    return mk_OutputDirectory.text();
+}
+
+
+void k_ScriptBox::setBoxOutputPrefix(const QString& as_Prefix)
+{
+    mk_Prefix.setText(as_Prefix);
+}
+
+
+void k_ScriptBox::setBoxOutputDirectory(const QString& as_Directory)
+{
+    mk_OutputDirectory.setText(as_Directory);
+}
+
+
 QStringList k_ScriptBox::outputFilesForKey(QString as_Key) const
 {
 	if (mk_OutputFilesForKey.contains(as_Key))
@@ -440,29 +458,34 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 		lk_Parameters["-outputDirectory"] = this->scriptOutputDirectory();
 
 	// set output prefix
-    QString ls_UseTag = as_IterationKey;
-    if (!useShortIterationTags())
+    
+    QString ls_UseTag = "";
+    if (batchMode())
     {
-        // find only batch mode input file list
-        IFileBox* lk_InFileBox_ = NULL;
-        foreach (IDesktopBox* lk_OtherBox_, incomingBoxes())
+        ls_UseTag = as_IterationKey;
+        if (!useShortIterationTags())
         {
-            lk_InFileBox_ = dynamic_cast<IFileBox*>(lk_OtherBox_);
+            // find only batch mode input file list
+            IFileBox* lk_InFileBox_ = NULL;
+            foreach (IDesktopBox* lk_OtherBox_, incomingBoxes())
+            {
+                lk_InFileBox_ = dynamic_cast<IFileBox*>(lk_OtherBox_);
+                if (lk_InFileBox_)
+                    break;
+            }
             if (lk_InFileBox_)
-                break;
+                ls_UseTag = lk_InFileBox_->filenamesForTag(as_IterationKey).first();
         }
-        if (lk_InFileBox_)
-            ls_UseTag = lk_InFileBox_->filenamesForTag(as_IterationKey).first();
     }
-	lk_Parameters["-outputPrefix"] = mk_Prefix.text() + ls_UseTag + (as_IterationKey.isEmpty() ? "" : "-");
+	lk_Parameters["-outputPrefix"] = mk_Prefix.text() + ls_UseTag + (ls_UseTag.isEmpty() ? "" : "-");
 	
 	// set output files
 	foreach (QString ls_Key, mk_pScript->outputFileKeys())
 		lk_Parameters["-" + ls_Key] = mk_Checkboxes[ls_Key]->checkState() == Qt::Checked ? "yes" : "no";
 	
 	// collect input files
-	QStringList lk_InputFiles;
-	
+    QStringList lk_InputFiles;
+
 	QList<k_InputGroupProxyBox*> lk_ProxyBoxes;
 	
 	foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
@@ -474,7 +497,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 		{
 			IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
 			if (lk_FileBox_)
-				lk_InputFiles += lk_FileBox_->filenamesForTag(as_IterationKey);
+                lk_InputFiles += lk_FileBox_->filenamesForTag(as_IterationKey);
 		}
 	}
 	
@@ -486,7 +509,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 		if (lk_Files.size() > 0)
 		{
 			lk_InputFiles.push_back("-" + lk_ProxyBox_->groupKey());
-			lk_InputFiles += lk_Files;
+                lk_InputFiles += lk_Files;
 		}
 	}
 	

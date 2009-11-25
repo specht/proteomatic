@@ -42,6 +42,9 @@ public:
 	virtual bool checkReadyToGo();
 	virtual QStringList iterationKeys();
 	virtual QString scriptOutputDirectory() const;
+    virtual QString boxOutputDirectory() const;
+    virtual void setBoxOutputPrefix(const QString& as_Prefix);
+    virtual void setBoxOutputDirectory(const QString& as_Directory);
 	virtual QStringList outputFilesForKey(QString as_Key) const;
 	virtual QWidget* paneWidget();
 	virtual bool hasExistingOutputFiles();

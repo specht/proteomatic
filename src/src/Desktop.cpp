@@ -528,8 +528,8 @@ tk_YamlMap k_Desktop::pipelineDescription()
 			lk_Coordinates.push_back(boxLocation(lk_Box_).y());
 			lk_ScriptBoxDescription["position"] = lk_Coordinates;
             lk_ScriptBoxDescription["shortIterationTags"] = lk_ScriptBox_->useShortIterationTags();
-/*			lk_ScriptBoxDescription["outputPrefix"] = lk_ScriptBox_->boxOutputPrefix();
-			lk_ScriptBoxDescription["outputDirectory"] = lk_ScriptBox_->boxOutputDirectory();*/
+			lk_ScriptBoxDescription["outputPrefix"] = lk_ScriptBox_->boxOutputPrefix();
+			lk_ScriptBoxDescription["outputDirectory"] = lk_ScriptBox_->boxOutputDirectory();
 
             // now add active output boxes
 			tk_YamlMap lk_ActiveOutputFileBoxes;
@@ -638,6 +638,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     QSet<k_FileListBox*> lk_BatchModeFileListBoxes;
     QSet<k_OutFileListBox*> lk_BatchModeOutFileListBoxes;
     QHash<IScriptBox*, bool> lk_ShortIterationTagBoxes;
+    QSet<QString> lk_Warnings;
 	foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
 	{
 		tk_YamlMap lk_BoxDescription = lk_Item.toMap();
@@ -663,6 +664,15 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 			IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
 			if (lk_ScriptBox_)
 			{
+                QString ls_OutputDirectory = lk_BoxDescription["outputDirectory"].toString();
+                if (!ls_OutputDirectory.isEmpty())
+                {
+                    if (!QDir(ls_OutputDirectory).exists())
+                        lk_Warnings << "output-directory-gone";
+                    else
+                        lk_ScriptBox_->setBoxOutputDirectory(ls_OutputDirectory);
+                }
+                lk_ScriptBox_->setBoxOutputPrefix(lk_BoxDescription["outputPrefix"].toString());
 				lk_BoxForId[ls_Id] = lk_Box_;
 				tk_YamlMap lk_Parameters = lk_BoxDescription["parameters"].toMap();
 				foreach (QString ls_Key, lk_Parameters.keys())
@@ -745,6 +755,9 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     
     // set batch mode for output file lists, 
     // this may take several rounds
+    // :TODO: do not run into infinte loop if this fails
+    // (it might fail, for example, if emitting signals does not
+    // lead to slot being called immediately)
     while (true)
     {
         bool lb_AllBatchModeOk = true;
@@ -767,6 +780,15 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 	redraw();
 	setHasUnsavedChanges(false);
 	emit showAllRequested();
+    
+    // handle warnings
+    if (!lk_Warnings.empty())
+    {
+        QString ls_Warning = "<b>There were problems while loading the pipeline.</b><br /><br />";
+        if (lk_Warnings.contains("output-directory-gone"))
+            ls_Warning += "The output directory could not be set for one or more scripts.<br/>";
+        mk_Proteomatic.showMessageBox("Load pipeline", ls_Warning, ":icons/emblem-important.png");
+    }
 }
 
 
