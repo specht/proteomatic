@@ -1407,7 +1407,7 @@ void k_Desktop::animationTimeout()
     
     double t = mk_StopWatch.get_Time() / 0.5;
     if (!mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_ANIMATION).toString()))
-        t = 1.0;
+        t = 1.1;
     
     if (t > 1.0)
     {
