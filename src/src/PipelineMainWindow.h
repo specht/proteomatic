@@ -34,7 +34,8 @@ public:
 	//QString outputPrefix();
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
     virtual bool panMode() const;
-	
+    virtual QMenu* createPopupMenu();
+    
 public slots:
 	void toggleUi();
 	
@@ -95,4 +96,5 @@ protected:
 	QSplitter* mk_HSplitter_;
 	QLabel* mk_StatusBarMessage_;
 	QObject* mk_WatchedBoxObject_;
+    QToolBar* mk_AddToolBar_;
 };

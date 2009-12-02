@@ -356,6 +356,11 @@ void k_Proteomatic::loadConfiguration()
         mk_Configuration[CONFIG_ANIMATION] = "yes";
         lb_InsertedDefaultValue = true;
     }
+    if (!mk_Configuration.contains(CONFIG_APPEARANCE_SIZE) || mk_Configuration[CONFIG_APPEARANCE_SIZE].type() != QVariant::String)
+    {
+        mk_Configuration[CONFIG_APPEARANCE_SIZE] = "0";
+        lb_InsertedDefaultValue = true;
+    }
 	if (mk_Configuration.contains(CONFIG_SCRIPTS_PATH))
     {
         if (mk_Configuration[CONFIG_SCRIPTS_PATH].type() != QVariant::List)
@@ -706,6 +711,16 @@ void k_Proteomatic::showConfigurationDialog()
 	
 	QBoxLayout* lk_HLayout_ = NULL;
 	
+    lk_HLayout_ = new QHBoxLayout(NULL);
+    lk_HLayout_->addWidget(new QLabel("Appearance:", lk_pDialog.get_Pointer()));
+    QComboBox* lk_AppearanceComboBox_ = new QComboBox(lk_pDialog.get_Pointer());
+    lk_AppearanceComboBox_->addItem("normal", QVariant(0));
+    lk_AppearanceComboBox_->addItem("small", QVariant(1));
+    lk_AppearanceComboBox_->addItem("tiny", QVariant(2));
+    lk_AppearanceComboBox_->setCurrentIndex(getConfiguration(CONFIG_APPEARANCE_SIZE).toInt());
+    lk_HLayout_->addWidget(lk_AppearanceComboBox_);
+    lk_VLayout_->addLayout(lk_HLayout_);
+    
 	lk_HLayout_ = new QHBoxLayout(NULL);
 	lk_HLayout_->addWidget(new QLabel("Scripts URL:", lk_pDialog.get_Pointer()));
 	QLineEdit* lk_ScriptsUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
@@ -800,6 +815,7 @@ void k_Proteomatic::showConfigurationDialog()
         mk_Configuration[CONFIG_PATH_TO_PHP] = lk_LanguagePathLineEdits["php"]->text();
         mk_Configuration[CONFIG_FOLLOW_NEW_BOXES] = lk_FollowNewBoxes_->checkState() == Qt::Checked;
         mk_Configuration[CONFIG_ANIMATION] = lk_Animation_->checkState() == Qt::Checked;
+        mk_Configuration[CONFIG_APPEARANCE_SIZE] = lk_AppearanceComboBox_->currentIndex();
 		this->saveConfiguration();
 		updateConfigDependentStuff();
         checkRuby();

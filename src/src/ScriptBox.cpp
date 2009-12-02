@@ -262,6 +262,7 @@ void k_ScriptBox::outputFileActionToggled()
 			mk_OutputFileBoxes.remove(ls_Key);
 		}
 	}
+    update();
 	mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -800,7 +801,11 @@ void k_ScriptBox::update()
                                 ls_UseTag = lk_FirstBatchFileBox_->filenamesForTag(ls_Tag).first();
                                 ls_UseTag = QFileInfo(ls_UseTag).baseName();
                             }
-                            QString ls_Path = scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_UseTag + "-" + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                            
+                            if (!ls_UseTag.isEmpty())
+                                ls_UseTag += "-";
+                            
+                            QString ls_Path = scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_UseTag + mk_pScript->outputFileDetails(ls_Key)["filename"];
                             mk_OutputFilesForKey[ls_Key] << ls_Path;
                             mk_OutputFilesForIterationTag[ls_Tag] << ls_Path;
                         }

@@ -41,6 +41,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_FILETRACKER_URL "fileTrackerUrl"
 #define CONFIG_FOLLOW_NEW_BOXES "followNewBoxes"
 #define CONFIG_ANIMATION "animation"
+#define CONFIG_APPEARANCE_SIZE "appearanceSize"
 
 
 struct r_RemoteRequestType

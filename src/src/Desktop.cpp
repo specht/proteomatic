@@ -1580,6 +1580,51 @@ void k_Desktop::mousePressEvent(QMouseEvent* event)
 }
 
 
+void k_Desktop::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    QPointF lk_Position = this->mapToScene(event->pos());
+    if (mk_GraphicsScene.items(lk_Position).empty())
+    {
+        if ((event->modifiers() & Qt::ControlModifier) == 0)
+        {
+            clearSelection();
+/*          mk_CurrentScriptBox_ = NULL;
+            mk_PipelineMainWindow.setPaneLayoutWidget(NULL);*/
+            redrawSelection();
+        }
+    }
+    else
+    {
+        QList<QGraphicsItem*> lk_ItemList = mk_GraphicsScene.items(lk_Position);
+        if (!lk_ItemList.empty())
+        {
+            QGraphicsLineItem* lk_ProxyLine_ = NULL;
+            for (int i = lk_ItemList.size() - 1; i >= 0; --i)
+            {
+                lk_ProxyLine_ = dynamic_cast<QGraphicsLineItem*>(lk_ItemList[i]);
+                if (lk_ProxyLine_)
+                    break;
+            }
+            clearSelection();
+            redrawSelection();
+            if (lk_ProxyLine_)
+            {
+                QGraphicsPathItem* lk_Arrow_ = mk_ArrowForProxy[lk_ProxyLine_];
+                if (mk_SelectedArrows.contains(lk_Arrow_))
+                    mk_SelectedArrows.remove(lk_Arrow_);
+                else
+                    mk_SelectedArrows.insert(lk_Arrow_);
+                redrawSelection();
+                emit selectionChanged();
+            }
+        }
+    }
+    event->ignore();
+    mk_MoveStartPoint = mapToScene(event->globalPos());
+    QGraphicsView::mousePressEvent(event);
+}
+
+
 void k_Desktop::mouseReleaseEvent(QMouseEvent* event)
 {
 	mb_Moving = false;

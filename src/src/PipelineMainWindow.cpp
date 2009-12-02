@@ -54,6 +54,10 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_PaneLayoutWidget_->hide();
 	
 	setCentralWidget(mk_HSplitter_);
+    
+//     QDockWidget* lk_PaneDockWidget_ = new QDockWidget("Parameters", this);
+//     lk_PaneDockWidget_->setWidget(mk_PaneLayoutWidget_);
+//     lk_PaneDockWidget_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 
 	mk_HSplitter_->addWidget(mk_Desktop_);
 	mk_HSplitter_->addWidget(mk_PaneLayoutWidget_);
@@ -65,10 +69,9 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerIconLabel());
 	statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerLabel());
 	
-	QToolBar* lk_AddToolBar_ = new QToolBar(this);
-	lk_AddToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	mk_AddToolBar_ = new QToolBar(this);
 
-	QToolButton* lk_ProteomaticButton_ = new QToolButton(lk_AddToolBar_);
+	QToolButton* lk_ProteomaticButton_ = new QToolButton(mk_AddToolBar_);
 	lk_ProteomaticButton_->setIcon(QIcon(":/icons/proteomatic-pipeline.png"));
 	lk_ProteomaticButton_->setText("Pipeline");
 	QMenu* lk_ProteomaticMenu_ = new QMenu(this);
@@ -80,59 +83,59 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_QuitAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/system-shutdown.png"), "Quit", this, SLOT(quit()));
 	lk_ProteomaticButton_->setMenu(lk_ProteomaticMenu_);
 	lk_ProteomaticButton_->setPopupMode(QToolButton::InstantPopup);
-	lk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	lk_AddToolBar_->addWidget(lk_ProteomaticButton_);
+    lk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	mk_AddToolBar_->addWidget(lk_ProteomaticButton_);
 
-	mk_AddScriptButton_ = new QToolButton(lk_AddToolBar_);
+	mk_AddScriptButton_ = new QToolButton(mk_AddToolBar_);
 	mk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
 	mk_AddScriptButton_->setText("Add script");
 	mk_AddScriptButton_->setPopupMode(QToolButton::InstantPopup);
-	mk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	lk_AddToolBar_->addWidget(mk_AddScriptButton_);
+    mk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	mk_AddToolBar_->addWidget(mk_AddScriptButton_);
 	mk_AddScriptButton_->setMenu(mk_Proteomatic.proteomaticScriptsMenu());
 	connect(mk_Proteomatic.proteomaticScriptsMenu(), SIGNAL(triggered(QAction*)), this, SLOT(addScript(QAction*)));
 	mk_AddScriptAction_ = mk_AddScriptButton_;
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuChanged()), this, SLOT(scriptMenuChanged()));
 
-	mk_AddFileListAction_ = lk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
+	mk_AddFileListAction_ = mk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
 
-	lk_AddToolBar_->addSeparator();
+	mk_AddToolBar_->addSeparator();
 	
-    mk_PanButton_ = new QToolButton(lk_AddToolBar_);
+    mk_PanButton_ = new QToolButton(mk_AddToolBar_);
     mk_PanButton_->setIcon(QIcon(":/icons/cursor-openhand.png"));
     mk_PanButton_->setText("Pan");
     mk_PanButton_->setCheckable(true);
     mk_PanButton_->setAutoExclusive(true);
     mk_PanButton_->setChecked(true);
     connect(mk_PanButton_, SIGNAL(toggled(bool)), mk_Desktop_, SLOT(updatePanMode()));
-    lk_AddToolBar_->addWidget(mk_PanButton_);
+    mk_AddToolBar_->addWidget(mk_PanButton_);
 
-    mk_LassoButton_ = new QToolButton(lk_AddToolBar_);
+    mk_LassoButton_ = new QToolButton(mk_AddToolBar_);
     mk_LassoButton_->setIcon(QIcon(":/icons/select-lasso.png"));
     mk_LassoButton_->setText("Select");
     mk_LassoButton_->setCheckable(true);
     mk_LassoButton_->setAutoExclusive(true);
     connect(mk_LassoButton_, SIGNAL(toggled(bool)), mk_Desktop_, SLOT(updatePanMode()));
-    lk_AddToolBar_->addWidget(mk_LassoButton_);
+    mk_AddToolBar_->addWidget(mk_LassoButton_);
     
-	lk_AddToolBar_->addAction(QIcon(":icons/system-search.png"), "Show all", this, SLOT(showAll()));
+	mk_AddToolBar_->addAction(QIcon(":icons/system-search.png"), "Show all", this, SLOT(showAll()));
 
-	lk_AddToolBar_->addSeparator();
+	mk_AddToolBar_->addSeparator();
 	
-	mk_ProposePrefixForAllScriptsAction_ = lk_AddToolBar_->addAction(QIcon(":icons/select-continuous-area.png"), "Propose prefixes", mk_Desktop_, SLOT(proposePrefixForAllScripts()));
-	mk_RefreshAction_ = lk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
-	lk_AddToolBar_->addWidget(mk_Proteomatic.startButton());
+	mk_ProposePrefixForAllScriptsAction_ = mk_AddToolBar_->addAction(QIcon(":icons/select-continuous-area.png"), "Propose prefixes", mk_Desktop_, SLOT(proposePrefixForAllScripts()));
+	mk_RefreshAction_ = mk_AddToolBar_->addAction(QIcon(":icons/view-refresh.png"), "Refresh", this, SIGNAL(forceRefresh()));
+	mk_AddToolBar_->addWidget(mk_Proteomatic.startButton());
 	connect(mk_Proteomatic.startButton(), SIGNAL(clicked()), this, SLOT(start()));
 	
 	connect(mk_Proteomatic.startUntrackedAction(), SIGNAL(triggered()), this, SLOT(startUntracked()));
-	mk_AbortAction_ = lk_AddToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "Abort", this, SLOT(abort()));
+	mk_AbortAction_ = mk_AddToolBar_->addAction(QIcon(":icons/dialog-cancel.png"), "Abort", this, SLOT(abort()));
 
-	lk_AddToolBar_->addSeparator();
+	mk_AddToolBar_->addSeparator();
 	
-	mk_ProfileManagerAction_ = lk_AddToolBar_->addAction(QIcon(":icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
-	mk_ResetParametersAction_ = lk_AddToolBar_->addAction(QIcon(":icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
-	lk_AddToolBar_->addSeparator();
-	mk_ShowConfigurationAction_ = lk_AddToolBar_->addAction(QIcon(":icons/preferences-system.png"), "Preferences", &mk_Proteomatic, SLOT(showConfigurationDialog()));
+	mk_ProfileManagerAction_ = mk_AddToolBar_->addAction(QIcon(":icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
+	mk_ResetParametersAction_ = mk_AddToolBar_->addAction(QIcon(":icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
+	mk_AddToolBar_->addSeparator();
+	mk_ShowConfigurationAction_ = mk_AddToolBar_->addAction(QIcon(":icons/preferences-system.png"), "Preferences", &mk_Proteomatic, SLOT(showConfigurationDialog()));
 	
 /*	QToolBar* lk_OtherToolBar_ = new QToolBar(this);
 	lk_OtherToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -146,16 +149,18 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_ProposePrefixForAllScriptsAction_ = lk_OtherToolBar_->addAction(QIcon(":icons/select-continuous-area.png"), "", mk_Desktop_, SLOT(proposePrefixForAllScripts()));
 	mk_ProposePrefixForAllScriptsAction_->setCheckable(true);*/
 	
-	addToolBar(Qt::TopToolBarArea, lk_AddToolBar_);
+	addToolBar(Qt::TopToolBarArea, mk_AddToolBar_);
+//     addDockWidget(Qt::RightDockWidgetArea, lk_PaneDockWidget_);
 /*	addToolBarBreak(Qt::TopToolBarArea);
 	addToolBar(Qt::TopToolBarArea, lk_OtherToolBar_);*/
 	
-	lk_AddToolBar_->setIconSize(QSize(24, 24));
 // 	lk_OtherToolBar_->setIconSize(QSize(24, 24));
 	
 	//setDockOptions(dockOptions() | QMainWindow::VerticalTabs);
 	//setDockOptions(dockOptions() | QMainWindow::ForceTabbedDocks);
 	//setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+    
+    connect(&mk_Proteomatic, SIGNAL(configurationChanged()), this, SLOT(toggleUi()));
 	
 	updateStatusBar();
 	toggleUi();
@@ -436,6 +441,11 @@ void k_PipelineMainWindow::toggleUi()
     mk_LassoButton_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
     if (mk_Desktop_ && mk_Desktop_->running())
         mk_PanButton_->setChecked(true);
+    
+    mk_AddToolBar_->setToolButtonStyle(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 2 ? Qt::ToolButtonTextBesideIcon : Qt::ToolButtonIconOnly);
+    mk_AddToolBar_->setIconSize(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1 ? QSize(24, 24) : QSize(16, 16));
+    mk_PanButton_->setIconSize(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1 ? QSize(24, 24) : QSize(16, 16));
+    mk_LassoButton_->setIconSize(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1 ? QSize(24, 24) : QSize(16, 16));
 }
 
 
@@ -468,4 +478,10 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 bool k_PipelineMainWindow::panMode() const
 {
     return mk_PanButton_->isChecked();
+}
+
+
+QMenu* k_PipelineMainWindow::createPopupMenu()
+{
+    return NULL;
 }
