@@ -105,4 +105,5 @@ protected:
     QWidget* mk_FauxTitleBarWidget_;
     QLabel* mk_FauxTitleBarWidgetFloatingLabel_;
     QWidget* mk_FauxTitleBarWidgetFloating_;
+    bool mb_JustStarted;
 };

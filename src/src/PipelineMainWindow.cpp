@@ -37,6 +37,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	, mk_CurrentScriptBox_(NULL)
 	, ms_PipelineFilename(QString())
 	, mk_WatchedBoxObject_(NULL)
+    , mb_JustStarted(true)
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	
@@ -85,7 +86,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     mk_PaneDockWidget_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     mk_PaneDockWidget_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     connect(mk_PaneDockWidget_, SIGNAL(topLevelChanged(bool)), this, SLOT(paneFloatChanged()));
-    connect(mk_PaneDockWidget_, SIGNAL(visbilityChanged(bool)), this, SLOT(redockPane(bool)));
+    //connect(mk_PaneDockWidget_, SIGNAL(visibilityChanged(bool)), this, SLOT(redockPane(bool)));
     mk_PaneDockWidget_->hide();
     mk_PaneDockWidget_->setMinimumWidth(450);
 
@@ -477,8 +478,12 @@ void k_PipelineMainWindow::paneFloatChanged()
 
 void k_PipelineMainWindow::redockPane(bool ab_Visible)
 {
-    if (!ab_Visible)
+    if ((!ab_Visible) && (!mb_JustStarted))
+    {
         mk_PaneDockWidget_->setFloating(false);
+        mk_PaneDockWidget_->setEnabled(true);
+        mk_PaneDockWidget_->show();
+    }
 }
 
 
@@ -521,7 +526,8 @@ void k_PipelineMainWindow::togglePaneFloat()
 void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 {
     if (mk_CurrentScriptBox_)
-        disconnect(dynamic_cast<QObject*>(mk_CurrentScriptBox_), SIGNAL(togglePaneFloat()), this, SLOT(togglePaneFloat()));
+        if (dynamic_cast<QObject*>(mk_CurrentScriptBox_))
+            disconnect(dynamic_cast<QObject*>(mk_CurrentScriptBox_), SIGNAL(togglePaneFloat()), this, SLOT(togglePaneFloat()));
     
 	mk_CurrentScriptBox_ = ak_ScriptBox_;
 
@@ -533,8 +539,9 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 	{
 		mk_PaneLayout_->addWidget(ak_ScriptBox_->paneWidget());
 		ak_ScriptBox_->paneWidget()->show();
-		if (!mk_PaneDockWidget_->isVisible())
+		if (mb_JustStarted)
 		{
+            mb_JustStarted = false;
             mk_PaneDockWidget_->show();
 /*			QList<int> lk_Sizes;
 			lk_Sizes.push_back(width() - 450);
