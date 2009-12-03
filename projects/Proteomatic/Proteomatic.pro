@@ -3,7 +3,7 @@ TARGET = Proteomatic
 include(../base.pro)
 
 win32 {
-    RC_FILE = ProteomaticPipeline.rc
+    RC_FILE = Proteomatic.rc
 }
 
 # Input
