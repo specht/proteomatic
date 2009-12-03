@@ -85,6 +85,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     mk_PaneDockWidget_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     mk_PaneDockWidget_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     connect(mk_PaneDockWidget_, SIGNAL(topLevelChanged(bool)), this, SLOT(paneFloatChanged()));
+    connect(mk_PaneDockWidget_, SIGNAL(visbilityChanged(bool)), this, SLOT(redockPane(bool)));
     mk_PaneDockWidget_->hide();
     mk_PaneDockWidget_->setMinimumWidth(450);
 
@@ -474,6 +475,13 @@ void k_PipelineMainWindow::paneFloatChanged()
 }
 
 
+void k_PipelineMainWindow::redockPane(bool ab_Visible)
+{
+    if (!ab_Visible)
+        mk_PaneDockWidget_->setFloating(false);
+}
+
+
 void k_PipelineMainWindow::toggleUi()
 {
 	updateWindowTitle();
@@ -537,7 +545,7 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 			mk_Desktop_->showAll();
 		}
         mk_FauxTitleBarWidgetFloatingLabel_->setText(mk_CurrentScriptBox_->script()->title());
-        mk_FauxTitleBarWidgetFloating_->setWindowTitle(mk_CurrentScriptBox_->script()->title());
+        mk_PaneDockWidget_->setWindowTitle(mk_CurrentScriptBox_->script()->title());
         connect(dynamic_cast<QObject*>(mk_CurrentScriptBox_), SIGNAL(togglePaneFloat()), this, SLOT(togglePaneFloat()));
 	}
 	toggleUi();

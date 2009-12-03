@@ -68,6 +68,7 @@ protected slots:
 	void scriptMenuChanged();
 	void updateWindowTitle();
     void paneFloatChanged();
+    void redockPane(bool ab_Visible);
 
 protected:
 	k_Desktop* mk_Desktop_;
