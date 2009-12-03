@@ -35,7 +35,7 @@ INCLUDEPATH += ../../src/ ../../src/dialogs
 MYLIBPATH = /usr/local/lib
 
 win32 {
-	MYLIBPATH = c:\Qt\2009.04\mingw\lib\
+	MYLIBPATH = c:\Qt\2009.05\mingw\lib\
 }
 macx {
 	MYLIBPATH = /Users/michael/programming/ext/lib
