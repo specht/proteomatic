@@ -23,6 +23,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Desktop.h"
 #include "Proteomatic.h"
 #include "ConsoleString.h"
+#include "FoldedHeader.h"
 
 
 class k_PipelineMainWindow: public QMainWindow
@@ -38,6 +39,7 @@ public:
     
 public slots:
 	void toggleUi();
+    void togglePaneFloat();
 	
 signals:
 	//void outputPrefixChanged(const QString& as_Prefix);
@@ -65,6 +67,7 @@ protected slots:
 	void updateStatusBar();
 	void scriptMenuChanged();
 	void updateWindowTitle();
+    void paneFloatChanged();
 
 protected:
 	k_Desktop* mk_Desktop_;
@@ -97,4 +100,8 @@ protected:
 	QLabel* mk_StatusBarMessage_;
 	QObject* mk_WatchedBoxObject_;
     QToolBar* mk_AddToolBar_;
+    QDockWidget* mk_PaneDockWidget_;
+    QWidget* mk_FauxTitleBarWidget_;
+    QLabel* mk_FauxTitleBarWidgetFloatingLabel_;
+    QWidget* mk_FauxTitleBarWidgetFloating_;
 };

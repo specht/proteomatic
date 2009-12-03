@@ -39,6 +39,7 @@ public slots:
 	void hideBuddy();
 	void showBuddy();
 	void toggleBuddy();
+    void setText(const QString& as_Text);
 
 signals:
 	void clicked();

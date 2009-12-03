@@ -24,6 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IScriptBox.h"
 #include "ProfileManager.h"
 #include "Proteomatic.h"
+#include "Tango.h"
 #include "version.h"
 #include "Yaml.h"
 
@@ -51,16 +52,44 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_PaneLayoutWidget_ = new QWidget(this);
 	mk_PaneLayout_ = new QVBoxLayout(mk_PaneLayoutWidget_);
 	mk_PaneLayout_->setContentsMargins(0, 0, 0, 0);
-	mk_PaneLayoutWidget_->hide();
 	
 	setCentralWidget(mk_HSplitter_);
+
+    // lk_FauxTitleBarWidget_ is an empty widget so that
+    // the pane widget will have no title bar
+    mk_FauxTitleBarWidget_ = new QWidget(this);
+    mk_FauxTitleBarWidgetFloating_ = new QWidget(this);
+    mk_FauxTitleBarWidgetFloating_->setWindowIcon(QIcon(":/icons/proteomatic.png"));
+    mk_FauxTitleBarWidgetFloating_->setWindowTitle("Current script");
+    QVBoxLayout* lk_FauxTitleVLayout_ = new QVBoxLayout(mk_FauxTitleBarWidgetFloating_);
+    QHBoxLayout* lk_FauxTitleLayout_ = new QHBoxLayout(NULL);
+    lk_FauxTitleLayout_->setContentsMargins(0, 4, 0, 0);
+    lk_FauxTitleVLayout_->setContentsMargins(0, 0, 0, 4);
+    QLabel* lk_FauxHeaderIconLabel_ = new QLabel(mk_FauxTitleBarWidgetFloating_);
+    lk_FauxHeaderIconLabel_->setPixmap(QPixmap(":/icons/proteomatic.png").scaledToHeight(16, Qt::SmoothTransformation));
+    lk_FauxTitleLayout_->addWidget(lk_FauxHeaderIconLabel_);
+    mk_FauxTitleBarWidgetFloatingLabel_ = new QLabel("Current script", mk_FauxTitleBarWidgetFloating_);
+    lk_FauxTitleLayout_->addWidget(mk_FauxTitleBarWidgetFloatingLabel_);
+    lk_FauxTitleLayout_->addStretch();
+    lk_FauxTitleVLayout_->addLayout(lk_FauxTitleLayout_);
+    QFrame* lk_Frame_ = new QFrame(this);
+    lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    lk_FauxTitleVLayout_->addWidget(lk_Frame_);
     
-//     QDockWidget* lk_PaneDockWidget_ = new QDockWidget("Parameters", this);
-//     lk_PaneDockWidget_->setWidget(mk_PaneLayoutWidget_);
-//     lk_PaneDockWidget_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    mk_FauxTitleBarWidget_->hide();
+    mk_FauxTitleBarWidgetFloating_->hide();
+    
+    mk_PaneDockWidget_ = new QDockWidget("Script parameters", this);
+    mk_PaneDockWidget_->setTitleBarWidget(mk_FauxTitleBarWidget_);
+    mk_PaneDockWidget_->setWidget(mk_PaneLayoutWidget_);
+    mk_PaneDockWidget_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    mk_PaneDockWidget_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    connect(mk_PaneDockWidget_, SIGNAL(topLevelChanged(bool)), this, SLOT(paneFloatChanged()));
+    mk_PaneDockWidget_->hide();
+    mk_PaneDockWidget_->setMinimumWidth(450);
 
 	mk_HSplitter_->addWidget(mk_Desktop_);
-	mk_HSplitter_->addWidget(mk_PaneLayoutWidget_);
+//	mk_HSplitter_->addWidget(mk_PaneLayoutWidget_);
 	mk_HSplitter_->setChildrenCollapsible(false);
 
 	statusBar()->show();
@@ -70,6 +99,9 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerLabel());
 	
 	mk_AddToolBar_ = new QToolBar(this);
+    
+    mk_AddToolBar_->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
+
 
 	QToolButton* lk_ProteomaticButton_ = new QToolButton(mk_AddToolBar_);
 	lk_ProteomaticButton_->setIcon(QIcon(":/icons/proteomatic-pipeline.png"));
@@ -150,7 +182,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_ProposePrefixForAllScriptsAction_->setCheckable(true);*/
 	
 	addToolBar(Qt::TopToolBarArea, mk_AddToolBar_);
-//     addDockWidget(Qt::RightDockWidgetArea, lk_PaneDockWidget_);
+    addDockWidget(Qt::RightDockWidgetArea, mk_PaneDockWidget_);
 /*	addToolBarBreak(Qt::TopToolBarArea);
 	addToolBar(Qt::TopToolBarArea, lk_OtherToolBar_);*/
 	
@@ -419,6 +451,28 @@ void k_PipelineMainWindow::updateWindowTitle()
 }
 
 
+void k_PipelineMainWindow::paneFloatChanged()
+{
+    if (mk_PaneDockWidget_->isFloating())
+    {
+        mk_PaneDockWidget_->setTitleBarWidget(mk_FauxTitleBarWidgetFloating_);
+        mk_FauxTitleBarWidgetFloating_->show();
+        mk_FauxTitleBarWidget_->hide();
+        //mk_PaneDockWidget_->setWindowFlags(Qt::Tool);
+        //mk_PaneDockWidget_->setWindowFlags(mk_PaneDockWidget_->windowFlags() & (~Qt::FramelessWindowHint));
+    }
+    else
+    {
+        mk_PaneDockWidget_->setTitleBarWidget(mk_FauxTitleBarWidget_);
+        mk_FauxTitleBarWidgetFloating_->hide();
+        mk_FauxTitleBarWidget_->show();
+        //mk_PaneDockWidget_->setWindowFlags(Qt::Widget);
+    }
+    mk_PaneDockWidget_->repaint();
+    //fprintf(stderr, "%x", (int)mk_PaneDockWidget_->windowFlags());
+}
+
+
 void k_PipelineMainWindow::toggleUi()
 {
 	updateWindowTitle();
@@ -449,8 +503,17 @@ void k_PipelineMainWindow::toggleUi()
 }
 
 
+void k_PipelineMainWindow::togglePaneFloat()
+{
+    mk_PaneDockWidget_->setFloating(!mk_PaneDockWidget_->isFloating());
+}
+
+
 void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 {
+    if (mk_CurrentScriptBox_)
+        disconnect(dynamic_cast<QObject*>(mk_CurrentScriptBox_), SIGNAL(togglePaneFloat()), this, SLOT(togglePaneFloat()));
+    
 	mk_CurrentScriptBox_ = ak_ScriptBox_;
 
 	QLayoutItem* lk_Item_;
@@ -461,15 +524,20 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 	{
 		mk_PaneLayout_->addWidget(ak_ScriptBox_->paneWidget());
 		ak_ScriptBox_->paneWidget()->show();
-		if (!mk_PaneLayoutWidget_->isVisible())
+		if (!mk_PaneDockWidget_->isVisible())
 		{
-			mk_PaneLayoutWidget_->show();
-			QList<int> lk_Sizes;
+            mk_PaneDockWidget_->show();
+/*			QList<int> lk_Sizes;
 			lk_Sizes.push_back(width() - 450);
 			lk_Sizes.push_back(450);
-			mk_HSplitter_->setSizes(lk_Sizes);
+			mk_HSplitter_->setSizes(lk_Sizes);*/
+            //ak_ScriptBox_->paneWidget()->resize(QSize(450, ak_ScriptBox_->paneWidget()->height()));
+            //mk_PaneDockWidget_->resize(QSize(500, mk_PaneDockWidget_->height()));
 			mk_Desktop_->showAll();
 		}
+        mk_FauxTitleBarWidgetFloatingLabel_->setText(mk_CurrentScriptBox_->script()->title());
+        mk_FauxTitleBarWidgetFloating_->setWindowTitle(mk_CurrentScriptBox_->script()->title());
+        connect(dynamic_cast<QObject*>(mk_CurrentScriptBox_), SIGNAL(togglePaneFloat()), this, SLOT(togglePaneFloat()));
 	}
 	toggleUi();
 }

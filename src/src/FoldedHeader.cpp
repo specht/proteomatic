@@ -87,6 +87,12 @@ void k_FoldedHeader::toggleBuddy()
 }
 
 
+void k_FoldedHeader::setText(const QString& as_Text)
+{
+    mk_Label.setText(as_Text);
+}
+
+
 void k_FoldedHeader::setSuffix(QString as_Text)
 {
 	mk_Label.setText(ms_Text + " " + as_Text);
