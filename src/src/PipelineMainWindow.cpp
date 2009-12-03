@@ -455,11 +455,13 @@ void k_PipelineMainWindow::paneFloatChanged()
 {
     if (mk_PaneDockWidget_->isFloating())
     {
-        mk_PaneDockWidget_->setTitleBarWidget(mk_FauxTitleBarWidgetFloating_);
-        mk_FauxTitleBarWidgetFloating_->show();
-        mk_FauxTitleBarWidget_->hide();
-        //mk_PaneDockWidget_->setWindowFlags(Qt::Tool);
+        //mk_PaneDockWidget_->setTitleBarWidget(mk_FauxTitleBarWidgetFloating_);
+        //mk_FauxTitleBarWidgetFloating_->show();
+        mk_FauxTitleBarWidgetFloating_->hide();
+        //mk_PaneDockWidget_->setTitleBarWidget(NULL);
+        mk_PaneDockWidget_->setWindowFlags(Qt::Window | Qt::Tool);
         //mk_PaneDockWidget_->setWindowFlags(mk_PaneDockWidget_->windowFlags() & (~Qt::FramelessWindowHint));
+        mk_PaneDockWidget_->show();
     }
     else
     {
@@ -469,7 +471,6 @@ void k_PipelineMainWindow::paneFloatChanged()
         //mk_PaneDockWidget_->setWindowFlags(Qt::Widget);
     }
     mk_PaneDockWidget_->repaint();
-    //fprintf(stderr, "%x", (int)mk_PaneDockWidget_->windowFlags());
 }
 
 
