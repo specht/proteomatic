@@ -1,7 +1,7 @@
 TEMPLATE = app
 
 win32 {
-	INCLUDEPATH += c:/Qt/2009.02/mingw/include
+	INCLUDEPATH += c:/Qt/2009.05/mingw/include
 }
 
 CONFIG += debug_and_release
@@ -26,7 +26,7 @@ else {
 	RCC_DIR = ../../obj/release/
 }
 
-DESTDIR = ../../../
+DESTDIR = ../../
 
 QT = core gui network
 
