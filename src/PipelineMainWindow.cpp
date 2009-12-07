@@ -88,7 +88,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     connect(mk_PaneDockWidget_, SIGNAL(topLevelChanged(bool)), this, SLOT(paneFloatChanged()));
     //connect(mk_PaneDockWidget_, SIGNAL(visibilityChanged(bool)), this, SLOT(redockPane(bool)));
     mk_PaneDockWidget_->hide();
-    mk_PaneDockWidget_->setMinimumWidth(450);
+    mk_PaneDockWidget_->setMinimumSize(QSize(440, 1));
 
 	mk_HSplitter_->addWidget(mk_Desktop_);
 //	mk_HSplitter_->addWidget(mk_PaneLayoutWidget_);
