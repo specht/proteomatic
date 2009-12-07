@@ -444,9 +444,9 @@ void k_PipelineMainWindow::updateWindowTitle()
 	{
 		ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion() + ")";
 	}
-	QString ls_WindowTitle = QString("%1%2 - Proteomatic %3 %4")
+	QString ls_WindowTitle = QString("%1[*] - Proteomatic %3 %4")
 		.arg(ms_PipelineFilename.isEmpty()? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName())
-		.arg(mk_Desktop_->hasUnsavedChanges() ? " [modified]" : "")
+		//.arg(mk_Desktop_->hasUnsavedChanges() ? " [modified]" : "")
 		.arg(mk_Proteomatic.version())
 		.arg(ls_ScriptsVersion);
 	setWindowTitle(ls_WindowTitle);

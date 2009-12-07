@@ -193,4 +193,5 @@ protected:
     QPainterPath mk_LassoPath;
     QPoint mk_LastLassoDevicePoint;
     QGraphicsPathItem* mk_LassoGraphicsPathItem_;
+    QCursor mk_LassoCursor;
 };

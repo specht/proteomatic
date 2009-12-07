@@ -50,6 +50,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
 	, mb_UseFileTrackerIfAvailable(true)
     , mb_Animating(false)
     , mb_LassoSelecting(false)
+    , mk_LassoCursor(QCursor(QPixmap(":/icons/lasso-cursor.png"), 10, 22))
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
 	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
@@ -1018,9 +1019,15 @@ void k_Desktop::proposePrefixForAllScripts()
 void k_Desktop::updatePanMode()
 {
     if (mk_PipelineMainWindow.panMode())
+    {
         setDragMode(QGraphicsView::ScrollHandDrag);
+        unsetCursor();
+    }
     else
+    {
         setDragMode(QGraphicsView::NoDrag);
+        setCursor(mk_LassoCursor);
+    }
 }
 
 
