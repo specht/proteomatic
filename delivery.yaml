@@ -1,6 +1,5 @@
 projects:
-#   - src/projects/Proteomatic
-  - src/projects/ProteomaticPipeline
+  - src/projects/Proteomatic
   #- src/projects/Revelio
 #binaryPath: bin
 qt: [core, gui, network]
