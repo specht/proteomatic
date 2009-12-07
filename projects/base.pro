@@ -1,15 +1,15 @@
 TEMPLATE = app
 
 win32 {
-	INCLUDEPATH += c:/Qt/2009.05/mingw/include
+	INCLUDEPATH += c:/Qt/2009.04/mingw/include
 }
 
 CONFIG += debug_and_release
 
 macx {
-	CONFIG -= app_bundle
+	CONFIG += app_bundle
 	CONFIG += x86 ppc
-	ICON = ../../src/icons/proteomatic.icns
+	ICON = ../../src/icons/proteomatic-pipeline.icns
 	INCLUDEPATH += '/Users/michael/programming/ext/include'
 }
 
@@ -35,7 +35,7 @@ INCLUDEPATH += ../../src/ ../../src/dialogs
 MYLIBPATH = /usr/local/lib
 
 win32 {
-	MYLIBPATH = c:\Qt\2009.05\mingw\lib\
+	MYLIBPATH = c:\Qt\2009.04\mingw\lib\
 }
 macx {
 	MYLIBPATH = /Users/michael/programming/ext/lib
