@@ -9,6 +9,7 @@ CONFIG += debug_and_release
 macx {
 	CONFIG += app_bundle
 	CONFIG += x86 ppc
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.4
 	ICON = ../../src/icons/proteomatic-pipeline.icns
 	INCLUDEPATH += '/Users/michael/programming/ext/include'
 }
