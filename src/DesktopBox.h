@@ -82,6 +82,7 @@ protected:
 	virtual void mouseReleaseEvent(QMouseEvent* event);
 	virtual void mouseMoveEvent(QMouseEvent* event);
     virtual void update();
+    virtual void compactSize();
     
 private slots:
     virtual void updateSlot();

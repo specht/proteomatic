@@ -148,7 +148,7 @@ void k_DesktopBox::setResizable(bool ab_EnabledX, bool ab_EnabledY)
 {
 	mb_ResizableX = ab_EnabledX;
 	mb_ResizableY = ab_EnabledY;
-	resize(mb_ResizableX ? width() : 1, mb_ResizableY ? height() : 1);
+    compactSize();
 	repaint();
 }
 
@@ -178,7 +178,7 @@ void k_DesktopBox::moveEvent(QMoveEvent* event)
 
 void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
 {
-	resize(mb_ResizableX ? width() : 1, mb_ResizableY ? height() : 1);
+    compactSize();
 	
 	QPainter lk_Painter(this);
 	
@@ -248,6 +248,12 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 
 void k_DesktopBox::update()
 {
+}
+
+
+void k_DesktopBox::compactSize()
+{
+    resize(mb_ResizableX ? width() : minimumWidth(), mb_ResizableY ? height() : minimumHeight());
 }
 
 
