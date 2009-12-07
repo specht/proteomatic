@@ -450,6 +450,7 @@ void k_PipelineMainWindow::updateWindowTitle()
 		.arg(mk_Proteomatic.version())
 		.arg(ls_ScriptsVersion);
 	setWindowTitle(ls_WindowTitle);
+    setWindowModified(mk_Desktop_->hasUnsavedChanges());
 }
 
 
