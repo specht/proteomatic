@@ -5,7 +5,7 @@ projects:
 #binaryPath: bin
 qt: [core, gui, network]
 versionInject:
-  src/src/version.cpp: |
+  src/version.cpp: |
     /*
     Copyright (c) 2007-2009 Michael Specht
     
