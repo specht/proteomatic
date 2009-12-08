@@ -212,7 +212,11 @@ void k_ScriptBox::setOutputFileActivated(const QString& as_Key, bool ab_Flag)
 
 bool k_ScriptBox::useShortIterationTags()
 {
-    return (batchMode() && (mk_UseShortTagsCheckBox_->checkState() == Qt::Checked));
+    if (!batchMode())
+        return false;
+    if (!mk_UseShortTagsCheckBox_)
+        return false;
+    return (mk_UseShortTagsCheckBox_->checkState() == Qt::Checked);
 }
 
 
