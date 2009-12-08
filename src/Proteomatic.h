@@ -138,6 +138,8 @@ public:
 	QLabel* fileTrackerLabel();
     QString scriptInterpreter(const QString& as_Language);
     bool stringToBool(const QString& as_String);
+    
+    QHash<QString, QStringList> mk_ScriptKeywords;
 	
 signals:
 	void scriptMenuScriptClicked(QAction* ak_Action_);

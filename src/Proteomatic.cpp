@@ -439,6 +439,8 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
     if (ab_ShowImmediately)
         lk_ProgressDialog.show();
     int li_Count = 0;
+    mk_ScriptKeywords.clear();
+    QRegExp lk_WordSplitter("\\W+");
     foreach (QString ls_Path, lk_Scripts)
     {
         mk_Application.processEvents();
@@ -535,11 +537,38 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                 {
                     QHash<QString, QString> lk_Script;
                     
-                    lk_Script["title"] = lk_Response.toMap()["title"].toString();
-                    lk_Script["group"] = lk_Response.toMap()["group"].toString();
-                    lk_Script["description"] = lk_Response.toMap()["description"].toString();
+                    QString ls_Title = lk_Response.toMap()["title"].toString();
+                    QString ls_Group = lk_Response.toMap()["group"].toString();
+                    QString ls_Description = lk_Response.toMap()["description"].toString();
+                    lk_Script["title"] = ls_Title;
+                    lk_Script["group"] = ls_Group;
+                    lk_Script["description"] = ls_Description;
                     lk_Script["uri"] = ls_Path;
                     mk_ScriptInfo.insert(ls_Path, lk_Script);
+                    QStringList lk_Tags = ls_Title.split(lk_WordSplitter, QString::SkipEmptyParts);
+                    foreach (QString ls_Tag, lk_Tags)
+                    {
+                        ls_Tag = ls_Tag.toLower();
+                        if (!mk_ScriptKeywords.contains(ls_Tag))
+                            mk_ScriptKeywords[ls_Tag] = QStringList();
+                        mk_ScriptKeywords[ls_Tag] << "script/title/" + ls_Path;
+                    }
+                    lk_Tags = ls_Group.split(lk_WordSplitter, QString::SkipEmptyParts);
+                    foreach (QString ls_Tag, lk_Tags)
+                    {
+                        ls_Tag = ls_Tag.toLower();
+                        if (!mk_ScriptKeywords.contains(ls_Tag))
+                            mk_ScriptKeywords[ls_Tag] = QStringList();
+                        mk_ScriptKeywords[ls_Tag] << "script/group/" + ls_Path;
+                    }
+                    lk_Tags = ls_Description.split(lk_WordSplitter, QString::SkipEmptyParts);
+                    foreach (QString ls_Tag, lk_Tags)
+                    {
+                        ls_Tag = ls_Tag.toLower();
+                        if (!mk_ScriptKeywords.contains(ls_Tag))
+                            mk_ScriptKeywords[ls_Tag] = QStringList();
+                        mk_ScriptKeywords[ls_Tag] << "script/description/" + ls_Path;
+                    }
                 }
             }
         }

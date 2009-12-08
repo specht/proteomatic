@@ -61,3 +61,9 @@ void k_HintLineEdit::paintEvent(QPaintEvent* event)
 #endif
 	}
 }
+
+
+void k_HintLineEdit::focusOutEvent(QFocusEvent* event)
+{
+    emit focusOut();
+}

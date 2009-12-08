@@ -69,6 +69,7 @@ protected slots:
 	void updateWindowTitle();
     void paneFloatChanged();
     void redockPane(bool ab_Visible);
+    void searchFieldPopup(const QString& as_String);
 
 protected:
 	k_Desktop* mk_Desktop_;
@@ -106,4 +107,6 @@ protected:
     QLabel* mk_FauxTitleBarWidgetFloatingLabel_;
     QWidget* mk_FauxTitleBarWidgetFloating_;
     bool mb_JustStarted;
+    QRegExp mk_WordSplitter;
+    RefPtr<QListWidget> mk_pSearchPopup;
 };

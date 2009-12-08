@@ -33,8 +33,12 @@ public:
 	
 	void setHint(const QString& as_Hint);
 
+signals:
+    void focusOut();
+
 protected:
 	virtual void paintEvent(QPaintEvent* event);
+    virtual void focusOutEvent(QFocusEvent* event);
 	
 	QString ms_Hint;
 };

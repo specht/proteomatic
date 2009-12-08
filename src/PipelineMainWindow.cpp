@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "PipelineMainWindow.h"
 #include "Desktop.h"
+#include "HintLineEdit.h"
 #include "IFileBox.h"
 #include "IScriptBox.h"
 #include "ProfileManager.h"
@@ -38,6 +39,8 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	, ms_PipelineFilename(QString())
 	, mk_WatchedBoxObject_(NULL)
     , mb_JustStarted(true)
+    , mk_WordSplitter("\\W+")
+
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	
@@ -131,6 +134,14 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	mk_AddScriptAction_ = mk_AddScriptButton_;
 	connect(&mk_Proteomatic, SIGNAL(scriptMenuChanged()), this, SLOT(scriptMenuChanged()));
 
+    // currently disabled search function
+    /*
+    k_HintLineEdit* lk_SearchField_ = new k_HintLineEdit(this);
+    lk_SearchField_->setHint("Search");
+    connect(lk_SearchField_, SIGNAL(textEdited(const QString&)), this, SLOT(searchFieldPopup(const QString&)));
+    mk_AddToolBar_->addWidget(lk_SearchField_);
+    */
+    
 	mk_AddFileListAction_ = mk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
 
 	mk_AddToolBar_->addSeparator();
@@ -484,6 +495,74 @@ void k_PipelineMainWindow::redockPane(bool ab_Visible)
         mk_PaneDockWidget_->setFloating(false);
         mk_PaneDockWidget_->setEnabled(true);
         mk_PaneDockWidget_->show();
+    }
+}
+
+
+void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
+{
+    QString ls_String = as_String.toLower();
+    QStringList lk_Tags = ls_String.split(mk_WordSplitter, QString::SkipEmptyParts);
+    QHash<QString, QStringList>& lk_Keywords = mk_Proteomatic.mk_ScriptKeywords;
+    QHash<QString, int> lk_Targets;
+    foreach (QString ls_Tag, lk_Tags)
+    {
+        foreach (QString ls_Keyword, lk_Keywords.keys())
+        {
+            if (ls_Keyword.startsWith(ls_Tag))
+            {
+                foreach (QString ls_Target, lk_Keywords[ls_Keyword])
+                {
+                    if (ls_Target.startsWith("script/"))
+                    {
+                        ls_Target.replace("script/", "");
+                        QString ls_Class = ls_Target.left(ls_Target.indexOf("/"));
+                        int li_ClassScore = 0;
+                        if (ls_Class == "title")
+                            li_ClassScore = 100;
+                        else if (ls_Class == "group")
+                            li_ClassScore = 10;
+                        else if (ls_Class == "description")
+                            li_ClassScore = 1;
+                        ls_Target.replace(ls_Class + "/", "");
+                        if (!lk_Targets.contains(ls_Target))
+                            lk_Targets[ls_Target] = 0;
+                        lk_Targets[ls_Target] += li_ClassScore;
+                    }
+                }
+            }
+        }
+    }
+    QMultiMap<int, QString> lk_TargetsSorted;
+    foreach (QString ls_Target, lk_Targets.keys())
+        lk_TargetsSorted.insert(lk_Targets[ls_Target], ls_Target);
+    
+    mk_pSearchPopup = RefPtr<QListWidget>(new QListWidget(this));
+    
+    if (lk_TargetsSorted.empty())
+        return;
+    
+    QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constEnd();
+    do
+    {
+        --lk_Iter;
+        
+        QString ls_ScriptPath = lk_Iter.value();
+        QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"];
+        if (!ls_Title.isEmpty())
+            QListWidgetItem* lk_Item_ = new QListWidgetItem(QIcon("src/icons/proteomatic.png"), ls_Title, mk_pSearchPopup.get_Pointer());
+    } while (lk_Iter != lk_TargetsSorted.constBegin());
+    //mk_pSearchPopup->setWindowModality(Qt::NonModal);
+    QWidget* lk_Sender_ = dynamic_cast<QWidget*>(sender());
+    if (lk_Sender_)
+    {
+        mk_pSearchPopup->move(lk_Sender_->pos() + QPoint(0, lk_Sender_->height()));
+        mk_pSearchPopup->resize(250, 100);
+        mk_pSearchPopup->setIconSize(QSize(16, 16));
+        mk_pSearchPopup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        mk_pSearchPopup->show();
+        //connect(lk_Sender_, SIGNAL(focusOut()), mk_pSearchPopup.get_Pointer(), SLOT(hide()));
+        //lk_Sender_->setFocus(Qt::MouseFocusReason);
     }
 }
 
