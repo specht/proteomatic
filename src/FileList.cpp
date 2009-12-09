@@ -260,13 +260,16 @@ void k_FileList::dragMoveEvent(QDragMoveEvent* event)
 void k_FileList::dropEvent(QDropEvent* event)
 {
 	event->accept();
+    QStringList lk_Paths;
 	foreach (QUrl lk_Url, event->mimeData()->urls())
 	{
 		QString ls_Path = lk_Url.toLocalFile();
 		if (!ls_Path.isEmpty())
 			if (QFileInfo(ls_Path).isFile())
-				addInputFile(ls_Path, true);
+                lk_Paths << ls_Path;
 	}
+    if (!lk_Paths.empty())
+        addInputFiles(lk_Paths, true);
 }
 
 
