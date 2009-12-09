@@ -745,40 +745,50 @@ void k_Proteomatic::showConfigurationDialog()
 	lk_pDialog->setWindowTitle("Preferences");
 	lk_pDialog->setWindowIcon(QIcon(":icons/proteomatic.png"));
 
-	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
+    QWidget* lk_LayoutWidget_ = new QWidget(lk_pDialog.get_Pointer());
+	QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_LayoutWidget_);
+    lk_LayoutWidget_->setLayout(lk_VLayout_);
+    
+    QScrollArea* lk_ScrollArea_ = new QScrollArea(lk_pDialog.get_Pointer());
+    lk_ScrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    lk_ScrollArea_->setWidgetResizable(true);
+    lk_ScrollArea_->setWidget(lk_LayoutWidget_);
+    lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
+    
+    QVBoxLayout* lk_MainLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
+    lk_MainLayout_->setContentsMargins(0, 0, 0, 0);
+    lk_MainLayout_->addWidget(lk_ScrollArea_);
+    
+    QBoxLayout* lk_HLayout_ = NULL;
+    QFrame* lk_Frame_ = NULL;
+    
+    lk_VLayout_->addWidget(new QLabel("<b>Proteomatic</b>", lk_pDialog.get_Pointer()));
+
+    lk_HLayout_ = new QHBoxLayout(NULL);
+    lk_HLayout_->addWidget(new QLabel("Scripts URL:", lk_pDialog.get_Pointer()));
+    QLineEdit* lk_ScriptsUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
+    lk_ScriptsUrlLineEdit_->setText(getConfiguration(CONFIG_SCRIPTS_URL).toString());
+    lk_ScriptsUrlLineEdit_->home(false);
+    lk_HLayout_->addWidget(lk_ScriptsUrlLineEdit_);
+    lk_VLayout_->addLayout(lk_HLayout_);
     
 	QCheckBox* lk_AutoCheckForUpdates_ = new QCheckBox("Check for scripts updates on startup", lk_pDialog.get_Pointer());
 	lk_AutoCheckForUpdates_->setCheckState(getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool() ? Qt::Checked : Qt::Unchecked);
 	lk_VLayout_->addWidget(lk_AutoCheckForUpdates_);
 	
-	QBoxLayout* lk_HLayout_ = NULL;
-	
     lk_HLayout_ = new QHBoxLayout(NULL);
-    lk_HLayout_->addWidget(new QLabel("Appearance:", lk_pDialog.get_Pointer()));
-    QComboBox* lk_AppearanceComboBox_ = new QComboBox(lk_pDialog.get_Pointer());
-    lk_AppearanceComboBox_->addItem("normal", QVariant(0));
-    lk_AppearanceComboBox_->addItem("small", QVariant(1));
-    lk_AppearanceComboBox_->addItem("tiny", QVariant(2));
-    lk_AppearanceComboBox_->setCurrentIndex(getConfiguration(CONFIG_APPEARANCE_SIZE).toInt());
-    lk_HLayout_->addWidget(lk_AppearanceComboBox_);
+    lk_HLayout_->addWidget(new QLabel("Filetracker URL:", lk_pDialog.get_Pointer()));
+    QLineEdit* lk_FileTrackerUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
+    lk_FileTrackerUrlLineEdit_->setText(getConfiguration(CONFIG_FILETRACKER_URL).toString());
+    lk_FileTrackerUrlLineEdit_->home(false);
+    lk_HLayout_->addWidget(lk_FileTrackerUrlLineEdit_);
     lk_VLayout_->addLayout(lk_HLayout_);
-    
-	lk_HLayout_ = new QHBoxLayout(NULL);
-	lk_HLayout_->addWidget(new QLabel("Scripts URL:", lk_pDialog.get_Pointer()));
-	QLineEdit* lk_ScriptsUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
-	lk_ScriptsUrlLineEdit_->setText(getConfiguration(CONFIG_SCRIPTS_URL).toString());
-	lk_ScriptsUrlLineEdit_->home(false);
-	lk_HLayout_->addWidget(lk_ScriptsUrlLineEdit_);
-	lk_VLayout_->addLayout(lk_HLayout_);
-	
-	lk_HLayout_ = new QHBoxLayout(NULL);
-	lk_HLayout_->addWidget(new QLabel("Filetracker URL:", lk_pDialog.get_Pointer()));
-	QLineEdit* lk_FileTrackerUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
-	lk_FileTrackerUrlLineEdit_->setText(getConfiguration(CONFIG_FILETRACKER_URL).toString());
-	lk_FileTrackerUrlLineEdit_->home(false);
-	lk_HLayout_->addWidget(lk_FileTrackerUrlLineEdit_);
-	lk_VLayout_->addLayout(lk_HLayout_);
 
+    lk_Frame_ = new QFrame(lk_pDialog.get_Pointer());
+    lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    lk_VLayout_->addWidget(lk_Frame_);
+    lk_VLayout_->addWidget(new QLabel("<b>Interpreters</b>", lk_pDialog.get_Pointer()));
+    
     QStringList lk_Languages;
     lk_Languages << "ruby";
     lk_Languages << "python";
@@ -815,15 +825,37 @@ void k_Proteomatic::showConfigurationDialog()
         lk_LanguagePathLineEdits[ls_Language] = lk_PathLineEdit_;
     }
     
-    QCheckBox* lk_FollowNewBoxes_ = new QCheckBox("Auto-follow new boxes", lk_pDialog.get_Pointer());
-    lk_FollowNewBoxes_->setCheckState(stringToBool(getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()) ? Qt::Checked : Qt::Unchecked);
-    lk_VLayout_->addWidget(lk_FollowNewBoxes_);
+    lk_Frame_ = new QFrame(lk_pDialog.get_Pointer());
+    lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    lk_VLayout_->addWidget(lk_Frame_);
+    lk_VLayout_->addWidget(new QLabel("<b>User interface</b>", lk_pDialog.get_Pointer()));
+    
+    lk_HLayout_ = new QHBoxLayout(NULL);
+    lk_HLayout_->addWidget(new QLabel("Appearance:", lk_pDialog.get_Pointer()));
+    QComboBox* lk_AppearanceComboBox_ = new QComboBox(lk_pDialog.get_Pointer());
+    lk_AppearanceComboBox_->addItem("normal", QVariant(0));
+    lk_AppearanceComboBox_->addItem("small", QVariant(1));
+    lk_AppearanceComboBox_->addItem("tiny", QVariant(2));
+    lk_AppearanceComboBox_->setCurrentIndex(getConfiguration(CONFIG_APPEARANCE_SIZE).toInt());
+    lk_HLayout_->addWidget(lk_AppearanceComboBox_);
+    lk_VLayout_->addLayout(lk_HLayout_);
     
     QCheckBox* lk_Animation_ = new QCheckBox("Use animation", lk_pDialog.get_Pointer());
     lk_Animation_->setCheckState(stringToBool(getConfiguration(CONFIG_ANIMATION).toString()) ? Qt::Checked : Qt::Unchecked);
     lk_VLayout_->addWidget(lk_Animation_);
     
+    QCheckBox* lk_FollowNewBoxes_ = new QCheckBox("Auto-follow new boxes", lk_pDialog.get_Pointer());
+    lk_FollowNewBoxes_->setCheckState(stringToBool(getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()) ? Qt::Checked : Qt::Unchecked);
+    lk_VLayout_->addWidget(lk_FollowNewBoxes_);
+    
+    lk_VLayout_->addStretch();
+    
+    lk_Frame_ = new QFrame(lk_pDialog.get_Pointer());
+    lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    lk_MainLayout_->addWidget(lk_Frame_);
+    
 	lk_HLayout_ = new QHBoxLayout(NULL);
+    lk_HLayout_->setContentsMargins(8, 8, 8, 8);
 	QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":icons/dialog-cancel.png"), "Cancel", lk_pDialog.get_Pointer());
 	connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(reject()));
 	lk_HLayout_->addStretch();
@@ -832,8 +864,8 @@ void k_Proteomatic::showConfigurationDialog()
 	lk_OkButton_->setDefault(true);
 	connect(lk_OkButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(accept()));
 	lk_HLayout_->addWidget(lk_OkButton_);
-	lk_VLayout_->addLayout(lk_HLayout_);
-    lk_pDialog->resize(400, 10);
+	lk_MainLayout_->addLayout(lk_HLayout_);
+    lk_pDialog->resize(400, 300);
 	if (lk_pDialog->exec())
 	{
 		mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = lk_AutoCheckForUpdates_->checkState() == Qt::Checked;
