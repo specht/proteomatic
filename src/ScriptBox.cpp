@@ -503,11 +503,13 @@ void k_ScriptBox::start(const QString& as_IterationKey)
             foreach (IDesktopBox* lk_OtherBox_, incomingBoxes())
             {
                 lk_InFileBox_ = dynamic_cast<IFileBox*>(lk_OtherBox_);
-                if (lk_InFileBox_)
+                if (lk_InFileBox_ && lk_OtherBox_->batchMode())
                     break;
+                else
+                    lk_InFileBox_ = NULL;
             }
             if (lk_InFileBox_)
-                ls_UseTag = lk_InFileBox_->filenamesForTag(as_IterationKey).first();
+                ls_UseTag = QFileInfo(lk_InFileBox_->filenamesForTag(as_IterationKey).first()).baseName();
         }
     }
 	lk_Parameters["-outputPrefix"] = mk_Prefix.text() + ls_UseTag + (ls_UseTag.isEmpty() ? "" : "-");
@@ -1106,6 +1108,7 @@ void k_ScriptBox::setupLayout()
 		lk_VLayout_->addLayout(lk_HLayout_);
 
 		mk_Prefix.setHint("output file prefix");
+        mk_Prefix.setValidator(&mk_NoSlashValidator);
 		lk_HLayout_->addWidget(&mk_Prefix);
 		connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
 		connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(update()));

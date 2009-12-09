@@ -25,6 +25,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IScriptBox.h"
 #include "DesktopBox.h"
 #include "HintLineEdit.h"
+#include "NoSlashValidator.h"
 #include "RefPtr.h"
 
 
@@ -123,4 +124,5 @@ protected:
     QHash<QString, QSet<QString> > mk_OutputFilesForIterationTag;
     bool mb_IterationsTagsDontMatch;
     bool mb_MultipleInputBatches;
+    k_NoSlashValidator mk_NoSlashValidator;
 };

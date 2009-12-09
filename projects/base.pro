@@ -55,6 +55,7 @@ HEADERS += \
 	../../src/HintLineEdit.h \
 	../../src/IScript.h \
 	../../src/LocalScript.h \
+    ../../src/NoSlashValidator.h \
 	../../src/ProfileManager.h \
 	../../src/Proteomatic.h \
 	../../src/RefPtr.h \
@@ -79,6 +80,7 @@ SOURCES += \
 	../../src/FoldedHeader.cpp \
 	../../src/HintLineEdit.cpp \
 	../../src/LocalScript.cpp \
+    ../../src/NoSlashValidator.cpp \
 	../../src/ProfileManager.cpp \
 	../../src/Proteomatic.cpp \
 	../../src/RemoteScript.cpp \
