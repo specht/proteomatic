@@ -951,15 +951,6 @@ void k_ScriptBox::setupLayout()
 	
 	mk_TabWidget_ = new QTabWidget(this);
 
-    /*
-    QPushButton * lk_FloatToolButton_ = new QPushButton(this);
-    lk_FloatToolButton_->setIcon(QIcon(":/icons/preferences-system-windows.png"));
-    lk_FloatToolButton_->setFlat(true);
-    lk_FloatToolButton_->setIconSize(QSize(16, 16));
-    mk_TabWidget_->setCornerWidget(lk_FloatToolButton_);
-    connect(lk_FloatToolButton_, SIGNAL(clicked()), this, SIGNAL(togglePaneFloat()));
-    */
-	
 	mk_pParameterProxyWidget = RefPtr<QWidget>(mk_TabWidget_);
 	
 

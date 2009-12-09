@@ -571,10 +571,6 @@ void k_PipelineMainWindow::togglePaneFloat()
 
 void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 {
-    if (mk_CurrentScriptBox_)
-        if (dynamic_cast<QObject*>(mk_CurrentScriptBox_))
-            disconnect(dynamic_cast<QObject*>(mk_CurrentScriptBox_), SIGNAL(togglePaneFloat()), this, SLOT(togglePaneFloat()));
-    
 	mk_CurrentScriptBox_ = ak_ScriptBox_;
 
 	QLayoutItem* lk_Item_ = NULL;
@@ -599,7 +595,6 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
 		}
         mk_FauxTitleBarWidgetFloatingLabel_->setText("<b>" + mk_CurrentScriptBox_->script()->title() + "</b>");
         mk_PaneDockWidget_->setWindowTitle(mk_CurrentScriptBox_->script()->title());
-        connect(dynamic_cast<QObject*>(mk_CurrentScriptBox_), SIGNAL(togglePaneFloat()), this, SLOT(togglePaneFloat()));
 	}
 	toggleUi();
 }
