@@ -966,11 +966,13 @@ void k_Script::createParameterWidget(QString as_Info)
 	lk_InternalWidget_->setWindowFlags(Qt::WindowStaysOnTopHint);
 	if (!mb_ProfileMode)
 	{
+        /*
 		QLabel* lk_Label_ = new QLabel("<b>" + title() + "</b>", lk_InternalWidget_);
 		lk_ParameterLayout_->addWidget(lk_Label_);
+        */
 		if (!description().isEmpty())
 		{
-			lk_Label_ = new QLabel("<i></i>" + description(), lk_InternalWidget_);
+			QLabel* lk_Label_ = new QLabel("<i></i>" + description(), lk_InternalWidget_);
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}
@@ -979,13 +981,13 @@ void k_Script::createParameterWidget(QString as_Info)
 			QString ls_List;
 			foreach (QString ls_Item, mk_InputGroupKeys)
 				ls_List += "<li>" + mk_InputGroupDescriptions[ls_Item] + "</li>";
-			lk_Label_ = new QLabel("Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
+			QLabel* lk_Label_ = new QLabel("Input files:<ul>" + ls_List + "</ul>", lk_InternalWidget_);
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}
 		if (!ms_DefaultOutputDirectory.isEmpty())
 		{
-			lk_Label_ = new QLabel("Unless an output directory is specified, the output files will be written to the directory of one of the " + mk_InputGroupLabels[ms_DefaultOutputDirectory] + " files.", lk_InternalWidget_);
+			QLabel* lk_Label_ = new QLabel("Unless an output directory is specified, the output files will be written to the directory of one of the " + mk_InputGroupLabels[ms_DefaultOutputDirectory] + " files.", lk_InternalWidget_);
 			lk_Label_->setWordWrap(true);
 			lk_ParameterLayout_->addWidget(lk_Label_);
 		}

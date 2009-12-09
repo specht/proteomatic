@@ -545,6 +545,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                     lk_Script["description"] = ls_Description;
                     lk_Script["uri"] = ls_Path;
                     mk_ScriptInfo.insert(ls_Path, lk_Script);
+                    /*
                     QStringList lk_Tags = ls_Title.split(lk_WordSplitter, QString::SkipEmptyParts);
                     foreach (QString ls_Tag, lk_Tags)
                     {
@@ -569,6 +570,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                             mk_ScriptKeywords[ls_Tag] = QStringList();
                         mk_ScriptKeywords[ls_Tag] << "script/description/" + ls_Path;
                     }
+                    */
                 }
             }
         }

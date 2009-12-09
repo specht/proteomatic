@@ -67,8 +67,6 @@ protected slots:
 	void updateStatusBar();
 	void scriptMenuChanged();
 	void updateWindowTitle();
-    void paneFloatChanged();
-    void redockPane(bool ab_Visible);
     void searchFieldPopup(const QString& as_String);
 
 protected:
