@@ -27,6 +27,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
 #define CONFIG_PATH_TO_PYTHON "pathToPython"
 #define CONFIG_PATH_TO_PHP "pathToPhp"
+#define CONFIG_PATH_TO_PERL "pathToPerl"
 #define CONFIG_REMOTE_SCRIPTS "remoteScripts"
 #define CONFIG_PROFILES "profiles"
 #define CONFIG_REMEMBER_PROFILE_PATH "rememberProfilePath"
@@ -137,6 +138,7 @@ public:
 	QLabel* fileTrackerIconLabel();
 	QLabel* fileTrackerLabel();
     QString scriptInterpreter(const QString& as_Language);
+    QString configKeyForScriptingLanguage(const QString& as_Language);
     bool stringToBool(const QString& as_String);
     
     QHash<QString, QStringList> mk_ScriptKeywords;
@@ -204,6 +206,5 @@ protected:
 	QMenu mk_StartButtonMenu;
 	// mk_StartUntrackedAction_ starts without file tracking
 	QAction* mk_StartUntrackedAction_;
-    QHash<QString, QString> mk_ScriptInterpreter;
     QHash<QString, bool> mk_ScriptInterpreterWorking;
 };
