@@ -73,6 +73,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     lk_FauxTitleVLayout_->setContentsMargins(0, 0, 0, 4);
     QLabel* lk_FauxHeaderIconLabel_ = new k_UnclickableLabel(mk_FauxTitleBarWidgetFloating_);
     lk_FauxHeaderIconLabel_->setPixmap(QPixmap(":/icons/proteomatic.png").scaledToHeight(16, Qt::SmoothTransformation));
+    lk_FauxTitleLayout_->addSpacing(4);
     lk_FauxTitleLayout_->addWidget(lk_FauxHeaderIconLabel_);
     mk_FauxTitleBarWidgetFloatingLabel_ = new k_UnclickableLabel("Current script", mk_FauxTitleBarWidgetFloating_);
     lk_FauxTitleLayout_->addWidget(mk_FauxTitleBarWidgetFloatingLabel_);
