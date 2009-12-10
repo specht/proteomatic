@@ -12,6 +12,7 @@ macx {
 	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.4
 	ICON = ../../src/icons/proteomatic-pipeline.icns
 	INCLUDEPATH += '/Users/michael/programming/ext/include'
+	INCLUDEPATH += '/Users/dimitris/michael/ext/include'
 }
 
 CONFIG(debug, debug|release) {
@@ -39,7 +40,7 @@ win32 {
 	MYLIBPATH = c:\Qt\2009.04\mingw\lib\
 }
 macx {
-	MYLIBPATH = /Users/michael/programming/ext/lib
+	MYLIBPATH = /Users/dimitris/michael/ext/lib
 }
 
 LIBS += $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
