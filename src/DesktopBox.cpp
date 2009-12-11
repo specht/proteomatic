@@ -47,6 +47,22 @@ k_DesktopBox::~k_DesktopBox()
 }
 
 
+void k_DesktopBox::resize(int w, int h)
+{
+	if (w < minimumWidth())
+		w = minimumWidth();
+	if (h < minimumHeight())
+		h = minimumHeight();
+	QWidget::resize(w, h);
+}
+
+
+void k_DesktopBox::resize(const QSize& ak_Size)
+{
+	resize(ak_Size.width(), ak_Size.height());
+}
+
+
 bool k_DesktopBox::batchMode() const
 {
 	return mb_BatchMode;
@@ -240,7 +256,8 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 	if (mb_Resizing)
 	{
 		QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;
-		this->resize(mk_OldSize + QSize(mb_ResizableX ? lk_Delta.x() : 0, mb_ResizableY ? lk_Delta.y() : 0));
+		QSize lk_NewSize = mk_OldSize + QSize(mb_ResizableX ? lk_Delta.x() : 0, mb_ResizableY ? lk_Delta.y() : 0);
+		this->resize(lk_NewSize);
 		event->accept();
 	}
 }

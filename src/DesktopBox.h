@@ -45,6 +45,8 @@ class k_DesktopBox: public QWidget, public IDesktopBox
 public:
 	k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, bool ab_ResizableX = true, bool ab_ResizableY = true);
 	virtual ~k_DesktopBox();
+	virtual void resize(int w, int h);
+	virtual void resize(const QSize& ak_Size);
 	
 	// IDesktopBox
 	
