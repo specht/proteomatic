@@ -34,7 +34,7 @@ int main(int argc, char** argv__)
 	do
 	{
 #ifdef WIN32
-    CreateProcess(ls_Dir_, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    CreateProcess(ls_Dir_, NULL, NULL, NULL, FALSE, 0, NULL, "bin\\", &si, &pi);
     WaitForSingleObject(pi.hProcess,INFINITE);
     GetExitCodeProcess(pi.hProcess, &li_ReturnCode);
     CloseHandle( pi.hProcess );
