@@ -38,7 +38,7 @@ win32 {
     LIBPATH += c:\Qt\2009.04\mingw\lib\
 }
 macx {
-    LIBPATH += /Users/michael/ext/lib
+    LIBPATH += /Users/michael/programming/ext/lib
     LIBPATH += /Users/dimitris/michael/ext/lib
 }
 
