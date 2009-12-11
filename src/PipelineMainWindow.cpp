@@ -31,8 +31,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Yaml.h"
 
 
-k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, QApplication& ak_Application)
 	: QMainWindow(ak_Parent_)
+    , mk_Application(ak_Application)
 	, mk_Desktop_(new k_Desktop(this, ak_Proteomatic, *this))
 	, mk_Proteomatic(ak_Proteomatic)
 	//, mk_OutputPrefix_(new QLineEdit(this))
@@ -123,6 +124,12 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 	lk_ProteomaticButton_->setPopupMode(QToolButton::InstantPopup);
     lk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	mk_AddToolBar_->addWidget(lk_ProteomaticButton_);
+
+    QToolButton* lk_RestartButton_ = new QToolButton(mk_AddToolBar_);
+    lk_RestartButton_->setIcon(QIcon(":/icons/view-refresh.png"));
+    lk_RestartButton_->setText("Restart");
+    connect(lk_RestartButton_, SIGNAL(clicked()), this, SLOT(restartProteomatic()));
+    mk_AddToolBar_->addWidget(lk_RestartButton_);
 
 	mk_AddScriptButton_ = new QToolButton(mk_AddToolBar_);
 	mk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
@@ -531,6 +538,13 @@ void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
         //connect(lk_Sender_, SIGNAL(focusOut()), mk_pSearchPopup.get_Pointer(), SLOT(hide()));
         //lk_Sender_->setFocus(Qt::MouseFocusReason);
     }
+}
+
+
+void k_PipelineMainWindow::restartProteomatic()
+{
+    if (askForSaveIfNecessary())
+        mk_Application.exit(0x1414);
 }
 
 

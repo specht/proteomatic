@@ -28,7 +28,7 @@ else {
 	RCC_DIR = ../../obj/release/
 }
 
-DESTDIR = ../../
+DESTDIR = ../../bin/
 
 QT = core gui network
 

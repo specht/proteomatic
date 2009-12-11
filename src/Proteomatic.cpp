@@ -37,8 +37,8 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
 	, mk_MessageBoxParent_(NULL)
 	, mk_RemoteMenu_(NULL)
 	, ms_RemoteHubStdout("")
-	, mk_ScriptPaths(QStringList() << ak_Application.applicationDirPath() + "/scripts")
-	, ms_ConfigurationPath(ak_Application.applicationDirPath() + "/proteomatic.conf.yaml")
+	, mk_ScriptPaths(QStringList() << ak_Application.applicationDirPath() + "/../scripts")
+	, ms_ConfigurationPath(ak_Application.applicationDirPath() + "/../proteomatic.conf.yaml")
 {
     mk_StartButton_ = new QToolButton(NULL);
 	mk_StartButton_->setIcon(QIcon(":icons/dialog-ok.png"));
@@ -151,7 +151,7 @@ void k_Proteomatic::checkForUpdates()
 					lk_File.close();
 					
 					// purge cache
-					QStringList lk_CacheFiles = QDir("cache").entryList(QDir::Files);
+					QStringList lk_CacheFiles = QDir("../cache").entryList(QDir::Files);
 					foreach (QString ls_Path, lk_CacheFiles)
 						QFile(ls_Path).remove();
 
@@ -391,7 +391,7 @@ void k_Proteomatic::loadConfiguration()
     else
     {
         tk_YamlSequence lk_Paths;
-        lk_Paths << "scripts";
+        lk_Paths << "../scripts";
         mk_Configuration[CONFIG_SCRIPTS_PATH] = lk_Paths;
         lb_InsertedDefaultValue = true;
     }
@@ -475,12 +475,12 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists("cache")))
             {
                 QDir lk_Dir;
-                lk_Dir.mkdir("cache");
+                lk_Dir.mkdir("../cache");
             }
 
             QFileInfo lk_FileInfo(ls_Path);
             QString ls_Response;
-            QString ls_CacheFilename = QString("cache/%1.info").arg(lk_FileInfo.fileName());
+            QString ls_CacheFilename = QString("../cache/%1.info").arg(lk_FileInfo.fileName());
             bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
             
             if (lb_UseCache)

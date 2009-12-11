@@ -32,7 +32,7 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
 
 	QFileInfo lk_FileInfo(as_ScriptPath);
 	mk_Process.setWorkingDirectory(lk_FileInfo.path());
-	QString ls_CacheFilename = QString("cache/%1.parameters").arg(lk_FileInfo.fileName());
+	QString ls_CacheFilename = QString("../cache/%1.parameters").arg(lk_FileInfo.fileName());
 
 	QFile lk_File(as_ScriptPath);
 	lk_File.open(QIODevice::ReadOnly);

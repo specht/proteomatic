@@ -30,7 +30,7 @@ class k_PipelineMainWindow: public QMainWindow
 {
 	Q_OBJECT
 public:
-	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, QApplication& ak_Application);
 	virtual ~k_PipelineMainWindow();
 	//QString outputPrefix();
 	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
@@ -68,8 +68,10 @@ protected slots:
 	void scriptMenuChanged();
 	void updateWindowTitle();
     void searchFieldPopup(const QString& as_String);
+    void restartProteomatic();
 
 protected:
+    QApplication& mk_Application;
 	k_Desktop* mk_Desktop_;
 	QToolButton* mk_AddScriptAction_;
 	QAction* mk_NewPipelineAction_;

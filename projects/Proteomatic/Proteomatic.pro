@@ -1,4 +1,4 @@
-TARGET = Proteomatic
+TARGET = ProteomaticCore
 
 include(../base.pro)
 
