@@ -34,16 +34,16 @@ QT = core gui network
 
 INCLUDEPATH += ../../src/ ../../src/dialogs
 
-MYLIBPATH = /usr/local/lib
-
 win32 {
-	MYLIBPATH = c:\Qt\2009.04\mingw\lib\
+    LIBPATH += c:\Qt\2009.04\mingw\lib\
 }
 macx {
-	MYLIBPATH = /Users/dimitris/michael/ext/lib
+    LIBPATH += /Users/michael/ext/lib
+    LIBPATH += /Users/dimitris/michael/ext/lib
 }
 
-LIBS += $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
+#LIBS += $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
+LIBS += -lyaml-cpp -lmd5
 
 
 # Input files
