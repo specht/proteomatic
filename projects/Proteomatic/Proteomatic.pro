@@ -30,6 +30,3 @@ SOURCES += \
 	../../src/PipelineMainWindow.cpp \
 	../../src/ProteomaticPipelineMain.cpp \
 	../../src/ScriptBox.cpp \
-	
-RESOURCES += \
-	../../src/Proteomatic.qrc \

@@ -532,7 +532,7 @@ void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
     {
         mk_pSearchPopup->move(lk_Sender_->pos() + QPoint(0, lk_Sender_->height()));
         mk_pSearchPopup->resize(250, 100);
-        mk_pSearchPopup->setIconSize(QSize(16, 16));
+        //mk_pSearchPopup->setIconSize(QSize(16, 16));
         mk_pSearchPopup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         mk_pSearchPopup->show();
         //connect(lk_Sender_, SIGNAL(focusOut()), mk_pSearchPopup.get_Pointer(), SLOT(hide()));
@@ -572,9 +572,7 @@ void k_PipelineMainWindow::toggleUi()
         mk_PanButton_->setChecked(true);
     
     mk_AddToolBar_->setToolButtonStyle(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 2 ? Qt::ToolButtonTextBesideIcon : Qt::ToolButtonIconOnly);
-    mk_AddToolBar_->setIconSize(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1 ? QSize(24, 24) : QSize(16, 16));
-    mk_PanButton_->setIconSize(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1 ? QSize(24, 24) : QSize(16, 16));
-    mk_LassoButton_->setIconSize(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1 ? QSize(24, 24) : QSize(16, 16));
+    mk_Application.setStyleSheet(QString("* { icon-size: %1px; }").arg((mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1) ? 24 : 16));
 }
 
 
