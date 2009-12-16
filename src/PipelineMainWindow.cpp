@@ -125,12 +125,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     lk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	mk_AddToolBar_->addWidget(lk_ProteomaticButton_);
 
-    QToolButton* lk_RestartButton_ = new QToolButton(mk_AddToolBar_);
-    lk_RestartButton_->setIcon(QIcon(":/icons/view-refresh.png"));
-    lk_RestartButton_->setText("Restart");
-    connect(lk_RestartButton_, SIGNAL(clicked()), this, SLOT(restartProteomatic()));
-    mk_AddToolBar_->addWidget(lk_RestartButton_);
-
 	mk_AddScriptButton_ = new QToolButton(mk_AddToolBar_);
 	mk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
 	mk_AddScriptButton_->setText("Add script");
