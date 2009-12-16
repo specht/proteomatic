@@ -1276,6 +1276,27 @@ void k_Proteomatic::updateConfigDependentStuff()
 }
 
 
+QMessageBox::ButtonRole k_Proteomatic::outputFilesAlreadyExistDialog()
+{
+    QMessageBox lk_MessageBox(mk_MessageBoxParent_);
+    lk_MessageBox.setText("<b>Some of the output files already exist.</b><br />Do you want to re-run the entire pipeline and overwrite existing files or do you want to keep existing output files untouched and update missing files?");
+    lk_MessageBox.setWindowModality(Qt::ApplicationModal);
+    lk_MessageBox.setWindowTitle("Starting pipeline");
+    lk_MessageBox.setWindowIcon(QIcon(":icons/proteomatic-pipeline.png"));
+    lk_MessageBox.setIconPixmap(QPixmap(":icons/emblem-important.png"));
+    QAbstractButton* lk_CancelButton_ = new QPushButton(QIcon(":icons/dialog-cancel.png"), "&Cancel", &lk_MessageBox);
+    lk_MessageBox.addButton(lk_CancelButton_, QMessageBox::RejectRole);
+    QAbstractButton* lk_OverwriteButton_ = new QPushButton(QIcon(":icons/edit-clear.png"), "&Overwrite existing files", &lk_MessageBox);
+    lk_MessageBox.addButton(lk_OverwriteButton_, QMessageBox::DestructiveRole);
+    QAbstractButton* lk_UpdateButton_ = new QPushButton(QIcon(":icons/dialog-ok.png"), "&Update", &lk_MessageBox);
+    lk_MessageBox.addButton(lk_UpdateButton_, QMessageBox::AcceptRole);
+    lk_MessageBox.setEscapeButton(lk_CancelButton_);
+    lk_MessageBox.setDefaultButton(dynamic_cast<QPushButton*>(lk_UpdateButton_));
+    lk_MessageBox.exec();
+    return lk_MessageBox.buttonRole(lk_MessageBox.clickedButton());
+}
+
+
 bool k_Proteomatic::fileUpToDate(QString as_Path, QStringList ak_Dependencies)
 {
 	QFileInfo lk_MainInfo(as_Path);

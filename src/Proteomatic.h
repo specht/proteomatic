@@ -170,6 +170,7 @@ protected:
 	void checkRuby();
 	QString findCurrentScriptPackage();
 	void updateConfigDependentStuff();
+    QMessageBox::ButtonRole outputFilesAlreadyExistDialog();
 	
 	QCoreApplication& mk_Application;
 	// uri / path => uri, title, group, description, optional: parameters

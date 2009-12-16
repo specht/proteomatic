@@ -556,6 +556,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
 	if (!mk_Output.contains(as_IterationKey))
 		mk_Output.insert(as_IterationKey, RefPtr<k_ConsoleString>(new k_ConsoleString()));
 	mk_Output[as_IterationKey]->clear();
+    emit readyRead();
 	mk_pScript->start(lk_InputFiles, lk_Parameters, mk_Desktop_->useFileTrackerIfAvailable());
 }
 
