@@ -478,7 +478,10 @@ QString k_Script::parameterValue(const QString& as_Key) const
 		else if (dynamic_cast<QComboBox*>(lk_Widget_) != NULL)
 		{
 			QComboBox* lk_ComboBox_ = dynamic_cast<QComboBox*>(lk_Widget_);
-			return QVariant(lk_ComboBox_->itemData(lk_ComboBox_->currentIndex())).toString();
+            if (lk_ComboBox_->isEditable())
+                return lk_ComboBox_->currentText();
+            else
+                return QVariant(lk_ComboBox_->itemData(lk_ComboBox_->currentIndex())).toString();
 		}
 		else if (dynamic_cast<QCheckBox*>(lk_Widget_) != NULL)
 		{
@@ -581,7 +584,13 @@ void k_Script::setParameter(const QString& as_Key, const QString& as_Value)
 		else if (dynamic_cast<QLineEdit*>(lk_Widget_) != NULL)
 			(dynamic_cast<QLineEdit*>(lk_Widget_))->setText(as_Value);
 		else if (dynamic_cast<QComboBox*>(lk_Widget_) != NULL)
-			(dynamic_cast<QComboBox*>(lk_Widget_))->setCurrentIndex((dynamic_cast<QComboBox*>(lk_Widget_))->findData(as_Value));
+        {
+            QComboBox* lk_ComboBox_ = dynamic_cast<QComboBox*>(lk_Widget_);
+            if (lk_ComboBox_->isEditable())
+                lk_ComboBox_->setEditText(as_Value);
+            else
+                lk_ComboBox_->setCurrentIndex((dynamic_cast<QComboBox*>(lk_Widget_))->findData(as_Value));
+        }
 		else if (dynamic_cast<QCheckBox*>(lk_Widget_) != NULL)
 			(dynamic_cast<QCheckBox*>(lk_Widget_))->setCheckState(as_Value == "true"? Qt::Checked : Qt::Unchecked);
 	}
@@ -836,6 +845,7 @@ void k_Script::createParameterWidget(QString as_Info)
 	QList<QString> lk_ParametersOrder;
 	QHash<QString, QHash<QString, QString> > lk_Parameters;
 	QHash<QString, QList<QVariant> > lk_ParametersValues;
+    QHash<QString, QMap<QString, QVariant> > lk_OriginalParameterMap;
     
     tk_YamlMap lk_Info = k_Yaml::parseFromString(as_Info).toMap();
 
@@ -866,6 +876,7 @@ void k_Script::createParameterWidget(QString as_Info)
                 lk_Parameters[lk_Parameter["key"]] = lk_Parameter;
                 lk_ParametersValues[lk_Parameter["key"]] = lk_EnumValues;
                 lk_ParametersOrder.push_back(lk_Parameter["key"]);
+                lk_OriginalParameterMap[lk_Parameter["key"]] = lk_ParameterMap.toMap();
             }
             foreach (QVariant lk_Item, lk_ParametersValues[lk_Parameter["key"]])
             {
@@ -1137,55 +1148,74 @@ void k_Script::createParameterWidget(QString as_Info)
 		} 
 		else if (ls_Type == "string")
 		{
-			QLineEdit* lk_LineEdit_ = new QLineEdit(lk_Container_);
-			lk_Widget_ = lk_LineEdit_;
-			lk_LineEdit_->setText(lk_Parameter["default"]);
-			if (!ls_Key.startsWith("output"))
-			{
-				lk_LineEdit_->setProperty("key", QVariant(ls_Key));
-				connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(parameterChanged()));
-			}
-			
-			if (ls_Key == "outputDirectory")
-			{
-				mk_pOutputDirectory = RefPtr<QLineEdit>(lk_LineEdit_);
-				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
-				lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
-				QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
-				lk_GroupBoxLayout_->setMargin(0);
-				lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
-				QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
-				lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
-				mk_pClearOutputDirectoryButton = RefPtr<QToolButton>(lk_ClearOutputDirectoryButton_);
-				connect(lk_ClearOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(clearOutputDirectoryButtonClicked()));
-				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ClearOutputDirectoryButton_, 0, Qt::AlignTop);
-				QToolButton* lk_SetOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
-				lk_SetOutputDirectoryButton_->setIcon(QIcon(":/icons/folder.png"));
-				connect(lk_SetOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(setOutputDirectoryButtonClicked()));
-				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_SetOutputDirectoryButton_, 0, Qt::AlignTop);
-				lk_Container_->setLayout(lk_GroupBoxLayout_);
-				lk_LineEdit_->setReadOnly(true);
-				connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(toggleUi()));
-				lk_Widget_ = lk_SubContainer_;
-				lk_ValueWidget_ = lk_LineEdit_;
-			}
-			else if (ls_Key == "outputPrefix")
-			{
-				mk_pOutputPrefix = RefPtr<QLineEdit>(lk_LineEdit_);
-				QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
-				lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
-				QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
-				lk_GroupBoxLayout_->setMargin(0);
-				lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
-				QToolButton* lk_ProposePrefixButton_ = new QToolButton(lk_SubContainer_);
-				lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
-				//lk_ProposePrefixButton_->setHint("Let Proteomatic propose a prefix");
-				connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SIGNAL(proposePrefixButtonClicked()));
-				((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ProposePrefixButton_, 0, Qt::AlignTop);
-				lk_Container_->setLayout(lk_GroupBoxLayout_);
-				lk_Widget_ = lk_SubContainer_;
-				lk_ValueWidget_ = lk_LineEdit_;
-			}
+            if (lk_Parameter.contains("examples"))
+            {
+                // add an editable combo box here
+                QComboBox* lk_LineEdit_ = new QComboBox(lk_Container_);
+                lk_LineEdit_->setEditable(true);
+                QList<QVariant> lk_ExampleList = lk_OriginalParameterMap[ls_Key]["examples"].toList();
+                foreach (QVariant lk_Example, lk_ExampleList)
+                    lk_LineEdit_->addItem(lk_Example.toString());
+                lk_Widget_ = lk_LineEdit_;
+                lk_LineEdit_->setEditText(lk_Parameter["default"]);
+                if (!ls_Key.startsWith("output"))
+                {
+                    lk_LineEdit_->setProperty("key", QVariant(ls_Key));
+                    connect(lk_LineEdit_, SIGNAL(editTextChanged(const QString&)), this, SLOT(parameterChanged()));
+                }
+            }
+            else
+            {
+                QLineEdit* lk_LineEdit_ = new QLineEdit(lk_Container_);
+                lk_Widget_ = lk_LineEdit_;
+                lk_LineEdit_->setText(lk_Parameter["default"]);
+                if (!ls_Key.startsWith("output"))
+                {
+                    lk_LineEdit_->setProperty("key", QVariant(ls_Key));
+                    connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(parameterChanged()));
+                }
+                
+                if (ls_Key == "outputDirectory")
+                {
+                    mk_pOutputDirectory = RefPtr<QLineEdit>(lk_LineEdit_);
+                    QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
+                    lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
+                    QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
+                    lk_GroupBoxLayout_->setMargin(0);
+                    lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
+                    QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
+                    lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
+                    mk_pClearOutputDirectoryButton = RefPtr<QToolButton>(lk_ClearOutputDirectoryButton_);
+                    connect(lk_ClearOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(clearOutputDirectoryButtonClicked()));
+                    ((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ClearOutputDirectoryButton_, 0, Qt::AlignTop);
+                    QToolButton* lk_SetOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
+                    lk_SetOutputDirectoryButton_->setIcon(QIcon(":/icons/folder.png"));
+                    connect(lk_SetOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(setOutputDirectoryButtonClicked()));
+                    ((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_SetOutputDirectoryButton_, 0, Qt::AlignTop);
+                    lk_Container_->setLayout(lk_GroupBoxLayout_);
+                    lk_LineEdit_->setReadOnly(true);
+                    connect(lk_LineEdit_, SIGNAL(textChanged(const QString&)), this, SLOT(toggleUi()));
+                    lk_Widget_ = lk_SubContainer_;
+                    lk_ValueWidget_ = lk_LineEdit_;
+                }
+                else if (ls_Key == "outputPrefix")
+                {
+                    mk_pOutputPrefix = RefPtr<QLineEdit>(lk_LineEdit_);
+                    QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
+                    lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
+                    QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
+                    lk_GroupBoxLayout_->setMargin(0);
+                    lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
+                    QToolButton* lk_ProposePrefixButton_ = new QToolButton(lk_SubContainer_);
+                    lk_ProposePrefixButton_->setIcon(QIcon(":/icons/select-continuous-area.png"));
+                    //lk_ProposePrefixButton_->setHint("Let Proteomatic propose a prefix");
+                    connect(lk_ProposePrefixButton_, SIGNAL(clicked()), this, SIGNAL(proposePrefixButtonClicked()));
+                    ((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ProposePrefixButton_, 0, Qt::AlignTop);
+                    lk_Container_->setLayout(lk_GroupBoxLayout_);
+                    lk_Widget_ = lk_SubContainer_;
+                    lk_ValueWidget_ = lk_LineEdit_;
+                }            
+            }
 		}
 		else if (ls_Type == "flag")
 		{
