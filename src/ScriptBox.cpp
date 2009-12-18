@@ -1019,7 +1019,7 @@ void k_ScriptBox::setupLayout()
         lk_WarningHLayout_->setContentsMargins(0, 0, 0, 0);
         lk_VLayout_->addWidget(mk_IterationsTagsDontMatchIcon_);
 		
-		k_FoldedHeader* lk_FoldedHeader_ = new k_FoldedHeader("<b>" + mk_pScript->title() + "</b>", lk_Container_, this);
+		k_FoldedHeader* lk_FoldedHeader_ = new k_FoldedHeader("<b>" + mk_pScript->title() + "</b>", lk_Container_, false, this);
 		
 		lk_VLayout_->addWidget(lk_FoldedHeader_);
 		lk_VLayout_->addWidget(lk_Container_);

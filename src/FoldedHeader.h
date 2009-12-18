@@ -29,8 +29,8 @@ class k_FoldedHeader: public QWidget
 {
 	Q_OBJECT
 public:
-	k_FoldedHeader(QWidget* ak_Buddy_ = NULL, QWidget* parent = 0, Qt::WindowFlags f = 0);
-	k_FoldedHeader(const QString& text, QWidget* ak_Buddy_ = NULL, QWidget* parent = 0, Qt::WindowFlags f = 0);
+	k_FoldedHeader(QWidget* ak_Buddy_ = NULL, bool ab_TextClickable = true, QWidget* parent = 0, Qt::WindowFlags f = 0);
+	k_FoldedHeader(const QString& text, QWidget* ak_Buddy_ = NULL, bool ab_TextClickable = true, QWidget* parent = 0, Qt::WindowFlags f = 0);
 	~k_FoldedHeader();
 	void setSuffix(QString as_Text);
 	bool buddyVisible();
@@ -60,10 +60,11 @@ protected:
 	
 	QWidget* mk_Buddy_;
 	QString ms_Text;
-	k_ClickableLabel mk_Label;
+	QLabel* mk_Label_;
 	k_ClickableLabel mk_Icon;
 	QList<RefPtr<QPixmap> > mk_FoldedIcons;
 	QTimer mk_Timer;
 	int mi_CurrentIndex;
 	bool mb_Increasing;
+    bool mb_TextClickable;
 };

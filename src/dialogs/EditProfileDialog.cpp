@@ -131,7 +131,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 		}
 		ms_NonApplicableParametersDescription += lk_Items.join("<br />");
 		QLabel* lk_Info_ = new QLabel(ms_NonApplicableParametersDescription, this);
-		k_FoldedHeader* lk_Header_ = new k_FoldedHeader("<b>Non-applicable profile parameters<b>", lk_Info_, this);
+		k_FoldedHeader* lk_Header_ = new k_FoldedHeader("<b>Non-applicable profile parameters<b>", lk_Info_, true, this);
 		lk_ScrollLayout_->addWidget(lk_Header_);
 		lk_ScrollLayout_->addWidget(lk_Info_);
 		lk_Info_->setWordWrap(true);
@@ -140,7 +140,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
 	
 	mk_ProfileDescriptionText_ = new QLabel(this);
 	mk_ProfileDescriptionText_->setWordWrap(true);
-	k_FoldedHeader* lk_Header_ = new k_FoldedHeader("<b>Profile parameters<b>", mk_ProfileDescriptionText_, this);
+	k_FoldedHeader* lk_Header_ = new k_FoldedHeader("<b>Profile parameters<b>", mk_ProfileDescriptionText_, true, this);
 	lk_ScrollLayout_->addWidget(lk_Header_);
 	lk_ScrollLayout_->addWidget(mk_ProfileDescriptionText_);
 	lk_ScrollLayout_->addStretch();

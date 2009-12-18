@@ -65,12 +65,12 @@ public slots:
 	virtual void proposePrefixButtonClicked(bool ab_NotifyOnFailure = true);
 	virtual void clearPrefixButtonClicked();
 	virtual void clearOutputDirectoryButtonClicked();
+    virtual void addOutput(QString as_String);
 	
 protected slots:
 	virtual void outputFileActionToggled();
 	virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
 	virtual void readyReadSlot();
-	virtual void addOutput(QString as_String);
 	virtual void showOutputBox(bool ab_Flag = true);
 	virtual void scriptParameterChanged(const QString& as_Key);
 	virtual void chooseOutputDirectory();

@@ -51,6 +51,7 @@ struct IScriptBox
     virtual void setBoxOutputPrefix(const QString& as_Prefix) = 0;
     virtual void setBoxOutputDirectory(const QString& as_Directory) = 0;
 	virtual QStringList outputFilesForKey(QString as_Key) const = 0;
+    virtual void addOutput(QString as_String) = 0;
 	
 	// signals
 	virtual void scriptStarted() = 0;

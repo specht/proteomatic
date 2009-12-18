@@ -1367,8 +1367,12 @@ void k_Desktop::scriptStarted()
 void k_Desktop::scriptFinished(int ai_ExitCode)
 {
 	IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
+    if (lk_ScriptBox_ == NULL)
+        return;
 	if (ai_ExitCode == 0)
 	{
+        lk_ScriptBox_->addOutput("\n-----------------------------------\n");
+        lk_ScriptBox_->addOutput(QString("Script finished successfully.\n"));
 		// do next iteration if there are still some left from sender
 		IScriptBox* lk_NextBox_ = lk_ScriptBox_;
 		// if there are no iterations left, pick next script box
@@ -1384,9 +1388,11 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
 			mb_Running = false;
 			emit pipelineIdle(true);
 		}
-	}
+    }
 	else
 	{
+        lk_ScriptBox_->addOutput("\n-----------------------------------\n");
+        lk_ScriptBox_->addOutput(QString("Script failed with exit code %1\n").arg(ai_ExitCode));
 		mb_Running = false;
 		lk_ScriptBox_->showOutputBox(true);
 		mb_Error = true;

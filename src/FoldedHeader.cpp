@@ -18,23 +18,32 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "FoldedHeader.h"
+#include "Tango.h"
+#include "UnclickableLabel.h"
 
 
-k_FoldedHeader::k_FoldedHeader(QWidget* ak_Buddy_, QWidget* parent, Qt::WindowFlags f)
+k_FoldedHeader::k_FoldedHeader(QWidget* ak_Buddy_, bool ab_TextClickable,
+                               QWidget* parent, Qt::WindowFlags f)
 	: QWidget(parent, f)
 	, mk_Buddy_(ak_Buddy_)
+    , mb_TextClickable(ab_TextClickable)
+    , mk_Label_(NULL)
 {
 	init();
 }
 
 
-k_FoldedHeader::k_FoldedHeader(const QString& text, QWidget* ak_Buddy_, QWidget* parent, Qt::WindowFlags f)
+k_FoldedHeader::k_FoldedHeader(const QString& text, QWidget* ak_Buddy_, 
+                               bool ab_TextClickable,
+                               QWidget* parent, Qt::WindowFlags f)
 	: QWidget(parent, f)
 	, mk_Buddy_(ak_Buddy_)
+    , mb_TextClickable(ab_TextClickable)
 	, ms_Text(text)
+    , mk_Label_(NULL)
 {
-	mk_Label.setText(ms_Text);
 	init();
+    mk_Label_->setText(ms_Text);
 }
 
 
@@ -51,9 +60,6 @@ void k_FoldedHeader::hideBuddy()
 	mk_Timer.start();
 	mk_Buddy_->setVisible(false);
 	emit hidingBuddy();
-	//mk_Label.setForegroundRole(QPalette::Text);
-	//mk_Icon.setPixmap(mk_FoldedIcon);
-	
 }
 
 
@@ -65,8 +71,6 @@ void k_FoldedHeader::showBuddy()
 	mk_Timer.start();
 	mk_Buddy_->setVisible(true);
 	emit showingBuddy();
-	//mk_Label.setForegroundRole(QPalette::Text);
-	//mk_Icon.setPixmap(mk_UnfoldedIcon);
 }
 
 
@@ -89,19 +93,19 @@ void k_FoldedHeader::toggleBuddy()
 
 void k_FoldedHeader::setText(const QString& as_Text)
 {
-    mk_Label.setText(as_Text);
+    mk_Label_->setText(as_Text);
 }
 
 
 void k_FoldedHeader::setSuffix(QString as_Text)
 {
-	mk_Label.setText(ms_Text + " " + as_Text);
+	mk_Label_->setText(ms_Text + " " + as_Text);
 }
 
 
 void k_FoldedHeader::mousePressEvent(QMouseEvent* event)
 {
-	event->accept();
+	event->ignore();
 	emit clicked();
 }
 
@@ -154,22 +158,41 @@ void k_FoldedHeader::init()
 {
 	for (int i = 0; i < 7; ++i)
 		mk_FoldedIcons.push_back(RefPtr<QPixmap>(new QPixmap(QString(":/icons/folded-%1.png").arg(i))));
-		
+
+    if (mb_TextClickable)
+        mk_Label_ = new k_ClickableLabel(this);
+    else
+        mk_Label_ = new k_UnclickableLabel(this);
+    
 	mi_CurrentIndex = 0;
 	mb_Increasing = true;
 	mk_Icon.setPixmap(*mk_FoldedIcons[mi_CurrentIndex].get_Pointer());
 	QBoxLayout* lk_Layout_ = new QHBoxLayout(this);
 	lk_Layout_->addWidget(&mk_Icon);
-	lk_Layout_->addWidget(&mk_Label);
+    if (!mb_TextClickable)
+    {
+/*        QFrame* lk_Frame_ = new QFrame(this);
+        lk_Frame_->setFrameStyle(QFrame::VLine | QFrame::Plain);
+        lk_Frame_->setLineWidth(1);
+        lk_Frame_->setStyleSheet("color: " + QString(TANGO_ALUMINIUM_3) + ";");
+        lk_Layout_->addWidget(lk_Frame_);*/
+    }
+	lk_Layout_->addWidget(mk_Label_);
 	lk_Layout_->addStretch();
 	lk_Layout_->setContentsMargins(0, 0, 0, 0);
 	setLayout(lk_Layout_);
-	setCursor(Qt::PointingHandCursor);
 	mk_Timer.setInterval(20);
 	mk_Timer.setSingleShot(false);
-	connect(&mk_Label, SIGNAL(released()), this, SIGNAL(clicked()));
-	connect(&mk_Icon, SIGNAL(released()), this, SIGNAL(clicked()));
+    connect(&mk_Icon, SIGNAL(clicked()), this, SIGNAL(clicked()));
 	connect(&mk_Timer, SIGNAL(timeout()), this, SLOT(update()));
-    connect(&mk_Label, SIGNAL(clicked()), this, SLOT(toggleBuddy()));
+    if (mb_TextClickable)
+    {
+        setCursor(Qt::PointingHandCursor);
+        connect(mk_Label_, SIGNAL(clicked()), this, SIGNAL(clicked()));
+        connect(mk_Label_, SIGNAL(clicked()), this, SLOT(toggleBuddy()));
+    }
+    else
+        mk_Icon.setCursor(Qt::PointingHandCursor);
+
     connect(&mk_Icon, SIGNAL(clicked()), this, SLOT(toggleBuddy()));
 }

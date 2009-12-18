@@ -1403,6 +1403,8 @@ void k_Script::createParameterWidget(QString as_Info)
 			}
 			else
 				lk_Label_ = new k_ClickableLabel(ls_Label, lk_Container_);
+            
+            lk_Label_->setFocusPolicy(Qt::NoFocus);
 				
 			mk_WidgetLabelsOrCheckBoxes[ls_Key] = lk_Label_;
 				
