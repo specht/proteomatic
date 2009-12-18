@@ -120,7 +120,7 @@ void k_Proteomatic::checkForUpdates()
 	
 	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
 	{
-		QString ls_Result = this->syncRuby(QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun");
+		QString ls_Result = this->syncRuby(QStringList() << QDir::currentPath() + "/../helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun");
 		if (ls_Result.startsWith("CURRENT-VERSION:"))
 		{
 			ls_Result.replace("CURRENT-VERSION:", "");
@@ -137,7 +137,7 @@ void k_Proteomatic::checkForUpdates()
 					":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
 				{
 					QStringList lk_Arguments;
-					lk_Arguments = QStringList() << QDir::currentPath() + "/helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << mk_ScriptPaths.first();
+					lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << mk_ScriptPaths.first();
 					if (!ms_ScriptPackage.isEmpty())
 						lk_Arguments << "--oldpath" << mk_ScriptPaths.first() + "/" + ms_ScriptPackage;
 					k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
