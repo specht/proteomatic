@@ -106,6 +106,16 @@ void k_FoldedHeader::mousePressEvent(QMouseEvent* event)
 }
 
 
+void k_FoldedHeader::mouseReleaseEvent(QMouseEvent* event)
+{
+    /*
+    event->accept();
+    emit clicked();
+    */
+    event->ignore();
+}
+
+
 void k_FoldedHeader::enterEvent(QMouseEvent* event)
 {
 	(void)event;
@@ -157,12 +167,9 @@ void k_FoldedHeader::init()
 	setCursor(Qt::PointingHandCursor);
 	mk_Timer.setInterval(20);
 	mk_Timer.setSingleShot(false);
-	connect(&mk_Label, SIGNAL(clicked()), this, SIGNAL(clicked()));
-	connect(&mk_Label, SIGNAL(enter()), this, SIGNAL(enter()));
-	connect(&mk_Label, SIGNAL(leave()), this, SIGNAL(leave()));
-	connect(&mk_Icon, SIGNAL(clicked()), this, SIGNAL(clicked()));
-	connect(&mk_Icon, SIGNAL(enter()), this, SIGNAL(enter()));
-	connect(&mk_Icon, SIGNAL(leave()), this, SIGNAL(leave()));
+	connect(&mk_Label, SIGNAL(released()), this, SIGNAL(clicked()));
+	connect(&mk_Icon, SIGNAL(released()), this, SIGNAL(clicked()));
 	connect(&mk_Timer, SIGNAL(timeout()), this, SLOT(update()));
-	connect(this, SIGNAL(clicked()), this, SLOT(toggleBuddy()));
+    connect(&mk_Label, SIGNAL(clicked()), this, SLOT(toggleBuddy()));
+    connect(&mk_Icon, SIGNAL(clicked()), this, SLOT(toggleBuddy()));
 }

@@ -54,6 +54,7 @@ protected slots:
 protected:
 	void init();
 	virtual void mousePressEvent(QMouseEvent* event);
+    virtual void mouseReleaseEvent(QMouseEvent* event);
 	virtual void enterEvent(QMouseEvent* event);
 	virtual void leaveEvent(QMouseEvent* event);
 	

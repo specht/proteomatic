@@ -55,6 +55,7 @@ public:
 	virtual bool running() const;
 	
 	virtual bool hasBoxes();
+    virtual bool hasScriptBoxes();
 	virtual tk_YamlMap pipelineDescription();
 	virtual void applyPipelineDescription(tk_YamlMap ak_Description);
 	

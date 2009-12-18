@@ -418,15 +418,12 @@ QString k_Script::mergeFilenames(QStringList ak_Files)
 }
 
 
-QString k_Script::proposePrefix(QStringList ak_Files)
+QString k_Script::proposePrefix(QHash<QString, QStringList> ak_Files)
 {
 	QString ls_AllPrefix;
 	foreach (QString ls_Group, mk_ProposePrefixList)
 	{
-		QStringList lk_Files;
-		foreach (QString ls_Path, ak_Files)
-			if (inputGroupForFilename(ls_Path) == ls_Group)
-				lk_Files.push_back(ls_Path);
+		QStringList lk_Files = ak_Files[ls_Group];
 		QString ls_Prefix = mergeFilenames(lk_Files);
 		if (!ls_Prefix.isEmpty())
 			ls_AllPrefix += ls_Prefix + "-";

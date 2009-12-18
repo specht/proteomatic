@@ -93,7 +93,7 @@ public:
 	// ak_Files is a hash {group => set of filenames}
 	virtual bool checkInputFiles(const QHash<QString, QSet<QString> >& ak_Files, QString& as_InputFilesErrorMessage) const;
 	virtual QString mergeFilenames(QStringList ak_Files);
-	virtual QString proposePrefix(QStringList ak_Files);
+	virtual QString proposePrefix(QHash<QString, QStringList> ak_Files);
 	virtual QStringList ambiguousInputGroups();
 
 	// output files

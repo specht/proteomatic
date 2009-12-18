@@ -57,7 +57,7 @@ void k_HintLineEdit::paintEvent(QPaintEvent* event)
 #ifdef WIN32
 		lk_Painter.drawText(4, 14, ms_Hint);
 #else
-		lk_Painter.drawText(4, 17, ms_Hint);
+		lk_Painter.drawText(5, 17, ms_Hint);
 #endif
 	}
 }

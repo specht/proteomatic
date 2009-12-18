@@ -504,6 +504,12 @@ bool k_Desktop::hasBoxes()
 }
 
 
+bool k_Desktop::hasScriptBoxes()
+{
+    return !mk_BoxForScript.empty();
+}
+
+
 tk_YamlMap k_Desktop::pipelineDescription()
 {
 	// collect script boxes
