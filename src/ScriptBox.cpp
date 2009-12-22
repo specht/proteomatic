@@ -710,6 +710,7 @@ void k_ScriptBox::update()
                     {
                         // iteration tags do not match,
                         // script box is in a bad state!
+                        // ...oh my!
                         mb_IterationsTagsDontMatch = true;
                     }
                 }
@@ -1095,7 +1096,7 @@ void k_ScriptBox::setupLayout()
         mk_UseShortTagsCheckBox_ = new QCheckBox("Use short batch prefixes", lk_Container_);
         connect(mk_UseShortTagsCheckBox_, SIGNAL(toggled(bool)), this, SLOT(update()));
         lk_VLayout_->addWidget(mk_UseShortTagsCheckBox_);
-        mk_UseShortTagsCheckBox_->setChecked(true);
+        mk_UseShortTagsCheckBox_->setChecked(false);
         
 		// output file checkboxes
 		foreach (QString ls_Key, mk_pScript->outputFileKeys())
