@@ -30,6 +30,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
 	, mk_FileList(this, true, true)
 	, mk_Label("<b>File list</b> (empty)", this)
 {
+    connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
 	setupLayout();
 }
 

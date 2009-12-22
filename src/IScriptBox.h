@@ -57,4 +57,5 @@ struct IScriptBox
 	virtual void scriptStarted() = 0;
 	virtual void scriptFinished(int ai_ExitCode) = 0;
 	virtual void readyRead() = 0;
+    virtual void outputDirectoryChanged() = 0;
 };

@@ -773,6 +773,7 @@ void k_ScriptBox::update()
                 ls_SmallestPath = ls_Path;
         ms_OutputDirectoryDefiningInputPath = ls_SmallestPath;
     }
+    emit outputDirectoryChanged();
 	
 	// ----------------------------------------------
 	// UPDATE OUTPUT FILENAMES

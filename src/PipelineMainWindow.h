@@ -92,7 +92,6 @@ protected:
 	//QAction* mk_ClearPrefixForAllScriptsAction_;
 	QAction* mk_ProposePrefixForAllScriptsAction_;
 	k_Proteomatic& mk_Proteomatic;
-	QFileSystemWatcher mk_FileSystemWatcher;
 	k_ConsoleString ms_Log;
 	IScriptBox* mk_CurrentScriptBox_;
 	QWidget* mk_PaneLayoutWidget_;

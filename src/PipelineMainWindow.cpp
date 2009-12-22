@@ -46,7 +46,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 {
 	mk_Proteomatic.setMessageBoxParent(this);
 	
-	connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), this, SIGNAL(forceRefresh()));
 	connect(mk_Desktop_, SIGNAL(selectionChanged()), this, SLOT(updateStatusBar()));
 
 	setWindowIcon(QIcon(":/icons/proteomatic-pipeline.png"));

@@ -98,6 +98,7 @@ protected slots:
 	virtual void setCurrentScriptBoxForce(IScriptBox* ak_ScriptBox_);
     virtual void animationTimeout();
     virtual void animateAdjustView(bool ab_ZoomIn = true, QSet<IDesktopBox*> ak_FocusOn = QSet<IDesktopBox*>(), bool ab_Animate = true);
+    virtual void updateWatchedDirectories();
 	
 protected:
 	virtual void keyPressEvent(QKeyEvent* event);
@@ -195,4 +196,5 @@ protected:
     QPoint mk_LastLassoDevicePoint;
     QGraphicsPathItem* mk_LassoGraphicsPathItem_;
     QCursor mk_LassoCursor;
+    QFileSystemWatcher mk_FileSystemWatcher;
 };

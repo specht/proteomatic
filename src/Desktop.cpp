@@ -53,6 +53,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
     , mk_LassoCursor(QCursor(QPixmap(":/icons/lasso-cursor.png"), 10, 22))
 {
 	connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
+    connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), this, SLOT(refresh()));
 	connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
     connect(&mk_AnimationTimer, SIGNAL(timeout()), this, SLOT(animationTimeout()));
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -114,6 +115,10 @@ IDesktopBox* k_Desktop::addInputFileListBox(bool ab_AutoAdjust)
 	k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
 	addBox(lk_Box_, true, ab_AutoAdjust);
 	lk_DesktopBox_->resize(300, 10);
+    k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(lk_Box_);
+    if (lk_FileListBox_)
+        connect(lk_FileListBox_, SIGNAL(changed()), this, SLOT(updateWatchedDirectories()));
+    refresh();
 	return lk_DesktopBox_;
 }
 
@@ -126,6 +131,7 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
 	if (lk_Box_)
 	{
 		IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+        connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(outputDirectoryChanged()), this, SLOT(updateWatchedDirectories()));
 		mk_BoxForScript[lk_ScriptBox_->script()] = lk_ScriptBox_;
 		addBox(lk_Box_, false, false);
 		connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
@@ -254,6 +260,7 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
     if (mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()))
         if (ab_AutoAdjust)
             animateAdjustView(false, mk_SelectedBoxes);
+    refresh();
 	return lk_Box_;
 }
 
@@ -1529,6 +1536,35 @@ void k_Desktop::animateAdjustView(bool ab_ZoomIn, QSet<IDesktopBox*> ak_FocusOn,
         lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
         this->setMatrix(lk_Matrix);
     }
+}
+
+
+void k_Desktop::updateWatchedDirectories()
+{
+    QSet<QString> lk_Paths;
+    // collect paths from input file list boxes
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+    {
+        k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(lk_Box_);
+        if (lk_FileListBox_)
+        {
+            foreach (QString ls_Path, lk_FileListBox_->filenames())
+                lk_Paths << QFileInfo(ls_Path).absoluteDir().absolutePath();
+        }
+        IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+        if (lk_ScriptBox_)
+            lk_Paths << lk_ScriptBox_->scriptOutputDirectory();
+    }
+    
+    // remove old paths
+    foreach (QString ls_Path, mk_FileSystemWatcher.directories())
+        if (!lk_Paths.contains(ls_Path))
+            mk_FileSystemWatcher.removePath(ls_Path);
+        
+    // add new paths
+    foreach (QString ls_Path, lk_Paths)
+        if (!mk_FileSystemWatcher.directories().contains(ls_Path))
+            mk_FileSystemWatcher.addPath(ls_Path);
 }
 
 

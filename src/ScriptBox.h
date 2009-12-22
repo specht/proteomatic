@@ -84,6 +84,7 @@ signals:
 	virtual void scriptStarted();
 	virtual void scriptFinished(int ai_ExitCode);
 	virtual void readyRead();
+    virtual void outputDirectoryChanged();
 	
 protected:
 	virtual void setupLayout();
