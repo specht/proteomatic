@@ -30,3 +30,4 @@ versionInject:
 externals: [helper]
 specialAddScripts: 0.3.26
 macAppPackage: true
+hasBinaryWrapper: true

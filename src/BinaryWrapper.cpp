@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <windows.h>
 
 #ifdef WIN32
+#include <windows.h>
 int WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
 #else
 int main(int argc, char** argv__)
