@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -9,8 +10,12 @@ int WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
 int main(int argc, char** argv__)
 #endif
 {
-	char* PATH = new char[5];
-	strcpy(PATH, "bin/");
+    char* DIR = new char[16384];
+    strcpy(DIR, argv__[0]);
+    *(strpbrk(DIR, BINARY)) = 0;
+	char* PATH = new char[16384];
+	strcpy(PATH, DIR);
+    strcat(PATH, "bin/");
 #ifdef WIN32
 	PATH[3] = '\\';
     STARTUPINFO si;
