@@ -1,23 +1,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
 #ifdef WIN32
 #include <windows.h>
-int WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
+int WinMain(HINSTANCE,HINSTANCE,LPSTR commandLine,int)
 #else
 int main(int argc, char** argv__)
 #endif
 {
     char* DIR = new char[16384];
-    strcpy(DIR, argv__[0]);
-    *(strpbrk(DIR, BINARY)) = 0;
-	char* PATH = new char[16384];
-	strcpy(PATH, DIR);
-    strcat(PATH, "bin/");
+    char* SEARCH_PATTERN = new char[16384];
+    strcpy(SEARCH_PATTERN, BINARY);
 #ifdef WIN32
-	PATH[3] = '\\';
+    strcpy(DIR, GetCommandLine());
+	
+    *(strstr(DIR, SEARCH_PATTERN)) = 0;
+    strcat(DIR, "bin\\");
+#else
+    strcpy(DIR, argv__[0]);
+    DIR[strlen(DIR) - strlen(BINARY)] = 0;
+    strcat(DIR, "bin/");
+#endif
+#ifdef WIN32
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
 
@@ -25,12 +30,14 @@ int main(int argc, char** argv__)
     si.cb = sizeof(si);
     ZeroMemory( &pi, sizeof(pi) );
 #endif
-	char* ls_Path_ = BINARY;
-	
-	char* ls_Dir_ = new char[strlen(ls_Path_) + 1 + strlen(PATH) + strlen(BINARY) + 4];
-	strcpy(ls_Dir_, PATH);
-	strcat(ls_Dir_, ls_Path_);
-	
+	char* ls_Dir_ = new char[16384];
+	strcpy(ls_Dir_, DIR);
+	strcat(ls_Dir_, BINARYCORE);
+    
+    FILE* f = fopen("out.txt", "w");
+    fprintf(f, "[%s]\n", ls_Dir_);
+    fclose(f);
+    
 #ifdef WIN32
 	DWORD li_ReturnCode = 0;
 #else
@@ -39,11 +46,11 @@ int main(int argc, char** argv__)
 	do
 	{
 #ifdef WIN32
-    CreateProcess(ls_Dir_, NULL, NULL, NULL, FALSE, 0, NULL, "bin\\", &si, &pi);
+    CreateProcess(ls_Dir_, NULL, NULL, NULL, FALSE, 0, NULL, DIR, &si, &pi);
     WaitForSingleObject(pi.hProcess,INFINITE);
     GetExitCodeProcess(pi.hProcess, &li_ReturnCode);
-    CloseHandle( pi.hProcess );
-    CloseHandle( pi.hThread );
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
 #else
 		li_ReturnCode = system(ls_Dir_);
 #endif
