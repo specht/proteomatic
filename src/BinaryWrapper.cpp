@@ -34,10 +34,6 @@ int main(int argc, char** argv__)
 	strcpy(ls_Dir_, DIR);
 	strcat(ls_Dir_, BINARYCORE);
     
-    FILE* f = fopen("out.txt", "w");
-    fprintf(f, "[%s]\n", ls_Dir_);
-    fclose(f);
-    
 #ifdef WIN32
 	DWORD li_ReturnCode = 0;
 #else
