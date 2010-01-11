@@ -21,13 +21,13 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_UnclickableLabel::k_UnclickableLabel(QWidget* parent, Qt::WindowFlags f)
-	: QLabel(parent, f)
+    : QLabel(parent, f)
 {
 }
 
 
 k_UnclickableLabel::k_UnclickableLabel(const QString& text, QWidget* parent, Qt::WindowFlags f)
-	: QLabel(text, parent, f)
+    : QLabel(text, parent, f)
 {
 }
 
@@ -39,42 +39,42 @@ k_UnclickableLabel::~k_UnclickableLabel()
 
 void k_UnclickableLabel::mousePressEvent(QMouseEvent* event)
 {
-	event->ignore();
+    event->ignore();
 }
 
 
 void k_UnclickableLabel::mouseReleaseEvent(QMouseEvent* event)
 {
-	event->ignore();
+    event->ignore();
 }
 
 
 void k_UnclickableLabel::mouseMoveEvent(QMouseEvent* event)
 {
-	event->ignore();
+    event->ignore();
 }
 
 
 void k_UnclickableLabel::enterEvent(QMouseEvent* event)
 {
-	event->ignore();
+    event->ignore();
 }
 
 
 void k_UnclickableLabel::leaveEvent(QMouseEvent* event)
 {
-	event->ignore();
+    event->ignore();
 }
 
 
 void k_UnclickableLabel::focusInEvent(QFocusEvent* event)
 {
-	event->ignore();
+    event->ignore();
 }
 
 
 void k_UnclickableLabel::focusOutEvent(QFocusEvent* event)
 {
-	event->ignore();
+    event->ignore();
 }
 

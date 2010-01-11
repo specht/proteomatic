@@ -25,11 +25,11 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_NoSlashValidator: public QValidator
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+    
 public:
-	k_NoSlashValidator(QObject* ak_Parent_ = NULL);
-	virtual ~k_NoSlashValidator();
+    k_NoSlashValidator(QObject* ak_Parent_ = NULL);
+    virtual ~k_NoSlashValidator();
     
     virtual void fixup(QString& as_String) const;
     virtual QValidator::State validate(QString& as_String, int& li_Position) const;

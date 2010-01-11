@@ -21,17 +21,17 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_HintLineEdit::k_HintLineEdit(QWidget* parent)
-	: QLineEdit(parent)
+    : QLineEdit(parent)
 {
-	ms_Hint = "";
+    ms_Hint = "";
 }
 
 
 k_HintLineEdit::k_HintLineEdit(const QString& contents, QWidget* parent)
-	: QLineEdit(contents, parent)
+    : QLineEdit(contents, parent)
 {
-	this->setText(contents);
-	ms_Hint = "";
+    this->setText(contents);
+    ms_Hint = "";
 }
 
 
@@ -42,24 +42,24 @@ k_HintLineEdit::~k_HintLineEdit()
 
 void k_HintLineEdit::setHint(const QString& as_Hint)
 {
-	ms_Hint = as_Hint;
-	this->repaint();
+    ms_Hint = as_Hint;
+    this->repaint();
 }
 
 
 void k_HintLineEdit::paintEvent(QPaintEvent* event)
 {
-	QLineEdit::paintEvent(event);
-	if (this->text().isEmpty() && (!this->hasFocus()))
-	{
-		QPainter lk_Painter(this);
-		lk_Painter.setPen(QColor("#888"));
+    QLineEdit::paintEvent(event);
+    if (this->text().isEmpty() && (!this->hasFocus()))
+    {
+        QPainter lk_Painter(this);
+        lk_Painter.setPen(QColor("#888"));
 #ifdef WIN32
-		lk_Painter.drawText(4, 14, ms_Hint);
+        lk_Painter.drawText(4, 14, ms_Hint);
 #else
-		lk_Painter.drawText(5, 17, ms_Hint);
+        lk_Painter.drawText(5, 17, ms_Hint);
 #endif
-	}
+    }
 }
 
 

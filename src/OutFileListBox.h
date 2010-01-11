@@ -31,50 +31,50 @@ class k_Proteomatic;
 
 class k_OutFileListBox: public k_DesktopBox, public IFileBox
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, 
-					 QString as_Key, QString as_Label,
-					 bool ab_ItemsDeletable = true);
-	virtual ~k_OutFileListBox();
+    k_OutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, 
+                     QString as_Key, QString as_Label,
+                     bool ab_ItemsDeletable = true);
+    virtual ~k_OutFileListBox();
 
-	virtual QStringList filenames() const;
-	virtual QString tagForFilename(const QString& as_Filename) const;
-	virtual QStringList filenamesForTag(const QString& as_Tag) const;
-	virtual QString prefixWithoutTags() const;
-	
-	virtual void setListMode(bool ab_Enabled);
-	virtual bool listMode() const;
-	virtual QString label() const;
+    virtual QStringList filenames() const;
+    virtual QString tagForFilename(const QString& as_Filename) const;
+    virtual QStringList filenamesForTag(const QString& as_Tag) const;
+    virtual QString prefixWithoutTags() const;
+    
+    virtual void setListMode(bool ab_Enabled);
+    virtual bool listMode() const;
+    virtual QString label() const;
     
 public slots:
     virtual void setBatchMode(bool ab_Enabled);
-	
+    
 signals:
-	virtual void arrowPressed();
-	virtual void arrowReleased();
-	
+    virtual void arrowPressed();
+    virtual void arrowReleased();
+    
 protected slots:
-	virtual void toggleUi();
-	virtual void filenameDoubleClicked();
-	virtual void update();
+    virtual void toggleUi();
+    virtual void filenameDoubleClicked();
+    virtual void update();
     virtual void showContextMenu();
     virtual void openFile();
     virtual void openContainingDirectory();
-	
+    
 protected:
-	virtual void setupLayout();
+    virtual void setupLayout();
 
-	QString ms_Key;
-	QString ms_Label;
-	k_FileList mk_FileList;
-	QLabel* mk_Label_;
-	k_ClickableLabel* mk_FileName_;
-	QToolButton mk_BatchModeButton;
-	bool mb_ListMode;
-	QHash<QString, QString> mk_TagForFilename;
-	QHash<QString, QStringList> mk_FilenamesForTag;
-	QString ms_PrefixWithoutTags;
+    QString ms_Key;
+    QString ms_Label;
+    k_FileList mk_FileList;
+    QLabel* mk_Label_;
+    k_ClickableLabel* mk_FileName_;
+    QToolButton mk_BatchModeButton;
+    bool mb_ListMode;
+    QHash<QString, QString> mk_TagForFilename;
+    QHash<QString, QStringList> mk_FilenamesForTag;
+    QString ms_PrefixWithoutTags;
     QMenu mk_PopupMenu;
     QAction* mk_OpenFileAction_;
     QAction* mk_OpenContainingFolderAction_;

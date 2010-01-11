@@ -28,78 +28,78 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_PipelineMainWindow: public QMainWindow
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, QApplication& ak_Application);
-	virtual ~k_PipelineMainWindow();
-	//QString outputPrefix();
-	virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
+    k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, QApplication& ak_Application);
+    virtual ~k_PipelineMainWindow();
+    //QString outputPrefix();
+    virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
     virtual bool panMode() const;
     virtual QMenu* createPopupMenu();
     
 public slots:
-	void toggleUi();
+    void toggleUi();
     void togglePaneFloat();
-	
+    
 signals:
-	//void outputPrefixChanged(const QString& as_Prefix);
-	void forceRefresh();
-	
+    //void outputPrefixChanged(const QString& as_Prefix);
+    void forceRefresh();
+    
 protected:
-	virtual void closeEvent(QCloseEvent* event);
-	virtual void keyPressEvent(QKeyEvent* ak_Event_);
-	virtual bool askForSaveIfNecessary();
+    virtual void closeEvent(QCloseEvent* event);
+    virtual void keyPressEvent(QKeyEvent* ak_Event_);
+    virtual bool askForSaveIfNecessary();
 
 protected slots:
-	void newPipeline();
-	void loadPipeline();
-	void savePipeline();
-	void savePipelineAs();
-	void quit();
-	void addScript(QAction* ak_Action_);
-	void start();
-	void startUntracked();
-	void abort();
-	void addFileListBox();
-	void resetParameters();
-	void showProfileManager();
-	void showAll();
-	void updateStatusBar();
-	void scriptMenuChanged();
-	void updateWindowTitle();
+    void newPipeline();
+    void loadPipeline();
+    void savePipeline();
+    void savePipelineAs();
+    void quit();
+    void addScript(QAction* ak_Action_);
+    void start();
+    void startUntracked();
+    void abort();
+    void addFileListBox();
+    void resetParameters();
+    void showProfileManager();
+    void showAll();
+    void updateStatusBar();
+    void scriptMenuChanged();
+    void updateWindowTitle();
     void searchFieldPopup(const QString& as_String);
     void restartProteomatic();
 
 protected:
     QApplication& mk_Application;
-	k_Desktop* mk_Desktop_;
-	QToolButton* mk_AddScriptAction_;
-	QAction* mk_NewPipelineAction_;
-	QAction* mk_LoadPipelineAction_;
-	QAction* mk_SavePipelineAction_;
-	QAction* mk_SavePipelineAsAction_;
-	QAction* mk_QuitAction_;
-	QToolButton* mk_AddScriptButton_;
-	QAction* mk_AddFileListAction_;
-	QAction* mk_AbortAction_;
-	QAction* mk_RefreshAction_;
-	QAction* mk_ProfileManagerAction_;
-	QAction* mk_ResetParametersAction_;
+    k_Desktop* mk_Desktop_;
+    QToolButton* mk_AddScriptAction_;
+    QAction* mk_NewPipelineAction_;
+    QAction* mk_LoadPipelineAction_;
+    QAction* mk_SavePipelineAction_;
+    QAction* mk_SavePipelineAsAction_;
+    QAction* mk_QuitAction_;
+    QToolButton* mk_AddScriptButton_;
+    QAction* mk_AddFileListAction_;
+    QAction* mk_AbortAction_;
+    QAction* mk_RefreshAction_;
+    QAction* mk_ProfileManagerAction_;
+    QAction* mk_ResetParametersAction_;
     QAction* mk_ShowConfigurationAction_;
     QToolButton* mk_PanButton_;
     QToolButton* mk_LassoButton_;
-	//QLineEdit* mk_OutputPrefix_;
-	//QAction* mk_ClearPrefixForAllScriptsAction_;
-	QAction* mk_ProposePrefixForAllScriptsAction_;
-	k_Proteomatic& mk_Proteomatic;
-	k_ConsoleString ms_Log;
-	IScriptBox* mk_CurrentScriptBox_;
-	QWidget* mk_PaneLayoutWidget_;
-	QBoxLayout* mk_PaneLayout_;
-	QString ms_PipelineFilename;
-	QSplitter* mk_HSplitter_;
-	QLabel* mk_StatusBarMessage_;
-	QObject* mk_WatchedBoxObject_;
+    //QLineEdit* mk_OutputPrefix_;
+    //QAction* mk_ClearPrefixForAllScriptsAction_;
+    QAction* mk_ProposePrefixForAllScriptsAction_;
+    k_Proteomatic& mk_Proteomatic;
+    k_ConsoleString ms_Log;
+    IScriptBox* mk_CurrentScriptBox_;
+    QWidget* mk_PaneLayoutWidget_;
+    QBoxLayout* mk_PaneLayout_;
+    QString ms_PipelineFilename;
+    QSplitter* mk_HSplitter_;
+    QLabel* mk_StatusBarMessage_;
+    QObject* mk_WatchedBoxObject_;
     QToolBar* mk_AddToolBar_;
     QDockWidget* mk_PaneDockWidget_;
     QWidget* mk_FauxTitleBarWidget_;

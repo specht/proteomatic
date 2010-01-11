@@ -47,94 +47,94 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 struct r_RemoteRequestType
 {
-	enum Enumeration
-	{
-		Unknown = 0,
-		GetInfo,
-		GetParameters,
-		GetInfoAndParameters,
-		SubmitJob,
-		QueryTicket,
-		GetStandardOutput,
-		GetOutputFiles
-	};
+    enum Enumeration
+    {
+        Unknown = 0,
+        GetInfo,
+        GetParameters,
+        GetInfoAndParameters,
+        SubmitJob,
+        QueryTicket,
+        GetStandardOutput,
+        GetOutputFiles
+    };
 };
 
 
 struct r_RemoteRequest
 {
 public:
-	r_RemoteRequest()
-		: me_Type(r_RemoteRequestType::Unknown)
-		, ms_Info("")
-		, mk_AdditionalInfo(QStringList())
-		, ms_Response("")
-	{
-	}
-	
-	r_RemoteRequest(r_RemoteRequestType::Enumeration ae_Type, QString as_Info = "", QStringList ak_AdditionalInfo = QStringList())
-		: me_Type(ae_Type)
-		, ms_Info(as_Info)
-		, mk_AdditionalInfo(ak_AdditionalInfo)
-		, ms_Response("")
-	{
-	}
-	
-	virtual ~r_RemoteRequest()
-	{
-	}
-	
-	r_RemoteRequestType::Enumeration me_Type;
-	QString ms_Info;
-	QStringList mk_AdditionalInfo;
-	QString ms_Response;
+    r_RemoteRequest()
+        : me_Type(r_RemoteRequestType::Unknown)
+        , ms_Info("")
+        , mk_AdditionalInfo(QStringList())
+        , ms_Response("")
+    {
+    }
+    
+    r_RemoteRequest(r_RemoteRequestType::Enumeration ae_Type, QString as_Info = "", QStringList ak_AdditionalInfo = QStringList())
+        : me_Type(ae_Type)
+        , ms_Info(as_Info)
+        , mk_AdditionalInfo(ak_AdditionalInfo)
+        , ms_Response("")
+    {
+    }
+    
+    virtual ~r_RemoteRequest()
+    {
+    }
+    
+    r_RemoteRequestType::Enumeration me_Type;
+    QString ms_Info;
+    QStringList mk_AdditionalInfo;
+    QString ms_Response;
 };
 
 
 class k_Proteomatic: public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts = true);
-	virtual ~k_Proteomatic();
-	
-	QString interpreterForScript(QString as_Path);
+    k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts = true);
+    virtual ~k_Proteomatic();
+    
+    QString interpreterForScript(QString as_Path);
     QString interpreterKeyForScript(QString as_Path);
-	QStringList availableScripts();
-	QHash<QString, QString> scriptInfo(QString as_ScriptPath);
-	QString scriptInfo(QString as_ScriptPath, QString as_Key);
-	bool hasScriptInfo(QString as_ScriptPath);
-	QMenu* proteomaticScriptsMenu() const;
-	QString syncRuby(QStringList ak_Arguments);
-	QString syncScript(QStringList ak_Arguments);
+    QStringList availableScripts();
+    QHash<QString, QString> scriptInfo(QString as_ScriptPath);
+    QString scriptInfo(QString as_ScriptPath, QString as_Key);
+    bool hasScriptInfo(QString as_ScriptPath);
+    QMenu* proteomaticScriptsMenu() const;
+    QString syncRuby(QStringList ak_Arguments);
+    QString syncScript(QStringList ak_Arguments);
     QString syncScriptNoFile(QStringList ak_Arguments, QString as_Language);
-	QString syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
-	QString rubyPath();
-	QString version();
-	bool versionChanged() const;
-	int showMessageBox(QString as_Title, QString as_Text, QString as_Icon = "", 
-		QMessageBox::StandardButtons ae_Buttons = QMessageBox::Ok, 
-		QMessageBox::StandardButton ae_DefaultButton = QMessageBox::Ok, 
-		QMessageBox::StandardButton ae_EscapeButton = QMessageBox::Ok,
-		QString as_InformativeText = QString(), QString as_DetailedText = QString());
-	void setMessageBoxParent(QWidget* ak_Widget_);
-	QWidget* messageBoxParent() const;
-	int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);
-	QFont& consoleFont();
-	QStringList scriptPaths() const;
-	QString scriptPathAndPackage() const;
-	QVariant getConfiguration(QString as_Key);
-	tk_YamlMap& getConfigurationRoot();
-	void saveConfiguration();
-	QString scriptsVersion();
-	bool fileUpToDate(QString as_Path, QStringList ak_Dependencies);
-	static void openFileLink(QString as_Path);
-	QString md5ForFile(QString as_Path);
-	void reloadScripts();
-	QToolButton* startButton();
-	QAction* startUntrackedAction();
-	QLabel* fileTrackerIconLabel();
-	QLabel* fileTrackerLabel();
+    QString syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
+    QString rubyPath();
+    QString version();
+    bool versionChanged() const;
+    int showMessageBox(QString as_Title, QString as_Text, QString as_Icon = "", 
+        QMessageBox::StandardButtons ae_Buttons = QMessageBox::Ok, 
+        QMessageBox::StandardButton ae_DefaultButton = QMessageBox::Ok, 
+        QMessageBox::StandardButton ae_EscapeButton = QMessageBox::Ok,
+        QString as_InformativeText = QString(), QString as_DetailedText = QString());
+    void setMessageBoxParent(QWidget* ak_Widget_);
+    QWidget* messageBoxParent() const;
+    int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);
+    QFont& consoleFont();
+    QStringList scriptPaths() const;
+    QString scriptPathAndPackage() const;
+    QVariant getConfiguration(QString as_Key);
+    tk_YamlMap& getConfigurationRoot();
+    void saveConfiguration();
+    QString scriptsVersion();
+    bool fileUpToDate(QString as_Path, QStringList ak_Dependencies);
+    static void openFileLink(QString as_Path);
+    QString md5ForFile(QString as_Path);
+    void reloadScripts();
+    QToolButton* startButton();
+    QAction* startUntrackedAction();
+    QLabel* fileTrackerIconLabel();
+    QLabel* fileTrackerLabel();
     QString scriptInterpreter(const QString& as_Language);
     QString configKeyForScriptingLanguage(const QString& as_Language);
     bool stringToBool(const QString& as_String);
@@ -146,67 +146,67 @@ public slots:
 
 signals: 
     void scriptMenuScriptClicked(QAction* ak_Action_);
-	void scriptMenuChanged();
-	void remoteHubReady();
-	void remoteHubLineBatch(QStringList ak_Lines);
-	void remoteHubRequestFinished(int ai_SocketId, bool ab_Error, QString as_Response);
-	void configurationChanged();
+    void scriptMenuChanged();
+    void remoteHubReady();
+    void remoteHubLineBatch(QStringList ak_Lines);
+    void remoteHubRequestFinished(int ai_SocketId, bool ab_Error, QString as_Response);
+    void configurationChanged();
 
 public slots:
-	void showConfigurationDialog();
-	
+    void showConfigurationDialog();
+    
 protected slots:
-	void remoteHubReadyReadSlot();
-	void scriptMenuScriptClickedInternal();
-	void addRemoteScriptDialog();
-	void remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error);
-	void rebuildRemoteScriptsMenu();
-	void checkRubyTextChanged(const QString& as_Text);
-	void checkRubySearchDialog();
+    void remoteHubReadyReadSlot();
+    void scriptMenuScriptClickedInternal();
+    void addRemoteScriptDialog();
+    void remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error);
+    void rebuildRemoteScriptsMenu();
+    void checkRubyTextChanged(const QString& as_Text);
+    void checkRubySearchDialog();
 
 protected:
-	void loadConfiguration();
-	void collectScriptInfo(bool ab_ShowImmediately = false);
-	void createProteomaticScriptsMenu();
-	void checkRuby();
-	QString findCurrentScriptPackage();
-	void updateConfigDependentStuff();
+    void loadConfiguration();
+    void collectScriptInfo(bool ab_ShowImmediately = false);
+    void createProteomaticScriptsMenu();
+    void checkRuby();
+    QString findCurrentScriptPackage();
+    void updateConfigDependentStuff();
     QMessageBox::ButtonRole outputFilesAlreadyExistDialog();
-	
-	QCoreApplication& mk_Application;
-	// uri / path => uri, title, group, description, optional: parameters
-	QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
-	QWidget* mk_MessageBoxParent_;
-	RefPtr<QMenu> mk_pProteomaticScriptsMenu;
-	QMenu* mk_RemoteMenu_;
-// 	RefPtr<QProcess> mk_pRemoteHubProcess;
-	QString ms_RemoteHubStdout;
-// 	RefPtr<QHttp> mk_pRemoteHubHttp;
-	QFont mk_ConsoleFont;
-	QStringList mk_ScriptPaths;
-	QString ms_ConfigurationPath;
-	QString ms_ScriptPackage;
-	
-	// title => uri
-	QMap<QString, QString> mk_RemoteScripts;
-	
-	// socket id => request
-	QHash<int, r_RemoteRequest> mk_RemoteRequests;
-	
-	QString ms_RemoteHubPortion;
-	tk_YamlMap mk_Configuration;
-	
-	// check ruby stuff
-	QDialog mk_CheckRubyDialog;
-	QPushButton* mk_CheckRubyRetryButton_;
-	QLineEdit* mk_CheckRubyLocation_;
-	
-	// mk_pStartButton starts with file tracking, if configured
-	QToolButton* mk_StartButton_;
-	QLabel* mk_FileTrackerIconLabel_;
-	QLabel* mk_FileTrackerLabel_;
-	QMenu mk_StartButtonMenu;
-	// mk_StartUntrackedAction_ starts without file tracking
-	QAction* mk_StartUntrackedAction_;
+    
+    QCoreApplication& mk_Application;
+    // uri / path => uri, title, group, description, optional: parameters
+    QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
+    QWidget* mk_MessageBoxParent_;
+    RefPtr<QMenu> mk_pProteomaticScriptsMenu;
+    QMenu* mk_RemoteMenu_;
+//  RefPtr<QProcess> mk_pRemoteHubProcess;
+    QString ms_RemoteHubStdout;
+//  RefPtr<QHttp> mk_pRemoteHubHttp;
+    QFont mk_ConsoleFont;
+    QStringList mk_ScriptPaths;
+    QString ms_ConfigurationPath;
+    QString ms_ScriptPackage;
+    
+    // title => uri
+    QMap<QString, QString> mk_RemoteScripts;
+    
+    // socket id => request
+    QHash<int, r_RemoteRequest> mk_RemoteRequests;
+    
+    QString ms_RemoteHubPortion;
+    tk_YamlMap mk_Configuration;
+    
+    // check ruby stuff
+    QDialog mk_CheckRubyDialog;
+    QPushButton* mk_CheckRubyRetryButton_;
+    QLineEdit* mk_CheckRubyLocation_;
+    
+    // mk_pStartButton starts with file tracking, if configured
+    QToolButton* mk_StartButton_;
+    QLabel* mk_FileTrackerIconLabel_;
+    QLabel* mk_FileTrackerLabel_;
+    QMenu mk_StartButtonMenu;
+    // mk_StartUntrackedAction_ starts without file tracking
+    QAction* mk_StartUntrackedAction_;
     QHash<QString, bool> mk_ScriptInterpreterWorking;
 };

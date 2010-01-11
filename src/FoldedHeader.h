@@ -27,44 +27,44 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_FoldedHeader: public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_FoldedHeader(QWidget* ak_Buddy_ = NULL, bool ab_TextClickable = true, QWidget* parent = 0, Qt::WindowFlags f = 0);
-	k_FoldedHeader(const QString& text, QWidget* ak_Buddy_ = NULL, bool ab_TextClickable = true, QWidget* parent = 0, Qt::WindowFlags f = 0);
-	~k_FoldedHeader();
-	void setSuffix(QString as_Text);
-	bool buddyVisible();
+    k_FoldedHeader(QWidget* ak_Buddy_ = NULL, bool ab_TextClickable = true, QWidget* parent = 0, Qt::WindowFlags f = 0);
+    k_FoldedHeader(const QString& text, QWidget* ak_Buddy_ = NULL, bool ab_TextClickable = true, QWidget* parent = 0, Qt::WindowFlags f = 0);
+    ~k_FoldedHeader();
+    void setSuffix(QString as_Text);
+    bool buddyVisible();
 
 public slots:
-	void hideBuddy();
-	void showBuddy();
-	void toggleBuddy();
+    void hideBuddy();
+    void showBuddy();
+    void toggleBuddy();
     void setText(const QString& as_Text);
 
 signals:
-	void clicked();
-	void enter();
-	void leave();
-	void showingBuddy();
-	void hidingBuddy();
-	
+    void clicked();
+    void enter();
+    void leave();
+    void showingBuddy();
+    void hidingBuddy();
+    
 protected slots:
-	void update();	
+    void update();  
 
 protected:
-	void init();
-	virtual void mousePressEvent(QMouseEvent* event);
+    void init();
+    virtual void mousePressEvent(QMouseEvent* event);
     virtual void mouseReleaseEvent(QMouseEvent* event);
-	virtual void enterEvent(QMouseEvent* event);
-	virtual void leaveEvent(QMouseEvent* event);
-	
-	QWidget* mk_Buddy_;
-	QString ms_Text;
-	QLabel* mk_Label_;
-	k_ClickableLabel mk_Icon;
-	QList<RefPtr<QPixmap> > mk_FoldedIcons;
-	QTimer mk_Timer;
-	int mi_CurrentIndex;
-	bool mb_Increasing;
+    virtual void enterEvent(QMouseEvent* event);
+    virtual void leaveEvent(QMouseEvent* event);
+    
+    QWidget* mk_Buddy_;
+    QString ms_Text;
+    QLabel* mk_Label_;
+    k_ClickableLabel mk_Icon;
+    QList<RefPtr<QPixmap> > mk_FoldedIcons;
+    QTimer mk_Timer;
+    int mi_CurrentIndex;
+    bool mb_Increasing;
     bool mb_TextClickable;
 };

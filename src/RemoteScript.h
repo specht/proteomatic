@@ -27,17 +27,17 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_RemoteScript: public k_Script
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+    
 public:
-	k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
-	virtual ~k_RemoteScript();
-	
-	virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash(), bool ab_UseFileTrackerIfAvailable = true);
-	virtual void kill();
-	virtual bool running();
-	virtual QString readAll();
-	
+    k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+    virtual ~k_RemoteScript();
+    
+    virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash(), bool ab_UseFileTrackerIfAvailable = true);
+    virtual void kill();
+    virtual bool running();
+    virtual QString readAll();
+    
 protected:
-	QString ms_Host;
+    QString ms_Host;
 };

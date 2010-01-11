@@ -28,29 +28,29 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_EditProfileDialog: public QDialog
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+    
 public:
-	k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, IScript* ak_CurrentScript_, tk_YamlMap ak_OldProfile = tk_YamlMap(), QWidget * parent = 0, Qt::WindowFlags f = 0);
-	virtual ~k_EditProfileDialog();
-	
-	tk_YamlMap getProfile();
-	
+    k_EditProfileDialog(k_Proteomatic& ak_Proteomatic, IScript* ak_CurrentScript_, tk_YamlMap ak_OldProfile = tk_YamlMap(), QWidget * parent = 0, Qt::WindowFlags f = 0);
+    virtual ~k_EditProfileDialog();
+    
+    tk_YamlMap getProfile();
+    
 protected slots:
-	void applyClicked();
-	void copyFromCurrentScript();
-	
+    void applyClicked();
+    void copyFromCurrentScript();
+    
 protected:
-	bool mb_CreateNewMode;
-	k_Proteomatic& mk_Proteomatic;
-	IScript* mk_CurrentScript_;
-	QString ms_TargetScriptUri;
-	RefPtr<IScript> mk_pScript;
-	QString ms_WindowTitle;
-	QLineEdit* mk_ProfileTitle_;
-	QLineEdit* mk_ProfileDescription_;
-	QLabel* mk_ProfileDescriptionText_;
-	tk_YamlMap mk_NonApplicableParameters;
-	tk_YamlMap mk_NonApplicableParametersVerbose;
-	QString ms_NonApplicableParametersDescription;
+    bool mb_CreateNewMode;
+    k_Proteomatic& mk_Proteomatic;
+    IScript* mk_CurrentScript_;
+    QString ms_TargetScriptUri;
+    RefPtr<IScript> mk_pScript;
+    QString ms_WindowTitle;
+    QLineEdit* mk_ProfileTitle_;
+    QLineEdit* mk_ProfileDescription_;
+    QLabel* mk_ProfileDescriptionText_;
+    tk_YamlMap mk_NonApplicableParameters;
+    tk_YamlMap mk_NonApplicableParametersVerbose;
+    QString ms_NonApplicableParametersDescription;
 };

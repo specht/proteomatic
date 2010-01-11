@@ -34,7 +34,7 @@ li_qmax = li_max;
 void MD5Thread::run()
 {
 for (int i = 0; i < li_qmax; i++)
-	{
-	for (volatile int j = 0; j < 12345; j++);
-	}
+    {
+    for (volatile int j = 0; j < 12345; j++);
+    }
 }

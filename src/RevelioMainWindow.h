@@ -28,28 +28,28 @@ class k_Proteomatic;
 
 class k_RevelioMainWindow: public QMainWindow
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_RevelioMainWindow(k_Proteomatic& ak_Proteomatic, QWidget* ak_Parent_ = NULL);
-	virtual ~k_RevelioMainWindow();
-	virtual void adjustLayout();
-	QScrollArea& paneScrollArea();
-	
+    k_RevelioMainWindow(k_Proteomatic& ak_Proteomatic, QWidget* ak_Parent_ = NULL);
+    virtual ~k_RevelioMainWindow();
+    virtual void adjustLayout();
+    QScrollArea& paneScrollArea();
+    
 public slots:
 
 signals:
-	
+    
 protected slots:
-	virtual void loadFile();
-	
+    virtual void loadFile();
+    
 protected:
-	//k_Surface* mk_Surface_;
-	k_Proteomatic& mk_Proteomatic;
-	k_Surface mk_Surface;
-	//RefPtr<k_Surface> mk_pSurface;
-	//QLabel mk_HashLabel;
-	//QLabel mk_ParamLabel;
-	//QTextEdit mk_StdoutTextEdit;
+    //k_Surface* mk_Surface_;
+    k_Proteomatic& mk_Proteomatic;
+    k_Surface mk_Surface;
+    //RefPtr<k_Surface> mk_pSurface;
+    //QLabel mk_HashLabel;
+    //QLabel mk_ParamLabel;
+    //QTextEdit mk_StdoutTextEdit;
 
-	QScrollArea mk_PaneScrollArea;
+    QScrollArea mk_PaneScrollArea;
 };

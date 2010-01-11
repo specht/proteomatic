@@ -21,16 +21,16 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_ClickableLabel::k_ClickableLabel(QWidget* parent, Qt::WindowFlags f)
-	: QLabel(parent, f)
+    : QLabel(parent, f)
 {
-	this->setFocusPolicy(Qt::TabFocus);
+    this->setFocusPolicy(Qt::TabFocus);
 }
 
 
 k_ClickableLabel::k_ClickableLabel(const QString& text, QWidget* parent, Qt::WindowFlags f)
-	: QLabel(text, parent, f)
+    : QLabel(text, parent, f)
 {
-	this->setFocusPolicy(Qt::TabFocus);
+    this->setFocusPolicy(Qt::TabFocus);
 }
 
 
@@ -41,9 +41,9 @@ k_ClickableLabel::~k_ClickableLabel()
 
 void k_ClickableLabel::mousePressEvent(QMouseEvent* event)
 {
-	event->accept();
-	emit clicked();
-	emit pressed();
+    event->accept();
+    emit clicked();
+    emit pressed();
     if (event->button() == Qt::LeftButton)
         emit leftClicked();
     if (event->button() == Qt::RightButton)
@@ -53,40 +53,40 @@ void k_ClickableLabel::mousePressEvent(QMouseEvent* event)
 
 void k_ClickableLabel::mouseReleaseEvent(QMouseEvent* event)
 {
-	event->accept();
-	emit released();
+    event->accept();
+    emit released();
 }
 
 
 void k_ClickableLabel::mouseDoubleClickEvent(QMouseEvent* event)
 {
-	event->accept();
-	emit doubleClicked();
+    event->accept();
+    emit doubleClicked();
 }
 
 
 void k_ClickableLabel::enterEvent(QMouseEvent* event)
 {
-	event->accept();
-	emit enter();
+    event->accept();
+    emit enter();
 }
 
 
 void k_ClickableLabel::leaveEvent(QMouseEvent* event)
 {
-	event->accept();
-	emit leave();
+    event->accept();
+    emit leave();
 }
 
 
 void k_ClickableLabel::focusInEvent(QFocusEvent* /*event*/)
 {
-	//this->setBackgroundRole(QPalette::AlternateBase);
+    //this->setBackgroundRole(QPalette::AlternateBase);
 }
 
 
 void k_ClickableLabel::focusOutEvent(QFocusEvent* /*event*/)
 {
-	//this->setBackgroundRole(QPalette::NoRole);
+    //this->setBackgroundRole(QPalette::NoRole);
 }
 

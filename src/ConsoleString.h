@@ -24,20 +24,20 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_ConsoleString: public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_ConsoleString();
-	virtual ~k_ConsoleString();
-	
-	void clear();
-	QString text() const;
-	void append(QString as_Text);
-	
+    k_ConsoleString();
+    virtual ~k_ConsoleString();
+    
+    void clear();
+    QString text() const;
+    void append(QString as_Text);
+    
 signals:
-	void changed();
-	
+    void changed();
+    
 protected:
-	QString ms_Output;
-	QString ms_CurrentLine;
-	int mi_CurrentLineIndex;
+    QString ms_Output;
+    QString ms_CurrentLine;
+    int mi_CurrentLineIndex;
 };

@@ -25,28 +25,28 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_ClickableLabel: public QLabel
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_ClickableLabel(QWidget* parent = 0, Qt::WindowFlags f = 0);
-	k_ClickableLabel(const QString& text, QWidget* parent = 0, Qt::WindowFlags f = 0);
-	~k_ClickableLabel();
+    k_ClickableLabel(QWidget* parent = 0, Qt::WindowFlags f = 0);
+    k_ClickableLabel(const QString& text, QWidget* parent = 0, Qt::WindowFlags f = 0);
+    ~k_ClickableLabel();
 
 signals:
-	void clicked();
+    void clicked();
     void leftClicked();
     void rightClicked();
-	void doubleClicked();
-	void pressed();
-	void released();
-	void enter();
-	void leave();
+    void doubleClicked();
+    void pressed();
+    void released();
+    void enter();
+    void leave();
 
 protected:
-	virtual void mousePressEvent(QMouseEvent* event);
-	virtual void mouseReleaseEvent(QMouseEvent* event);
-	virtual void mouseDoubleClickEvent(QMouseEvent* event);
-	virtual void enterEvent(QMouseEvent* event);
-	virtual void leaveEvent(QMouseEvent* event);
-	virtual void focusInEvent(QFocusEvent* event);
-	virtual void focusOutEvent(QFocusEvent* event);
+    virtual void mousePressEvent(QMouseEvent* event);
+    virtual void mouseReleaseEvent(QMouseEvent* event);
+    virtual void mouseDoubleClickEvent(QMouseEvent* event);
+    virtual void enterEvent(QMouseEvent* event);
+    virtual void leaveEvent(QMouseEvent* event);
+    virtual void focusInEvent(QFocusEvent* event);
+    virtual void focusOutEvent(QFocusEvent* event);
 };

@@ -25,13 +25,13 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 int main(int ai_ArgumentCount, char** ac_Arguments__)
 {
     Q_INIT_RESOURCE(Proteomatic);
-	QApplication lk_App(ai_ArgumentCount, ac_Arguments__);
-	
-	k_Proteomatic lk_Proteomatic(lk_App, false);
-	
-	k_RevelioMainWindow lk_MainWindow(lk_Proteomatic);
-	lk_MainWindow.show();
+    QApplication lk_App(ai_ArgumentCount, ac_Arguments__);
+    
+    k_Proteomatic lk_Proteomatic(lk_App, false);
+    
+    k_RevelioMainWindow lk_MainWindow(lk_Proteomatic);
+    lk_MainWindow.show();
 
-	return lk_App.exec();
+    return lk_App.exec();
 }
 

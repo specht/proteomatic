@@ -25,27 +25,27 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_LocalScript: public k_Script
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+    
 public:
-	k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
-	virtual ~k_LocalScript();
-	
-	virtual QString readAll();
-	
+    k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+    virtual ~k_LocalScript();
+    
+    virtual QString readAll();
+    
 public slots:
-	virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash(), bool ab_UseFileTrackerIfAvailable = true);
-	virtual void kill(const QString& as_Ticket = QString());
-	
+    virtual QString start(const QStringList& ak_InputFiles, tk_StringStringHash ak_AdditionalParameters = tk_StringStringHash(), bool ab_UseFileTrackerIfAvailable = true);
+    virtual void kill(const QString& as_Ticket = QString());
+    
 protected slots:
-	virtual void scriptStartedSlot();
-	virtual void scriptFinishedSlot(int ae_ExitCode, QProcess::ExitStatus ae_Status);
+    virtual void scriptStartedSlot();
+    virtual void scriptFinishedSlot(int ae_ExitCode, QProcess::ExitStatus ae_Status);
 
 signals:
-	virtual void scriptStarted();
-	virtual void scriptFinished(int);
-	virtual void readyRead();
+    virtual void scriptStarted();
+    virtual void scriptFinished(int);
+    virtual void readyRead();
 
 protected:
-	QProcess mk_Process;
+    QProcess mk_Process;
 };

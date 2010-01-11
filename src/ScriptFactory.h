@@ -29,5 +29,5 @@ class k_Proteomatic;
 class k_ScriptFactory
 {
 public:
-	static RefPtr<IScript> makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
+    static RefPtr<IScript> makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles = true, bool ab_ProfileMode = false);
 };

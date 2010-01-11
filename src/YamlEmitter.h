@@ -27,16 +27,16 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 class k_YamlEmitter
 {
 public:
-	k_YamlEmitter();
-	virtual ~k_YamlEmitter();
-	
-	QString emitToString(QVariant ak_Node);
-	
+    k_YamlEmitter();
+    virtual ~k_YamlEmitter();
+    
+    QString emitToString(QVariant ak_Node);
+    
 protected:
-	void emitAny(QVariant ak_Node);
+    void emitAny(QVariant ak_Node);
     void emitScalar(QString as_Node);
-	void emitSequence(tk_YamlSequence ak_Node);
-	void emitMap(tk_YamlMap ak_Node);
+    void emitSequence(tk_YamlSequence ak_Node);
+    void emitMap(tk_YamlMap ak_Node);
     
     YAML::Emitter mk_Emitter;
 };

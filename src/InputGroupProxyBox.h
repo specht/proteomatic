@@ -30,24 +30,24 @@ class k_Proteomatic;
 
 class k_InputGroupProxyBox: public k_DesktopBox
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_InputGroupProxyBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label, QString as_GroupKey);
-	virtual ~k_InputGroupProxyBox();
-	
-	virtual const QString& groupKey() const;
+    k_InputGroupProxyBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label, QString as_GroupKey);
+    virtual ~k_InputGroupProxyBox();
+    
+    virtual const QString& groupKey() const;
 
-	virtual QList<IFileBox*> fileBoxes() const;
-	
+    virtual QList<IFileBox*> fileBoxes() const;
+    
 protected slots:
-	virtual void boxConnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
-	virtual void boxDisconnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
+    virtual void boxConnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
+    virtual void boxDisconnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
     virtual void update();
-	
+    
 protected:
-	virtual void setupLayout();
-	
-	QString ms_Label;
-	QString ms_GroupKey;
-	QList<IFileBox*> mk_FileBoxes;
+    virtual void setupLayout();
+    
+    QString ms_Label;
+    QString ms_GroupKey;
+    QList<IFileBox*> mk_FileBoxes;
 };

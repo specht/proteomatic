@@ -14,7 +14,7 @@ int main(int argc, char** argv__)
     strcpy(SEARCH_PATTERN, BINARY);
 #ifdef WIN32
     strcpy(DIR, GetCommandLine());
-	
+    
     *(strstr(DIR, SEARCH_PATTERN)) = 0;
     strcat(DIR, "bin\\");
 #else
@@ -30,17 +30,17 @@ int main(int argc, char** argv__)
     si.cb = sizeof(si);
     ZeroMemory( &pi, sizeof(pi) );
 #endif
-	char* ls_Dir_ = new char[16384];
-	strcpy(ls_Dir_, DIR);
-	strcat(ls_Dir_, BINARYCORE);
+    char* ls_Dir_ = new char[16384];
+    strcpy(ls_Dir_, DIR);
+    strcat(ls_Dir_, BINARYCORE);
     
 #ifdef WIN32
-	DWORD li_ReturnCode = 0;
+    DWORD li_ReturnCode = 0;
 #else
-	int li_ReturnCode = 0;
+    int li_ReturnCode = 0;
 #endif
-	do
-	{
+    do
+    {
 #ifdef WIN32
     CreateProcess(ls_Dir_, NULL, NULL, NULL, FALSE, 0, NULL, DIR, &si, &pi);
     WaitForSingleObject(pi.hProcess,INFINITE);
@@ -48,10 +48,10 @@ int main(int argc, char** argv__)
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 #else
-		li_ReturnCode = system(ls_Dir_);
+        li_ReturnCode = system(ls_Dir_);
 #endif
-	} while ((li_ReturnCode & 0xff00) == 0x1400);
-	delete [] ls_Dir_;
+    } while ((li_ReturnCode & 0xff00) == 0x1400);
+    delete [] ls_Dir_;
     return li_ReturnCode;
 }
 

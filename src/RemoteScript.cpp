@@ -21,23 +21,23 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 
 k_RemoteScript::k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
-	: k_Script(r_ScriptLocation::Remote, as_ScriptUri, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
-	, ms_Host("")
+    : k_Script(r_ScriptLocation::Remote, as_ScriptUri, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
+    , ms_Host("")
 {
-	QStringList lk_Response = ak_Proteomatic.scriptInfo(as_ScriptUri, "parameters").split(QChar('\n'));
-	if (!lk_Response.empty())
-	{
-		QString ls_FirstLine = lk_Response.takeFirst().trimmed();
-		if (ls_FirstLine == "---getParameters")
-		{
-			createParameterWidget(lk_Response.join("\n"));
-			mk_DefaultConfiguration = configuration();
-			mb_IsGood = true;
-		}
-	}
-	
-	ms_Host = as_ScriptUri;
-	ms_Host = ms_Host.replace("druby://", "").split(":").first();
+    QStringList lk_Response = ak_Proteomatic.scriptInfo(as_ScriptUri, "parameters").split(QChar('\n'));
+    if (!lk_Response.empty())
+    {
+        QString ls_FirstLine = lk_Response.takeFirst().trimmed();
+        if (ls_FirstLine == "---getParameters")
+        {
+            createParameterWidget(lk_Response.join("\n"));
+            mk_DefaultConfiguration = configuration();
+            mb_IsGood = true;
+        }
+    }
+    
+    ms_Host = as_ScriptUri;
+    ms_Host = ms_Host.replace("druby://", "").split(":").first();
 }
 
 
@@ -48,7 +48,7 @@ k_RemoteScript::~k_RemoteScript()
 
 QString k_RemoteScript::start(const QStringList& /*ak_Parameters*/, tk_StringStringHash, bool ab_UseFileTrackerIfAvailable)
 {
-	return "";
+    return "";
 }
 
 
@@ -59,12 +59,12 @@ void k_RemoteScript::kill()
 
 bool k_RemoteScript::running()
 {
-	return false;
+    return false;
 }
 
 
 QString k_RemoteScript::readAll()
 {
-	return "";
+    return "";
 }
 

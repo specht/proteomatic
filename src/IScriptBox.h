@@ -24,38 +24,38 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 struct IScriptBox
 {
-	virtual ~IScriptBox() {};
-	
-	virtual IScript* script() = 0;
-	virtual bool checkReady(QString& as_Error) = 0;
-	virtual bool checkReadyToGo() = 0;
-	
-	// iterationKeys returns an empty QStringList if something bad happened
-	// like: there are multiple input file batches which cannot be matched
-	virtual QStringList iterationKeys() = 0;
-	virtual void start(const QString& as_IterationKey) = 0;
-	virtual void abort() = 0;
-	virtual void showOutputBox(bool ab_Flag = true) = 0;
-	virtual QWidget* paneWidget() = 0;
-	virtual bool hasExistingOutputFiles() = 0;
+    virtual ~IScriptBox() {};
+    
+    virtual IScript* script() = 0;
+    virtual bool checkReady(QString& as_Error) = 0;
+    virtual bool checkReadyToGo() = 0;
+    
+    // iterationKeys returns an empty QStringList if something bad happened
+    // like: there are multiple input file batches which cannot be matched
+    virtual QStringList iterationKeys() = 0;
+    virtual void start(const QString& as_IterationKey) = 0;
+    virtual void abort() = 0;
+    virtual void showOutputBox(bool ab_Flag = true) = 0;
+    virtual QWidget* paneWidget() = 0;
+    virtual bool hasExistingOutputFiles() = 0;
     virtual bool hasExistingOutputFilesForAllIterations() = 0;
     virtual bool iterationHasNoExistingOutputFiles(const QString& as_Key) = 0;
-	virtual bool outputFileActivated(const QString& as_Key) = 0;
-	virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag) = 0;
+    virtual bool outputFileActivated(const QString& as_Key) = 0;
+    virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag) = 0;
     virtual bool useShortIterationTags() = 0;
     virtual void setUseShortIterationTags(bool ab_Flag) = 0;
-	virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key) = 0;
-	virtual QString boxOutputPrefix() const = 0;
-	virtual QString scriptOutputDirectory() const = 0;
+    virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key) = 0;
+    virtual QString boxOutputPrefix() const = 0;
+    virtual QString scriptOutputDirectory() const = 0;
     virtual QString boxOutputDirectory() const = 0;
     virtual void setBoxOutputPrefix(const QString& as_Prefix) = 0;
     virtual void setBoxOutputDirectory(const QString& as_Directory) = 0;
-	virtual QStringList outputFilesForKey(QString as_Key) const = 0;
+    virtual QStringList outputFilesForKey(QString as_Key) const = 0;
     virtual void addOutput(QString as_String) = 0;
-	
-	// signals
-	virtual void scriptStarted() = 0;
-	virtual void scriptFinished(int ai_ExitCode) = 0;
-	virtual void readyRead() = 0;
+    
+    // signals
+    virtual void scriptStarted() = 0;
+    virtual void scriptFinished(int ai_ExitCode) = 0;
+    virtual void readyRead() = 0;
     virtual void outputDirectoryChanged() = 0;
 };

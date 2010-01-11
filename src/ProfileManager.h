@@ -29,76 +29,76 @@ struct IScript;
 
 struct r_ProfileState
 {
-	enum Enumeration
-	{
-		Applicable,
-		PartlyApplicable,
-		NonApplicable
-	};
+    enum Enumeration
+    {
+        Applicable,
+        PartlyApplicable,
+        NonApplicable
+    };
 };
 
 
 struct r_ProfileMixInfo
 {
-	QString ms_ProfileTitle;
-	QString ms_Value;
-	QString ms_HumanReadableKey;
-	QString ms_HumanReadableValue;
+    QString ms_ProfileTitle;
+    QString ms_Value;
+    QString ms_HumanReadableKey;
+    QString ms_HumanReadableValue;
 };
 
 
 class k_ProfileManager: public QDialog
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+    
 public:
-	k_ProfileManager(k_Proteomatic& ak_Proteomatic, IScript* ak_CurrentScript_ = NULL, QWidget * parent = 0, Qt::WindowFlags f = 0);
-	virtual ~k_ProfileManager();
-	
-	virtual void reset();
-	QHash<QString, QString> getGoodProfileMix();
-	
+    k_ProfileManager(k_Proteomatic& ak_Proteomatic, IScript* ak_CurrentScript_ = NULL, QWidget * parent = 0, Qt::WindowFlags f = 0);
+    virtual ~k_ProfileManager();
+    
+    virtual void reset();
+    QHash<QString, QString> getGoodProfileMix();
+    
 protected slots:
-	void toggleUi();
-	void updateDescription();
-	void newProfile();
-	void editProfile();
-	void deleteProfile();
-	void exportProfile();
-	void importProfile();
-	void updateProfileList(QString as_SelectedItem = QString());
-	void currentProfileChanged();
-	void profileClicked(QListWidgetItem* ak_Item_);
-	void updateProfileMix();
-	void applyClicked();
-	
+    void toggleUi();
+    void updateDescription();
+    void newProfile();
+    void editProfile();
+    void deleteProfile();
+    void exportProfile();
+    void importProfile();
+    void updateProfileList(QString as_SelectedItem = QString());
+    void currentProfileChanged();
+    void profileClicked(QListWidgetItem* ak_Item_);
+    void updateProfileMix();
+    void applyClicked();
+    
 protected:
-	r_ProfileState::Enumeration classifyProfile(tk_YamlMap ak_Profile);
+    r_ProfileState::Enumeration classifyProfile(tk_YamlMap ak_Profile);
 
-	k_Proteomatic& mk_Proteomatic;
-	IScript* mk_CurrentScript_;
-	QString ms_TargetScriptUri;
-	QStringList mk_TargetScriptParameterKeys;
-	QPushButton* mk_ApplyButton_;
-	QAction* mk_NewAction_;
-	QAction* mk_EditAction_;
-	QAction* mk_DeleteAction_;
-	QAction* mk_ImportAction_;
-	QAction* mk_ExportAction_;
-	QLabel* mk_DescriptionLabel_;
-	k_FoldedHeader* mk_ApplicableProfilesHeader_;
-	k_FoldedHeader* mk_PartlyApplicableProfilesHeader_;
-	k_FoldedHeader* mk_NonApplicableProfilesHeader_;
-	QListWidget* mk_ApplicableProfilesWidget_;
-	QListWidget* mk_PartlyApplicableProfilesWidget_;
-	QListWidget* mk_NonApplicableProfilesWidget_;
-	QHash<QListWidget*, k_FoldedHeader*> mk_HeaderForList;
-	QListWidgetItem* mk_SelectedItem_;
-	QHash<QString, Qt::CheckState> mk_ProfileCheckState;
-	QStringList mk_AppliedProfiles;
-	QStringList mk_ProfileMixKeysSorted;
-	QStringList mk_GoodProfileMixKeys;
-	QStringList mk_ConflictingProfileMixKeys;
-	QHash<QString, QList<r_ProfileMixInfo> > mk_ProfileMix;
-	QHash<QString, QString> mk_GoodProfileMix;
+    k_Proteomatic& mk_Proteomatic;
+    IScript* mk_CurrentScript_;
+    QString ms_TargetScriptUri;
+    QStringList mk_TargetScriptParameterKeys;
+    QPushButton* mk_ApplyButton_;
+    QAction* mk_NewAction_;
+    QAction* mk_EditAction_;
+    QAction* mk_DeleteAction_;
+    QAction* mk_ImportAction_;
+    QAction* mk_ExportAction_;
+    QLabel* mk_DescriptionLabel_;
+    k_FoldedHeader* mk_ApplicableProfilesHeader_;
+    k_FoldedHeader* mk_PartlyApplicableProfilesHeader_;
+    k_FoldedHeader* mk_NonApplicableProfilesHeader_;
+    QListWidget* mk_ApplicableProfilesWidget_;
+    QListWidget* mk_PartlyApplicableProfilesWidget_;
+    QListWidget* mk_NonApplicableProfilesWidget_;
+    QHash<QListWidget*, k_FoldedHeader*> mk_HeaderForList;
+    QListWidgetItem* mk_SelectedItem_;
+    QHash<QString, Qt::CheckState> mk_ProfileCheckState;
+    QStringList mk_AppliedProfiles;
+    QStringList mk_ProfileMixKeysSorted;
+    QStringList mk_GoodProfileMixKeys;
+    QStringList mk_ConflictingProfileMixKeys;
+    QHash<QString, QList<r_ProfileMixInfo> > mk_ProfileMix;
+    QHash<QString, QString> mk_GoodProfileMix;
 };

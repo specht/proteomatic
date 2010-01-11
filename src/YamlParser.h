@@ -25,10 +25,10 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 class k_YamlParser
 {
 public:
-	k_YamlParser();
-	virtual ~k_YamlParser();
-	
-	QVariant parseFromString(QString as_Yaml);
+    k_YamlParser();
+    virtual ~k_YamlParser();
+    
+    QVariant parseFromString(QString as_Yaml);
     
 protected:
     QVariant parseAny(const YAML::Node* ak_Node_);

@@ -24,36 +24,36 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_FileTrackerNode: public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_FileTrackerNode();
-	virtual ~k_FileTrackerNode();
-	
-	virtual float horizontalAlignment() const;
-	virtual float verticalAlignment() const;
-	virtual const QPointF position() const;
-	
+    k_FileTrackerNode();
+    virtual ~k_FileTrackerNode();
+    
+    virtual float horizontalAlignment() const;
+    virtual float verticalAlignment() const;
+    virtual const QPointF position() const;
+    
 public slots:
-	virtual void setHorizontalAlignment(float af_HorizontalAlignment);
-	virtual void setVerticalAlignment(float af_VerticalAlignment);
-	virtual void setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment);
-	virtual void setPosition(const QPointF ak_Position);
-	virtual void setLabels(QStringList ak_Labels);
-	virtual void setMaximumWidth(int ai_MaxWidth);
-	virtual void setFrameColor(QString as_Color);
-	
+    virtual void setHorizontalAlignment(float af_HorizontalAlignment);
+    virtual void setVerticalAlignment(float af_VerticalAlignment);
+    virtual void setAlignment(float af_HorizontalAlignment, float af_VerticalAlignment);
+    virtual void setPosition(const QPointF ak_Position);
+    virtual void setLabels(QStringList ak_Labels);
+    virtual void setMaximumWidth(int ai_MaxWidth);
+    virtual void setFrameColor(QString as_Color);
+    
 protected:
-	virtual void paintEvent(QPaintEvent* event);
-	virtual void resizeEvent(QResizeEvent* event);
-	virtual int nodeWidth();
-	
-	virtual void adjustPosition();
-	
-	float mf_HorizontalAlignment;
-	float mf_VerticalAlignment;
-	QPointF mk_Position;
-	QList<RefPtr<QWidget> > mk_LabelWidgets;
-	int mi_MaximumWidth;
-	QPen mk_FramePen;
+    virtual void paintEvent(QPaintEvent* event);
+    virtual void resizeEvent(QResizeEvent* event);
+    virtual int nodeWidth();
+    
+    virtual void adjustPosition();
+    
+    float mf_HorizontalAlignment;
+    float mf_VerticalAlignment;
+    QPointF mk_Position;
+    QList<RefPtr<QWidget> > mk_LabelWidgets;
+    int mi_MaximumWidth;
+    QPen mk_FramePen;
 };
 

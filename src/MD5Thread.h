@@ -22,15 +22,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class MD5Thread: public QThread
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	MD5Thread();
-	void setValues(int li_min, int li_max);
-	
+    MD5Thread();
+    void setValues(int li_min, int li_max);
+    
 protected:
-	void run();
+    void run();
 private:
-	int li_qmin, li_qmax;
+    int li_qmin, li_qmax;
 };
 
-	
+    

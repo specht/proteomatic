@@ -33,93 +33,93 @@ class k_Proteomatic;
 
 class k_ScriptBox: public k_DesktopBox, public IScriptBox
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
-	virtual ~k_ScriptBox();
-	
-	virtual IScript* script();
-	virtual bool checkReady(QString& as_Error);
-	virtual bool checkReadyToGo();
-	virtual QStringList iterationKeys();
-	virtual QString scriptOutputDirectory() const;
+    k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+    virtual ~k_ScriptBox();
+    
+    virtual IScript* script();
+    virtual bool checkReady(QString& as_Error);
+    virtual bool checkReadyToGo();
+    virtual QStringList iterationKeys();
+    virtual QString scriptOutputDirectory() const;
     virtual QString boxOutputDirectory() const;
     virtual void setBoxOutputPrefix(const QString& as_Prefix);
     virtual void setBoxOutputDirectory(const QString& as_Directory);
-	virtual QStringList outputFilesForKey(QString as_Key) const;
-	virtual QWidget* paneWidget();
-	virtual bool hasExistingOutputFiles();
+    virtual QStringList outputFilesForKey(QString as_Key) const;
+    virtual QWidget* paneWidget();
+    virtual bool hasExistingOutputFiles();
     virtual bool hasExistingOutputFilesForAllIterations();
     virtual bool iterationHasNoExistingOutputFiles(const QString& as_Key);
-	virtual bool outputFileActivated(const QString& as_Key);
-	virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag);
+    virtual bool outputFileActivated(const QString& as_Key);
+    virtual void setOutputFileActivated(const QString& as_Key, bool ab_Flag);
     virtual bool useShortIterationTags();
     virtual void setUseShortIterationTags(bool ab_Flag);
-	virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key);
-	virtual QString boxOutputPrefix() const;
-	
+    virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key);
+    virtual QString boxOutputPrefix() const;
+    
 public slots:
-	virtual void start(const QString& as_IterationKey);
-	virtual void abort();
-	// :TODO: these two guys should be in IScriptBox!!
-	virtual void proposePrefixButtonClicked(bool ab_NotifyOnFailure = true);
-	virtual void clearPrefixButtonClicked();
-	virtual void clearOutputDirectoryButtonClicked();
+    virtual void start(const QString& as_IterationKey);
+    virtual void abort();
+    // :TODO: these two guys should be in IScriptBox!!
+    virtual void proposePrefixButtonClicked(bool ab_NotifyOnFailure = true);
+    virtual void clearPrefixButtonClicked();
+    virtual void clearOutputDirectoryButtonClicked();
     virtual void addOutput(QString as_String);
-	
+    
 protected slots:
-	virtual void outputFileActionToggled();
-	virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
-	virtual void readyReadSlot();
-	virtual void showOutputBox(bool ab_Flag = true);
-	virtual void scriptParameterChanged(const QString& as_Key);
-	virtual void chooseOutputDirectory();
-	virtual void hidingBuddy();
-	virtual void showingBuddy();
-	virtual void outputBoxIterationKeyChooserChanged();
+    virtual void outputFileActionToggled();
+    virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
+    virtual void readyReadSlot();
+    virtual void showOutputBox(bool ab_Flag = true);
+    virtual void scriptParameterChanged(const QString& as_Key);
+    virtual void chooseOutputDirectory();
+    virtual void hidingBuddy();
+    virtual void showingBuddy();
+    virtual void outputBoxIterationKeyChooserChanged();
     virtual void update();
     virtual void toggleUi();
-	
+    
 signals:
-	virtual void scriptStarted();
-	virtual void scriptFinished(int ai_ExitCode);
-	virtual void readyRead();
+    virtual void scriptStarted();
+    virtual void scriptFinished(int ai_ExitCode);
+    virtual void readyRead();
     virtual void outputDirectoryChanged();
-	
+    
 protected:
-	virtual void setupLayout();
-	virtual void dragEnterEvent(QDragEnterEvent* event);
-	virtual void dragMoveEvent(QDragMoveEvent* event);
-	virtual void dropEvent(QDropEvent* event);
-	virtual Qt::DropActions supportedDropActions() const;
-	
-	RefPtr<IScript> mk_pScript;
-	RefPtr<QWidget> mk_pParameterProxyWidget;
-	QHash<QString, IDesktopBox*> mk_OutputFileBoxes;
-	QHash<QString, QCheckBox*> mk_Checkboxes;
-	QString ms_CurrentIterationKeyRunning;
-	QString ms_CurrentIterationKeyShowing;
-	
-	k_HintLineEdit mk_Prefix;
-	k_HintLineEdit mk_OutputDirectory;
+    virtual void setupLayout();
+    virtual void dragEnterEvent(QDragEnterEvent* event);
+    virtual void dragMoveEvent(QDragMoveEvent* event);
+    virtual void dropEvent(QDropEvent* event);
+    virtual Qt::DropActions supportedDropActions() const;
+    
+    RefPtr<IScript> mk_pScript;
+    RefPtr<QWidget> mk_pParameterProxyWidget;
+    QHash<QString, IDesktopBox*> mk_OutputFileBoxes;
+    QHash<QString, QCheckBox*> mk_Checkboxes;
+    QString ms_CurrentIterationKeyRunning;
+    QString ms_CurrentIterationKeyShowing;
+    
+    k_HintLineEdit mk_Prefix;
+    k_HintLineEdit mk_OutputDirectory;
 
-	QHash<QString, RefPtr<k_ConsoleString> > mk_Output;
-	QWidget* mk_OutputBoxContainer_;
-	QWidget* mk_OutputBoxIterationKeyChooserContainer_;
-	QComboBox* mk_OutputBoxIterationKeyChooser_;
-	QTextEdit* mk_OutputBox_;
-	QTabWidget* mk_TabWidget_;
+    QHash<QString, RefPtr<k_ConsoleString> > mk_Output;
+    QWidget* mk_OutputBoxContainer_;
+    QWidget* mk_OutputBoxIterationKeyChooserContainer_;
+    QComboBox* mk_OutputBoxIterationKeyChooser_;
+    QTextEdit* mk_OutputBox_;
+    QTabWidget* mk_TabWidget_;
     QWidget* mk_IterationsTagsDontMatchIcon_;
     QCheckBox* mk_UseShortTagsCheckBox_;
-	QString ms_ConverterFilenamePattern;
-	QSet<QString> mk_ConverterFilenameAffectingParameters;
-	QSize mk_LastUserAdjustedSize;
-	
-	// this is the path to the input file which has been chosen 
-	// for determining the automatic output directory 
-	QString ms_OutputDirectoryDefiningInputPath;
-	QHash<QString, QStringList> mk_InputFilesForKey;
-	QHash<QString, QStringList> mk_OutputFilesForKey;
+    QString ms_ConverterFilenamePattern;
+    QSet<QString> mk_ConverterFilenameAffectingParameters;
+    QSize mk_LastUserAdjustedSize;
+    
+    // this is the path to the input file which has been chosen 
+    // for determining the automatic output directory 
+    QString ms_OutputDirectoryDefiningInputPath;
+    QHash<QString, QStringList> mk_InputFilesForKey;
+    QHash<QString, QStringList> mk_OutputFilesForKey;
     QStringList mk_IterationTags;
     QHash<QString, QSet<QString> > mk_OutputFilesForIterationTag;
     bool mb_IterationsTagsDontMatch;

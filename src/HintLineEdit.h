@@ -25,20 +25,20 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 class k_HintLineEdit: public QLineEdit
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_HintLineEdit(QWidget* parent = 0);
-	k_HintLineEdit(const QString& contents, QWidget* parent = 0);
-	~k_HintLineEdit();
-	
-	void setHint(const QString& as_Hint);
+    k_HintLineEdit(QWidget* parent = 0);
+    k_HintLineEdit(const QString& contents, QWidget* parent = 0);
+    ~k_HintLineEdit();
+    
+    void setHint(const QString& as_Hint);
 
 signals:
     void focusOut();
 
 protected:
-	virtual void paintEvent(QPaintEvent* event);
+    virtual void paintEvent(QPaintEvent* event);
     virtual void focusOutEvent(QFocusEvent* event);
-	
-	QString ms_Hint;
+    
+    QString ms_Hint;
 };

@@ -31,39 +31,39 @@ class k_Proteomatic;
 
 class k_FileListBox: public k_DesktopBox, public IFileBox
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
-	virtual ~k_FileListBox();
+    k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+    virtual ~k_FileListBox();
 
-	virtual QStringList filenames() const;	
-	virtual QString tagForFilename(const QString& as_Filename) const;
-	virtual QStringList filenamesForTag(const QString& as_Tag) const;
-	virtual QString prefixWithoutTags() const;
-	virtual void addPath(const QString& as_Path);
-	virtual void addPaths(const QStringList& ak_Paths);
+    virtual QStringList filenames() const;  
+    virtual QString tagForFilename(const QString& as_Filename) const;
+    virtual QStringList filenamesForTag(const QString& as_Tag) const;
+    virtual QString prefixWithoutTags() const;
+    virtual void addPath(const QString& as_Path);
+    virtual void addPaths(const QStringList& ak_Paths);
     
 public slots:
     virtual void setBatchMode(bool ab_Enabled);
-	
+    
 signals:
-	virtual void arrowPressed();
-	virtual void arrowReleased();
+    virtual void arrowPressed();
+    virtual void arrowReleased();
     virtual void changed();
-	
+    
 protected slots:
-	virtual void addFilesButtonClicked();
-	virtual void toggleUi();
+    virtual void addFilesButtonClicked();
+    virtual void toggleUi();
     virtual void update();
-	
+    
 protected:
-	virtual void setupLayout();
-	
-	k_FileList mk_FileList;
-	k_UnclickableLabel mk_Label;
-	QToolButton mk_RemoveSelectionButton;
-	QToolButton mk_BatchModeButton;
-	QHash<QString, QString> mk_TagForFilename;
-	QHash<QString, QStringList> mk_FilenamesForTag;
-	QString ms_PrefixWithoutTags;
+    virtual void setupLayout();
+    
+    k_FileList mk_FileList;
+    k_UnclickableLabel mk_Label;
+    QToolButton mk_RemoveSelectionButton;
+    QToolButton mk_BatchModeButton;
+    QHash<QString, QString> mk_TagForFilename;
+    QHash<QString, QStringList> mk_FilenamesForTag;
+    QString ms_PrefixWithoutTags;
 };

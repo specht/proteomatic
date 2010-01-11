@@ -21,16 +21,16 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 struct IFileBox
 {
-	virtual ~IFileBox() {};
-	
-	virtual QStringList filenames() const = 0;
-	virtual QString tagForFilename(const QString& as_Filename) const = 0;
-	virtual QStringList filenamesForTag(const QString& as_Tag) const = 0;
-	virtual QString prefixWithoutTags() const = 0;
-	
-	// slots
-	
-	// signals
-	virtual void arrowPressed() = 0;
-	virtual void arrowReleased() = 0;
+    virtual ~IFileBox() {};
+    
+    virtual QStringList filenames() const = 0;
+    virtual QString tagForFilename(const QString& as_Filename) const = 0;
+    virtual QStringList filenamesForTag(const QString& as_Tag) const = 0;
+    virtual QString prefixWithoutTags() const = 0;
+    
+    // slots
+    
+    // signals
+    virtual void arrowPressed() = 0;
+    virtual void arrowReleased() = 0;
 };
