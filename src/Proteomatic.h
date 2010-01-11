@@ -98,8 +98,6 @@ public:
 	k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts = true);
 	virtual ~k_Proteomatic();
 	
-	void checkForUpdates();
-
 	QString interpreterForScript(QString as_Path);
     QString interpreterKeyForScript(QString as_Path);
 	QStringList availableScripts();
@@ -142,9 +140,12 @@ public:
     bool stringToBool(const QString& as_String);
     
     QHash<QString, QStringList> mk_ScriptKeywords;
-	
-signals:
-	void scriptMenuScriptClicked(QAction* ak_Action_);
+    
+public slots:
+    void checkForUpdates();
+
+signals: 
+    void scriptMenuScriptClicked(QAction* ak_Action_);
 	void scriptMenuChanged();
 	void remoteHubReady();
 	void remoteHubLineBatch(QStringList ak_Lines);

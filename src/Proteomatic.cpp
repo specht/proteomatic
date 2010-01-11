@@ -114,10 +114,6 @@ k_Proteomatic::~k_Proteomatic()
 
 void k_Proteomatic::checkForUpdates()
 {
-	// don't do updates if this is in develop!
-	if (gs_ProteomaticVersion == "develop")
-		return;
-	
 	if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
 	{
 		QString ls_Result = this->syncRuby(QStringList() << QDir::currentPath() + "/../helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun");
@@ -136,6 +132,7 @@ void k_Proteomatic::checkForUpdates()
 					"Latest version: " + ls_Version + ", installed: " + ls_InstalledVersion + "<br />Do you want to update to the latest version?",
 					":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
 				{
+                    // save pipeline if necessary
 					QStringList lk_Arguments;
 					lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << mk_ScriptPaths.first();
 					if (!ms_ScriptPackage.isEmpty())
@@ -772,9 +769,15 @@ void k_Proteomatic::showConfigurationDialog()
     lk_HLayout_->addWidget(lk_ScriptsUrlLineEdit_);
     lk_VLayout_->addLayout(lk_HLayout_);
     
+    lk_HLayout_ = new QHBoxLayout(NULL);
 	QCheckBox* lk_AutoCheckForUpdates_ = new QCheckBox("Check for scripts updates on startup", lk_pDialog.get_Pointer());
 	lk_AutoCheckForUpdates_->setCheckState(getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool() ? Qt::Checked : Qt::Unchecked);
-	lk_VLayout_->addWidget(lk_AutoCheckForUpdates_);
+    QPushButton* lk_CheckNowButton_ = new QPushButton("Check now", lk_pDialog.get_Pointer());
+    connect(lk_CheckNowButton_, SIGNAL(clicked()), this, SLOT(checkForUpdates()));
+	lk_HLayout_->addWidget(lk_AutoCheckForUpdates_);
+    lk_HLayout_->addWidget(lk_CheckNowButton_);
+    
+    lk_VLayout_->addLayout(lk_HLayout_);
 	
     lk_HLayout_ = new QHBoxLayout(NULL);
     lk_HLayout_->addWidget(new QLabel("Filetracker URL:", lk_pDialog.get_Pointer()));
