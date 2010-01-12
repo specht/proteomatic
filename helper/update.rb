@@ -5,6 +5,8 @@ require 'tempfile'
 require 'fileutils'
 require 'yaml'
 
+# change into this script's directory
+Dir::chdir(File.dirname(__FILE__))
 
 def determinePlatform()
     case RUBY_PLATFORM.downcase
@@ -19,6 +21,9 @@ def determinePlatform()
         exit 1
     end
 end
+
+
+$platform = determinePlatform()
 
 
 def bytesToString(ai_Size)
@@ -69,47 +74,160 @@ def fetchUriAsString(as_Uri, ab_ShowProgress = true)
 end
 
 
+def updateProteomatic(info)
+end
+
+
+def updateScripts(info)
+    FileUtils::rm_rf('temp')
+    FileUtils::mkdir('temp')
+    # determine currently installed scripts version
+    scriptsDir = File::join('..', 'scripts')
+    unless File::directory?(scriptsDir)
+        if File::file?(scriptsDir)
+            puts "Error: A file called 'scripts' exists, but we need to create a directory there."
+            puts "Please move the file out of the way and try again."
+            exit 1
+        end
+        FileUtils::mkpath(scriptsDir) 
+    end
+    mostRecentVersion = nil
+    availableVersions = Array.new
+    Dir[File::join(scriptsDir, 'proteomatic-scripts*')].each do |path|
+        next if path.include?('.part')
+        package = File::basename(path).sub('proteomatic-scripts-', '')
+        availableVersions << package
+    end
+    availableVersions.uniq!
+    availableVersions.sort! do |a, b|
+        al = a.split('.')
+        bl = b.split('.')
+        ai = 0
+        bi = 0
+        result = nil
+        while result == nil
+            if (ai == bi)
+                if al[ai] != bl[bi]
+                    result = (al[ai].to_i <=> bl[bi].to_i)
+                    break
+                else
+                    ai += 1
+                    ai = al.size - 1 if ai >= al.size
+                    bi += 1
+                    bi = bl.size - 1 if bi >= bl.size
+                end
+            else
+                result = ai <=> bi
+                break
+            end
+        end
+        result
+    end
+    mostRecentVersion = availableVersions.last
+    if mostRecentVersion == info['version']
+        puts "Proteomatic scripts is up-to-date (version #{mostRecentVersion})."
+    else
+        puts "Fetching Proteomatic scripts #{info['version']}..."
+        lk_TempFile = Tempfile.new('ps-', 'temp')
+        tempPath = lk_TempFile.path()
+        fetchUriAsFile(info['path'], tempPath)
+        puts
+        print "Unpacking..."
+        if ($platform == 'win32')
+        else
+            Dir::chdir('temp')
+            system("tar xjf \"#{File::basename(tempPath)}\"")
+            Dir::chdir('..')
+        end
+        lk_TempFile.close!
+        # check whether there is a directory
+        dirs = Dir['temp/*']
+        if dirs.size == 1
+            # maybe insert consistency check here
+            FileUtils::mv(dirs.first, scriptsDir)
+            puts
+            # copy configuration files
+            if mostRecentVersion
+                print 'Copying configuration files...'
+                configFiles = Dir[File::join(scriptsDir, 'proteomatic-scripts-' + mostRecentVersion, 'config', '*')]
+                destDir = File::join(scriptsDir, 'proteomatic-scripts-' + info['version'], 'config')
+                configFiles.each do |path|
+                    # copy config file unless it already exists in the fresh package
+                    unless File::exists?(File::join(destDir, File::basename(path)))
+                        FileUtils::cp(path, destDir)
+                    end
+                end
+                puts
+            end
+            # remove old script packages
+            newDir = File::join(scriptsDir, 'proteomatic-scripts-' + info['version'])
+            Dir[File::join(scriptsDir, '*')].each do |path|
+                FileUtils::rm_rf(path) unless path == newDir
+            end
+        else
+            puts "Error: The downloaded package was corrupt."
+            exit(1)
+        end
+    end
+end
+
+
 ls_Uri = ''
 
 if ARGV.size < 1
-    puts 'Usage: ruby check-for-updates.rb [proteomatic-scripts URI] [(optional) --dryrun] [--outpath .] [--oldpath .]'
+    puts 'Usage: ruby update.rb [Proteomatic update URI] [(optional) --dryrun] [packages]'
+    puts "Packages may be 'scripts' or 'proteomatic'."
     exit 1
 end
 
 ls_Uri = ARGV[0]
 
-lb_DryRun = ARGV.include?('--dryrun')
-ls_OutPath = '.'
-ls_OldPath = ''
-
-if ARGV.include?('--outpath')
-    li_Index = ARGV.index('--outpath')
-    ls_OutPath = ARGV[li_Index + 1]
+lb_DryRun = false
+if ARGV.include?('--dryrun')
+    lb_DryRun = true
+    ARGV.delete('--dryrun')
 end
 
-if ARGV.include?('--oldpath')
-    li_Index = ARGV.index('--oldpath')
-    ls_OldPath = ARGV[li_Index + 1]
+updatePackages = Array.new
+
+ARGV[1, ARGV.size - 1].each do |p|
+    updatePackages << p
 end
 
-unless (File::exists?(ls_OutPath))
-    puts "Error: output path #{ls_OutPath} does not exist."
-    exit 1
-end
-
-ls_Current = ''
+lk_CurrentInfo = nil
 
 begin
-    ls_Current = fetchUriAsString(File::join(ls_Uri, 'current.txt'), false).strip
+    lk_CurrentInfo = YAML::load(fetchUriAsString(File::join(ls_Uri, 'current.yaml'), false))
 rescue StandardError => e
-    puts "Error: Unable to determine current version from #{ls_Uri}"
+    puts "Error: Unable to fetch update information from #{ls_Uri}."
     exit 1
 end
 
 if lb_DryRun
-    puts "CURRENT-VERSION:#{ls_Current}"
+    puts "CURRENT-VERSIONS"
+    lk_CurrentInfo.each_key do |package|
+        puts "#{package}: #{lk_CurrentInfo[package]['version']}"
+    end
     exit 0
 end
+
+# sort so that proteomatic update comes first
+updatePackages.sort!
+
+updatePackages.each do |package|
+    if lk_CurrentInfo[package]
+        case package
+        when 'proteomatic':
+            updateProteomatic(lk_CurrentInfo[package])
+        when 'scripts':
+            updateScripts(lk_CurrentInfo[package])
+        end
+    end
+end
+
+FileUtils::rm_rf('temp')
+
+__END__
 
 ls_PackagePath = File::join(ls_OutPath, ls_Current)
 puts "Fetching #{ls_Current}"

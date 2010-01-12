@@ -41,6 +41,10 @@ public:
 public slots:
     void toggleUi();
     void togglePaneFloat();
+    void newPipeline();
+    void loadPipeline();
+    void savePipeline();
+    void savePipelineAs();
     
 signals:
     //void outputPrefixChanged(const QString& as_Prefix);
@@ -51,10 +55,6 @@ protected:
     virtual void keyPressEvent(QKeyEvent* ak_Event_);
 
 protected slots:
-    void newPipeline();
-    void loadPipeline();
-    void savePipeline();
-    void savePipelineAs();
     void quit();
     void addScript(QAction* ak_Action_);
     void start();

@@ -232,4 +232,6 @@ protected:
     // mk_ModalProcess and mk_ModalProgressDialog are for updating...
     RefPtr<QProcess> mk_pModalProcess;
     RefPtr<QProgressDialog> mk_pModalProgressDialog;
+    // mb_ModalProcessUserRequested is true if an update button has been clicked
+    bool mb_ModalProcessUserRequested;
 };

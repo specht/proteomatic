@@ -129,7 +129,7 @@ void k_Proteomatic::checkForUpdates()
 {
     if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
     {
-        QStringList lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
+        QStringList lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
         mk_pModalProcess = RefPtr<QProcess>(new QProcess());
         QFileInfo lk_FileInfo(lk_Arguments.first());
         mk_pModalProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
@@ -150,6 +150,8 @@ void k_Proteomatic::checkForUpdates()
         QTimer* lk_Timer_ = new QTimer(mk_pModalProgressDialog.get_Pointer());
         lk_Timer_->setSingleShot(true);
         connect(lk_Timer_, SIGNAL(timeout()), this, SLOT(checkForUpdatesProgress()));
+        
+        mb_ModalProcessUserRequested = lk_Parent_;
 
         mk_pModalProcess->start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
         mk_pModalProcess->waitForStarted();
@@ -188,45 +190,75 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
     
     QString ls_Result = mk_pModalProcess->readAll();
     
-    if (mk_pModalProcess->exitStatus() == QProcess::NormalExit && ls_Result.startsWith("CURRENT-VERSION:"))
+    if (mk_pModalProcess->exitStatus() == QProcess::NormalExit && ls_Result.startsWith("CURRENT-VERSIONS\n"))
     {
-        ls_Result.replace("CURRENT-VERSION:", "");
-        QString ls_LatestVersion = ls_Result.replace(".tar.bz2", "").trimmed();
-        QString ls_Version = ls_Result.replace(".tar.bz2", "").replace("proteomatic-scripts-", "").trimmed();
-        QString ls_InstalledVersion = findMostRecentManagedScriptPackage();
-        ls_InstalledVersion.replace("proteomatic-scripts-", "").trimmed();
-        if (ls_Version != ls_InstalledVersion)
+        ls_Result.replace("CURRENT-VERSIONS\n", "");
+        QHash<QString, QString> lk_CurrentVersions;
+        foreach (QString ls_Line, ls_Result.split("\n"))
         {
-            if (this->showMessageBox("Online update", 
-                QString("A new version of Proteomatic scripts is available.<br /> ") + 
-                "Latest version: " + ls_Version + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?",
-                ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+            QStringList lk_Line = ls_Line.split(":");
+            if (lk_Line.size() == 2)
             {
-                // save pipeline if necessary
-                if (mk_PipelineMainWindow_ && mk_PipelineMainWindow_->askForSaveIfNecessary())
+                QString ls_Package = lk_Line[0].trimmed();
+                QString ls_Version = lk_Line[1].trimmed();
+                lk_CurrentVersions[ls_Package] = ls_Version;
+            }
+        }
+        if (lk_CurrentVersions.contains("scripts"))
+        {
+            QString ls_LatestVersion = lk_CurrentVersions["scripts"];
+            QString ls_InstalledVersion = findMostRecentManagedScriptPackage().replace("proteomatic-scripts-", "");
+            if (ls_LatestVersion != ls_InstalledVersion)
+            {
+                if (this->showMessageBox("Online update", 
+                    QString("A new version of Proteomatic scripts is available.<br /> ") + 
+                    "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?",
+                    ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
                 {
-                    // create scripts path if it doesn't exist
-                    if (!QDir(ms_ManagedScriptsPath).exists())
-                        QDir().mkpath(ms_ManagedScriptsPath);
-                    
-                    QStringList lk_Arguments;
-                    lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/check-for-updates.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--outpath" << ms_ManagedScriptsPath;
-                    if (!findMostRecentManagedScriptPackage().isEmpty())
-                        lk_Arguments << "--oldpath" << ms_ManagedScriptsPath + "/" + findMostRecentManagedScriptPackage();
-                    k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
-                    lk_RubyWindow.exec();
-                    
-                    // purge cache
-                    QStringList lk_CacheFiles = QDir("../cache").entryList(QDir::Files);
-                    foreach (QString ls_Path, lk_CacheFiles)
-                        QFile(ls_Path).remove();
+                    if (mk_PipelineMainWindow_ && mk_Desktop_)
+                    {
+                        mk_PipelineMainWindow_->newPipeline();
+                        if (!mk_Desktop_->hasUnsavedChanges())
+                        {
+                            // create scripts path if it doesn't exist
+                            if (!QDir(ms_ManagedScriptsPath).exists())
+                                QDir().mkpath(ms_ManagedScriptsPath);
+                            
+                            QStringList lk_Arguments;
+                            lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
+                            k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
+                            lk_RubyWindow.exec();
+                            
+                            // purge cache
+                            QStringList lk_CacheFiles = QDir("../cache").entryList(QDir::Files);
+                            foreach (QString ls_Path, lk_CacheFiles)
+                                QFile(ls_Path).remove();
 
-                    this->collectScriptInfo();
-                    this->createProteomaticScriptsMenu();
+                            this->collectScriptInfo();
+                            this->createProteomaticScriptsMenu();
+                        }
+                    }
                 }
+            }
+            else
+            {
+                if (mb_ModalProcessUserRequested)
+                    this->showMessageBox("Online update", 
+                        "Proteomatic is up-to-date.",
+                        ":/icons/dialog-ok.png", 
+                        QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
             }
         }
     }
+    else
+    {
+        if (mb_ModalProcessUserRequested)
+            this->showMessageBox("Online update", 
+                "Unable to fetch update information.",
+                ":/icons/dialog-warning.png", 
+                QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
+    }
+    
     mk_pModalProgressDialog = RefPtr<QProgressDialog>(NULL);
     mk_pModalProcess = RefPtr<QProcess>(NULL);
 }
