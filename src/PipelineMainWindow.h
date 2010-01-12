@@ -45,6 +45,7 @@ public slots:
     void loadPipeline();
     void savePipeline();
     void savePipelineAs();
+    void restartProteomatic();
     
 signals:
     //void outputPrefixChanged(const QString& as_Prefix);
@@ -68,7 +69,6 @@ protected slots:
     void scriptMenuChanged();
     void updateWindowTitle();
     void searchFieldPopup(const QString& as_String);
-    void restartProteomatic();
 
 protected:
     QApplication& mk_Application;

@@ -4,6 +4,7 @@ require 'net/ftp'
 require 'tempfile'
 require 'fileutils'
 require 'yaml'
+require 'digest/md5'
 
 # change into this script's directory
 Dir::chdir(File.dirname(__FILE__))
@@ -74,7 +75,66 @@ def fetchUriAsString(as_Uri, ab_ShowProgress = true)
 end
 
 
+def unpack(path)
+    if ($platform == 'win32')
+        puts "IMPLEMENT ME!"
+        exit 1
+    else
+        system("tar xjf \"#{path}\"")
+    end
+end
+
+
 def updateProteomatic(info)
+    unless info['platforms'][$platform]
+        puts "Error: No update available for this platform (#{$platform})."
+        exit 1
+    end
+    FileUtils::rm_rf('temp')
+    FileUtils::mkdir('temp')
+    puts "Fetching Proteomatic #{info['version']}..."
+    lk_TempFile = Tempfile.new('p-', 'temp')
+    tempPath = lk_TempFile.path()
+    fetchUriAsFile(info['platforms'][$platform]['path'], tempPath)
+    puts
+    print 'Unpacking...'
+    Dir::chdir('temp')
+    unpack(File::basename(tempPath))
+    Dir::chdir('..')
+    lk_TempFile.close!
+    puts
+    dirs = Dir['temp/*']
+    if dirs.size != 1
+        puts "Error: The downloaded package was corrupt."
+        exit(1)
+    end
+    newDir = dirs.first
+    files = Dir[File::join(newDir, '**', '*')]
+    targetDir = File::join('..')
+    files.each do |path|
+        sourcePath = path.dup
+        sourceDirPrefix = newDir
+        sourceDir = File::dirname(sourcePath).sub(newDir, '')
+        sourceBasename = File::basename(sourcePath)
+        
+        next if File::directory?(sourcePath)
+        
+        # no chance to update Proteomatic wrapper, so skip it
+        next if (sourceDir == '' && (sourceBasename == 'Proteomatic' || sourceBasename == 'Proteomatic.exe'))
+        
+        # ignore scripts
+        next if sourceDir.index('/scripts/') == 0
+        
+        if sourceBasename == 'ProteomaticCore'
+            FileUtils::mv(sourcePath, sourcePath + '_updated')
+            sourceBasename += '_updated'
+            sourcePath += '_updated'
+        end
+        
+        targetPath = File::join(targetDir, sourceDir)
+        FileUtils::mkpath(targetPath) unless File::exists?(targetPath)
+        FileUtils::cp(sourcePath, targetPath)
+    end
 end
 
 
@@ -133,12 +193,9 @@ def updateScripts(info)
         fetchUriAsFile(info['path'], tempPath)
         puts
         print "Unpacking..."
-        if ($platform == 'win32')
-        else
-            Dir::chdir('temp')
-            system("tar xjf \"#{File::basename(tempPath)}\"")
-            Dir::chdir('..')
-        end
+        Dir::chdir('temp')
+        unpack(File::basename(tempPath))
+        Dir::chdir('..')
         lk_TempFile.close!
         # check whether there is a directory
         dirs = Dir['temp/*']

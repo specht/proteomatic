@@ -33,6 +33,9 @@ int main(int argc, char** argv__)
     char* ls_Dir_ = new char[16384];
     strcpy(ls_Dir_, DIR);
     strcat(ls_Dir_, BINARYCORE);
+    char* ls_DirUpdated_ = new char[16384];
+    strcpy(ls_DirUpdated_, ls_Dir_);
+    strcat(ls_DirUpdated_, "_updated");
     
 #ifdef WIN32
     DWORD li_ReturnCode = 0;
@@ -42,14 +45,21 @@ int main(int argc, char** argv__)
     do
     {
 #ifdef WIN32
-    CreateProcess(ls_Dir_, NULL, NULL, NULL, FALSE, 0, NULL, DIR, &si, &pi);
-    WaitForSingleObject(pi.hProcess,INFINITE);
-    GetExitCodeProcess(pi.hProcess, &li_ReturnCode);
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
+        CreateProcess(ls_Dir_, NULL, NULL, NULL, FALSE, 0, NULL, DIR, &si, &pi);
+        WaitForSingleObject(pi.hProcess,INFINITE);
+        GetExitCodeProcess(pi.hProcess, &li_ReturnCode);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
 #else
         li_ReturnCode = system(ls_Dir_);
 #endif
+        // rename ProteomaticCore_updated to ProteomaticCore
+        FILE* f = fopen(ls_DirUpdated_, "r");
+        if (f)
+        {
+            fclose(f);
+            rename(ls_DirUpdated_, ls_Dir_);
+        }
     } while ((li_ReturnCode & 0xff00) == 0x1400);
     delete [] ls_Dir_;
     return li_ReturnCode;

@@ -190,6 +190,8 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
     
     QString ls_Result = mk_pModalProcess->readAll();
     
+    bool lb_SomethingNewAvailable = false;
+    
     if (mk_pModalProcess->exitStatus() == QProcess::NormalExit && ls_Result.startsWith("CURRENT-VERSIONS\n"))
     {
         ls_Result.replace("CURRENT-VERSIONS\n", "");
@@ -204,12 +206,52 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                 lk_CurrentVersions[ls_Package] = ls_Version;
             }
         }
+        if (lk_CurrentVersions.contains("proteomatic"))
+        {
+            QString ls_LatestVersion = lk_CurrentVersions["proteomatic"];
+            QString ls_InstalledVersion = gs_ProteomaticVersion;
+            if (ls_LatestVersion != ls_InstalledVersion)
+            {
+                lb_SomethingNewAvailable = true;
+                if (this->showMessageBox("Online update", 
+                    QString("A new version of Proteomatic is available.<br /> ") + 
+                    "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?",
+                    ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+                {
+                    if (mk_PipelineMainWindow_ && mk_Desktop_)
+                    {
+                        mk_PipelineMainWindow_->newPipeline();
+                        if (!mk_Desktop_->hasUnsavedChanges())
+                        {
+                            QStringList lk_Arguments;
+                            lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
+                            k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
+                            lk_RubyWindow.exec();
+                            
+                            // purge cache
+                            QStringList lk_CacheFiles = QDir("../cache").entryList(QDir::Files);
+                            foreach (QString ls_Path, lk_CacheFiles)
+                                QFile(ls_Path).remove();
+
+                            
+                            this->showMessageBox("Online update", 
+                                "Press OK to restart Proteomatic",
+                                ":/icons/proteomatic-pipeline.png", 
+                                QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
+                            
+                            mk_PipelineMainWindow_->restartProteomatic();
+                        }
+                    }
+                }
+            }
+        }
         if (lk_CurrentVersions.contains("scripts"))
         {
             QString ls_LatestVersion = lk_CurrentVersions["scripts"];
             QString ls_InstalledVersion = findMostRecentManagedScriptPackage().replace("proteomatic-scripts-", "");
             if (ls_LatestVersion != ls_InstalledVersion)
             {
+                lb_SomethingNewAvailable = true;
                 if (this->showMessageBox("Online update", 
                     QString("A new version of Proteomatic scripts is available.<br /> ") + 
                     "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?",
@@ -240,14 +282,14 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                     }
                 }
             }
-            else
-            {
-                if (mb_ModalProcessUserRequested)
-                    this->showMessageBox("Online update", 
-                        "Proteomatic is up-to-date.",
-                        ":/icons/dialog-ok.png", 
-                        QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
-            }
+        }
+        if (!lb_SomethingNewAvailable)
+        {
+            if (mb_ModalProcessUserRequested)
+                this->showMessageBox("Online update", 
+                    "Proteomatic is up-to-date.",
+                    ":/icons/dialog-ok.png", 
+                    QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
         }
     }
     else
@@ -872,7 +914,7 @@ void k_Proteomatic::showConfigurationDialog()
     lk_VLayout_->addWidget(new QLabel("<b>Proteomatic</b>", lk_pDialog.get_Pointer()));
 
     lk_HLayout_ = new QHBoxLayout(NULL);
-    lk_HLayout_->addWidget(new QLabel("Scripts URL:", lk_pDialog.get_Pointer()));
+    lk_HLayout_->addWidget(new QLabel("Update URI:", lk_pDialog.get_Pointer()));
     QLineEdit* lk_ScriptsUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
     lk_ScriptsUrlLineEdit_->setText(getConfiguration(CONFIG_SCRIPTS_URL).toString());
     lk_ScriptsUrlLineEdit_->home(false);
@@ -880,7 +922,7 @@ void k_Proteomatic::showConfigurationDialog()
     lk_VLayout_->addLayout(lk_HLayout_);
     
     lk_HLayout_ = new QHBoxLayout(NULL);
-    QCheckBox* lk_AutoCheckForUpdates_ = new QCheckBox("Check for scripts updates on startup", lk_pDialog.get_Pointer());
+    QCheckBox* lk_AutoCheckForUpdates_ = new QCheckBox("Check for updates on startup", lk_pDialog.get_Pointer());
     lk_AutoCheckForUpdates_->setCheckState(getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool() ? Qt::Checked : Qt::Unchecked);
     QPushButton* lk_CheckNowButton_ = new QPushButton("Check now", lk_pDialog.get_Pointer());
     connect(lk_CheckNowButton_, SIGNAL(clicked()), this, SLOT(checkForUpdates()));
