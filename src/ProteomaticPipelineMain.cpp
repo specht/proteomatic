@@ -35,7 +35,10 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
 
     // check for updates on startup
     if (lk_Proteomatic.getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool())
+    {
+        lk_MainWindow.setEnabled(false);
         lk_Proteomatic.checkForUpdates();
+    }
 
     return lk_App.exec();
 }

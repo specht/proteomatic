@@ -35,7 +35,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_REMEMBER_INPUT_FILES_PATH "rememberInputFilesPath"
 #define CONFIG_REMEMBER_OUTPUT_PATH "rememberOutputPath"
 #define CONFIG_SCRIPTS_URL "scriptsUrl"
-#define CONFIG_SCRIPTS_PATH "scriptsPath"
+#define CONFIG_ADDITIONAL_SCRIPT_PATHS "additionalScriptsPaths"
 #define CONFIG_AUTO_CHECK_FOR_UPDATES "autoCheckForUpdates"
 #define CONFIG_WARN_ABOUT_MIXED_PROFILES "warnAboutMixedProfiles"
 #define CONFIG_CACHE_SCRIPT_INFO "cacheScriptInfo"
@@ -43,6 +43,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_FOLLOW_NEW_BOXES "followNewBoxes"
 #define CONFIG_ANIMATION "animation"
 #define CONFIG_APPEARANCE_SIZE "appearanceSize"
+
+class k_Desktop;
+class k_PipelineMainWindow;
 
 
 struct r_RemoteRequestType
@@ -98,6 +101,9 @@ public:
     k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts = true);
     virtual ~k_Proteomatic();
     
+    void setDesktop(k_Desktop* ak_Desktop_);
+    void setPipelineMainWindow(k_PipelineMainWindow* ak_PipelineMainWindow_);
+    
     QString interpreterForScript(QString as_Path);
     QString interpreterKeyForScript(QString as_Path);
     QStringList availableScripts();
@@ -121,15 +127,21 @@ public:
     QWidget* messageBoxParent() const;
     int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);
     QFont& consoleFont();
+    /*
     QStringList scriptPaths() const;
     QString scriptPathAndPackage() const;
+    */
+    QString managedScriptPath() const;
+    QStringList additionalScriptPaths() const;
+    
     QVariant getConfiguration(QString as_Key);
     tk_YamlMap& getConfigurationRoot();
     void saveConfiguration();
-    QString scriptsVersion();
+    QString managedScriptsVersion();
     bool fileUpToDate(QString as_Path, QStringList ak_Dependencies);
     static void openFileLink(QString as_Path);
     QString md5ForFile(QString as_Path);
+    QString md5ForString(QString as_Content);
     void reloadScripts();
     QToolButton* startButton();
     QAction* startUntrackedAction();
@@ -138,11 +150,16 @@ public:
     QString scriptInterpreter(const QString& as_Language);
     QString configKeyForScriptingLanguage(const QString& as_Language);
     bool stringToBool(const QString& as_String);
+    QString scriptsVersion();
+    QString completePathForScript(QString as_ScriptFilename);
     
     QHash<QString, QStringList> mk_ScriptKeywords;
     
 public slots:
     void checkForUpdates();
+    void checkForUpdatesProgress();
+    void checkForUpdatesCanceled();
+    void checkForUpdatesScriptFinished();
 
 signals: 
     void scriptMenuScriptClicked(QAction* ak_Action_);
@@ -169,11 +186,13 @@ protected:
     void collectScriptInfo(bool ab_ShowImmediately = false);
     void createProteomaticScriptsMenu();
     void checkRuby();
-    QString findCurrentScriptPackage();
+    QString findMostRecentManagedScriptPackage();
     void updateConfigDependentStuff();
     QMessageBox::ButtonRole outputFilesAlreadyExistDialog();
     
     QCoreApplication& mk_Application;
+    k_Desktop* mk_Desktop_;
+    k_PipelineMainWindow* mk_PipelineMainWindow_;
     // uri / path => uri, title, group, description, optional: parameters
     QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
     QWidget* mk_MessageBoxParent_;
@@ -183,9 +202,9 @@ protected:
     QString ms_RemoteHubStdout;
 //  RefPtr<QHttp> mk_pRemoteHubHttp;
     QFont mk_ConsoleFont;
-    QStringList mk_ScriptPaths;
+    QString ms_ManagedScriptsPath;
+    QStringList mk_AdditionalScriptPaths;
     QString ms_ConfigurationPath;
-    QString ms_ScriptPackage;
     
     // title => uri
     QMap<QString, QString> mk_RemoteScripts;
@@ -209,4 +228,8 @@ protected:
     // mk_StartUntrackedAction_ starts without file tracking
     QAction* mk_StartUntrackedAction_;
     QHash<QString, bool> mk_ScriptInterpreterWorking;
+    
+    // mk_ModalProcess and mk_ModalProgressDialog are for updating...
+    RefPtr<QProcess> mk_pModalProcess;
+    RefPtr<QProgressDialog> mk_pModalProgressDialog;
 };

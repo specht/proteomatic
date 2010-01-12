@@ -45,6 +45,8 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
 
 {
     mk_Proteomatic.setMessageBoxParent(this);
+    mk_Proteomatic.setDesktop(mk_Desktop_);
+    mk_Proteomatic.setPipelineMainWindow(this);
     
     connect(mk_Desktop_, SIGNAL(selectionChanged()), this, SLOT(updateStatusBar()));
 
@@ -243,25 +245,6 @@ void k_PipelineMainWindow::keyPressEvent(QKeyEvent* ak_Event_)
         return;
     }
     QMainWindow::keyPressEvent(ak_Event_);
-}
-
-
-bool k_PipelineMainWindow::askForSaveIfNecessary()
-{
-    if (mk_Desktop_->hasUnsavedChanges())
-    {
-        // save discard cancel
-        int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?");
-        if (li_Button == QMessageBox::Cancel)
-            return false;
-        if (li_Button == QMessageBox::Save)
-        {
-            this->savePipelineAs();
-            if (mk_Desktop_->hasUnsavedChanges())
-                return false;
-        }
-    }
-    return true;
 }
 
 
@@ -619,4 +602,23 @@ bool k_PipelineMainWindow::panMode() const
 QMenu* k_PipelineMainWindow::createPopupMenu()
 {
     return NULL;
+}
+
+
+bool k_PipelineMainWindow::askForSaveIfNecessary()
+{
+    if (mk_Desktop_->hasUnsavedChanges())
+    {
+        // save discard cancel
+        int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?");
+        if (li_Button == QMessageBox::Cancel)
+            return false;
+        if (li_Button == QMessageBox::Save)
+        {
+            this->savePipelineAs();
+            if (mk_Desktop_->hasUnsavedChanges())
+                return false;
+        }
+    }
+    return true;
 }

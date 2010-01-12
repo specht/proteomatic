@@ -659,7 +659,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
         QString ls_Uri = lk_BoxDescription["uri"].toString();
         QString ls_Id = lk_BoxDescription["id"].toString();
-        QString ls_CompleteUri = QFileInfo(QDir(mk_Proteomatic.scriptPathAndPackage()), ls_Uri).absoluteFilePath();
+        QString ls_CompleteUri = mk_Proteomatic.completePathForScript(ls_Uri);
         tk_YamlMap lk_OutputBoxes = lk_BoxDescription["activeOutputFiles"].toMap();
         tk_YamlMap lk_InputProxyBoxes = lk_BoxDescription["inputProxyBoxes"].toMap();
         IDesktopBox* lk_Box_ = addScriptBox(ls_CompleteUri, false);

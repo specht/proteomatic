@@ -36,6 +36,7 @@ public:
     virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
     virtual bool panMode() const;
     virtual QMenu* createPopupMenu();
+    virtual bool askForSaveIfNecessary();
     
 public slots:
     void toggleUi();
@@ -48,7 +49,6 @@ signals:
 protected:
     virtual void closeEvent(QCloseEvent* event);
     virtual void keyPressEvent(QKeyEvent* ak_Event_);
-    virtual bool askForSaveIfNecessary();
 
 protected slots:
     void newPipeline();
