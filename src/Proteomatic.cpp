@@ -927,6 +927,7 @@ void k_Proteomatic::showConfigurationDialog()
     QPushButton* lk_CheckNowButton_ = new QPushButton("Check now", lk_pDialog.get_Pointer());
     connect(lk_CheckNowButton_, SIGNAL(clicked()), this, SLOT(checkForUpdates()));
     lk_HLayout_->addWidget(lk_AutoCheckForUpdates_);
+    lk_HLayout_->addStretch();
     lk_HLayout_->addWidget(lk_CheckNowButton_);
     
     lk_VLayout_->addLayout(lk_HLayout_);
