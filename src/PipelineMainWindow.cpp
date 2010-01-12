@@ -434,11 +434,10 @@ void k_PipelineMainWindow::scriptMenuChanged()
 
 void k_PipelineMainWindow::updateWindowTitle()
 {
-    QString ls_ScriptsVersion = "(using scripts develop)";
+    QString ls_ScriptsVersion = "(using no scripts";
     if (mk_Proteomatic.scriptsVersion() != "")
-    {
-        ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion() + ")";
-    }
+        ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion();
+    ls_ScriptsVersion += ")";
     QString ls_WindowTitle = QString("%1[*] - Proteomatic %3 %4")
         .arg(ms_PipelineFilename.isEmpty()? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName())
         //.arg(mk_Desktop_->hasUnsavedChanges() ? " [modified]" : "")

@@ -199,7 +199,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
         {
             if (this->showMessageBox("Online update", 
                 QString("A new version of Proteomatic scripts is available.<br /> ") + 
-                "Latest version: " + ls_Version + ", installed: " + ls_InstalledVersion + "<br />Do you want to update to the latest version?",
+                "Latest version: " + ls_Version + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?",
                 ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
             {
                 // save pipeline if necessary
@@ -1185,10 +1185,7 @@ void k_Proteomatic::saveConfiguration()
 QString k_Proteomatic::scriptsVersion()
 {
     QString ls_Version = findMostRecentManagedScriptPackage().replace("proteomatic-scripts-", "").trimmed();
-    if (ls_Version.isEmpty())
-        return "none";
-    else
-        return ls_Version;
+    return ls_Version;
 }
 
 
@@ -1346,7 +1343,7 @@ QString k_Proteomatic::findMostRecentManagedScriptPackage()
                 if (li_Place < 0)
                     break;
             }
-            lk_Versions[li_Key] = ls_Path;
+            lk_Versions[li_Key] = ls_OriginalPath;
         }
         // return last entry
         QMap<qint64, QString>::const_iterator lk_Iter = lk_Versions.constEnd();
