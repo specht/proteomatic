@@ -29,7 +29,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     : k_DesktopBox(ak_Parent_, ak_Proteomatic, true, true)
     , mk_FileList(this, true, true)
     , mk_Label("<b>File list</b> (empty)", this)
-    , mi_MinHeight(20)
+    , mi_MinHeight(21)
 {
     connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
     setupLayout();
@@ -37,9 +37,8 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     if (li_FontHeight == -1)
         li_FontHeight = mk_FileList.font().pointSize();
     mi_MinHeight = li_FontHeight + mk_FileList.frameWidth() * 2;
-    if (mi_MinHeight < 20)
-        mi_MinHeight = 20;
-    fprintf(stderr, "[%d]", mi_MinHeight);
+    if (mi_MinHeight < 21)
+        mi_MinHeight = 21;
     update();
 }
 
@@ -172,6 +171,8 @@ void k_FileListBox::update()
         mk_RemoveSelectionButton.hide();
         mk_AddFilesButtonH.show();
         mk_RemoveSelectionButtonH.show();
+        mk_FileList.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        mk_FileList.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     }
     else
     {
@@ -181,6 +182,8 @@ void k_FileListBox::update()
         mk_RemoveSelectionButtonH.hide();
         mk_AddFilesButton.show();
         mk_RemoveSelectionButton.show();
+        mk_FileList.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        mk_FileList.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     }
     
     mk_Desktop_->setHasUnsavedChanges(true);
