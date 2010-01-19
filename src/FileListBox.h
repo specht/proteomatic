@@ -61,7 +61,11 @@ protected:
     
     k_FileList mk_FileList;
     k_UnclickableLabel mk_Label;
+    int mi_MinHeight;
+    QToolButton mk_AddFilesButton;
+    QToolButton mk_AddFilesButtonH;
     QToolButton mk_RemoveSelectionButton;
+    QToolButton mk_RemoveSelectionButtonH;
     QToolButton mk_BatchModeButton;
     QHash<QString, QString> mk_TagForFilename;
     QHash<QString, QStringList> mk_FilenamesForTag;

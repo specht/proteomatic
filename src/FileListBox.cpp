@@ -29,9 +29,18 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     : k_DesktopBox(ak_Parent_, ak_Proteomatic, true, true)
     , mk_FileList(this, true, true)
     , mk_Label("<b>File list</b> (empty)", this)
+    , mi_MinHeight(20)
 {
     connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
     setupLayout();
+    int li_FontHeight = mk_FileList.font().pixelSize();
+    if (li_FontHeight == -1)
+        li_FontHeight = mk_FileList.font().pointSize();
+    mi_MinHeight = li_FontHeight + mk_FileList.frameWidth() * 2;
+    if (mi_MinHeight < 20)
+        mi_MinHeight = 20;
+    fprintf(stderr, "[%d]", mi_MinHeight);
+    update();
 }
 
 
@@ -119,6 +128,7 @@ void k_FileListBox::addFilesButtonClicked()
 void k_FileListBox::toggleUi()
 {
     mk_RemoveSelectionButton.setEnabled(!mk_FileList.selectedItems().empty());
+    mk_RemoveSelectionButtonH.setEnabled(!mk_FileList.selectedItems().empty());
     QString ls_Label;
     if (batchMode())
         ls_Label = "<b>File batch</b>";
@@ -154,6 +164,25 @@ void k_FileListBox::update()
         mk_FilenamesForTag[ls_Tag] << ls_Filename;
     }
     
+    if (mk_FileList.files().size() == 1)
+    {
+        mk_FileList.setMaximumHeight(mi_MinHeight);
+        this->setResizable(true, false);
+        mk_AddFilesButton.hide();
+        mk_RemoveSelectionButton.hide();
+        mk_AddFilesButtonH.show();
+        mk_RemoveSelectionButtonH.show();
+    }
+    else
+    {
+        mk_FileList.setMaximumHeight(QWIDGETSIZE_MAX);
+        this->setResizable(true, true);
+        mk_AddFilesButtonH.hide();
+        mk_RemoveSelectionButtonH.hide();
+        mk_AddFilesButton.show();
+        mk_RemoveSelectionButton.show();
+    }
+    
     mk_Desktop_->setHasUnsavedChanges(true);
     emit changed();
     toggleUi();
@@ -174,13 +203,24 @@ void k_FileListBox::setupLayout()
     lk_VLayout_->addLayout(lk_HLayout_);
     lk_HLayout_->addWidget(&mk_Label);
     lk_HLayout_->addStretch();
+    
+    // horizontal add/remove buttons
+    mk_AddFilesButtonH.setIcon(QIcon(":icons/folder.png"));
+    connect(&mk_AddFilesButtonH, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
+    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_AddFilesButtonH, SLOT(setEnabled(bool)));
+    lk_HLayout_->addWidget(&mk_AddFilesButtonH);
+    mk_RemoveSelectionButtonH.setIcon(QIcon(":icons/list-remove.png"));
+    lk_HLayout_->addWidget(&mk_RemoveSelectionButtonH);
+    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_RemoveSelectionButtonH, SLOT(setEnabled(bool)));
+    connect(&mk_RemoveSelectionButtonH, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
+    
     mk_BatchModeButton.setIcon(QIcon(":icons/cycle.png"));
     mk_BatchModeButton.setCheckable(true);
     mk_BatchModeButton.setChecked(false);
     lk_HLayout_->addWidget(&mk_BatchModeButton);
     connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(setBatchMode(bool)));
     connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_BatchModeButton, SLOT(setEnabled(bool)));
-    
+
     lk_HLayout_ = new QHBoxLayout();
     lk_HLayout_->addWidget(&mk_FileList);
     connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
@@ -189,11 +229,10 @@ void k_FileListBox::setupLayout()
     
     QBoxLayout* lk_VSubLayout_ = new QVBoxLayout();
     lk_HLayout_->addLayout(lk_VSubLayout_);
-    QToolButton* lk_AddFilesButton_ = new QToolButton(this);
-    lk_AddFilesButton_->setIcon(QIcon(":icons/folder.png"));
-    connect(lk_AddFilesButton_, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
-    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), lk_AddFilesButton_, SLOT(setEnabled(bool)));
-    lk_VSubLayout_->addWidget(lk_AddFilesButton_);
+    mk_AddFilesButton.setIcon(QIcon(":icons/folder.png"));
+    connect(&mk_AddFilesButton, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
+    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_AddFilesButton, SLOT(setEnabled(bool)));
+    lk_VSubLayout_->addWidget(&mk_AddFilesButton);
     mk_RemoveSelectionButton.setIcon(QIcon(":icons/list-remove.png"));
     lk_VSubLayout_->addWidget(&mk_RemoveSelectionButton);
     connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_RemoveSelectionButton, SLOT(setEnabled(bool)));
