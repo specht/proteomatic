@@ -49,6 +49,7 @@ LIBS += -lyaml-cpp -lmd5
 # Input files
 HEADERS += \
 	../../src/CiListWidgetItem.h \
+	../../src/ClickableGraphicsProxyWidget.h \
 	../../src/ClickableLabel.h \
 	../../src/ConsoleString.h \
 	../../src/FileList.h \
@@ -75,6 +76,7 @@ HEADERS += \
 	../../src/dialogs/EditProfileDialog.h \
 	
 SOURCES += \
+    ../../src/ClickableGraphicsProxyWidget.cpp \
 	../../src/ClickableLabel.cpp \
 	../../src/ConsoleString.cpp \
 	../../src/FileList.cpp \

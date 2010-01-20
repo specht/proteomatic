@@ -18,6 +18,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Desktop.h"
+#include "ClickableGraphicsProxyWidget.h"
 #include "DesktopBoxFactory.h"
 #include "DesktopBox.h"
 #include "FileListBox.h"
@@ -269,7 +270,12 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox, bool ab_AutoAdjus
 {
     k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
     QRectF lk_BoundingRect = mk_GraphicsScene.itemsBoundingRect();
-    mk_ProxyWidgetForBox[lk_DesktopBox_] = mk_GraphicsScene.addWidget(lk_DesktopBox_);
+    k_ClickableGraphicsProxyWidget* lk_ProxyWidget_ = new k_ClickableGraphicsProxyWidget();
+    lk_ProxyWidget_->setWidget(lk_DesktopBox_);
+    mk_ProxyWidgetForBox[lk_DesktopBox_] = lk_ProxyWidget_;
+    mk_GraphicsScene.addItem(lk_ProxyWidget_);
+    connect(lk_ProxyWidget_, SIGNAL(pressed()), this, SLOT(bringBoxToFrontSender()));
+    
     IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(ak_Box_);
     if (lk_FileBox_)
     {
@@ -853,6 +859,18 @@ void k_Desktop::bringBoxToFront(IDesktopBox* ak_Box_)
     }
     md_BoxZ += 0.01;
     mk_ProxyWidgetForBox[ak_Box_]->setZValue(md_BoxZ);
+}
+
+
+void k_Desktop::bringBoxToFrontSender()
+{
+    QGraphicsProxyWidget* lk_ProxyWidget_ = dynamic_cast<QGraphicsProxyWidget*>(sender());
+    if (lk_ProxyWidget_)
+    {
+        IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(lk_ProxyWidget_->widget());
+        if (lk_Box_)
+            bringBoxToFront(lk_Box_);
+    }
 }
 
 

@@ -100,6 +100,7 @@ protected slots:
     virtual void animationTimeout();
     virtual void animateAdjustView(bool ab_ZoomIn = true, QSet<IDesktopBox*> ak_FocusOn = QSet<IDesktopBox*>(), bool ab_Animate = true);
     virtual void updateWatchedDirectories();
+    virtual void bringBoxToFrontSender();
     
 protected:
     virtual void keyPressEvent(QKeyEvent* event);
