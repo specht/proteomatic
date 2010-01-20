@@ -30,7 +30,7 @@ public:
     k_RubyWindow(k_Proteomatic& ak_Proteomatic, QStringList ak_Arguments, QString as_Title = "Ruby script", QString ms_IconPath = ":/icons/proteomatic.png");
     ~k_RubyWindow();
         
-    void exec();
+    bool exec();
     
 protected slots:
     void processStarted();
@@ -47,6 +47,7 @@ protected:
     QPushButton* mk_AbortButton_;
     QPushButton* mk_CloseButton_;
     k_ConsoleString mk_Output;
+    bool mb_ScriptFinishedFine;
     
     void addOutput(QString as_Text);
 };

@@ -55,7 +55,7 @@ k_RubyWindow::~k_RubyWindow()
 }
 
     
-void k_RubyWindow::exec()
+bool k_RubyWindow::exec()
 {
     mk_AbortButton_->setEnabled(false);
     mk_CloseButton_->setEnabled(false);
@@ -68,6 +68,8 @@ void k_RubyWindow::exec()
     connect(lk_pProcess.get_Pointer(), SIGNAL(readyReadStandardError()), this, SLOT(processReadyRead()));
     connect(lk_pProcess.get_Pointer(), SIGNAL(readyReadStandardOutput()), this, SLOT(processReadyRead()));
     
+    mb_ScriptFinishedFine = false;
+    
     QFileInfo lk_FileInfo(mk_Arguments.first());
     if (lk_FileInfo.exists())
         lk_pProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
@@ -75,6 +77,7 @@ void k_RubyWindow::exec()
     lk_pProcess->start(mk_Proteomatic.scriptInterpreter("ruby"), mk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 
     mk_pDialog->exec();
+    return mb_ScriptFinishedFine;
 }
 
 
@@ -92,6 +95,9 @@ void k_RubyWindow::processFinished(int ai_ExitCode, QProcess::ExitStatus /*ak_Ex
     addOutput("-----------------------------------\n");
     if (ai_ExitCode != 0)
         addOutput(QString("Process failed with exit code %1\n").arg(ai_ExitCode));
+    else
+        mb_ScriptFinishedFine = true;
+
     mk_AbortButton_->setEnabled(false);
     mk_CloseButton_->setEnabled(true);
 }

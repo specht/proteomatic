@@ -226,20 +226,20 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                             QStringList lk_Arguments;
                             lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
-                            lk_RubyWindow.exec();
-                            
-                            // purge cache
-                            QStringList lk_CacheFiles = QDir("../cache").entryList(QDir::Files);
-                            foreach (QString ls_Path, lk_CacheFiles)
-                                QFile(ls_Path).remove();
-
-                            
-                            this->showMessageBox("Online update", 
-                                "Press OK to restart Proteomatic",
-                                ":/icons/proteomatic-pipeline.png", 
-                                QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
-                            
-                            mk_PipelineMainWindow_->restartProteomatic();
+                            if (lk_RubyWindow.exec())
+                            {
+                                // purge cache
+                                QStringList lk_CacheFiles = QDir("../cache").entryList(QDir::Files);
+                                foreach (QString ls_Path, lk_CacheFiles)
+                                    QFile(ls_Path).remove();
+                                
+                                this->showMessageBox("Online update", 
+                                    "Press OK to restart Proteomatic",
+                                    ":/icons/proteomatic-pipeline.png", 
+                                    QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
+                                
+                                mk_PipelineMainWindow_->restartProteomatic();
+                            }
                         }
                     }
                 }
