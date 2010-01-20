@@ -37,6 +37,8 @@ k_OutFileListBox::k_OutFileListBox(k_Desktop* ak_Parent_,
     , mb_ListMode(false)
     , mk_OpenFileAction_(new QAction(QIcon(":icons/document-open.png"), "&Open file", this))
     , mk_OpenContainingFolderAction_(new QAction(QIcon(":icons/folder.png"), "Open containing &folder", this))
+    , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
+    , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
 {
     if (!ms_Label.isEmpty())
         ms_Label[0] = ms_Label[0].toUpper();
@@ -269,18 +271,19 @@ void k_OutFileListBox::setupLayout()
     connect(&mk_BatchModeButton, SIGNAL(toggled(bool)), this, SLOT(setBatchMode(bool)));
     connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_BatchModeButton, SLOT(setEnabled(bool)));
     
-    k_ClickableLabel* lk_ArrowLabel_ = new k_ClickableLabel(this);
-    lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation));
+    mk_ArrowLabel.setPixmap(mk_InactiveArrow);
     lk_VLayout_->addStretch();
-    lk_VLayout_->addWidget(lk_ArrowLabel_);
+    lk_VLayout_->addWidget(&mk_ArrowLabel);
     lk_HLayout_->addLayout(lk_VLayout_);
     
     mk_FileList.hide();
     setResizable(false, false);
     mk_BatchModeButton.hide();
     
-    connect(lk_ArrowLabel_, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
-    connect(lk_ArrowLabel_, SIGNAL(released()), this, SIGNAL(arrowReleased()));
+    connect(&mk_ArrowLabel, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
+    connect(&mk_ArrowLabel, SIGNAL(pressed()), this, SLOT(arrowPressedSlot()));
+    connect(&mk_ArrowLabel, SIGNAL(released()), this, SIGNAL(arrowReleased()));
+    connect(&mk_ArrowLabel, SIGNAL(released()), this, SLOT(arrowReleasedSlot()));
     
     connect(this, SIGNAL(resized()), this, SLOT(toggleUi()));
     
@@ -289,4 +292,16 @@ void k_OutFileListBox::setupLayout()
     resize(300, 100);
     emit resized();
     toggleUi();
+}
+
+
+void k_OutFileListBox::arrowPressedSlot()
+{
+    mk_ArrowLabel.setPixmap(mk_ActiveArrow);
+}
+
+
+void k_OutFileListBox::arrowReleasedSlot()
+{
+    mk_ArrowLabel.setPixmap(mk_InactiveArrow);
 }

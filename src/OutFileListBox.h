@@ -61,6 +61,8 @@ protected slots:
     virtual void showContextMenu();
     virtual void openFile();
     virtual void openContainingDirectory();
+    virtual void arrowPressedSlot();
+    virtual void arrowReleasedSlot();
     
 protected:
     virtual void setupLayout();
@@ -78,4 +80,7 @@ protected:
     QMenu mk_PopupMenu;
     QAction* mk_OpenFileAction_;
     QAction* mk_OpenContainingFolderAction_;
+    QPixmap mk_InactiveArrow;
+    QPixmap mk_ActiveArrow;
+    k_ClickableLabel mk_ArrowLabel;
 };

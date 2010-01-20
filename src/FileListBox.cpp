@@ -30,6 +30,8 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     , mk_FileList(this, true, true)
     , mk_Label("<b>File list</b> (empty)", this)
     , mi_MinHeight(21)
+    , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
+    , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
 {
     connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
     setupLayout();
@@ -242,14 +244,27 @@ void k_FileListBox::setupLayout()
     connect(&mk_RemoveSelectionButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
     lk_VSubLayout_->addStretch();
     
-    k_ClickableLabel* lk_ArrowLabel_ = new k_ClickableLabel(this);
-    lk_ArrowLabel_->setPixmap(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation));
-    lk_VSubLayout_->addWidget(lk_ArrowLabel_);
+    mk_ArrowLabel.setPixmap(mk_InactiveArrow);
+    lk_VSubLayout_->addWidget(&mk_ArrowLabel);
     
-    connect(lk_ArrowLabel_, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
-    connect(lk_ArrowLabel_, SIGNAL(released()), this, SIGNAL(arrowReleased()));
+    connect(&mk_ArrowLabel, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
+    connect(&mk_ArrowLabel, SIGNAL(pressed()), this, SLOT(arrowPressedSlot()));
+    connect(&mk_ArrowLabel, SIGNAL(released()), this, SIGNAL(arrowReleased()));
+    connect(&mk_ArrowLabel, SIGNAL(released()), this, SLOT(arrowReleasedSlot()));
     
     lk_VLayout_->addLayout(lk_HLayout_);
     toggleUi();
     emit resized();
+}
+
+
+void k_FileListBox::arrowPressedSlot()
+{
+    mk_ArrowLabel.setPixmap(mk_ActiveArrow);
+}
+
+
+void k_FileListBox::arrowReleasedSlot()
+{
+    mk_ArrowLabel.setPixmap(mk_InactiveArrow);
 }

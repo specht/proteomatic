@@ -24,6 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IDesktopBox.h"
 #include "DesktopBox.h"
 #include "FileList.h"
+#include "ClickableLabel.h"
 #include "UnclickableLabel.h"
 
 
@@ -55,6 +56,8 @@ protected slots:
     virtual void addFilesButtonClicked();
     virtual void toggleUi();
     virtual void update();
+    virtual void arrowPressedSlot();
+    virtual void arrowReleasedSlot();
     
 protected:
     virtual void setupLayout();
@@ -70,4 +73,7 @@ protected:
     QHash<QString, QString> mk_TagForFilename;
     QHash<QString, QStringList> mk_FilenamesForTag;
     QString ms_PrefixWithoutTags;
+    QPixmap mk_InactiveArrow;
+    QPixmap mk_ActiveArrow;
+    k_ClickableLabel mk_ArrowLabel;
 };

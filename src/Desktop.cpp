@@ -1108,6 +1108,7 @@ void k_Desktop::arrowPressed()
     mk_UserArrowPathItem_ = mk_GraphicsScene.
         addPath(QPainterPath(), QPen(QColor(TANGO_ALUMINIUM_3)), QBrush(QColor(TANGO_ALUMINIUM_3)));
     mk_UserArrowPathItem_->setZValue(1000.0);
+    updateUserArrow(mapToScene(mapFromGlobal(QCursor::pos())));
 }
 
 
