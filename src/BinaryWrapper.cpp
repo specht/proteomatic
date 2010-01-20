@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -78,7 +79,9 @@ int main(int argc, char** argv__)
 #endif                        
                         strcpy(fixedPath_, path_);
                         fixedPath_[strlen(fixedPath_) - 8] = 0;
+#ifdef WIN32
                         unlink(fixedPath_);
+#endif
                         rename(path_, fixedPath_);
                         /*
                         FILE *fd = fopen("out.txt", "a");
