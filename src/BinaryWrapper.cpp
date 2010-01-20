@@ -33,15 +33,17 @@ int main(int argc, char** argv__)
     char* ls_Dir_ = new char[16384];
     strcpy(ls_Dir_, DIR);
     strcat(ls_Dir_, BINARYCORE);
-    char* ls_DirUpdated_ = new char[16384];
-    strcpy(ls_DirUpdated_, ls_Dir_);
-    strcat(ls_DirUpdated_, "_updated");
+    
+    char* path_ = new char[16384];
+    char* fixedPath_ = new char[16384];
+
     
 #ifdef WIN32
     DWORD li_ReturnCode = 0;
 #else
     int li_ReturnCode = 0;
 #endif
+    bool lb_Repeat = false;
     do
     {
 #ifdef WIN32
@@ -53,14 +55,43 @@ int main(int argc, char** argv__)
 #else
         li_ReturnCode = system(ls_Dir_);
 #endif
-        // rename ProteomaticCore_updated to ProteomaticCore
-        FILE* f = fopen(ls_DirUpdated_, "r");
-        if (f)
+        lb_Repeat = ((li_ReturnCode & 0xff00) == 0x1400);
+        if (lb_Repeat)
         {
-            fclose(f);
-            rename(ls_DirUpdated_, ls_Dir_);
+            // rename ProteomaticCore_updated to ProteomaticCore
+            FILE* fu = fopen("update-finish.txt", "r");
+            if (fu)
+            {
+                while (!feof(fu))
+                {
+                    fgets(path_, 16383, fu);
+                    // remove trailing newlines
+                    while ((strlen(path_) > 0) && (path_[strlen(path_) - 1] == '\n'))
+                        path_[strlen(path_) - 1] = 0;
+                    if (strlen(path_) > 0)
+                    {
+                        // fix slashes on Windows
+#ifdef WIN32
+                        for (int i = 0; i < strlen(path_); ++i)
+                            if (path_[i] == '/')
+                                path_[i] = '\\';
+#endif                        
+                        strcpy(fixedPath_, path_);
+                        fixedPath_[strlen(fixedPath_) - 8] = 0;
+                        unlink(fixedPath_);
+                        rename(path_, fixedPath_);
+                        /*
+                        FILE *fd = fopen("out.txt", "a");
+                        fprintf(fd, "[%s]\n[%s]\n", path_, fixedPath_);
+                        fclose(fd);
+                        */
+                    }
+                }
+                fclose(fu);
+                unlink("update-finish.txt");
+            }
         }
-    } while ((li_ReturnCode & 0xff00) == 0x1400);
+    } while (lb_Repeat);
     delete [] ls_Dir_;
     return li_ReturnCode;
 }

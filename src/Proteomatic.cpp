@@ -188,7 +188,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
     mk_pModalProgressDialog->accept();
     mk_pModalProgressDialog->hide();
     
-    QString ls_Result = mk_pModalProcess->readAll();
+    QString ls_Result = mk_pModalProcess->readAll().replace("\r\n", "\n");
     
     bool lb_SomethingNewAvailable = false;
     

@@ -6,8 +6,18 @@ require 'fileutils'
 require 'yaml'
 require 'digest/md5'
 
+flushThread = Thread.new do 
+    loop do
+        STDOUT.flush
+        STDERR.flush
+        sleep 1.0
+    end
+end
+
 # change into this script's directory
 Dir::chdir(File.dirname(__FILE__))
+
+$scriptDir = Dir::pwd()
 
 def determinePlatform()
     case RUBY_PLATFORM.downcase
@@ -41,7 +51,7 @@ end
 
 def fetchUriAsFile(as_Uri, as_Path, ab_ShowProgress = true)
     lk_Uri = URI::parse(as_Uri)
-    li_BlockSize = 16384
+    li_BlockSize = 16384 * 8
     ls_Result = ''
     if (as_Uri[0, 6] == 'ftp://')
         Net::FTP.open(lk_Uri.host) do |lk_Ftp|
@@ -77,8 +87,9 @@ end
 
 def unpack(path)
     if ($platform == 'win32')
-        puts "IMPLEMENT ME!"
-        exit 1
+        command = "\"#{File::join($scriptDir, '7zip', '7za457', '7za.exe')}\" x -bd \"#{path}\""
+		output = %x{#{command}}
+		return $?.exitstatus == 0
     else
         system("tar xjf \"#{path}\"")
     end
@@ -93,24 +104,25 @@ def updateProteomatic(info)
     FileUtils::rm_rf('temp')
     FileUtils::mkdir('temp')
     puts "Fetching Proteomatic #{info['version']}..."
-    lk_TempFile = Tempfile.new('p-', 'temp')
-    tempPath = lk_TempFile.path()
+    tempPath = File::join('temp', File::basename(info['platforms'][$platform]['path']))
     fetchUriAsFile(info['platforms'][$platform]['path'], tempPath)
     puts
     print 'Unpacking...'
     Dir::chdir('temp')
     unpack(File::basename(tempPath))
+    puts " done."
     Dir::chdir('..')
-    lk_TempFile.close!
-    puts
+    FileUtils::rm(tempPath)
     dirs = Dir['temp/*']
     if dirs.size != 1
         puts "Error: The downloaded package was corrupt."
         exit(1)
     end
-    newDir = dirs.first
+    newDir = dirs.first + '/'
+    print 'Patching files...'
     files = Dir[File::join(newDir, '**', '*')]
     targetDir = File::join('..')
+    lockedFiles = Array.new
     files.each do |path|
         sourcePath = path.dup
         sourceDirPrefix = newDir
@@ -120,21 +132,34 @@ def updateProteomatic(info)
         next if File::directory?(sourcePath)
         
         # no chance to update Proteomatic wrapper, so skip it
-        next if (sourceDir == '' && (sourceBasename == 'Proteomatic' || sourceBasename == 'Proteomatic.exe'))
+        next if (File::file?(sourcePath) && (sourceBasename == 'Proteomatic' || sourceBasename == 'Proteomatic.exe'))
         
         # ignore scripts
-        next if sourceDir.index('/scripts/') == 0
-        
-        if sourceBasename == 'ProteomaticCore'
-            FileUtils::mv(sourcePath, sourcePath + '_updated')
-            sourceBasename += '_updated'
-            sourcePath += '_updated'
-        end
+        next if sourceDir.index('scripts/') == 0
+
+        # ignore pax_global_header
+        next if sourcePath.include?('pax_global_header')
         
         targetPath = File::join(targetDir, sourceDir)
         FileUtils::mkpath(targetPath) unless File::exists?(targetPath)
-        FileUtils::cp(sourcePath, targetPath)
+        begin
+            FileUtils::cp(sourcePath, targetPath)
+            # puts "Copying #{sourcePath} to #{targetPath}"
+        rescue
+            # we could not overwrite the file because it is locked, record it
+            FileUtils::mv(sourcePath, sourcePath + '_updated')
+            sourcePath += '_updated'
+            FileUtils::cp(sourcePath, targetPath)
+            # puts "RETRY: Copying #{sourcePath} to #{targetPath}"
+            lockedFiles << File::join(sourceDir, File::basename(sourcePath))
+        end
     end
+    File::open('../update-finish.txt', 'w') do |f|
+        lockedFiles.each do |s|
+            f.puts s
+        end
+    end
+    puts ' done.'
 end
 
 
