@@ -1,4 +1,8 @@
 TARGET = ProteomaticCore
+macx {
+    TARGET = Proteomatic
+    QMAKE_INFO_PLIST    = Info.plist
+}
 
 include(../base.pro)
 

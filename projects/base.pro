@@ -30,6 +30,10 @@ else {
 
 DESTDIR = ../../bin/
 
+macx {
+    DESTDIR = ../../
+}
+
 QT = core gui network
 
 INCLUDEPATH += ../../src/ ../../src/dialogs
