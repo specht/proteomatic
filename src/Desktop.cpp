@@ -834,6 +834,28 @@ bool k_Desktop::useFileTrackerIfAvailable() const
 }
 
 
+void k_Desktop::bringBoxToFront(IDesktopBox* ak_Box_)
+{
+    // if z values get too high, reset all boxes z values
+    // (but keep their order)
+    if (md_BoxZ > 100000.0)
+    {
+        QMultiMap<double, IDesktopBox*> lk_BoxStack;
+        foreach (IDesktopBox* lk_Box_, mk_Boxes)
+            lk_BoxStack.insert(mk_ProxyWidgetForBox[lk_Box_]->zValue(), lk_Box_);
+        md_BoxZ = 0.0;
+        QMultiMap<double, IDesktopBox*>::const_iterator lk_Iter = lk_BoxStack.constBegin();
+        for (; lk_Iter != lk_BoxStack.constEnd(); ++lk_Iter)
+        {
+            mk_ProxyWidgetForBox[lk_Iter.value()]->setZValue(md_BoxZ);
+            md_BoxZ += 0.01;
+        }
+    }
+    md_BoxZ += 0.01;
+    mk_ProxyWidgetForBox[ak_Box_]->setZValue(md_BoxZ);
+}
+
+
 void k_Desktop::clearAll()
 {
     while (!mk_Boxes.empty())
@@ -1061,17 +1083,12 @@ void k_Desktop::boxClicked(QMouseEvent* event)
 {
     Qt::KeyboardModifiers le_Modifiers = event->modifiers();
     IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
-    if (md_BoxZ > 1000.0)
-    {
-        md_BoxZ = 0.0;
-        foreach (IDesktopBox* lk_Box_, mk_Boxes)
-            mk_ProxyWidgetForBox[lk_Box_]->setZValue(md_BoxZ);
-    }
-    md_BoxZ += 0.01;
-    mk_ProxyWidgetForBox[lk_Box_]->setZValue(md_BoxZ);
-    // if z values get too high, reset all boxes z values
+    
     if (!lk_Box_)
         return;
+    
+    bringBoxToFront(lk_Box_);
+    
     if (dynamic_cast<IScriptBox*>(lk_Box_))
     {
         if (mk_CurrentScriptBox_ != lk_Box_)

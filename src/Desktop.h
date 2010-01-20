@@ -64,6 +64,7 @@ public:
     virtual QSet<IDesktopBox*> selectedBoxes() const;
     
     virtual bool useFileTrackerIfAvailable() const;
+    virtual void bringBoxToFront(IDesktopBox* ak_Box_);
     
 public slots:
     virtual void clearAll();
