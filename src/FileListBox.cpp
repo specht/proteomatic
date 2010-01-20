@@ -129,7 +129,6 @@ void k_FileListBox::addFilesButtonClicked()
 void k_FileListBox::toggleUi()
 {
     mk_RemoveSelectionButton.setEnabled(!mk_FileList.selectedItems().empty());
-    mk_RemoveSelectionButtonH.setEnabled(!mk_FileList.selectedItems().empty());
     QString ls_Label;
     if (batchMode())
         ls_Label = "<b>File batch</b>";
@@ -165,29 +164,6 @@ void k_FileListBox::update()
         mk_FilenamesForTag[ls_Tag] << ls_Filename;
     }
     
-    if (mk_FileList.files().size() == 1)
-    {
-        mk_FileList.setMaximumHeight(mi_MinHeight);
-        this->setResizable(true, false);
-        mk_AddFilesButton.hide();
-        mk_RemoveSelectionButton.hide();
-        mk_AddFilesButtonH.show();
-        mk_RemoveSelectionButtonH.show();
-        mk_FileList.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        mk_FileList.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    }
-    else
-    {
-        mk_FileList.setMaximumHeight(QWIDGETSIZE_MAX);
-        this->setResizable(true, true);
-        mk_AddFilesButtonH.hide();
-        mk_RemoveSelectionButtonH.hide();
-        mk_AddFilesButton.show();
-        mk_RemoveSelectionButton.show();
-        mk_FileList.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-        mk_FileList.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    }
-    
     mk_Desktop_->setHasUnsavedChanges(true);
     emit changed();
     toggleUi();
@@ -210,14 +186,14 @@ void k_FileListBox::setupLayout()
     lk_HLayout_->addStretch();
     
     // horizontal add/remove buttons
-    mk_AddFilesButtonH.setIcon(QIcon(":icons/folder.png"));
-    connect(&mk_AddFilesButtonH, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
-    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_AddFilesButtonH, SLOT(setEnabled(bool)));
-    lk_HLayout_->addWidget(&mk_AddFilesButtonH);
-    mk_RemoveSelectionButtonH.setIcon(QIcon(":icons/list-remove.png"));
-    lk_HLayout_->addWidget(&mk_RemoveSelectionButtonH);
-    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_RemoveSelectionButtonH, SLOT(setEnabled(bool)));
-    connect(&mk_RemoveSelectionButtonH, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
+    mk_AddFilesButton.setIcon(QIcon(":icons/folder.png"));
+    connect(&mk_AddFilesButton, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
+    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_AddFilesButton, SLOT(setEnabled(bool)));
+    lk_HLayout_->addWidget(&mk_AddFilesButton);
+    mk_RemoveSelectionButton.setIcon(QIcon(":icons/list-remove.png"));
+    lk_HLayout_->addWidget(&mk_RemoveSelectionButton);
+    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_RemoveSelectionButton, SLOT(setEnabled(bool)));
+    connect(&mk_RemoveSelectionButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
     
     mk_BatchModeButton.setIcon(QIcon(":icons/cycle.png"));
     mk_BatchModeButton.setCheckable(true);
@@ -230,22 +206,15 @@ void k_FileListBox::setupLayout()
     lk_HLayout_->addWidget(&mk_FileList);
     connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
     connect(&mk_FileList, SIGNAL(changed()), this, SLOT(update()));
-    mk_FileList.resize(100, 100);
     
     QBoxLayout* lk_VSubLayout_ = new QVBoxLayout();
     lk_HLayout_->addLayout(lk_VSubLayout_);
-    mk_AddFilesButton.setIcon(QIcon(":icons/folder.png"));
-    connect(&mk_AddFilesButton, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
-    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_AddFilesButton, SLOT(setEnabled(bool)));
-    lk_VSubLayout_->addWidget(&mk_AddFilesButton);
-    mk_RemoveSelectionButton.setIcon(QIcon(":icons/list-remove.png"));
-    lk_VSubLayout_->addWidget(&mk_RemoveSelectionButton);
-    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_RemoveSelectionButton, SLOT(setEnabled(bool)));
-    connect(&mk_RemoveSelectionButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
     lk_VSubLayout_->addStretch();
     
     mk_ArrowLabel.setPixmap(mk_InactiveArrow);
     lk_VSubLayout_->addWidget(&mk_ArrowLabel);
+    
+    mk_FileList.setMinimumHeight(mi_MinHeight);
     
     connect(&mk_ArrowLabel, SIGNAL(pressed()), this, SIGNAL(arrowPressed()));
     connect(&mk_ArrowLabel, SIGNAL(pressed()), this, SLOT(arrowPressedSlot()));

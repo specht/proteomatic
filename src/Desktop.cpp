@@ -115,7 +115,7 @@ IDesktopBox* k_Desktop::addInputFileListBox(bool ab_AutoAdjust)
     IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
     k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
     addBox(lk_Box_, true, ab_AutoAdjust);
-    lk_DesktopBox_->resize(300, 10);
+    lk_DesktopBox_->resize(270, 120);
     k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(lk_Box_);
     if (lk_FileListBox_)
         connect(lk_FileListBox_, SIGNAL(changed()), this, SLOT(updateWatchedDirectories()));
