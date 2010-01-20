@@ -10,11 +10,16 @@ int WinMain(HINSTANCE,HINSTANCE,LPSTR commandLine,int)
 int main(int argc, char** argv__)
 #endif
 {
+    // don't free memory, nhaa haaa haaaaah!
     char* DIR = new char[16384];
     char* SEARCH_PATTERN = new char[16384];
     strcpy(SEARCH_PATTERN, BINARY);
 #ifdef WIN32
-    strcpy(DIR, GetCommandLine());
+    char* TEMP = new char[16384];
+    strcpy(TEMP, GetCommandLine());
+    if (strlen(TEMP) > 0 && TEMP[0] == '"')
+        TEMP += 1;
+    strcpy(DIR, TEMP);
     
     *(strstr(DIR, SEARCH_PATTERN)) = 0;
     strcat(DIR, "bin\\");
@@ -48,6 +53,11 @@ int main(int argc, char** argv__)
     do
     {
 #ifdef WIN32
+        /*
+        FILE* fd = fopen("out.txt", "a");
+        fprintf(fd, "[%s] [%s]\n", ls_Dir_, DIR);
+        fclose(fd);
+        */
         CreateProcess(ls_Dir_, NULL, NULL, NULL, FALSE, 0, NULL, DIR, &si, &pi);
         WaitForSingleObject(pi.hProcess,INFINITE);
         GetExitCodeProcess(pi.hProcess, &li_ReturnCode);
