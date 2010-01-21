@@ -4,6 +4,11 @@ win32 {
 	INCLUDEPATH += c:/Qt/2009.04/mingw/include
 }
 
+linux {
+	CONFIG += static
+}
+
+
 CONFIG += debug_and_release
 
 macx {
