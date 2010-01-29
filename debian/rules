@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+
+#DEB_COMPRESS_EXCLUDE = vym.pdf
+
+#include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+#include /usr/share/quilt/quilt.make
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/qmake.mk
+QMAKE=qmake-qt4
+
+clean::
+#	rm -f lang/vym_de.qm
+#	rm -f lang/vym_en.qm
+#	rm -f lang/vym_es.qm
+#	rm -f lang/vym_it.qm
+#	rm -f Proteomatic
+
+common-configure-arch::
+	lrelease Proteomatic.pro
+
+common-install-arch::
+	#install -m 644 debian/vym.desktop debian/vym/usr/share/applications/vym.desktop
+	#install -m 0644 icons/vym.png $(CURDIR)/debian/vym/usr/share/pixmaps/
+	#install -D -m 644 debian/x-vym.desktop debian/vym/usr/share/mimelnk/application/x-vym.desktop
+	#mv $(CURDIR)/debian/vym/usr/share/vym/demos $(CURDIR)/debian/vym/usr/share/doc/vym
+	#mv $(CURDIR)/debian/vym/usr/share/doc/packages/vym/vym.pdf $(CURDIR)/debian/vym/usr/share/doc/vym 
+	#chmod 644 $(CURDIR)/debian/vym/usr/share/vym/icons/vym.ico
+	#rm -f $(CURDIR)/debian/vym/usr/share/vym/scripts/vym2txt.sh
+	#rm -f $(CURDIR)/debian/vym/usr/share/vym/scripts/vym2html.sh
+	#rmdir $(CURDIR)/debian/vym/usr/share/doc/packages/vym
+	#rmdir $(CURDIR)/debian/vym/usr/share/doc/packages/
+	#mkdir -p $(CURDIR)/debian/vym/usr/share/vym/doc/
+	#dh_link /usr/share/doc/vym/vym.pdf /usr/share/vym/doc/vym.pdf
+	#dh_link	/usr/share/vym/icons/vym.png /usr/share/pixmaps/vym.png

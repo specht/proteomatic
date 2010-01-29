@@ -1,0 +1,10 @@
+#! /bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ -x /usr/bin/update-desktop-database ]; then
+  update-desktop-database
+fi
+
+exit 0

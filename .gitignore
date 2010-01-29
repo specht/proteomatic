@@ -4,7 +4,7 @@ Proteomatic_debug
 Revelio_debug
 proteomatic.conf.yaml
 obj/
-Makefile.*
+Makefile*
 cache/
 doxygen/
 Proteomatic.exe

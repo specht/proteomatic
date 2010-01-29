@@ -1,0 +1,6 @@
+?package(vym):needs="X11" \
+  section="Applications/Science" \
+  title="Proteomatic" \
+  longtitle="the Proteomics researcher's swiss army knife" \
+  command="/usr/bin/Proteomatic" \
+  icon="/usr/share/pixmaps"

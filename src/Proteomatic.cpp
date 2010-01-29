@@ -41,8 +41,13 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
     , mk_MessageBoxParent_(NULL)
     , mk_RemoteMenu_(NULL)
     , ms_RemoteHubStdout("")
+#ifdef linux
+    , ms_ManagedScriptsPath(ak_Application.applicationDirPath() + "/scripts")
+    , ms_ConfigurationPath(ak_Application.applicationDirPath() + "/proteomatic.conf.yaml")
+#else
     , ms_ManagedScriptsPath(ak_Application.applicationDirPath() + "/../scripts")
     , ms_ConfigurationPath(ak_Application.applicationDirPath() + "/../proteomatic.conf.yaml")
+#endif
 {
     mk_StartButton_ = new QToolButton(NULL);
     mk_StartButton_->setIcon(QIcon(":icons/dialog-ok.png"));

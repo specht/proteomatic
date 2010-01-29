@@ -29,10 +29,8 @@ else {
 	RCC_DIR = obj/release/
 }
 
-DESTDIR = bin/
-
-macx {
-    DESTDIR = 
+win32 {
+    DESTDIR = bin/
 }
 
 QT = core gui network
@@ -58,9 +56,6 @@ macx {
 
 include(../base.pro)
 
-linux {
-    DESTDIR = ./
-}
 
 win32 {
     RC_FILE = Proteomatic.rc

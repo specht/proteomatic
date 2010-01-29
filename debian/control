@@ -1,0 +1,15 @@
+Source: proteomatic
+Section: science
+Priority: optional
+Maintainer: Michael Specht <micha.specht@gmail.com>
+Build-Depends: debhelper (>= 7), cdbs (>= 0.4.41), libqt4-dev
+Standards-Version: 3.7.3
+Homepage: http://www.proteomatic.org
+
+Package: proteomatic
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, bzip2, gzip, unzip, ruby
+Description: the Proteomics researcher's swiss army knife
+ More text here.
+ 
+ Even more text goes here.
