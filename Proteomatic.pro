@@ -138,3 +138,10 @@ SOURCES += \
 	
 RESOURCES += \
 	src/Proteomatic.qrc \
+
+unix {
+    inst_binary.path = /usr/bin
+    inst_binary.files = Proteomatic
+    
+    INSTALLS += inst_binary
+}

@@ -11,5 +11,5 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, bzip2, gzip, unzip, ruby
 Description: the Proteomics researcher's swiss army knife
  More text here.
- 
+ .
  Even more text goes here.
