@@ -139,9 +139,30 @@ SOURCES += \
 RESOURCES += \
 	src/Proteomatic.qrc \
 
-unix {
-    inst_binary.path = /usr/bin
-    inst_binary.files = Proteomatic
-    
-    INSTALLS += inst_binary
+isEmpty( PREFIX ) {
+    PREFIX = /usr
+    count( INSTALLDIR, 1 ) {
+        PREFIX = $${INSTALLDIR}
+        message( "Please use PREFIX instead of INSTALLDIR" )
+    }
 }
+isEmpty( BINDIR ) {
+    BINDIR = $${PREFIX}/bin
+}
+isEmpty( DATADIR ) {
+    DATADIR = $${PREFIX}/share
+}
+isEmpty( DOCDIR ) {
+    DOCDIR = $${DATADIR}/doc/packages/proteomatic
+}
+
+message( "Installation directory" )
+message( $$PREFIX )
+
+
+support.files = src/icons/proteomatic-pipeline.png
+support.path = $${DATADIR}/proteomatic
+INSTALLS += support 
+
+target.path = $${BINDIR}
+INSTALLS += target

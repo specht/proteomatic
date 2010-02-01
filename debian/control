@@ -1,15 +1,18 @@
 Source: proteomatic
+Version: 0.9.11
 Section: science
 Priority: optional
 Maintainer: Michael Specht <micha.specht@gmail.com>
 Build-Depends: debhelper (>= 7), cdbs (>= 0.4.41), libqt4-dev
-Standards-Version: 3.7.3
+Standards-Version: 3.8.3
 Homepage: http://www.proteomatic.org
 
 Package: proteomatic
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, bzip2, gzip, unzip, ruby
-Description: the Proteomics researcher's swiss army knife
- More text here.
+Description: Proteomatic - the Proteomics researcher's swiss army knife
+ Proteomatic is an open data processing pipeline oringinally created for the purpose of evaluating Proteomics experiments. Functionality is provided via scripts, and these scripts can be chained together into a high-throughput data processing pipeline.
  .
- Even more text goes here.
+ All functionality can be used either from the command-line or via a GUI (graphical user interface).
+ .
+ Proteomatic automatically downloads necessary software packages such as OMSSA or BLAST when they are required, so it’s easy to get up and running.

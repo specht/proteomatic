@@ -1,11 +1,8 @@
-
 [Desktop Entry]
 Type=Application
 Exec=Proteomatic
 Name=Proteomatic
-Comment=the Proteomics researcher's swiss army knife
-GenericName=Planning Tool
-Icon=Proteomatic
-MimeType=application/x-proteomatic;
-Categories=Science
-Name[en_US]=proteomatic.desktop
+Comment=Proteomatic - the Proteomics researcher's swiss army knife
+Icon=/usr/share/pixmaps/proteomatic-pipeline.png
+MimeType=application/x-proteomatic
+Categories=Education;Science;MedicalSoftware

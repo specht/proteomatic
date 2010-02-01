@@ -1,6 +1,4 @@
-?package(proteomatic):needs="X11" \
-  section="Applications/Science" \
-  title="Proteomatic" \
-  longtitle="the Proteomics researcher's swiss army knife" \
-  command="/usr/bin/Proteomatic" \
-  icon="/usr/share/pixmaps"
+?package(proteomatic):needs="X11" section="Applications/Science/Medicine" \
+    title="Proteomatic" icon="/usr/share/pixmaps/proteomatic-pipeline.png" \
+    command="/usr/bin/Proteomatic" \
+    hints="Proteomatic - the Proteomics researcher's swiss army knife"
