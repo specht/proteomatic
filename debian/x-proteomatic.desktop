@@ -1,0 +1,7 @@
+[Desktop Entry]
+Encoding=UTF-8
+Comment=Proteomatic Pipeline
+Type=MimeType
+MimeType=application/x-proteomatic
+Icon=proteomatic
+Patterns=*.pipeline
