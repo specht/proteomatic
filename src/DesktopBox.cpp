@@ -218,7 +218,7 @@ void k_DesktopBox::mousePressEvent(QMouseEvent* event)
 {
     event->ignore();
     mk_MousePressPosition = event->globalPos();
-    if ((mb_ResizableX || mb_ResizableY) && (event->pos() - QPoint(width(), height())).manhattanLength() <= 16)
+    if ((mb_ResizableX || mb_ResizableY) && (event->pos() - QPoint(width(), height())).manhattanLength() <= 20)
     {
         mb_Resizing = true;
         mk_OldSize = this->size();
