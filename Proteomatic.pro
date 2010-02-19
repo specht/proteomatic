@@ -33,7 +33,7 @@ win32 {
     DESTDIR = bin/
 }
 
-QT = core gui network
+QT = core gui webkit
 
 INCLUDEPATH += src/ src/dialogs
 
@@ -102,6 +102,7 @@ HEADERS += \
     src/OutFileListBox.h \
     src/PipelineMainWindow.h \
     src/ScriptBox.h \
+    src/ZoomableWebView.h \
 	
 SOURCES += \
     src/ClickableGraphicsProxyWidget.cpp \
@@ -135,6 +136,7 @@ SOURCES += \
     src/PipelineMainWindow.cpp \
     src/ProteomaticPipelineMain.cpp \
     src/ScriptBox.cpp \
+    src/ZoomableWebView.cpp \
 	
 RESOURCES += \
 	src/Proteomatic.qrc \

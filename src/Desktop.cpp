@@ -1417,6 +1417,8 @@ void k_Desktop::scriptFinished(int ai_ExitCode)
         lk_ScriptBox_->addOutput("\n-----------------------------------\n");
         lk_ScriptBox_->addOutput(QString("Script finished successfully.\n"));
         // do next iteration if there are still some left from sender
+        lk_ScriptBox_->showOutputFileBox(true);
+
         IScriptBox* lk_NextBox_ = lk_ScriptBox_;
         // if there are no iterations left, pick next script box
         if ((!mk_RemainingScriptBoxIterationKeys.contains(lk_ScriptBox_)) || (mk_RemainingScriptBoxIterationKeys[lk_ScriptBox_].empty()))

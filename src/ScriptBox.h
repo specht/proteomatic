@@ -20,12 +20,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include <QtWebKit>
 #include "ConsoleString.h"
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
 #include "DesktopBox.h"
 #include "HintLineEdit.h"
 #include "NoSlashValidator.h"
+#include "ZoomableWebView.h"
 #include "RefPtr.h"
 
 
@@ -66,12 +68,14 @@ public slots:
     virtual void clearPrefixButtonClicked();
     virtual void clearOutputDirectoryButtonClicked();
     virtual void addOutput(QString as_String);
+    virtual void refreshOutputFileView();
     
 protected slots:
     virtual void outputFileActionToggled();
     virtual void handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
     virtual void readyReadSlot();
     virtual void showOutputBox(bool ab_Flag = true);
+    virtual void showOutputFileBox(bool ab_Flag = true);
     virtual void scriptParameterChanged(const QString& as_Key);
     virtual void chooseOutputDirectory();
     virtual void hidingBuddy();
@@ -79,6 +83,8 @@ protected slots:
     virtual void outputBoxIterationKeyChooserChanged();
     virtual void update();
     virtual void toggleUi();
+    virtual void toggleOutputFileChooser(int ai_Index);
+    virtual void zoomWebView(int ai_Delta);
     
 signals:
     virtual void scriptStarted();
@@ -105,6 +111,7 @@ protected:
 
     QHash<QString, RefPtr<k_ConsoleString> > mk_Output;
     QWidget* mk_OutputBoxContainer_;
+    QWidget* mk_OutputFileViewerContainer_;
     QWidget* mk_OutputBoxIterationKeyChooserContainer_;
     QComboBox* mk_OutputBoxIterationKeyChooser_;
     QTextEdit* mk_OutputBox_;
@@ -125,4 +132,6 @@ protected:
     bool mb_IterationsTagsDontMatch;
     bool mb_MultipleInputBatches;
     k_NoSlashValidator mk_NoSlashValidator;
+    QComboBox* mk_OutputFileChooser_;
+    k_ZoomableWebView* mk_WebView_;
 };

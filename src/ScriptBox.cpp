@@ -36,6 +36,7 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
     : k_DesktopBox(ak_Parent_, ak_Proteomatic, false, false)
     , mk_pScript(ak_pScript)
     , mk_OutputBoxContainer_(NULL)
+    , mk_OutputFileViewerContainer_(NULL)
     , mk_OutputBoxIterationKeyChooserContainer_(NULL)
     , mk_OutputBoxIterationKeyChooser_(NULL)
     , mk_OutputBox_(NULL)
@@ -46,10 +47,13 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
     , mb_IterationsTagsDontMatch(false)
     , mb_MultipleInputBatches(false)
     , mk_UseShortTagsCheckBox_(NULL)
+    , mk_OutputFileChooser_(NULL)
+    , mk_WebView_(NULL)
 {
     connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
     connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
     connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
+    connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SLOT(refreshOutputFileView()));
     connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(readyRead()), this, SIGNAL(readyRead()));
     connect(this, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
     setupLayout();
@@ -579,9 +583,25 @@ void k_ScriptBox::addOutput(QString as_Text)
 }
 
 
+void k_ScriptBox::refreshOutputFileView()
+{
+    if (mk_OutputFileChooser_)
+    {
+        toggleOutputFileChooser(mk_OutputFileChooser_->currentIndex());
+        mk_WebView_->setZoomFactor(1.0);
+    }
+}
+
+
 void k_ScriptBox::showOutputBox(bool ab_Flag/* = true*/)
 {
     mk_TabWidget_->setCurrentWidget(mk_OutputBoxContainer_);
+}
+
+
+void k_ScriptBox::showOutputFileBox(bool ab_Flag/* = true*/)
+{
+    mk_TabWidget_->setCurrentWidget(mk_OutputFileViewerContainer_);
 }
 
 
@@ -855,6 +875,18 @@ void k_ScriptBox::update()
         }
     }
     
+    if (mk_OutputFileChooser_)
+    {
+        mk_OutputFileChooser_->clear();
+        foreach (QString ls_Key, mk_OutputFilesForKey.keys())
+        {
+            foreach (QString ls_Path, mk_OutputFilesForKey[ls_Key])
+            {
+                mk_OutputFileChooser_->addItem(QFileInfo(ls_Path).fileName(), ls_Path);
+            }
+        }
+    }
+    
     // ------------------------------------------------
     // UPDATE ITERATION TAG DROP-DOWN BOX
     // ------------------------------------------------
@@ -915,6 +947,37 @@ void k_ScriptBox::toggleUi()
     {
         mk_UseShortTagsCheckBox_->setVisible(batchMode());
         mk_UseShortTagsCheckBox_->setEnabled(!mb_MultipleInputBatches);
+    }
+}
+
+
+void k_ScriptBox::toggleOutputFileChooser(int ai_Index)
+{
+    QString ls_Path = mk_OutputFileChooser_->itemData(ai_Index).toString();
+    if (QFileInfo(ls_Path).exists())
+    {
+        mk_WebView_->setUrl(QUrl("file://" + ls_Path));
+        mk_WebView_->setZoomFactor(1.0);
+    }
+    else
+    {
+        mk_WebView_->setHtml("");
+        mk_WebView_->setZoomFactor(1.0);
+    }
+}
+
+
+void k_ScriptBox::zoomWebView(int ai_Delta)
+{
+    if (mk_WebView_)
+    {
+        double ld_Factor = mk_WebView_->zoomFactor();
+        ld_Factor *= pow(1.1, (double)ai_Delta / 120.0);
+        if (ld_Factor < 0.1)
+            ld_Factor = 0.1;
+        if (ld_Factor > 10.0)
+            ld_Factor = 10.0;
+        mk_WebView_->setZoomFactor(ld_Factor);
     }
 }
 
@@ -1001,9 +1064,28 @@ void k_ScriptBox::setupLayout()
     lk_VLayout_->setContentsMargins(11, 11, 11, 11);
     
 
+    
     // only do this if there are output files for this script!
     if (!((mk_pScript->type() == r_ScriptType::Processor) && mk_pScript->outputFileKeys().empty()))
     {
+        mk_OutputFileViewerContainer_ = new QWidget(this);
+        QBoxLayout* lk_OutputHLayout_ = new QHBoxLayout(NULL);
+        QBoxLayout* lk_OutputVLayout_ = new QVBoxLayout(mk_OutputFileViewerContainer_);
+        mk_OutputFileChooser_ = new QComboBox(this);
+        connect(mk_OutputFileChooser_, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleOutputFileChooser(int)));
+        lk_OutputHLayout_->addWidget(mk_OutputFileChooser_);
+        QToolButton* lk_RefreshButton_ = new QToolButton(this);
+        lk_RefreshButton_->setIcon(QIcon(":icons/view-refresh.png"));
+        lk_OutputHLayout_->addWidget(lk_RefreshButton_);
+        connect(lk_RefreshButton_, SIGNAL(clicked()), this, SLOT(refreshOutputFileView()));
+        mk_WebView_ = new k_ZoomableWebView(this);
+        mk_WebView_->setHtml("");
+        mk_TabWidget_->addTab(mk_OutputFileViewerContainer_, "Output files");
+        lk_OutputVLayout_->addLayout(lk_OutputHLayout_);
+        lk_OutputVLayout_->addWidget(mk_WebView_);
+        mk_WebView_->show();
+        connect(mk_WebView_, SIGNAL(zoom(int)), this, SLOT(zoomWebView(int)));
+        
         // buttons
         lk_HLayout_ = new QHBoxLayout();
         lk_VLayout_->addLayout(lk_HLayout_);
@@ -1012,7 +1094,6 @@ void k_ScriptBox::setupLayout()
         
         mk_IterationsTagsDontMatchIcon_ = new QWidget(lk_Container_);
         QBoxLayout* lk_WarningHLayout_ = new QHBoxLayout(mk_IterationsTagsDontMatchIcon_);
-        
         
         QLabel* lk_WarningIcon_ = new QLabel("", mk_IterationsTagsDontMatchIcon_);
         lk_WarningIcon_->setPixmap(QPixmap(":/icons/dialog-warning.png").scaledToHeight(16, Qt::SmoothTransformation));

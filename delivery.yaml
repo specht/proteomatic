@@ -2,7 +2,7 @@ projects:
   - projects/Proteomatic
   #- src/projects/Revelio
 #binaryPath: bin
-qt: [core, gui, network]
+qt: [core, gui, webkit]
 versionInject:
   src/version.cpp: |
     /*

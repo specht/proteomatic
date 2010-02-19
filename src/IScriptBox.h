@@ -36,6 +36,7 @@ struct IScriptBox
     virtual void start(const QString& as_IterationKey) = 0;
     virtual void abort() = 0;
     virtual void showOutputBox(bool ab_Flag = true) = 0;
+    virtual void showOutputFileBox(bool ab_Flag = true) = 0;
     virtual QWidget* paneWidget() = 0;
     virtual bool hasExistingOutputFiles() = 0;
     virtual bool hasExistingOutputFilesForAllIterations() = 0;

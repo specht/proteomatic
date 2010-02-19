@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
-#include <QtNetwork>
 #include "RefPtr.h"
 #include "Yaml.h"
 
