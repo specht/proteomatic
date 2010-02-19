@@ -1,5 +1,5 @@
 projects:
-  - projects/Proteomatic
+  - .
   #- src/projects/Revelio
 #binaryPath: bin
 qt: [core, gui, webkit]
