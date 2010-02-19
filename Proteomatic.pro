@@ -4,7 +4,6 @@ win32 {
 	INCLUDEPATH += c:/Qt/2009.04/mingw/include
 }
 
-
 CONFIG += debug_and_release
 
 macx {
@@ -29,9 +28,7 @@ else {
 	RCC_DIR = obj/release/
 }
 
-win32 {
-    DESTDIR = bin/
-}
+DESTDIR = $$PROTEOMATIC_BIN_PREFIX
 
 QT = core gui webkit
 
@@ -45,13 +42,18 @@ macx {
     LIBPATH += /Users/dimitris/michael/ext/lib
 }
 
+#message($$PROTEOMATIC_BIN_PREFIX)
+
 #LIBS += $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
 LIBS += -lyaml-cpp -lmd5
 
 TARGET = Proteomatic
 macx {
-    TARGET = Proteomatic
-    QMAKE_INFO_PLIST    = Info.plist
+    QMAKE_INFO_PLIST = Info.plist
+}
+
+count(PROTEOMATIC_BIN_PREFIX, 1) {
+    TARGET = ProteomaticCore
 }
 
 include(../base.pro)
@@ -59,7 +61,6 @@ include(../base.pro)
 
 win32 {
     RC_FILE = Proteomatic.rc
-    TARGET = ProteomaticCore
 }
 
 
@@ -93,8 +94,8 @@ isEmpty( DOCDIR ) {
     DOCDIR = $${DATADIR}/doc/packages/proteomatic
 }
 
-message( "Installation directory" )
-message( $$PREFIX )
+#message( "Installation directory" )
+#message( $$PREFIX )
 
 
 support.files = src/icons/proteomatic-pipeline.png
