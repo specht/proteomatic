@@ -26,6 +26,9 @@ class k_PipelineMainWindow: public QMainWindow
 {
     Q_OBJECT
 public:
-    k_PipelineMainWindow(QWidget* ak_Parent_);
+    k_PipelineMainWindow(QWidget* ak_Parent_, QApplication& ak_Application);
     virtual ~k_PipelineMainWindow();
+    
+protected:
+    QApplication& mk_Application;
 };

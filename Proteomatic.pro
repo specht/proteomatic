@@ -28,6 +28,7 @@ else {
 	RCC_DIR = obj/release/
 }
 
+QMAKE_CXXFLAGS += -DPROTEOMATIC_BASE_DIR=\\\"$$PROTEOMATIC_BASE_DIR\\\"
 DESTDIR = $$PROTEOMATIC_BIN_PREFIX
 
 QT = core gui webkit
@@ -104,3 +105,4 @@ INSTALLS += support
 
 target.path = $${BINDIR}
 INSTALLS += target
+
