@@ -36,9 +36,9 @@ versionInject:
   debian/changelog: |
     proteomatic (#{VERSION}) unstable; urgency=low
     
-    * no changelog available
+      * no changelog available
     
-    -- Michael Specht <micha.specht@gmail.com>  Fri,  29 Jan 2010 20:00:00 +0200
+     -- Michael Specht <micha.specht@gmail.com>  Fri,  29 Jan 2010 20:00:00 +0200
     
 externals: [helper]
 specialAddScripts: 0.3.29
