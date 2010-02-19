@@ -1,3 +1,9 @@
+# versions:
+#   Linux .deb package (dynamically linked to Qt), no update, no binary wrapper
+#   Linux portable application, (dynamically linked) with update
+#   Windows NSIS Installer (including Qt DLLs), with update
+#   Windows portable ZIP package, with update
+#   Mac OS X App Package, with update
 projects:
   - .
   #- src/projects/Revelio
@@ -6,7 +12,7 @@ qt: [core, gui, webkit]
 versionInject:
   src/version.cpp: |
     /*
-    Copyright (c) 2007-2009 Michael Specht
+    Copyright (c) 2007-2010 Michael Specht
     
     This file is part of Proteomatic.
     
@@ -27,6 +33,13 @@ versionInject:
     #include "version.h"
     
     QString gs_ProteomaticVersion = "#{VERSION}";
+  debian/changelog: |
+    proteomatic (#{VERSION}) unstable; urgency=low
+    
+    * no changelog available
+    
+    -- Michael Specht <micha.specht@gmail.com>  Fri,  29 Jan 2010 20:00:00 +0200
+    
 externals: [helper]
 specialAddScripts: 0.3.29
 macAppPackage: true
