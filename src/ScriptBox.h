@@ -134,4 +134,5 @@ protected:
     k_NoSlashValidator mk_NoSlashValidator;
     QComboBox* mk_OutputFileChooser_;
     k_ZoomableWebView* mk_WebView_;
+    QStringList mk_PreviewSuffixes;
 };

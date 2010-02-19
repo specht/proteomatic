@@ -50,6 +50,7 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
     , mk_OutputFileChooser_(NULL)
     , mk_WebView_(NULL)
 {
+    mk_PreviewSuffixes << ".html" << ".xhtml" << ".svg" << ".png" << ".jpg";
     connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
     connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
     connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
@@ -954,16 +955,18 @@ void k_ScriptBox::toggleUi()
 void k_ScriptBox::toggleOutputFileChooser(int ai_Index)
 {
     QString ls_Path = mk_OutputFileChooser_->itemData(ai_Index).toString();
+    bool lb_Ok = false;
     if (QFileInfo(ls_Path).exists())
     {
-        mk_WebView_->setUrl(QUrl("file://" + ls_Path));
-        mk_WebView_->setZoomFactor(1.0);
+        foreach (QString ls_Suffix, mk_PreviewSuffixes)
+            if (ls_Suffix == ls_Path.right(ls_Suffix.length()))
+                lb_Ok = true;
+        if (lb_Ok)
+            mk_WebView_->setUrl(QUrl("file://" + ls_Path));
     }
-    else
-    {
+    if (!lb_Ok)
         mk_WebView_->setHtml("");
-        mk_WebView_->setZoomFactor(1.0);
-    }
+    mk_WebView_->setZoomFactor(1.0);
 }
 
 
