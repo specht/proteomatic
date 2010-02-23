@@ -602,7 +602,7 @@ void k_ScriptBox::showOutputBox(bool ab_Flag/* = true*/)
 
 void k_ScriptBox::showOutputFileBox(bool ab_Flag/* = true*/)
 {
-    mk_TabWidget_->setCurrentWidget(mk_OutputFileViewerContainer_);
+    //mk_TabWidget_->setCurrentWidget(mk_OutputFileViewerContainer_);
 }
 
 
@@ -1071,7 +1071,7 @@ void k_ScriptBox::setupLayout()
     // only do this if there are output files for this script!
     if (!((mk_pScript->type() == r_ScriptType::Processor) && mk_pScript->outputFileKeys().empty()))
     {
-        mk_OutputFileViewerContainer_ = new QWidget(this);
+/*        mk_OutputFileViewerContainer_ = new QWidget(this);
         QBoxLayout* lk_OutputHLayout_ = new QHBoxLayout(NULL);
         QBoxLayout* lk_OutputVLayout_ = new QVBoxLayout(mk_OutputFileViewerContainer_);
         mk_OutputFileChooser_ = new QComboBox(this);
@@ -1087,7 +1087,7 @@ void k_ScriptBox::setupLayout()
         lk_OutputVLayout_->addLayout(lk_OutputHLayout_);
         lk_OutputVLayout_->addWidget(mk_WebView_);
         mk_WebView_->show();
-        connect(mk_WebView_, SIGNAL(zoom(int)), this, SLOT(zoomWebView(int)));
+        connect(mk_WebView_, SIGNAL(zoom(int)), this, SLOT(zoomWebView(int)));*/
         
         // buttons
         lk_HLayout_ = new QHBoxLayout();
