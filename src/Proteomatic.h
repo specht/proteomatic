@@ -43,6 +43,27 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_ANIMATION "animation"
 #define CONFIG_APPEARANCE_SIZE "appearanceSize"
 
+/*
+ we need locations for the following:
+ - APPDATA (cache, helper)
+ - SCRIPTS (scripts)
+ - CONFIG (proteomatic.conf.yaml)
+ 
+ - portable version (with update):
+   ./Proteomatic
+   ./bin/ProteomaticCore
+   ./cache
+   ./helper
+   ./scripts
+   ./proteomatic.conf.yaml
+ - Linux version (without update):
+   /opt/proteomatic/Proteomatic
+   /opt/proteomatic/cache
+   /opt/proteomatic/helper
+   /opt/proteomatic/scripts
+   /opt/proteomatic/proteomatic.conf.yaml
+*/
+
 class k_Desktop;
 class k_PipelineMainWindow;
 

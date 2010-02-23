@@ -4,6 +4,10 @@ win32 {
 	INCLUDEPATH += c:/Qt/2009.04/mingw/include
 }
 
+!isEmpty(PROTEOMATIC_UPDATES_ENABLED) {
+    message("updates enabled!")
+    DEFINES += PROTEOMATIC_UPDATES_ENABLED
+}
 
 CONFIG += debug_and_release
 
@@ -29,10 +33,6 @@ else {
 	RCC_DIR = obj/release/
 }
 
-win32 {
-    DESTDIR = bin/
-}
-
 QT = core gui webkit
 
 INCLUDEPATH += src/ src/dialogs
@@ -54,12 +54,16 @@ macx {
     QMAKE_INFO_PLIST    = Info.plist
 }
 
+!isEmpty(PROTEOMATIC_UPDATES_ENABLED) {
+    DESTDIR = bin/
+    TARGET = ProteomaticCore
+}
+
 include(../base.pro)
 
 
 win32 {
     RC_FILE = Proteomatic.rc
-    TARGET = ProteomaticCore
 }
 
 
@@ -157,10 +161,6 @@ isEmpty( DATADIR ) {
 isEmpty( DOCDIR ) {
     DOCDIR = $${DATADIR}/doc/packages/proteomatic
 }
-
-message( "Installation directory" )
-message( $$PREFIX )
-
 
 support.files = src/icons/proteomatic-pipeline.png
 support.path = $${DATADIR}/proteomatic

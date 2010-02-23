@@ -41,14 +41,12 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
     , mk_MessageBoxParent_(NULL)
     , mk_RemoteMenu_(NULL)
     , ms_RemoteHubStdout("")
-#ifdef linux
-    , ms_ManagedScriptsPath(ak_Application.applicationDirPath() + "/scripts")
-    , ms_ConfigurationPath(ak_Application.applicationDirPath() + "/proteomatic.conf.yaml")
-#else
-    , ms_ManagedScriptsPath(ak_Application.applicationDirPath() + "/../scripts")
-    , ms_ConfigurationPath(ak_Application.applicationDirPath() + "/../proteomatic.conf.yaml")
-#endif
+    , ms_ManagedScriptsPath("scripts")
+    , ms_ConfigurationPath("proteomatic.conf.yaml")
 {
+#ifdef PROTEOMATIC_UPDATES_ENABLED
+    fprintf(stderr, "OY! UPDATES!\n");
+#endif
     mk_StartButton_ = new QToolButton(NULL);
     mk_StartButton_->setIcon(QIcon(":icons/dialog-ok.png"));
     mk_StartButton_->setText("Start");
@@ -61,7 +59,11 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
     mk_FileTrackerLabel_ = new QLabel(NULL);
     mk_FileTrackerIconLabel_->setPixmap(QPixmap(":icons/revelio.png").scaledToHeight(16, Qt::SmoothTransformation));
     
-    QDir::setCurrent(ak_Application.applicationDirPath());
+    QString ls_BasePath = ak_Application.applicationDirPath();
+#ifdef PROTEOMATIC_UPDATES_ENABLED
+    ls_BasePath += "/..";
+#endif
+    QDir::setCurrent(ls_BasePath);
 
     this->loadConfiguration();
 
@@ -134,7 +136,7 @@ void k_Proteomatic::checkForUpdates()
 {
     if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
     {
-        QStringList lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
+        QStringList lk_Arguments = QStringList() << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
         mk_pModalProcess = RefPtr<QProcess>(new QProcess());
         QFileInfo lk_FileInfo(lk_Arguments.first());
         mk_pModalProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
@@ -211,6 +213,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                 lk_CurrentVersions[ls_Package] = ls_Version;
             }
         }
+#ifdef PROTEOMATIC_UPDATES_ENABLED        
         if (lk_CurrentVersions.contains("proteomatic"))
         {
             QString ls_LatestVersion = lk_CurrentVersions["proteomatic"];
@@ -229,12 +232,12 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                         if (!mk_Desktop_->hasUnsavedChanges())
                         {
                             QStringList lk_Arguments;
-                            lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
+                            lk_Arguments = QStringList() << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             if (lk_RubyWindow.exec())
                             {
                                 // purge cache
-                                QStringList lk_CacheFiles = QDir("../cache").entryList(QDir::Files);
+                                QStringList lk_CacheFiles = QDir("cache").entryList(QDir::Files);
                                 foreach (QString ls_Path, lk_CacheFiles)
                                     QFile(ls_Path).remove();
                                 
@@ -250,6 +253,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                 }
             }
         }
+#endif
         if (lk_CurrentVersions.contains("scripts"))
         {
             QString ls_LatestVersion = lk_CurrentVersions["scripts"];
@@ -272,12 +276,12 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                                 QDir().mkpath(ms_ManagedScriptsPath);
                             
                             QStringList lk_Arguments;
-                            lk_Arguments = QStringList() << QDir::currentPath() + "/../helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
+                            lk_Arguments = QStringList() << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             lk_RubyWindow.exec();
                             
                             // purge cache
-                            QStringList lk_CacheFiles = QDir("../cache").entryList(QDir::Files);
+                            QStringList lk_CacheFiles = QDir("cache").entryList(QDir::Files);
                             foreach (QString ls_Path, lk_CacheFiles)
                                 QFile(ls_Path).remove();
 
@@ -627,12 +631,12 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists("cache")))
             {
                 QDir lk_Dir;
-                lk_Dir.mkdir("../cache");
+                lk_Dir.mkdir("cache");
             }
 
             QFileInfo lk_FileInfo(ls_Path);
             QString ls_Response;
-            QString ls_CacheFilename = QString("../cache/%1.%2.info").arg(lk_FileInfo.fileName()).arg(md5ForString(ls_Path));
+            QString ls_CacheFilename = QString("cache/%1.%2.info").arg(lk_FileInfo.fileName()).arg(md5ForString(ls_Path));
             bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
             
             if (lb_UseCache)
