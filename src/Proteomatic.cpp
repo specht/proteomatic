@@ -44,9 +44,6 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
     , ms_ManagedScriptsPath("scripts")
     , ms_ConfigurationPath("proteomatic.conf.yaml")
 {
-#ifdef PROTEOMATIC_UPDATES_ENABLED
-    fprintf(stderr, "OY! UPDATES!\n");
-#endif
     mk_StartButton_ = new QToolButton(NULL);
     mk_StartButton_->setIcon(QIcon(":icons/dialog-ok.png"));
     mk_StartButton_->setText("Start");
