@@ -113,7 +113,6 @@ void k_OutFileListBox::setBatchMode(bool ab_Enabled)
     k_DesktopBox::setBatchMode(ab_Enabled);
     if (mk_BatchModeButton.isChecked() != ab_Enabled)
         mk_BatchModeButton.setChecked(ab_Enabled);
-    emit changed();
     mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -198,7 +197,6 @@ void k_OutFileListBox::update()
     }
     
     mk_Desktop_->setHasUnsavedChanges(true);
-    emit changed();
     toggleUi();
 }
 

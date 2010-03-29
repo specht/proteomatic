@@ -26,12 +26,15 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 struct IDesktopBox
 {
     virtual ~IDesktopBox() {};
-    
+
+    virtual int topologicalIndex() const = 0;
+    virtual void updateTopologicalIndex() = 0;
     virtual bool batchMode() const = 0;
     virtual bool protectedFromUserDeletion() const = 0;
     virtual void setProtectedFromUserDeletion(bool ab_Flag) = 0;
     virtual QSet<IDesktopBox*> incomingBoxes() const = 0;
     virtual QSet<IDesktopBox*> outgoingBoxes() const = 0;
+    virtual void update() = 0;
     
     // slots
     virtual void setBatchMode(bool ab_Enabled) = 0;
@@ -45,11 +48,10 @@ struct IDesktopBox
     virtual QRectF rect() = 0;
     
     // signals
-    virtual void changed() = 0;
-    virtual void batchModeChanged(bool) = 0;
     virtual void moved(QPoint ak_Delta) = 0;
     virtual void resized() = 0;
     virtual void clicked(QMouseEvent* event) = 0;
     virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming) = 0;
     virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming) = 0;
+    virtual void requestGlobalUpdate() = 0;
 };

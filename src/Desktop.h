@@ -83,6 +83,8 @@ signals:
     virtual void selectionChanged();
     
 protected slots:
+    virtual void markBoxForUpdate();
+    virtual void globalUpdate();
     virtual void boxMovedOrResized(QPoint ak_Delta = QPoint());
     virtual void boxClicked(QMouseEvent* event);
     virtual void arrowPressed();
@@ -199,4 +201,5 @@ protected:
     QGraphicsPathItem* mk_LassoGraphicsPathItem_;
     QCursor mk_LassoCursor;
     QFileSystemWatcher mk_FileSystemWatcher;
+    QSet<IDesktopBox*> mk_BoxesMarkedForUpdate;
 };

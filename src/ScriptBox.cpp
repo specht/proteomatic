@@ -50,6 +50,8 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
     , mk_OutputFileChooser_(NULL)
     , mk_WebView_(NULL)
 {
+    connect(&mk_SignalMapper, SIGNAL(mapped(int)), this, SLOT(signalMapperMapped(int)), Qt::QueuedConnection);
+    
     mk_PreviewSuffixes << ".html" << ".xhtml" << ".svg" << ".png" << ".jpg";
     connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
     connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
@@ -935,7 +937,6 @@ void k_ScriptBox::update()
     }
 
     toggleUi();
-    emit changed();
 }
 
 
@@ -981,6 +982,16 @@ void k_ScriptBox::zoomWebView(int ai_Delta)
         if (ld_Factor > 10.0)
             ld_Factor = 10.0;
         mk_WebView_->setZoomFactor(ld_Factor);
+    }
+}
+
+
+void k_ScriptBox::signalMapperMapped(int ai_Id)
+{
+    if (ai_Id == r_BoxProperty::Filenames)
+    {
+        printf("filenames invalidated!\n");
+        emit requestGlobalUpdate();
     }
 }
 
@@ -1130,7 +1141,8 @@ void k_ScriptBox::setupLayout()
         mk_Prefix.setValidator(&mk_NoSlashValidator);
         lk_HLayout_->addWidget(&mk_Prefix);
         connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
-        connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(update()));
+        mk_SignalMapper.setMapping(&mk_Prefix, r_BoxProperty::Filenames);
+        connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), &mk_SignalMapper, SLOT(map()));
 
         QToolButton* lk_ClearPrefixButton_ = new QToolButton(this);
         lk_ClearPrefixButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Michael Specht
+Copyright (c) 2007-2010 Michael Specht
 
 This file is part of Proteomatic.
 
@@ -28,6 +28,7 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
     : QWidget(NULL)
     , mk_Desktop_(ak_Parent_)
     , mk_Proteomatic(ak_Proteomatic)
+    , mi_TopologicalIndex(0)
     , mb_ResizableX(ab_ResizableX)
     , mb_ResizableY(ab_ResizableY)
     , mk_ResizeGripPixmap(QPixmap(":icons/size-grip.png"))
@@ -44,6 +45,30 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
 
 k_DesktopBox::~k_DesktopBox()
 {
+}
+
+
+int k_DesktopBox::topologicalIndex() const
+{
+    return mi_TopologicalIndex;
+}
+
+
+void k_DesktopBox::updateTopologicalIndex()
+{
+    int li_MaxIncomingIndex = -1;
+    
+    foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+        li_MaxIncomingIndex = std::max<int>(li_MaxIncomingIndex, lk_Box_->topologicalIndex());
+    
+    int li_NewTopologicalIndex = li_MaxIncomingIndex + 1;
+    
+    if (li_NewTopologicalIndex != mi_TopologicalIndex)
+    {
+        mi_TopologicalIndex = li_NewTopologicalIndex;
+        foreach (IDesktopBox* lk_Box_, mk_ConnectedOutgoingBoxes)
+            lk_Box_->updateTopologicalIndex();
+    }
 }
 
 
@@ -93,12 +118,17 @@ QSet<IDesktopBox*> k_DesktopBox::outgoingBoxes() const
 }
 
 
+void k_DesktopBox::update()
+{
+}
+
+
 void k_DesktopBox::setBatchMode(bool ab_Enabled)
 {
     bool lb_OldBatchMode = mb_BatchMode;
     mb_BatchMode = ab_Enabled;
-    if (lb_OldBatchMode != mb_BatchMode)
-        emit batchModeChanged(mb_BatchMode);
+/*    if (lb_OldBatchMode != mb_BatchMode)
+        emit batchModeChanged(mb_BatchMode);*/
     repaint();
 }
 
@@ -111,8 +141,6 @@ void k_DesktopBox::connectIncomingBox(IDesktopBox* ak_Other_)
     mk_ConnectedIncomingBoxes.insert(ak_Other_);
     ak_Other_->connectOutgoingBox(this);
     emit boxConnected(ak_Other_, true);
-    connect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(changed()), this, SLOT(updateSlot()));
-    updateSlot();
 }
 
 
@@ -123,6 +151,7 @@ void k_DesktopBox::connectOutgoingBox(IDesktopBox* ak_Other_)
     
     mk_ConnectedOutgoingBoxes.insert(ak_Other_);
     ak_Other_->connectIncomingBox(this);
+    ak_Other_->updateTopologicalIndex();
     emit boxConnected(ak_Other_, false);
 }
 
@@ -135,8 +164,6 @@ void k_DesktopBox::disconnectIncomingBox(IDesktopBox* ak_Other_)
     mk_ConnectedIncomingBoxes.remove(ak_Other_);
     ak_Other_->disconnectOutgoingBox(this);
     emit boxDisconnected(ak_Other_, true);
-    disconnect(dynamic_cast<QObject*>(ak_Other_), SIGNAL(changed()), this, SLOT(updateSlot()));
-    updateSlot();
 }
 
 
@@ -147,6 +174,7 @@ void k_DesktopBox::disconnectOutgoingBox(IDesktopBox* ak_Other_)
 
     mk_ConnectedOutgoingBoxes.remove(ak_Other_);
     ak_Other_->disconnectIncomingBox(this);
+    ak_Other_->updateTopologicalIndex();
     emit boxDisconnected(ak_Other_, false);
 }
 
@@ -177,6 +205,12 @@ void k_DesktopBox::toggleUi()
 QRectF k_DesktopBox::rect()
 {
     return frameGeometry();
+}
+
+
+void k_DesktopBox::invalidate(r_BoxProperty::Enumeration ae_Property)
+{
+    mk_InvalidProperties.insert(ae_Property);
 }
 
 
@@ -224,12 +258,6 @@ void k_DesktopBox::mousePressEvent(QMouseEvent* event)
         mk_OldSize = this->size();
         event->accept();
     }
-/*  else
-    {
-        mk_Desktop_->moveSelectedBoxesStart(this);
-        mb_Moving = true;
-        mk_OldPosition = this->pos();
-    }*/
     else
         emit clicked(event);
     event->accept();
@@ -246,13 +274,6 @@ void k_DesktopBox::mouseReleaseEvent(QMouseEvent* event)
 
 void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 {
-/*  if (mb_Moving)
-    {
-        QPoint lk_GlobalPos = event->globalPos();
-        QPoint lk_Delta = lk_GlobalPos - mk_MousePressPosition;
-        mk_Desktop_->moveSelectedBoxes(lk_Delta);
-        event->accept();
-    }*/
     if (mb_Resizing)
     {
         QPoint lk_Delta = event->globalPos() - mk_MousePressPosition;
@@ -263,18 +284,7 @@ void k_DesktopBox::mouseMoveEvent(QMouseEvent* event)
 }
 
 
-void k_DesktopBox::update()
-{
-}
-
-
 void k_DesktopBox::compactSize()
 {
     resize(mb_ResizableX ? width() : minimumWidth(), mb_ResizableY ? height() : minimumHeight());
-}
-
-
-void k_DesktopBox::updateSlot()
-{
-    this->update();
 }

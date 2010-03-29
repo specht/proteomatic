@@ -100,6 +100,4 @@ void k_InputGroupProxyBox::update()
         }
     }
     setBatchMode(lb_BatchMode);
-    
-    emit changed();
 }

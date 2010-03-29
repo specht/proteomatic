@@ -269,6 +269,11 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
 void k_Desktop::addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox, bool ab_AutoAdjust)
 {
     k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
+    
+    // connect requestGlobalUpdate() and globalUpdate() via a queued connection
+    connect(dynamic_cast<QObject*>(ak_Box_), SIGNAL(requestGlobalUpdate()), this, SLOT(globalUpdate()), Qt::QueuedConnection);
+    connect(dynamic_cast<QObject*>(ak_Box_), SIGNAL(requestGlobalUpdate()), this, SLOT(markBoxForUpdate()), Qt::DirectConnection);
+    
     QRectF lk_BoundingRect = mk_GraphicsScene.itemsBoundingRect();
     k_ClickableGraphicsProxyWidget* lk_ProxyWidget_ = new k_ClickableGraphicsProxyWidget();
     lk_ProxyWidget_->setWidget(lk_DesktopBox_);
@@ -311,6 +316,9 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
     mk_DeleteBoxStackSet.insert(ak_Box_);
 
     IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(ak_Box_);
+
+    disconnect(dynamic_cast<QObject*>(ak_Box_), SIGNAL(requestGlobalUpdate()), this, SLOT(globalUpdate()));
+    disconnect(dynamic_cast<QObject*>(ak_Box_), SIGNAL(requestGlobalUpdate()), this, SLOT(markBoxForUpdate()));
     
     // explicitely delete incoming input group proxy boxes if this is a script box
     if (lk_ScriptBox_)
@@ -1081,6 +1089,39 @@ void k_Desktop::updatePanMode()
         setDragMode(QGraphicsView::NoDrag);
         setCursor(mk_LassoCursor);
     }
+}
+
+
+void k_Desktop::markBoxForUpdate()
+{
+    IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
+    if (lk_Box_)
+    {
+        printf("marking box for update: %p\n", lk_Box_);
+        mk_BoxesMarkedForUpdate.insert(lk_Box_);
+    }
+}
+
+
+void k_Desktop::globalUpdate()
+{
+    // return immediately if nothing to update
+    if (mk_BoxesMarkedForUpdate.empty())
+        return;
+    
+    printf("performing global update!\n");
+    
+    QMultiMap<int, IDesktopBox*> lk_BoxesByTopologicalIndex;
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        lk_BoxesByTopologicalIndex.insert(lk_Box_->topologicalIndex(), lk_Box_);
+    
+    QMultiMap<int, IDesktopBox*>::const_iterator lk_Iter = lk_BoxesByTopologicalIndex.constBegin();
+    for (; lk_Iter != lk_BoxesByTopologicalIndex.constEnd(); ++lk_Iter)
+    {
+        printf("[%d] %p\n", lk_Iter.key(), lk_Iter.value());
+    }
+    
+    printf("global update finished.\n");
 }
 
 

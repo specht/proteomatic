@@ -85,6 +85,7 @@ protected slots:
     virtual void toggleUi();
     virtual void toggleOutputFileChooser(int ai_Index);
     virtual void zoomWebView(int ai_Delta);
+    virtual void signalMapperMapped(int ai_Id);
     
 signals:
     virtual void scriptStarted();
@@ -98,6 +99,8 @@ protected:
     virtual void dragMoveEvent(QDragMoveEvent* event);
     virtual void dropEvent(QDropEvent* event);
     virtual Qt::DropActions supportedDropActions() const;
+    
+    QSignalMapper mk_SignalMapper;
     
     RefPtr<IScript> mk_pScript;
     RefPtr<QWidget> mk_pParameterProxyWidget;
