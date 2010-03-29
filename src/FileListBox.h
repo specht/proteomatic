@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "IFileBox.h"
 #include "IDesktopBox.h"
+#include "IScriptBox.h"
 #include "DesktopBox.h"
 #include "FileList.h"
 #include "ClickableLabel.h"
@@ -34,34 +35,46 @@ class k_FileListBox: public k_DesktopBox, public IFileBox
 {
     Q_OBJECT
 public:
-    k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+    k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, bool ab_ManualFileListChangesAllowed);
     virtual ~k_FileListBox();
 
+    virtual void setKey(QString as_Key);
+    virtual void setLabel(QString as_Label);
+    
     virtual QStringList filenames() const;  
     virtual QString tagForFilename(const QString& as_Filename) const;
     virtual QStringList filenamesForTag(const QString& as_Tag) const;
     virtual QString prefixWithoutTags() const;
+    virtual void setListMode(bool ab_Enabled);
+    virtual bool listMode() const;
     virtual void addPath(const QString& as_Path);
     virtual void addPaths(const QStringList& ak_Paths);
+    virtual void update();
+    virtual void setPreviousScriptBox(IScriptBox* ak_ScriptBox_);
     
 public slots:
     virtual void setBatchMode(bool ab_Enabled);
+    virtual void invalidate(r_BoxProperty::Enumeration ae_Property);
     
 signals:
     virtual void arrowPressed();
     virtual void arrowReleased();
-    virtual void changed();
     
 protected slots:
     virtual void addFilesButtonClicked();
     virtual void toggleUi();
-    virtual void update();
+    virtual void filenameDoubleClicked();
+    virtual void showContextMenu();
     virtual void arrowPressedSlot();
     virtual void arrowReleasedSlot();
     
 protected:
     virtual void setupLayout();
     
+    bool mb_ManualFileListChangesAllowed;
+    bool mb_ListMode;
+    QString ms_Key;
+    QString ms_Label;
     k_FileList mk_FileList;
     k_UnclickableLabel mk_Label;
     int mi_MinHeight;
@@ -71,7 +84,12 @@ protected:
     QHash<QString, QString> mk_TagForFilename;
     QHash<QString, QStringList> mk_FilenamesForTag;
     QString ms_PrefixWithoutTags;
+    QMenu mk_PopupMenu;
+    QAction* mk_OpenFileAction_;
+    QAction* mk_OpenContainingFolderAction_;
     QPixmap mk_InactiveArrow;
     QPixmap mk_ActiveArrow;
     k_ClickableLabel mk_ArrowLabel;
+    k_ClickableLabel mk_FileName;
+    IScriptBox* mk_PreviousScriptBox_;
 };

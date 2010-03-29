@@ -23,6 +23,25 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 
 
+/*
+  Filenames
+    OutputPrefix
+    OutputDirectory
+*/
+
+struct r_BoxProperty
+{
+    enum Enumeration
+    {
+        Filenames = 0,
+        BatchMode,
+        Parameters,
+        FilenameTags,
+        ListMode
+    };
+};
+
+
 struct IDesktopBox
 {
     virtual ~IDesktopBox() {};
@@ -35,6 +54,7 @@ struct IDesktopBox
     virtual QSet<IDesktopBox*> incomingBoxes() const = 0;
     virtual QSet<IDesktopBox*> outgoingBoxes() const = 0;
     virtual void update() = 0;
+    virtual QSet<r_BoxProperty::Enumeration> invalidProperties() const = 0;
     
     // slots
     virtual void setBatchMode(bool ab_Enabled) = 0;
@@ -46,6 +66,8 @@ struct IDesktopBox
     virtual void setResizable(bool ab_EnabledX, bool ab_EnabledY) = 0;
     virtual void toggleUi() = 0;
     virtual QRectF rect() = 0;
+    virtual void invalidate(r_BoxProperty::Enumeration ae_Property) = 0;
+    virtual void invalidateAllOutgoingBoxes(r_BoxProperty::Enumeration ae_Property) = 0;
     
     // signals
     virtual void moved(QPoint ak_Delta) = 0;

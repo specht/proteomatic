@@ -1,0 +1,49 @@
+Box types
+=========
+
+FLB  - FileListBox
+SB   - ScriptBox
+IGPB - InputGroupProxyBox
+
+Possible connections
+====================
+
+FLB -> (IGPB) -> SB -> ... (repeat) ...
+
+FileListBox
+===========
+
+two types:
+----------
+
+input file lists:
+  - files must be added/removed manually
+  - determine filename tags, pass them downstream
+
+output file lists:
+  - there is one script box parent
+  - filenames and filename tags are inherited from the script box
+
+properties:
+  - batch mode
+  - file list
+
+changes:
+  - batch mode changed:
+    - invalidate outgoing script box batch mode
+    - invalidate own filename tags if in batch mode
+    - invalidate desktop batch mode (to redraw batch frame)
+  - file list changed:
+    - invalidate outgoing boxes filenames
+    - invalidate own filename tags if in batch mode
+
+ScriptBox
+=========
+
+properties:
+  - output prefix
+  - output directory
+  - parameters
+
+changes:
+  - 

@@ -23,7 +23,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesktopBoxFactory.h"
 #include "FileListBox.h"
 #include "HintLineEdit.h"
-#include "OutFileListBox.h"
 #include "PipelineMainWindow.h"
 #include "ScriptFactory.h"
 #include "Tango.h"
@@ -50,7 +49,7 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
     , mk_OutputFileChooser_(NULL)
     , mk_WebView_(NULL)
 {
-    connect(&mk_SignalMapper, SIGNAL(mapped(int)), this, SLOT(signalMapperMapped(int)), Qt::QueuedConnection);
+    connect(&mk_SignalMapper, SIGNAL(mapped(int)), this, SLOT(signalMapperMapped(int)));
     
     mk_PreviewSuffixes << ".html" << ".xhtml" << ".svg" << ".png" << ".jpg";
     connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
@@ -257,11 +256,13 @@ void k_ScriptBox::outputFileActionToggled()
         IDesktopBox* lk_Box_ = 
         k_DesktopBoxFactory::makeOutFileListBox(
             mk_Desktop_, mk_Proteomatic, ls_Key,
-            mk_pScript->outputFileDetails(ls_Key)["label"], false);
+            mk_pScript->outputFileDetails(ls_Key)["label"]);
         dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
+        dynamic_cast<k_FileListBox*>(lk_Box_)->setPreviousScriptBox(this);
         mk_OutputFileBoxes[ls_Key] = lk_Box_;
         mk_Desktop_->addBox(lk_Box_, false);
         mk_Desktop_->connectBoxes(this, lk_Box_);
+        lk_Box_->invalidate(r_BoxProperty::Filenames);
     }
     else
     {
@@ -273,7 +274,7 @@ void k_ScriptBox::outputFileActionToggled()
             mk_OutputFileBoxes.remove(ls_Key);
         }
     }
-    update();
+    invalidate(r_BoxProperty::Filenames);
     mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -469,7 +470,8 @@ void k_ScriptBox::clearPrefixButtonClicked()
 {
     mk_Prefix.setText(QString());
     mk_Desktop_->setHasUnsavedChanges(true);
-    update();
+    invalidate(r_BoxProperty::Filenames);
+    //update();
 }
 
 
@@ -477,7 +479,8 @@ void k_ScriptBox::clearOutputDirectoryButtonClicked()
 {
     mk_OutputDirectory.setText(QString());
     mk_Desktop_->setHasUnsavedChanges(true);
-    update();
+    invalidate(r_BoxProperty::Filenames);
+    //update();
 }
 
 
@@ -596,6 +599,19 @@ void k_ScriptBox::refreshOutputFileView()
 }
 
 
+void k_ScriptBox::invalidate(r_BoxProperty::Enumeration ae_Property)
+{
+    k_DesktopBox::invalidate(ae_Property);
+    if (ae_Property == r_BoxProperty::BatchMode)
+        invalidateAllOutgoingBoxes(r_BoxProperty::ListMode);
+    foreach (IDesktopBox* lk_Box_, mk_ConnectedOutgoingBoxes)
+    {
+        if (lk_Box_->batchMode())
+            lk_Box_->invalidate(r_BoxProperty::BatchMode);
+    }
+}
+
+
 void k_ScriptBox::showOutputBox(bool ab_Flag/* = true*/)
 {
     mk_TabWidget_->setCurrentWidget(mk_OutputBoxContainer_);
@@ -612,7 +628,8 @@ void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 {
     if (mk_pScript->type() == r_ScriptType::Converter)
         if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
-            update();
+            invalidate(r_BoxProperty::Parameters);
+            //update();
     mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -656,36 +673,40 @@ void k_ScriptBox::outputBoxIterationKeyChooserChanged()
 
 void k_ScriptBox::update()
 {
-    // ----------------------------------------------
-    // UPDATE BATCH MODE
-    // ----------------------------------------------
-    
-    // batch mode this box if at least one incoming box is in batch mode
-    bool lb_BatchMode = false;
     IFileBox* lk_FirstBatchFileBox_ = NULL;
-    // converter scripts never go into batch mode! 
-    // in converter script, batch mode goes into you!!
-    int li_InputBatchCount = 0;
-    if (mk_pScript->type() != r_ScriptType::Converter)
+    
+    if (mk_InvalidProperties.contains(r_BoxProperty::BatchMode))
     {
-        foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+        // ----------------------------------------------
+        // UPDATE BATCH MODE
+        // ----------------------------------------------
+        
+        // batch mode this box if at least one incoming box is in batch mode
+        bool lb_BatchMode = false;
+        // converter scripts never go into batch mode! 
+        // in converter script, batch mode goes into you!!
+        int li_InputBatchCount = 0;
+        if (mk_pScript->type() != r_ScriptType::Converter)
         {
-            if (lk_Box_->batchMode())
+            foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
             {
-                if (!lk_FirstBatchFileBox_)
-                    lk_FirstBatchFileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-                lb_BatchMode = true;
-                ++li_InputBatchCount;
-                if (li_InputBatchCount > 1)
-                    break;
+                if (lk_Box_->batchMode())
+                {
+                    if (!lk_FirstBatchFileBox_)
+                        lk_FirstBatchFileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+                    lb_BatchMode = true;
+                    ++li_InputBatchCount;
+                    if (li_InputBatchCount > 1)
+                        break;
+                }
             }
         }
+        mb_MultipleInputBatches = li_InputBatchCount > 1;
+        setBatchMode(lb_BatchMode);
+        if (mb_MultipleInputBatches)
+            mk_UseShortTagsCheckBox_->setChecked(true);
     }
-    mb_MultipleInputBatches = li_InputBatchCount > 1;
-    setBatchMode(lb_BatchMode);
-    if (mb_MultipleInputBatches)
-        mk_UseShortTagsCheckBox_->setChecked(true);
-    
+        
     // ----------------------------------------------
     // UPDATE BATCH MODE ITERATION TAGS
     // ----------------------------------------------
@@ -937,7 +958,9 @@ void k_ScriptBox::update()
     }
 
     toggleUi();
+    mk_InvalidProperties.clear();
 }
+
 
 
 void k_ScriptBox::toggleUi()
@@ -990,8 +1013,9 @@ void k_ScriptBox::signalMapperMapped(int ai_Id)
 {
     if (ai_Id == r_BoxProperty::Filenames)
     {
-        printf("filenames invalidated!\n");
-        emit requestGlobalUpdate();
+//         printf("filenames invalidated!\n");
+        invalidate(r_BoxProperty::Filenames);
+        invalidateAllOutgoingBoxes(r_BoxProperty::Filenames);
     }
 }
 
@@ -1142,6 +1166,7 @@ void k_ScriptBox::setupLayout()
         lk_HLayout_->addWidget(&mk_Prefix);
         connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
         mk_SignalMapper.setMapping(&mk_Prefix, r_BoxProperty::Filenames);
+        mk_SignalMapper.setMapping(&mk_OutputDirectory, r_BoxProperty::Filenames);
         connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), &mk_SignalMapper, SLOT(map()));
 
         QToolButton* lk_ClearPrefixButton_ = new QToolButton(this);
@@ -1166,7 +1191,7 @@ void k_ScriptBox::setupLayout()
         mk_OutputDirectory.setReadOnly(true);
         mk_OutputDirectory.setMinimumWidth(120);
         lk_HLayout_->addWidget(&mk_OutputDirectory);
-        connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(update()));
+        connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), &mk_SignalMapper, SLOT(map()));
 
         QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(this);
         lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
@@ -1218,14 +1243,14 @@ void k_ScriptBox::setupLayout()
                 ls_Label = mk_pScript->info()["converterLabel"];
             ms_ConverterFilenamePattern = mk_pScript->info()["converterFilename"];
             IDesktopBox* lk_Box_ = 
-                k_DesktopBoxFactory::makeOutFileListBox(mk_Desktop_, mk_Proteomatic, ls_Key, ls_Label, false);
+                k_DesktopBoxFactory::makeOutFileListBox(mk_Desktop_, mk_Proteomatic, ls_Key, ls_Label);
             lk_Box_->setProtectedFromUserDeletion(true);
             dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
             mk_OutputFileBoxes[ls_Key] = lk_Box_;
             mk_Desktop_->addBox(lk_Box_, false);
             mk_Desktop_->connectBoxes(this, lk_Box_);
             // make the output file box of a converter script a list
-            dynamic_cast<k_OutFileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
+            dynamic_cast<k_FileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());
             
             // make dummy invisible checkbox
             QCheckBox* lk_CheckBox_ = new QCheckBox("dummy", lk_Container_);

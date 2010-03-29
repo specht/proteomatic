@@ -22,7 +22,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScriptFactory.h"
 #include "ScriptBox.h"
 #include "FileListBox.h"
-#include "OutFileListBox.h"
 #include "Script.h"
 
 
@@ -42,7 +41,7 @@ IDesktopBox*
 k_DesktopBoxFactory::makeFileListBox(k_Desktop* ak_Parent_, 
                                       k_Proteomatic& ak_Proteomatic)
 {
-    return new k_FileListBox(ak_Parent_, ak_Proteomatic);
+    return new k_FileListBox(ak_Parent_, ak_Proteomatic, true);
 }
 
 
@@ -50,10 +49,12 @@ IDesktopBox*
 k_DesktopBoxFactory::makeOutFileListBox(k_Desktop* ak_Parent_, 
                                         k_Proteomatic& ak_Proteomatic,
                                         QString as_Key,
-                                        QString as_Label,
-                                        bool ab_ItemsDeleteable)
+                                        QString as_Label)
 {
-    return new k_OutFileListBox(ak_Parent_, ak_Proteomatic, as_Key, as_Label, ab_ItemsDeleteable);
+    k_FileListBox* lk_Box_ = new k_FileListBox(ak_Parent_, ak_Proteomatic, false);
+    lk_Box_->setLabel(as_Label);
+    lk_Box_->setKey(as_Key);
+    return lk_Box_;
 }
 
 

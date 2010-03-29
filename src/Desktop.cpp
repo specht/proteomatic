@@ -27,7 +27,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IScriptBox.h"
 #include "ScriptBox.h"
 #include "PipelineMainWindow.h"
-#include "OutFileListBox.h"
 #include "Tango.h"
 #include "Yaml.h"
 
@@ -53,6 +52,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
     , mb_LassoSelecting(false)
     , mk_LassoCursor(QCursor(QPixmap(":/icons/lasso-cursor.png"), 10, 22))
 {
+    connect(this, SIGNAL(requestGlobalUpdate()), this, SLOT(globalUpdate()), Qt::QueuedConnection);
     connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
     connect(&mk_FileSystemWatcher, SIGNAL(directoryChanged(const QString&)), this, SLOT(refresh()));
     connect(this, SIGNAL(showAllRequested()), this, SLOT(showAll()));
@@ -665,7 +665,6 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     clearAll();
     QHash<QString, IDesktopBox*> lk_BoxForId;
     QSet<k_FileListBox*> lk_BatchModeFileListBoxes;
-    QSet<k_OutFileListBox*> lk_BatchModeOutFileListBoxes;
     QHash<IScriptBox*, bool> lk_ShortIterationTagBoxes;
     QSet<QString> lk_Warnings;
     foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
@@ -726,7 +725,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                         moveBoxTo(lk_OutputBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         if (lk_OutBoxDescription["batchMode"].toString() == "yes" || 
                             lk_OutBoxDescription["batchMode"].toString() == "true")
-                            lk_BatchModeOutFileListBoxes << dynamic_cast<k_OutFileListBox*>(lk_OutputBox_);
+                            lk_BatchModeFileListBoxes << dynamic_cast<k_FileListBox*>(lk_OutputBox_);
                     }
                 }
                 // fix converter out box
@@ -790,7 +789,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     while (true)
     {
         bool lb_AllBatchModeOk = true;
-        foreach (k_OutFileListBox* lk_Box_, lk_BatchModeOutFileListBoxes)
+        foreach (k_FileListBox* lk_Box_, lk_BatchModeFileListBoxes)
         {
             if (!lk_Box_)
                 continue;
@@ -1092,12 +1091,19 @@ void k_Desktop::updatePanMode()
 }
 
 
+void k_Desktop::invalidate(r_BoxProperty::Enumeration ae_Property)
+{
+    mk_InvalidProperties << ae_Property;
+    emit requestGlobalUpdate();
+}
+
+
 void k_Desktop::markBoxForUpdate()
 {
     IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
     if (lk_Box_)
     {
-        printf("marking box for update: %p\n", lk_Box_);
+//         printf("marking box for update: %p\n", lk_Box_);
         mk_BoxesMarkedForUpdate.insert(lk_Box_);
     }
 }
@@ -1106,21 +1112,50 @@ void k_Desktop::markBoxForUpdate()
 void k_Desktop::globalUpdate()
 {
     // return immediately if nothing to update
-    if (mk_BoxesMarkedForUpdate.empty())
+    if (mk_BoxesMarkedForUpdate.empty() && mk_InvalidProperties.empty())
         return;
     
     printf("performing global update!\n");
     
     QMultiMap<int, IDesktopBox*> lk_BoxesByTopologicalIndex;
-    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+    foreach (IDesktopBox* lk_Box_, mk_BoxesMarkedForUpdate)
         lk_BoxesByTopologicalIndex.insert(lk_Box_->topologicalIndex(), lk_Box_);
     
     QMultiMap<int, IDesktopBox*>::const_iterator lk_Iter = lk_BoxesByTopologicalIndex.constBegin();
     for (; lk_Iter != lk_BoxesByTopologicalIndex.constEnd(); ++lk_Iter)
     {
-        printf("[%d] %p\n", lk_Iter.key(), lk_Iter.value());
+        IDesktopBox* lk_Box_ = lk_Iter.value();
+        printf("[%d] updating %p\n", lk_Iter.key(), lk_Iter.value());
+        lk_Box_->update();
     }
     
+    if (mk_InvalidProperties.contains(r_BoxProperty::BatchMode))
+    {
+        printf("updating desktop: batch mode\n");
+        mk_BatchBoxes.clear();
+        foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        {
+            if (lk_Box_->batchMode())
+                mk_BatchBoxes.insert(lk_Box_);
+            else
+                mk_BatchBoxes.remove(lk_Box_);
+        }
+        redrawBatchFrame();
+        
+        // update all arrows... :TODO: only update necessary arrows
+        foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        {
+            foreach (QGraphicsPathItem* lk_Arrow_, mk_ArrowsForBox[lk_Box_])
+                updateArrow(lk_Arrow_);
+        }
+    }
+    
+    mk_BoxesMarkedForUpdate.clear();
+    mk_InvalidProperties.clear();
+
+    mb_HasUnsavedChanges = true;
+    mk_PipelineMainWindow.toggleUi();
+
     printf("global update finished.\n");
 }
 

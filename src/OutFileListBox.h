@@ -57,8 +57,8 @@ signals:
 protected slots:
     virtual void toggleUi();
     virtual void filenameDoubleClicked();
-    virtual void update();
     virtual void showContextMenu();
+    virtual void update();
     virtual void openFile();
     virtual void openContainingDirectory();
     virtual void arrowPressedSlot();

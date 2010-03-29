@@ -69,6 +69,7 @@ public slots:
     virtual void clearOutputDirectoryButtonClicked();
     virtual void addOutput(QString as_String);
     virtual void refreshOutputFileView();
+    virtual void invalidate(r_BoxProperty::Enumeration ae_Property);
     
 protected slots:
     virtual void outputFileActionToggled();

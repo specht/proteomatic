@@ -27,6 +27,8 @@ struct IFileBox
     virtual QString tagForFilename(const QString& as_Filename) const = 0;
     virtual QStringList filenamesForTag(const QString& as_Tag) const = 0;
     virtual QString prefixWithoutTags() const = 0;
+    virtual void setListMode(bool ab_Enabled) = 0;
+    virtual bool listMode() const = 0;
     
     // slots
     

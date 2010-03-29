@@ -123,12 +123,16 @@ void k_DesktopBox::update()
 }
 
 
+QSet<r_BoxProperty::Enumeration> k_DesktopBox::invalidProperties() const
+{
+    return mk_InvalidProperties;
+}
+
+
 void k_DesktopBox::setBatchMode(bool ab_Enabled)
 {
     bool lb_OldBatchMode = mb_BatchMode;
     mb_BatchMode = ab_Enabled;
-/*    if (lb_OldBatchMode != mb_BatchMode)
-        emit batchModeChanged(mb_BatchMode);*/
     repaint();
 }
 
@@ -211,6 +215,14 @@ QRectF k_DesktopBox::rect()
 void k_DesktopBox::invalidate(r_BoxProperty::Enumeration ae_Property)
 {
     mk_InvalidProperties.insert(ae_Property);
+    emit requestGlobalUpdate();
+}
+
+
+void k_DesktopBox::invalidateAllOutgoingBoxes(r_BoxProperty::Enumeration ae_Property)
+{
+    foreach (IDesktopBox* lk_Box_, mk_ConnectedOutgoingBoxes)
+        lk_Box_->invalidate(ae_Property);
 }
 
 

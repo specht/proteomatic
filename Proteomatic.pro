@@ -103,7 +103,6 @@ HEADERS += \
     src/InputGroupProxyBox.h \
     src/IScriptBox.h \
     src/FileListBox.h \
-    src/OutFileListBox.h \
     src/PipelineMainWindow.h \
     src/ScriptBox.h \
     src/ZoomableWebView.h \
@@ -136,7 +135,6 @@ SOURCES += \
     src/DesktopBoxFactory.cpp \
     src/FileListBox.cpp \
     src/InputGroupProxyBox.cpp \
-    src/OutFileListBox.cpp \
     src/PipelineMainWindow.cpp \
     src/ProteomaticPipelineMain.cpp \
     src/ScriptBox.cpp \

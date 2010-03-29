@@ -39,21 +39,6 @@ struct r_ConnectionDirection
 };
 
 
-/*
-  Filenames
-    OutputPrefix
-    OutputDirectory
-*/
-
-struct r_BoxProperty
-{
-    enum Enumeration
-    {
-        Filenames = 0
-    };
-};
-
-
 class k_DesktopBox: public QWidget, public IDesktopBox
 {
     Q_OBJECT
@@ -74,6 +59,7 @@ public:
     virtual QSet<IDesktopBox*> incomingBoxes() const;
     virtual QSet<IDesktopBox*> outgoingBoxes() const;
     virtual void update();
+    virtual QSet<r_BoxProperty::Enumeration> invalidProperties() const;
     
 public slots:
     virtual void setBatchMode(bool ab_Enabled);
@@ -86,6 +72,7 @@ public slots:
     virtual void toggleUi();
     virtual QRectF rect();
     virtual void invalidate(r_BoxProperty::Enumeration ae_Property);
+    virtual void invalidateAllOutgoingBoxes(r_BoxProperty::Enumeration ae_Property);
     
 signals:
     virtual void moved(QPoint ak_Delta);

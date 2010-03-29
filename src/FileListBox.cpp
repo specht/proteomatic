@@ -25,15 +25,22 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "UnclickableLabel.h"
 
 
-k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
+                             bool ab_ManualFileListChangesAllowed)
     : k_DesktopBox(ak_Parent_, ak_Proteomatic, true, true)
-    , mk_FileList(this, true, true)
+    , mb_ManualFileListChangesAllowed(ab_ManualFileListChangesAllowed)
+    , mb_ListMode(ab_ManualFileListChangesAllowed)
+    , ms_Key("")
+    , ms_Label("File list")
+    , mk_FileList(this, ab_ManualFileListChangesAllowed, true)
     , mk_Label("<b>File list</b> (empty)", this)
     , mi_MinHeight(21)
+    , mk_OpenFileAction_(new QAction(QIcon(":icons/document-open.png"), "&Open file", this))
+    , mk_OpenContainingFolderAction_(new QAction(QIcon(":icons/folder.png"), "Open containing &folder", this))
     , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
+    , mk_PreviousScriptBox_(NULL)
 {
-    connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(changed()));
     setupLayout();
     int li_FontHeight = mk_FileList.font().pixelSize();
     if (li_FontHeight == -1)
@@ -47,6 +54,20 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
 
 k_FileListBox::~k_FileListBox()
 {
+}
+
+
+void k_FileListBox::setKey(QString as_Key)
+{
+    ms_Key = as_Key;
+}
+
+
+void k_FileListBox::setLabel(QString as_Label)
+{
+    ms_Label = as_Label;
+    ms_Label[0] = ms_Label[0].toUpper();
+    toggleUi();
 }
 
 
@@ -83,12 +104,25 @@ QString k_FileListBox::prefixWithoutTags() const
 }
 
 
+void k_FileListBox::setListMode(bool ab_Enabled)
+{
+    mb_ListMode = ab_Enabled;
+    if (mb_ManualFileListChangesAllowed)
+        mb_ListMode = true;
+}
+
+
+bool k_FileListBox::listMode() const
+{
+    return mb_ListMode;
+}
+
+
 void k_FileListBox::addPath(const QString& as_Path)
 {
     mk_FileList.addInputFile(as_Path, false);
     mk_FileList.refresh();
     toggleUi();
-    mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -97,7 +131,6 @@ void k_FileListBox::addPaths(const QStringList& ak_Paths)
     mk_FileList.addInputFiles(ak_Paths, false);
     mk_FileList.refresh();
     toggleUi();
-    mk_Desktop_->setHasUnsavedChanges(true);
 }
 
 
@@ -106,8 +139,10 @@ void k_FileListBox::setBatchMode(bool ab_Enabled)
     k_DesktopBox::setBatchMode(ab_Enabled);
     if (mk_BatchModeButton.isChecked() != ab_Enabled)
         mk_BatchModeButton.setChecked(ab_Enabled);
-    mk_Desktop_->setHasUnsavedChanges(true);
-    update();
+    invalidateAllOutgoingBoxes(r_BoxProperty::BatchMode);
+    mk_Desktop_->invalidate(r_BoxProperty::BatchMode);
+    if (mb_ManualFileListChangesAllowed && batchMode())
+        invalidate(r_BoxProperty::FilenameTags);
 }
 
 
@@ -128,31 +163,108 @@ void k_FileListBox::addFilesButtonClicked()
 
 void k_FileListBox::toggleUi()
 {
+    if (mb_ManualFileListChangesAllowed)
+        mb_ListMode = true;
+    
+    setResizable(mb_ListMode, mb_ListMode);
+    mk_FileName.setVisible((!mb_ListMode) && (mk_FileList.fileCount() > 0));
+    mk_FileList.setVisible(mb_ListMode);
+    mk_FileList.refresh();
+    
+    mk_BatchModeButton.setVisible(mb_ListMode);
     mk_RemoveSelectionButton.setEnabled(!mk_FileList.selectedItems().empty());
     QString ls_Label;
-    if (batchMode())
-        ls_Label = "<b>File batch</b>";
+    if (ms_Label.isEmpty())
+    {
+        if (batchMode())
+            ls_Label = "<b>File batch</b>";
+        else
+            ls_Label = "<b>File list</b>";
+    }
     else
-        ls_Label = "<b>File list</b>";
-    if (mk_FileList.fileCount() == 0)
-        ls_Label += QString(" (empty)");
-    else if (mk_FileList.fileCount() == 1)
-        ls_Label += QString(" (1 file)");
-    else
-        ls_Label += QString(" (%1 files)").arg(mk_FileList.fileCount());
+        ls_Label = "<b>" + ms_Label + "</b>";
+
+    if (mb_ManualFileListChangesAllowed)
+    {
+        if (mk_FileList.fileCount() == 0)
+            ls_Label += QString(" (empty)");
+        else if (mk_FileList.fileCount() == 1)
+            ls_Label += QString(" (1 file)");
+        else
+            ls_Label += QString(" (%1 files)").arg(mk_FileList.fileCount());
+    }
     mk_Label.setText(ls_Label);
     mk_FileList.refresh();
+    if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
+    {
+        QString ls_Path = mk_FileList.files().first();
+        setToolTip(ls_Path);
+        QFontMetrics lk_FontMetrics(mk_FileName.font());
+        QString ls_PrintPath = QFileInfo(ls_Path).fileName();
+        if (lk_FontMetrics.boundingRect(ls_Path).width() > 300)
+            ls_PrintPath = lk_FontMetrics.elidedText(ls_PrintPath, Qt::ElideLeft, 300);
+        if (QFileInfo(ls_Path).exists())
+            mk_FileName.setText(QString("<span style='color: %1'>").arg(TANGO_SKY_BLUE_2) + ls_PrintPath + "</span>");
+        else
+            mk_FileName.setText(QString("<span style='color: %1'>").arg(TANGO_ALUMINIUM_3) + ls_PrintPath + "</span>");
+    }
+
+}
+
+
+void k_FileListBox::filenameDoubleClicked()
+{
+    QString ls_Path = filenames().first();
+    if (QFileInfo(ls_Path).exists())
+        k_Proteomatic::openFileLink(ls_Path);
+}
+
+
+void k_FileListBox::showContextMenu()
+{
+    QString ls_Path = mk_FileList.files().first();
+    mk_OpenFileAction_->setEnabled(QFileInfo(ls_Path).exists());
+    ls_Path = QFileInfo(ls_Path).absolutePath();
+    mk_OpenContainingFolderAction_->setEnabled(QFileInfo(ls_Path).isDir());
+    mk_PopupMenu.exec(QCursor::pos());
+}
+
+
+void k_FileListBox::invalidate(r_BoxProperty::Enumeration ae_Property)
+{
+    k_DesktopBox::invalidate(ae_Property);
+    if (ae_Property == r_BoxProperty::BatchMode)
+    {
+        invalidateAllOutgoingBoxes(r_BoxProperty::BatchMode);
+        invalidate(r_BoxProperty::ListMode);
+    }
 }
 
 
 void k_FileListBox::update()
 {
+    if (!mb_ManualFileListChangesAllowed)
+    {
+        if (mk_InvalidProperties.contains(r_BoxProperty::Filenames))
+        {
+            mk_FileList.resetAll(false);
+            mk_FileList.addInputFiles(mk_PreviousScriptBox_->outputFilesForKey(ms_Key));
+        }
+        
+        if (mk_InvalidProperties.contains(r_BoxProperty::ListMode))
+            setListMode(dynamic_cast<IDesktopBox*>(mk_PreviousScriptBox_)->batchMode());
+        
+        if (mk_InvalidProperties.contains(r_BoxProperty::BatchMode))
+        {
+            if (!batchMode())
+                setListMode(false);
+        }
+    }
     // ----------------------------------
     // UPDATE ITERATION TAGS
     // ----------------------------------
     
     mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
-    // :TODO: attention, code duplication here (OutFileListBox.cpp)
     
     // build tag => filename hash
     mk_FilenamesForTag.clear();
@@ -165,8 +277,14 @@ void k_FileListBox::update()
     }
     
     mk_Desktop_->setHasUnsavedChanges(true);
-    emit changed();
+    mk_InvalidProperties.clear();
     toggleUi();
+}
+
+
+void k_FileListBox::setPreviousScriptBox(IScriptBox* ak_ScriptBox_)
+{
+    mk_PreviousScriptBox_ = ak_ScriptBox_;
 }
 
 
@@ -177,6 +295,11 @@ void k_FileListBox::setupLayout()
     
     connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_FileList, SLOT(setEnabled(bool)));
 
+    mk_PopupMenu.addAction(mk_OpenFileAction_);
+    mk_PopupMenu.addAction(mk_OpenContainingFolderAction_);
+    connect(mk_OpenFileAction_, SIGNAL(triggered()), this, SLOT(openFile()));
+    connect(mk_OpenContainingFolderAction_, SIGNAL(triggered()), this, SLOT(openContainingDirectory()));
+    
     lk_VLayout_ = new QVBoxLayout(this);
     lk_VLayout_->setContentsMargins(11, 11, 11, 11);
     
@@ -186,14 +309,17 @@ void k_FileListBox::setupLayout()
     lk_HLayout_->addStretch();
     
     // horizontal add/remove buttons
-    mk_AddFilesButton.setIcon(QIcon(":icons/folder.png"));
-    connect(&mk_AddFilesButton, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
-    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_AddFilesButton, SLOT(setEnabled(bool)));
-    lk_HLayout_->addWidget(&mk_AddFilesButton);
-    mk_RemoveSelectionButton.setIcon(QIcon(":icons/list-remove.png"));
-    lk_HLayout_->addWidget(&mk_RemoveSelectionButton);
-    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_RemoveSelectionButton, SLOT(setEnabled(bool)));
-    connect(&mk_RemoveSelectionButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
+    if (mb_ManualFileListChangesAllowed)
+    {
+        mk_AddFilesButton.setIcon(QIcon(":icons/folder.png"));
+        connect(&mk_AddFilesButton, SIGNAL(clicked()), this, SLOT(addFilesButtonClicked()));
+        connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_AddFilesButton, SLOT(setEnabled(bool)));
+        lk_HLayout_->addWidget(&mk_AddFilesButton);
+        mk_RemoveSelectionButton.setIcon(QIcon(":icons/list-remove.png"));
+        lk_HLayout_->addWidget(&mk_RemoveSelectionButton);
+        connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_RemoveSelectionButton, SLOT(setEnabled(bool)));
+        connect(&mk_RemoveSelectionButton, SIGNAL(clicked()), &mk_FileList, SLOT(removeSelection()));
+    }
     
     mk_BatchModeButton.setIcon(QIcon(":icons/cycle.png"));
     mk_BatchModeButton.setCheckable(true);
@@ -205,7 +331,9 @@ void k_FileListBox::setupLayout()
     lk_HLayout_ = new QHBoxLayout();
     lk_HLayout_->addWidget(&mk_FileList);
     connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
-    connect(&mk_FileList, SIGNAL(changed()), this, SLOT(update()));
+    connect(&mk_FileList, SIGNAL(changed()), this, SLOT(invalidate(r_BoxProperty::Filenames)));
+    
+    lk_HLayout_->addWidget(&mk_FileName);
     
     QBoxLayout* lk_VSubLayout_ = new QVBoxLayout();
     lk_HLayout_->addLayout(lk_VSubLayout_);
@@ -221,7 +349,12 @@ void k_FileListBox::setupLayout()
     connect(&mk_ArrowLabel, SIGNAL(released()), this, SIGNAL(arrowReleased()));
     connect(&mk_ArrowLabel, SIGNAL(released()), this, SLOT(arrowReleasedSlot()));
     
+    connect(&mk_FileName, SIGNAL(doubleClicked()), this, SLOT(filenameDoubleClicked()));
+    connect(&mk_FileName, SIGNAL(rightClicked()), this, SLOT(showContextMenu()));
+
+    
     lk_VLayout_->addLayout(lk_HLayout_);
+    
     toggleUi();
     emit resized();
 }
