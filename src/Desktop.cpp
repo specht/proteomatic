@@ -1558,6 +1558,7 @@ void k_Desktop::animationTimeout()
     t = pow(t, 0.3);
     md_Scale = (md_AnimationEndScale - md_AnimationStartScale) * t + md_AnimationStartScale;
     QPointF lk_Center = (mk_AnimationEndCenter - mk_AnimationStartCenter) * t + mk_AnimationStartCenter;
+    printf("%9.4f %9.4f\n", lk_Center.x(), lk_Center.y());
     centerOn(lk_Center);
     QMatrix lk_Matrix = this->matrix();
     lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
@@ -1580,7 +1581,7 @@ void k_Desktop::animateAdjustView(bool ab_ZoomIn, QSet<IDesktopBox*> ak_FocusOn,
     lk_Rect.adjust(-lf_SceneMargin, -lf_SceneMargin, lf_SceneMargin, lf_SceneMargin);
     
     // if everything's visible: return
-    QRectF lk_ViewRect(mapToScene(QPoint(0, 0)), mapToScene(QPoint(frameRect().width(), frameRect().height())));
+    QRectF lk_ViewRect(mapToScene(QPoint(0.0, 0.0)), mapToScene(QPoint(frameRect().width() - 2, frameRect().height() - 2)));
     if ((!ab_ZoomIn) && lk_ViewRect.contains(lk_Rect))
         return;
 
