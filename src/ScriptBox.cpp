@@ -49,8 +49,6 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
     , mk_OutputFileChooser_(NULL)
     , mk_WebView_(NULL)
 {
-    connect(&mk_SignalMapper, SIGNAL(mapped(int)), this, SLOT(signalMapperMapped(int)));
-    
     mk_PreviewSuffixes << ".html" << ".xhtml" << ".svg" << ".png" << ".jpg";
     connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
     connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
@@ -261,7 +259,9 @@ void k_ScriptBox::outputFileActionToggled()
         mk_OutputFileBoxes[ls_Key] = lk_Box_;
         mk_Desktop_->addBox(lk_Box_, false);
         mk_Desktop_->connectBoxes(this, lk_Box_);
-        lk_Box_->invalidate(r_BoxProperty::Filenames);
+        QPoint lk_BoxPosition = pos() + QPoint(width() / 2, height() + 80);
+        dynamic_cast<k_DesktopBox*>(lk_Box_)->move(lk_BoxPosition - QPoint(dynamic_cast<k_DesktopBox*>(lk_Box_)->width() / 2, dynamic_cast<k_DesktopBox*>(lk_Box_)->height() / 2));
+        lk_Box_->invalidate();
     }
     else
     {
@@ -273,7 +273,7 @@ void k_ScriptBox::outputFileActionToggled()
             mk_OutputFileBoxes.remove(ls_Key);
         }
     }
-    invalidate(r_BoxProperty::Filenames);
+    invalidate();
     mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -469,8 +469,7 @@ void k_ScriptBox::clearPrefixButtonClicked()
 {
     mk_Prefix.setText(QString());
     mk_Desktop_->setHasUnsavedChanges(true);
-    invalidate(r_BoxProperty::Filenames);
-    //update();
+    invalidate();
 }
 
 
@@ -478,8 +477,7 @@ void k_ScriptBox::clearOutputDirectoryButtonClicked()
 {
     mk_OutputDirectory.setText(QString());
     mk_Desktop_->setHasUnsavedChanges(true);
-    invalidate(r_BoxProperty::Filenames);
-    //update();
+    invalidate();
 }
 
 
@@ -598,15 +596,10 @@ void k_ScriptBox::refreshOutputFileView()
 }
 
 
-void k_ScriptBox::invalidate(r_BoxProperty::Enumeration ae_Property)
+void k_ScriptBox::invalidate()
 {
-    k_DesktopBox::invalidate(ae_Property);
-    if (ae_Property == r_BoxProperty::BatchMode)
-    {
-        invalidateAllOutgoingBoxes(r_BoxProperty::ListMode);
-        if (batchMode())
-            invalidateAllOutgoingBoxes(r_BoxProperty::BatchMode);
-    }
+    k_DesktopBox::invalidate();
+    invalidateNext();
 }
 
 
@@ -626,8 +619,7 @@ void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 {
     if (mk_pScript->type() == r_ScriptType::Converter)
         if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
-            invalidate(r_BoxProperty::Parameters);
-            //update();
+            invalidate();
     mk_Desktop_->setHasUnsavedChanges(true);
 }
 
@@ -673,38 +665,35 @@ void k_ScriptBox::update()
 {
     IFileBox* lk_FirstBatchFileBox_ = NULL;
     
-    if (mk_InvalidProperties.contains(r_BoxProperty::BatchMode))
+    // ----------------------------------------------
+    // UPDATE BATCH MODE
+    // ----------------------------------------------
+    
+    // batch mode this box if at least one incoming box is in batch mode
+    bool lb_BatchMode = false;
+    // converter scripts never go into batch mode! 
+    // in converter script, batch mode goes into you!!
+    int li_InputBatchCount = 0;
+    if (mk_pScript->type() != r_ScriptType::Converter)
     {
-        // ----------------------------------------------
-        // UPDATE BATCH MODE
-        // ----------------------------------------------
-        
-        // batch mode this box if at least one incoming box is in batch mode
-        bool lb_BatchMode = false;
-        // converter scripts never go into batch mode! 
-        // in converter script, batch mode goes into you!!
-        int li_InputBatchCount = 0;
-        if (mk_pScript->type() != r_ScriptType::Converter)
+        foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
         {
-            foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+            if (lk_Box_->batchMode())
             {
-                if (lk_Box_->batchMode())
-                {
-                    if (!lk_FirstBatchFileBox_)
-                        lk_FirstBatchFileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-                    lb_BatchMode = true;
-                    ++li_InputBatchCount;
-                    if (li_InputBatchCount > 1)
-                        break;
-                }
+                if (!lk_FirstBatchFileBox_)
+                    lk_FirstBatchFileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+                lb_BatchMode = true;
+                ++li_InputBatchCount;
+                if (li_InputBatchCount > 1)
+                    break;
             }
         }
-        mb_MultipleInputBatches = li_InputBatchCount > 1;
-        setBatchMode(lb_BatchMode);
-        if (mb_MultipleInputBatches)
-            mk_UseShortTagsCheckBox_->setChecked(true);
     }
-        
+    mb_MultipleInputBatches = li_InputBatchCount > 1;
+    setBatchMode(lb_BatchMode);
+    if (mb_MultipleInputBatches)
+        mk_UseShortTagsCheckBox_->setChecked(true);
+    
     // ----------------------------------------------
     // UPDATE BATCH MODE ITERATION TAGS
     // ----------------------------------------------
@@ -762,6 +751,52 @@ void k_ScriptBox::update()
         qSort(mk_IterationTags.begin(), mk_IterationTags.end());
     }
     
+    // ------------------------------------------------
+    // UPDATE ITERATION TAG DROP-DOWN BOX
+    // ------------------------------------------------
+
+    mk_OutputBoxIterationKeyChooserContainer_->setVisible(batchMode());
+    QStringList lk_IterationKeys = iterationKeys();
+    
+    QStringList lk_Items;
+    for (int i = 0; i < mk_OutputBoxIterationKeyChooser_->count(); ++i)
+        lk_Items << mk_OutputBoxIterationKeyChooser_->itemText(i);
+    
+    // insert all new iteration keys
+    foreach (QString ls_Key, lk_IterationKeys)
+    {
+        if (!lk_Items.contains(ls_Key))
+            lk_Items << ls_Key;
+    }
+    
+    qSort(lk_Items.begin(), lk_Items.end());
+
+    QString ls_CurrentText = mk_OutputBoxIterationKeyChooser_->currentText();
+    mk_OutputBoxIterationKeyChooser_->clear();
+    foreach (QString ls_Key, lk_Items)
+    {
+        mk_OutputBoxIterationKeyChooser_->addItem(ls_Key);
+        if (!mk_Output.contains(ls_Key))
+            mk_Output[ls_Key] = RefPtr<k_ConsoleString>(new k_ConsoleString());
+        if (ls_Key == ls_CurrentText)
+            mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->count() - 1);
+    }
+
+    // remove all old iteration keys
+    QList<int> lk_DeleteIndices;
+    for (int i = 0; i < mk_OutputBoxIterationKeyChooser_->count(); ++i)
+    {
+        QString ls_Key = mk_OutputBoxIterationKeyChooser_->itemText(i);
+        if (!lk_IterationKeys.contains(ls_Key))
+            lk_DeleteIndices << i;
+    }
+    for (int i = lk_DeleteIndices.size() - 1; i >= 0; --i)
+    {
+        QString ls_Key = mk_OutputBoxIterationKeyChooser_->itemText(lk_DeleteIndices[i]);
+        mk_OutputBoxIterationKeyChooser_->removeItem(lk_DeleteIndices[i]);
+        mk_Output.remove(ls_Key);
+    }
+
     // ----------------------------------------------
     // UPDATE INPUT FILENAMES
     // ----------------------------------------------
@@ -800,7 +835,6 @@ void k_ScriptBox::update()
             }
         }
     }
-    
     
     // ----------------------------------------------
     // UPDATE OUTPUT DIRECTORY
@@ -909,54 +943,7 @@ void k_ScriptBox::update()
         }
     }
     
-    // ------------------------------------------------
-    // UPDATE ITERATION TAG DROP-DOWN BOX
-    // ------------------------------------------------
-
-    mk_OutputBoxIterationKeyChooserContainer_->setVisible(batchMode());
-    QStringList lk_IterationKeys = iterationKeys();
-    
-    QStringList lk_Items;
-    for (int i = 0; i < mk_OutputBoxIterationKeyChooser_->count(); ++i)
-        lk_Items << mk_OutputBoxIterationKeyChooser_->itemText(i);
-    
-    // insert all new iteration keys
-    foreach (QString ls_Key, lk_IterationKeys)
-    {
-        if (!lk_Items.contains(ls_Key))
-            lk_Items << ls_Key;
-    }
-    
-    qSort(lk_Items.begin(), lk_Items.end());
-
-    QString ls_CurrentText = mk_OutputBoxIterationKeyChooser_->currentText();
-    mk_OutputBoxIterationKeyChooser_->clear();
-    foreach (QString ls_Key, lk_Items)
-    {
-        mk_OutputBoxIterationKeyChooser_->addItem(ls_Key);
-        if (!mk_Output.contains(ls_Key))
-            mk_Output[ls_Key] = RefPtr<k_ConsoleString>(new k_ConsoleString());
-        if (ls_Key == ls_CurrentText)
-            mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->count() - 1);
-    }
-
-    // remove all old iteration keys
-    QList<int> lk_DeleteIndices;
-    for (int i = 0; i < mk_OutputBoxIterationKeyChooser_->count(); ++i)
-    {
-        QString ls_Key = mk_OutputBoxIterationKeyChooser_->itemText(i);
-        if (!lk_IterationKeys.contains(ls_Key))
-            lk_DeleteIndices << i;
-    }
-    for (int i = lk_DeleteIndices.size() - 1; i >= 0; --i)
-    {
-        QString ls_Key = mk_OutputBoxIterationKeyChooser_->itemText(lk_DeleteIndices[i]);
-        mk_OutputBoxIterationKeyChooser_->removeItem(lk_DeleteIndices[i]);
-        mk_Output.remove(ls_Key);
-    }
-
     toggleUi();
-    mk_InvalidProperties.clear();
 }
 
 
@@ -1007,14 +994,10 @@ void k_ScriptBox::zoomWebView(int ai_Delta)
 }
 
 
-void k_ScriptBox::signalMapperMapped(int ai_Id)
+void k_ScriptBox::outputFilenameDetailsChanged()
 {
-    if (ai_Id == r_BoxProperty::Filenames)
-    {
-//         printf("filenames invalidated!\n");
-        invalidate(r_BoxProperty::Filenames);
-        invalidateAllOutgoingBoxes(r_BoxProperty::Filenames);
-    }
+    invalidate();
+    invalidateNext(1);
 }
 
 
@@ -1163,9 +1146,7 @@ void k_ScriptBox::setupLayout()
         mk_Prefix.setValidator(&mk_NoSlashValidator);
         lk_HLayout_->addWidget(&mk_Prefix);
         connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
-        mk_SignalMapper.setMapping(&mk_Prefix, r_BoxProperty::Filenames);
-        mk_SignalMapper.setMapping(&mk_OutputDirectory, r_BoxProperty::Filenames);
-        connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), &mk_SignalMapper, SLOT(map()));
+        connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(outputFilenameDetailsChanged()));
 
         QToolButton* lk_ClearPrefixButton_ = new QToolButton(this);
         lk_ClearPrefixButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
@@ -1189,7 +1170,7 @@ void k_ScriptBox::setupLayout()
         mk_OutputDirectory.setReadOnly(true);
         mk_OutputDirectory.setMinimumWidth(120);
         lk_HLayout_->addWidget(&mk_OutputDirectory);
-        connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), &mk_SignalMapper, SLOT(map()));
+        connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(outputFilenameDetailsChanged()));
 
         QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(this);
         lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
@@ -1213,7 +1194,7 @@ void k_ScriptBox::setupLayout()
         */
 
         mk_UseShortTagsCheckBox_ = new QCheckBox("Use short batch prefixes", lk_Container_);
-        connect(mk_UseShortTagsCheckBox_, SIGNAL(toggled(bool)), this, SLOT(update()));
+        connect(mk_UseShortTagsCheckBox_, SIGNAL(toggled(bool)), this, SLOT(outputFilenameDetailsChanged()));
         lk_VLayout_->addWidget(mk_UseShortTagsCheckBox_);
         mk_UseShortTagsCheckBox_->setChecked(false);
         
@@ -1284,7 +1265,7 @@ void k_ScriptBox::setupLayout()
     }
     
     mk_LastUserAdjustedSize = QSize(0, 0);
-    updateAll();
+    update();
 }
 
 

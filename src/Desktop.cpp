@@ -51,6 +51,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
     , mb_Animating(false)
     , mb_LassoSelecting(false)
     , mk_LassoCursor(QCursor(QPixmap(":/icons/lasso-cursor.png"), 10, 22))
+    , mb_GlobalUpdateRequested(false)
 {
     connect(this, SIGNAL(requestGlobalUpdate()), this, SLOT(globalUpdate()), Qt::QueuedConnection);
     connect(&mk_PipelineMainWindow, SIGNAL(forceRefresh()), this, SLOT(refresh()));
@@ -881,6 +882,13 @@ void k_Desktop::bringBoxToFrontSender()
 }
 
 
+void k_Desktop::invalidate()
+{
+    mb_GlobalUpdateRequested = true;
+    emit requestGlobalUpdate();
+}
+
+
 void k_Desktop::clearAll()
 {
     while (!mk_Boxes.empty())
@@ -1091,13 +1099,6 @@ void k_Desktop::updatePanMode()
 }
 
 
-void k_Desktop::invalidate(r_BoxProperty::Enumeration ae_Property)
-{
-    mk_InvalidProperties << ae_Property;
-    emit requestGlobalUpdate();
-}
-
-
 void k_Desktop::markBoxForUpdate()
 {
     IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
@@ -1112,7 +1113,7 @@ void k_Desktop::markBoxForUpdate()
 void k_Desktop::globalUpdate()
 {
     // return immediately if nothing to update
-    if (mk_BoxesMarkedForUpdate.empty() && mk_InvalidProperties.empty())
+    if (mk_BoxesMarkedForUpdate.empty() && (!mb_GlobalUpdateRequested))
         return;
     
     printf("performing global update!\n");
@@ -1125,20 +1126,13 @@ void k_Desktop::globalUpdate()
     for (; lk_Iter != lk_BoxesByTopologicalIndex.constEnd(); ++lk_Iter)
     {
         IDesktopBox* lk_Box_ = lk_Iter.value();
-        QString ls_Description;
-        foreach (r_BoxProperty::Enumeration le_Property, lk_Box_->invalidProperties())
-        {
-            if (!ls_Description.isEmpty())
-                ls_Description += ", ";
-            ls_Description += QString("%1").arg(le_Property);
-        }
-        printf("[%d] updating %p (%s)\n", lk_Iter.key(), lk_Iter.value(), ls_Description.toStdString().c_str());
+        printf("[%d] updating %p\n", lk_Iter.key(), lk_Iter.value());
         lk_Box_->update();
     }
     
-    if (mk_InvalidProperties.contains(r_BoxProperty::BatchMode))
+    if (mb_GlobalUpdateRequested)
     {
-        printf("updating desktop: batch mode\n");
+        printf("updating desktop\n");
         mk_BatchBoxes.clear();
         foreach (IDesktopBox* lk_Box_, mk_Boxes)
         {
@@ -1158,7 +1152,7 @@ void k_Desktop::globalUpdate()
     }
     
     mk_BoxesMarkedForUpdate.clear();
-    mk_InvalidProperties.clear();
+    mb_GlobalUpdateRequested = false;
 
     mb_HasUnsavedChanges = true;
     mk_PipelineMainWindow.toggleUi();

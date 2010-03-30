@@ -123,20 +123,6 @@ void k_DesktopBox::update()
 }
 
 
-void k_DesktopBox::updateAll()
-{
-    for (int i = 0; i < r_BoxProperty::__size__; ++i)
-        mk_InvalidProperties << (r_BoxProperty::Enumeration)i;
-    update();
-}
-
-
-QSet<r_BoxProperty::Enumeration> k_DesktopBox::invalidProperties() const
-{
-    return mk_InvalidProperties;
-}
-
-
 void k_DesktopBox::setBatchMode(bool ab_Enabled)
 {
     bool lb_OldBatchMode = mb_BatchMode;
@@ -220,17 +206,22 @@ QRectF k_DesktopBox::rect()
 }
 
 
-void k_DesktopBox::invalidate(r_BoxProperty::Enumeration ae_Property)
+void k_DesktopBox::invalidate()
 {
-    mk_InvalidProperties.insert(ae_Property);
     emit requestGlobalUpdate();
 }
 
 
-void k_DesktopBox::invalidateAllOutgoingBoxes(r_BoxProperty::Enumeration ae_Property)
+void k_DesktopBox::invalidateNext(int ai_Distance)
 {
+    if (ai_Distance == 0)
+        return;
+    
     foreach (IDesktopBox* lk_Box_, mk_ConnectedOutgoingBoxes)
-        lk_Box_->invalidate(ae_Property);
+    {
+        lk_Box_->invalidate();
+        lk_Box_->invalidateNext(ai_Distance - 1);
+    }
 }
 
 

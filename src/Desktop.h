@@ -76,7 +76,7 @@ public slots:
     virtual void clearPrefixForAllScripts();
     virtual void proposePrefixForAllScripts();
     virtual void updatePanMode();
-    virtual void invalidate(r_BoxProperty::Enumeration ae_Property);
+    virtual void invalidate();
     
 signals:
     virtual void pipelineIdle(bool);
@@ -205,5 +205,5 @@ protected:
     QFileSystemWatcher mk_FileSystemWatcher;
     QSet<IDesktopBox*> mk_BoxesMarkedForUpdate;
     
-    QSet<r_BoxProperty::Enumeration> mk_InvalidProperties;
+    bool mb_GlobalUpdateRequested;
 };

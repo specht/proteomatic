@@ -29,16 +29,6 @@ class k_Desktop;
 class k_Proteomatic;
 
 
-struct r_ConnectionDirection
-{
-    enum Enumeration
-    {
-        Incoming,
-        Outgoing
-    };
-};
-
-
 class k_DesktopBox: public QWidget, public IDesktopBox
 {
     Q_OBJECT
@@ -59,8 +49,6 @@ public:
     virtual QSet<IDesktopBox*> incomingBoxes() const;
     virtual QSet<IDesktopBox*> outgoingBoxes() const;
     virtual void update();
-    virtual void updateAll();
-    virtual QSet<r_BoxProperty::Enumeration> invalidProperties() const;
     
 public slots:
     virtual void setBatchMode(bool ab_Enabled);
@@ -72,8 +60,8 @@ public slots:
     virtual void setResizable(bool ab_EnabledX, bool ab_EnabledY);
     virtual void toggleUi();
     virtual QRectF rect();
-    virtual void invalidate(r_BoxProperty::Enumeration ae_Property);
-    virtual void invalidateAllOutgoingBoxes(r_BoxProperty::Enumeration ae_Property);
+    virtual void invalidate();
+    virtual void invalidateNext(int ai_Distance = 1);
     
 signals:
     virtual void moved(QPoint ak_Delta);
@@ -109,6 +97,4 @@ protected:
     QPoint mk_MousePressPosition;
     QPoint mk_OldPosition;
     QSize mk_OldSize;
-    
-    QSet<r_BoxProperty::Enumeration> mk_InvalidProperties;
 };

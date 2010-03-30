@@ -30,7 +30,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     : k_DesktopBox(ak_Parent_, ak_Proteomatic, true, true)
     , mb_ListMode(!ak_ScriptBoxParent_)
     , ms_Key("")
-    , ms_Label("File list")
+    , ms_Label("")
     , mk_FileList(this, !ak_ScriptBoxParent_, true)
     , mk_Label("<b>File list</b> (empty)", this)
     , mi_MinHeight(21)
@@ -39,6 +39,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ScriptBoxParent_(ak_ScriptBoxParent_)
+    , mk_LastListModeSize(QSize(300, 125))
 {
     setupLayout();
     int li_FontHeight = mk_FileList.font().pixelSize();
@@ -47,7 +48,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     mi_MinHeight = li_FontHeight + mk_FileList.frameWidth() * 2;
     if (mi_MinHeight < 21)
         mi_MinHeight = 21;
-    updateAll();
+    update();
 }
 
 
@@ -105,9 +106,14 @@ QString k_FileListBox::prefixWithoutTags() const
 
 void k_FileListBox::setListMode(bool ab_Enabled)
 {
+    bool lb_OldListMode = mb_ListMode;
     mb_ListMode = ab_Enabled;
     if (!mk_ScriptBoxParent_)
         mb_ListMode = true;
+    if (lb_OldListMode && (!mb_ListMode))
+        mk_LastListModeSize = size();
+    if ((!lb_OldListMode) && mb_ListMode)
+        resize(mk_LastListModeSize);
 }
 
 
@@ -123,7 +129,7 @@ void k_FileListBox::addPath(const QString& as_Path)
     mk_FileList.refresh();
     toggleUi();
     if ((!mk_ScriptBoxParent_) && batchMode() && (mk_FileList.fileCount() > 0))
-        invalidate(r_BoxProperty::FilenameTags);
+        invalidate();
 }
 
 
@@ -133,7 +139,7 @@ void k_FileListBox::addPaths(const QStringList& ak_Paths)
     mk_FileList.refresh();
     toggleUi();
     if ((!mk_ScriptBoxParent_) && batchMode() && (mk_FileList.fileCount() > 0))
-        invalidate(r_BoxProperty::FilenameTags);
+        invalidate();
 }
 
 
@@ -142,10 +148,12 @@ void k_FileListBox::setBatchMode(bool ab_Enabled)
     k_DesktopBox::setBatchMode(ab_Enabled);
     if (mk_BatchModeButton.isChecked() != ab_Enabled)
         mk_BatchModeButton.setChecked(ab_Enabled);
-    invalidateAllOutgoingBoxes(r_BoxProperty::BatchMode);
-    mk_Desktop_->invalidate(r_BoxProperty::BatchMode);
+    invalidate();
+    invalidateNext(batchMode() ? 2 : 1);
+    mk_Desktop_->invalidate();
     if ((!mk_ScriptBoxParent_) && batchMode() && (mk_FileList.fileCount() > 0))
-        invalidate(r_BoxProperty::FilenameTags);
+        invalidate();
+    toggleUi();
 }
 
 
@@ -187,7 +195,7 @@ void k_FileListBox::toggleUi()
     else
         ls_Label = "<b>" + ms_Label + "</b>";
 
-    if (!mk_ScriptBoxParent_)
+    if (mb_ListMode)
     {
         if (mk_FileList.fileCount() == 0)
             ls_Label += QString(" (empty)");
@@ -233,15 +241,11 @@ void k_FileListBox::showContextMenu()
 }
 
 
-void k_FileListBox::invalidate(r_BoxProperty::Enumeration ae_Property)
+void k_FileListBox::invalidate()
 {
-    k_DesktopBox::invalidate(ae_Property);
-    if (ae_Property == r_BoxProperty::BatchMode)
-    {
-        if (batchMode())
-            invalidateAllOutgoingBoxes(r_BoxProperty::BatchMode);
-        invalidate(r_BoxProperty::ListMode);
-    }
+    k_DesktopBox::invalidate();
+    if (batchMode())
+        invalidateNext(2);
 }
 
 
@@ -249,24 +253,17 @@ void k_FileListBox::update()
 {
     if (mk_ScriptBoxParent_)
     {
-        if (mk_InvalidProperties.contains(r_BoxProperty::Filenames))
-        {
-            mk_FileList.resetAll(false);
-            mk_FileList.addInputFiles(mk_ScriptBoxParent_->outputFilesForKey(ms_Key));
-        }
+        mk_FileList.resetAll(false);
+        mk_FileList.addInputFiles(mk_ScriptBoxParent_->outputFilesForKey(ms_Key));
         
         bool lb_ParentInBatchMode = dynamic_cast<IDesktopBox*>(mk_ScriptBoxParent_)->batchMode();
-        if (mk_InvalidProperties.contains(r_BoxProperty::BatchMode))
+        if (!lb_ParentInBatchMode)
         {
-            if (!lb_ParentInBatchMode)
-            {
-                setListMode(false);
-                setBatchMode(false);
-            }
+            setListMode(false);
+            setBatchMode(false);
         }
-
-        if (mk_InvalidProperties.contains(r_BoxProperty::ListMode))
-            setListMode(lb_ParentInBatchMode);
+        
+        setListMode(lb_ParentInBatchMode);
     }
     // ----------------------------------
     // UPDATE ITERATION TAGS
@@ -285,7 +282,6 @@ void k_FileListBox::update()
     }
     
     mk_Desktop_->setHasUnsavedChanges(true);
-    mk_InvalidProperties.clear();
     toggleUi();
 }
 
@@ -333,7 +329,7 @@ void k_FileListBox::setupLayout()
     lk_HLayout_ = new QHBoxLayout();
     lk_HLayout_->addWidget(&mk_FileList);
     connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
-    connect(&mk_FileList, SIGNAL(changed()), this, SLOT(invalidate(r_BoxProperty::Filenames)));
+    connect(&mk_FileList, SIGNAL(changed()), this, SLOT(fileBoxChanged()));
     
     lk_HLayout_->addWidget(&mk_FileName);
     
@@ -371,4 +367,33 @@ void k_FileListBox::arrowPressedSlot()
 void k_FileListBox::arrowReleasedSlot()
 {
     mk_ArrowLabel.setPixmap(mk_InactiveArrow);
+}
+
+
+void k_FileListBox::openFile()
+{
+    if (mk_FileList.files().empty())
+        return;
+    
+    QString ls_Path = mk_FileList.files().first();
+    if (QFileInfo(ls_Path).exists())
+        k_Proteomatic::openFileLink(ls_Path);
+}
+
+
+void k_FileListBox::openContainingDirectory()
+{
+    if (mk_FileList.files().empty())
+        return;
+    
+    QString ls_Path = mk_FileList.files().first();
+    ls_Path = QFileInfo(ls_Path).absolutePath();
+    if (QFileInfo(ls_Path).isDir())
+        k_Proteomatic::openFileLink(ls_Path);
+}
+
+
+void k_FileListBox::fileBoxChanged()
+{
+    invalidate();
 }

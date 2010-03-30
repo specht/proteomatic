@@ -53,7 +53,7 @@ public:
     
 public slots:
     virtual void setBatchMode(bool ab_Enabled);
-    virtual void invalidate(r_BoxProperty::Enumeration ae_Property);
+    virtual void invalidate();
     
 signals:
     virtual void arrowPressed();
@@ -66,6 +66,9 @@ protected slots:
     virtual void showContextMenu();
     virtual void arrowPressedSlot();
     virtual void arrowReleasedSlot();
+    virtual void openFile();
+    virtual void openContainingDirectory();
+    virtual void fileBoxChanged();
     
 protected:
     virtual void setupLayout();
@@ -90,4 +93,5 @@ protected:
     k_ClickableLabel mk_ArrowLabel;
     k_ClickableLabel mk_FileName;
     IScriptBox* mk_ScriptBoxParent_;
+    QSize mk_LastListModeSize;
 };
