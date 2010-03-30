@@ -159,7 +159,10 @@ void k_FileListBox::setBatchMode(bool ab_Enabled)
 
 void k_FileListBox::addFilesButtonClicked()
 {
-    QStringList lk_Files = QFileDialog::getOpenFileNames(mk_Proteomatic.messageBoxParent(), tr("Add files"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_INPUT_FILES_PATH).toString());
+    QString ls_Path = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_INPUT_FILES_PATH).toString();
+    if (!QFileInfo(ls_Path).isDir())
+        ls_Path = QDir::homePath();
+    QStringList lk_Files = QFileDialog::getOpenFileNames(mk_Proteomatic.messageBoxParent(), tr("Add files"), ls_Path);
     if (!lk_Files.empty())
     {
         mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_INPUT_FILES_PATH] = QFileInfo(lk_Files[0]).absolutePath();

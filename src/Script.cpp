@@ -796,7 +796,11 @@ void k_Script::setOutputDirectoryButtonClicked()
     if (!mk_pOutputDirectory)
         return;
     
-    QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString());
+    QString ls_StartingPath = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString();
+    if (!QFileInfo(ls_StartingPath).isDir())
+        ls_StartingPath = QDir::homePath();
+    
+    QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), ls_StartingPath);
     if (ls_Path.length() > 0)
     {
         this->setOutputDirectory(ls_Path);

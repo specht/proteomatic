@@ -358,7 +358,11 @@ void k_ProfileManager::deleteProfile()
 
 void k_ProfileManager::importProfile()
 {
-    QString ls_Filename = QFileDialog::getOpenFileName(this, "Import profile", mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PROFILE_PATH).toString(), "Proteomatic Profile (*.pp)");
+    QString ls_StartingPath = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PROFILE_PATH).toString();
+    if (!QFileInfo(ls_StartingPath).isDir())
+        ls_StartingPath = QDir::homePath();
+
+    QString ls_Filename = QFileDialog::getOpenFileName(this, "Import profile", ls_StartingPath, "Proteomatic Profile (*.pp)");
     if (!ls_Filename.isEmpty())
     {
         mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_PROFILE_PATH] = QFileInfo(ls_Filename).absolutePath();
@@ -405,7 +409,11 @@ void k_ProfileManager::exportProfile()
     if (mk_SelectedItem_ == NULL)
         return;
     QString ls_Title = mk_SelectedItem_->text();
-    QString ls_Filename = QFileDialog::getSaveFileName(this, "Export profile", mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PROFILE_PATH).toString() + "/" + ls_Title + ".pp", "Proteomatic Profile (*.pp)");
+    QString ls_StartingPath = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PROFILE_PATH).toString();
+    if (!QFileInfo(ls_StartingPath).isDir())
+        ls_StartingPath = QDir::homePath();
+
+    QString ls_Filename = QFileDialog::getSaveFileName(this, "Export profile", ls_StartingPath + "/" + ls_Title + ".pp", "Proteomatic Profile (*.pp)");
     if (ls_Filename != "")
     {
         tk_YamlMap lk_Profile;

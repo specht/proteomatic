@@ -626,7 +626,11 @@ void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 
 void k_ScriptBox::chooseOutputDirectory()
 {
-    QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), mk_OutputDirectory.text().isEmpty()? mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString(): mk_OutputDirectory.text());
+    QString ls_StartingPath = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString();
+    if (!QFileInfo(ls_StartingPath).isDir())
+        ls_StartingPath = QDir::homePath();
+
+    QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), mk_OutputDirectory.text().isEmpty()? ls_StartingPath: mk_OutputDirectory.text());
     if (ls_Path.length() > 0)
     {
         mk_OutputDirectory.setText(ls_Path);
