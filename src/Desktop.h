@@ -91,7 +91,6 @@ protected slots:
     virtual void boxClicked(QMouseEvent* event);
     virtual void arrowPressed();
     virtual void arrowReleased();
-    virtual void boxBatchModeChanged(bool ab_Enabled);
     virtual void updateArrow(QGraphicsPathItem* ak_Arrow_);
     virtual void redrawSelection(bool ab_DontCallOthers = false);
     virtual void deleteSelected();

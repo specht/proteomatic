@@ -606,7 +606,7 @@ QMenu* k_PipelineMainWindow::createPopupMenu()
 
 bool k_PipelineMainWindow::askForSaveIfNecessary()
 {
-    if (mk_Desktop_->hasUnsavedChanges())
+    if (mk_Desktop_->hasUnsavedChanges() && mk_Desktop_->hasBoxes())
     {
         // save discard cancel
         int li_Button = mk_Proteomatic.showMessageBox("Warning", "There are unsaved changes.", ":/icons/dialog-warning.png", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save, QMessageBox::Cancel, "Do you want to save the current pipeline?");

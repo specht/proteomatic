@@ -39,7 +39,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ScriptBoxParent_(ak_ScriptBoxParent_)
-    , mk_LastListModeSize(QSize(300, 125))
+    , mk_LastListModeSize(QSize(270, 120))
 {
     setupLayout();
     int li_FontHeight = mk_FileList.font().pixelSize();
@@ -330,6 +330,7 @@ void k_FileListBox::setupLayout()
     lk_HLayout_->addWidget(&mk_FileList);
     connect(&mk_FileList, SIGNAL(selectionChanged(bool)), this, SLOT(toggleUi()));
     connect(&mk_FileList, SIGNAL(changed()), this, SLOT(fileBoxChanged()));
+    connect(&mk_FileList, SIGNAL(changed()), this, SIGNAL(filenamesChanged()));
     
     lk_HLayout_->addWidget(&mk_FileName);
     

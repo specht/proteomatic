@@ -119,7 +119,7 @@ IDesktopBox* k_Desktop::addInputFileListBox(bool ab_AutoAdjust)
     lk_DesktopBox_->resize(270, 120);
     k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(lk_Box_);
     if (lk_FileListBox_)
-        connect(lk_FileListBox_, SIGNAL(changed()), this, SLOT(updateWatchedDirectories()));
+        connect(lk_FileListBox_, SIGNAL(filenamesChanged()), this, SLOT(updateWatchedDirectories()));
     refresh();
     return lk_DesktopBox_;
 }
@@ -291,7 +291,6 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox, bool ab_AutoAdjus
     connect(lk_DesktopBox_, SIGNAL(moved(QPoint)), this, SLOT(boxMovedOrResized(QPoint)));
     connect(lk_DesktopBox_, SIGNAL(resized()), this, SLOT(boxMovedOrResized()));
     connect(lk_DesktopBox_, SIGNAL(clicked(QMouseEvent*)), this, SLOT(boxClicked(QMouseEvent*)));
-    connect(lk_DesktopBox_, SIGNAL(batchModeChanged(bool)), this, SLOT(boxBatchModeChanged(bool)));
     mk_Boxes.insert(ak_Box_);
     lk_DesktopBox_->resize(1, 1);
     if (ab_PlaceBox)
@@ -314,6 +313,7 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
 
     if (mk_DeleteBoxStackSet.contains(ak_Box_))
         return;
+    
     mk_DeleteBoxStackSet.insert(ak_Box_);
 
     IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(ak_Box_);
@@ -323,12 +323,20 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
     
     // explicitely delete incoming input group proxy boxes if this is a script box
     if (lk_ScriptBox_)
+    {
         foreach (IDesktopBox* lk_Box_, ak_Box_->incomingBoxes())
         {
             k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
             if (lk_ProxyBox_)
                 this->removeBox(lk_ProxyBox_);
         }
+    }
+    else
+    {
+        // assume this is a file box
+        if (ak_Box_->batchMode())
+            ak_Box_->invalidateNext(1);
+    }
     
     foreach (IDesktopBox* lk_Box_, ak_Box_->incomingBoxes())
         disconnectBoxes(lk_Box_, ak_Box_);
@@ -346,7 +354,12 @@ void k_Desktop::removeBox(IDesktopBox* ak_Box_)
     mk_SelectedBoxes.remove(ak_Box_);
     mk_BatchBoxes.remove(ak_Box_);
     if (mk_CurrentScriptBox_ == ak_Box_)
-        setCurrentScriptBox(NULL);
+    {
+        if (mk_BoxForScript.empty())
+            setCurrentScriptBox(NULL);
+        else
+            setCurrentScriptBox(mk_BoxForScript.values().first());
+    }
     
     redrawSelection();
     redrawBatchFrame();
@@ -663,11 +676,22 @@ tk_YamlMap k_Desktop::pipelineDescription()
 
 void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
 {
+    int li_ScriptCount = 0;
+    if (ak_Description.contains("scriptBoxes"))
+        li_ScriptCount = ak_Description["scriptBoxes"].toList().size();
+    
+    QProgressDialog lk_ProgressDialog("Loading pipeline...", "", 0, li_ScriptCount, mk_Proteomatic.messageBoxParent());
+    lk_ProgressDialog.setCancelButton(0);
+    lk_ProgressDialog.setWindowTitle("Proteomatic");
+    lk_ProgressDialog.setWindowIcon(QIcon(":icons/proteomatic.png"));
+    lk_ProgressDialog.setMinimumDuration(2000);
+
     clearAll();
     QHash<QString, IDesktopBox*> lk_BoxForId;
     QSet<k_FileListBox*> lk_BatchModeFileListBoxes;
     QHash<IScriptBox*, bool> lk_ShortIterationTagBoxes;
     QSet<QString> lk_Warnings;
+    int li_Count = 0;
     foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
     {
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
@@ -754,6 +778,8 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                 }
             }
         }
+        ++li_Count;
+        lk_ProgressDialog.setValue(li_Count);
     }
     foreach (QVariant lk_Item, ak_Description["inputFileListBoxes"].toList())
     {
@@ -1116,7 +1142,7 @@ void k_Desktop::globalUpdate()
     if (mk_BoxesMarkedForUpdate.empty() && (!mb_GlobalUpdateRequested))
         return;
     
-    printf("performing global update!\n");
+    mk_BoxesMarkedForUpdate &= mk_Boxes;
     
     QMultiMap<int, IDesktopBox*> lk_BoxesByTopologicalIndex;
     foreach (IDesktopBox* lk_Box_, mk_BoxesMarkedForUpdate)
@@ -1130,9 +1156,9 @@ void k_Desktop::globalUpdate()
         lk_Box_->update();
     }
     
-    if (mb_GlobalUpdateRequested)
+    // always update the desktop
+    //if (mb_GlobalUpdateRequested)
     {
-        printf("updating desktop\n");
         mk_BatchBoxes.clear();
         foreach (IDesktopBox* lk_Box_, mk_Boxes)
         {
@@ -1156,8 +1182,6 @@ void k_Desktop::globalUpdate()
 
     mb_HasUnsavedChanges = true;
     mk_PipelineMainWindow.toggleUi();
-
-    printf("global update finished.\n");
 }
 
 
@@ -1248,25 +1272,6 @@ void k_Desktop::arrowReleased()
         delete mk_UserArrowPathItem_;
         mk_UserArrowPathItem_ = NULL;
     }
-}
-
-
-void k_Desktop::boxBatchModeChanged(bool ab_Enabled)
-{
-    IDesktopBox* lk_Box_ = dynamic_cast<IDesktopBox*>(sender());
-    if (!lk_Box_)
-        return;
-    
-    if (ab_Enabled)
-        mk_BatchBoxes.insert(lk_Box_);
-    else
-        mk_BatchBoxes.remove(lk_Box_);
-    
-    redrawBatchFrame();
-    foreach (QGraphicsPathItem* lk_Arrow_, mk_ArrowsForBox[lk_Box_])
-        updateArrow(lk_Arrow_);
-    mb_HasUnsavedChanges = true;
-    mk_PipelineMainWindow.toggleUi();
 }
 
 

@@ -138,6 +138,7 @@ void k_DesktopBox::connectIncomingBox(IDesktopBox* ak_Other_)
 
     mk_ConnectedIncomingBoxes.insert(ak_Other_);
     ak_Other_->connectOutgoingBox(this);
+    invalidate();
     emit boxConnected(ak_Other_, true);
 }
 
@@ -161,6 +162,7 @@ void k_DesktopBox::disconnectIncomingBox(IDesktopBox* ak_Other_)
     
     mk_ConnectedIncomingBoxes.remove(ak_Other_);
     ak_Other_->disconnectOutgoingBox(this);
+    invalidate();
     emit boxDisconnected(ak_Other_, true);
 }
 

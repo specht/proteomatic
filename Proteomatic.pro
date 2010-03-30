@@ -20,19 +20,6 @@ macx {
 	INCLUDEPATH += '/Users/dimitris/michael/ext/include'
 }
 
-CONFIG(debug, debug|release) {
-	OBJECTS_DIR = obj/debug/
-	MOC_DIR = obj/debug/
-	RCC_DIR = obj/debug/
-	TARGET = $$join(TARGET,,,_debug)
-	DEFINES += DEBUG
-}
-else {
-	OBJECTS_DIR = obj/release/
-	MOC_DIR = obj/release/
-	RCC_DIR = obj/release/
-}
-
 QT = core gui webkit
 
 INCLUDEPATH += src/ src/dialogs
@@ -49,10 +36,25 @@ macx {
 LIBS += -lyaml-cpp -lmd5
 
 TARGET = Proteomatic
+
 macx {
     TARGET = Proteomatic
     QMAKE_INFO_PLIST    = Info.plist
 }
+
+CONFIG(debug, debug|release) {
+    OBJECTS_DIR = obj/debug/
+    MOC_DIR = obj/debug/
+    RCC_DIR = obj/debug/
+    TARGET = $$join(TARGET,,,_debug)
+    DEFINES += DEBUG
+}
+else {
+    OBJECTS_DIR = obj/release/
+    MOC_DIR = obj/release/
+    RCC_DIR = obj/release/
+}
+
 
 !isEmpty(PROTEOMATIC_UPDATES_ENABLED) {
     DESTDIR = bin/

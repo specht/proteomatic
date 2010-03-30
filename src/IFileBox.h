@@ -35,4 +35,5 @@ struct IFileBox
     // signals
     virtual void arrowPressed() = 0;
     virtual void arrowReleased() = 0;
+    virtual void filenamesChanged() = 0;
 };

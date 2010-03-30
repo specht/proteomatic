@@ -58,6 +58,7 @@ public slots:
 signals:
     virtual void arrowPressed();
     virtual void arrowReleased();
+    virtual void filenamesChanged();
     
 protected slots:
     virtual void addFilesButtonClicked();
