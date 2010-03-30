@@ -35,7 +35,7 @@ class k_FileListBox: public k_DesktopBox, public IFileBox
 {
     Q_OBJECT
 public:
-    k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, bool ab_ManualFileListChangesAllowed);
+    k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, IScriptBox* ak_ScriptBoxParent_);
     virtual ~k_FileListBox();
 
     virtual void setKey(QString as_Key);
@@ -50,7 +50,6 @@ public:
     virtual void addPath(const QString& as_Path);
     virtual void addPaths(const QStringList& ak_Paths);
     virtual void update();
-    virtual void setPreviousScriptBox(IScriptBox* ak_ScriptBox_);
     
 public slots:
     virtual void setBatchMode(bool ab_Enabled);
@@ -71,7 +70,6 @@ protected slots:
 protected:
     virtual void setupLayout();
     
-    bool mb_ManualFileListChangesAllowed;
     bool mb_ListMode;
     QString ms_Key;
     QString ms_Label;
@@ -91,5 +89,5 @@ protected:
     QPixmap mk_ActiveArrow;
     k_ClickableLabel mk_ArrowLabel;
     k_ClickableLabel mk_FileName;
-    IScriptBox* mk_PreviousScriptBox_;
+    IScriptBox* mk_ScriptBoxParent_;
 };

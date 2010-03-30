@@ -123,6 +123,14 @@ void k_DesktopBox::update()
 }
 
 
+void k_DesktopBox::updateAll()
+{
+    for (int i = 0; i < r_BoxProperty::__size__; ++i)
+        mk_InvalidProperties << (r_BoxProperty::Enumeration)i;
+    update();
+}
+
+
 QSet<r_BoxProperty::Enumeration> k_DesktopBox::invalidProperties() const
 {
     return mk_InvalidProperties;

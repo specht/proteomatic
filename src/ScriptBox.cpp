@@ -256,9 +256,8 @@ void k_ScriptBox::outputFileActionToggled()
         IDesktopBox* lk_Box_ = 
         k_DesktopBoxFactory::makeOutFileListBox(
             mk_Desktop_, mk_Proteomatic, ls_Key,
-            mk_pScript->outputFileDetails(ls_Key)["label"]);
+            mk_pScript->outputFileDetails(ls_Key)["label"], this);
         dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
-        dynamic_cast<k_FileListBox*>(lk_Box_)->setPreviousScriptBox(this);
         mk_OutputFileBoxes[ls_Key] = lk_Box_;
         mk_Desktop_->addBox(lk_Box_, false);
         mk_Desktop_->connectBoxes(this, lk_Box_);
@@ -603,11 +602,10 @@ void k_ScriptBox::invalidate(r_BoxProperty::Enumeration ae_Property)
 {
     k_DesktopBox::invalidate(ae_Property);
     if (ae_Property == r_BoxProperty::BatchMode)
-        invalidateAllOutgoingBoxes(r_BoxProperty::ListMode);
-    foreach (IDesktopBox* lk_Box_, mk_ConnectedOutgoingBoxes)
     {
-        if (lk_Box_->batchMode())
-            lk_Box_->invalidate(r_BoxProperty::BatchMode);
+        invalidateAllOutgoingBoxes(r_BoxProperty::ListMode);
+        if (batchMode())
+            invalidateAllOutgoingBoxes(r_BoxProperty::BatchMode);
     }
 }
 
@@ -1243,7 +1241,7 @@ void k_ScriptBox::setupLayout()
                 ls_Label = mk_pScript->info()["converterLabel"];
             ms_ConverterFilenamePattern = mk_pScript->info()["converterFilename"];
             IDesktopBox* lk_Box_ = 
-                k_DesktopBoxFactory::makeOutFileListBox(mk_Desktop_, mk_Proteomatic, ls_Key, ls_Label);
+                k_DesktopBoxFactory::makeOutFileListBox(mk_Desktop_, mk_Proteomatic, ls_Key, ls_Label, this);
             lk_Box_->setProtectedFromUserDeletion(true);
             dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
             mk_OutputFileBoxes[ls_Key] = lk_Box_;
@@ -1286,7 +1284,7 @@ void k_ScriptBox::setupLayout()
     }
     
     mk_LastUserAdjustedSize = QSize(0, 0);
-    update();
+    updateAll();
 }
 
 

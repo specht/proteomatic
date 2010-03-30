@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "IDesktopBox.h"
+#include "IScriptBox.h"
 #include <QtCore>
 #include <QtGui>
 #include "RefPtr.h"
@@ -34,6 +35,6 @@ class k_DesktopBoxFactory
 public:
     static IDesktopBox* makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
     static IDesktopBox* makeFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
-    static IDesktopBox* makeOutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Key, QString as_Label);
+    static IDesktopBox* makeOutFileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Key, QString as_Label, IScriptBox* ak_ScriptBoxParent_);
     static IDesktopBox* makeInputGroupProxyBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, QString as_Label, QString as_GroupKey);
 };

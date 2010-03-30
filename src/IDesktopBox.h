@@ -37,7 +37,8 @@ struct r_BoxProperty
         BatchMode,
         Parameters,
         FilenameTags,
-        ListMode
+        ListMode,
+        __size__
     };
 };
 
@@ -54,6 +55,7 @@ struct IDesktopBox
     virtual QSet<IDesktopBox*> incomingBoxes() const = 0;
     virtual QSet<IDesktopBox*> outgoingBoxes() const = 0;
     virtual void update() = 0;
+    virtual void updateAll() = 0;
     virtual QSet<r_BoxProperty::Enumeration> invalidProperties() const = 0;
     
     // slots

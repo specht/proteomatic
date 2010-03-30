@@ -1125,7 +1125,14 @@ void k_Desktop::globalUpdate()
     for (; lk_Iter != lk_BoxesByTopologicalIndex.constEnd(); ++lk_Iter)
     {
         IDesktopBox* lk_Box_ = lk_Iter.value();
-        printf("[%d] updating %p\n", lk_Iter.key(), lk_Iter.value());
+        QString ls_Description;
+        foreach (r_BoxProperty::Enumeration le_Property, lk_Box_->invalidProperties())
+        {
+            if (!ls_Description.isEmpty())
+                ls_Description += ", ";
+            ls_Description += QString("%1").arg(le_Property);
+        }
+        printf("[%d] updating %p (%s)\n", lk_Iter.key(), lk_Iter.value(), ls_Description.toStdString().c_str());
         lk_Box_->update();
     }
     
@@ -1558,7 +1565,6 @@ void k_Desktop::animationTimeout()
     t = pow(t, 0.3);
     md_Scale = (md_AnimationEndScale - md_AnimationStartScale) * t + md_AnimationStartScale;
     QPointF lk_Center = (mk_AnimationEndCenter - mk_AnimationStartCenter) * t + mk_AnimationStartCenter;
-    printf("%9.4f %9.4f\n", lk_Center.x(), lk_Center.y());
     centerOn(lk_Center);
     QMatrix lk_Matrix = this->matrix();
     lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());

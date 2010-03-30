@@ -41,7 +41,7 @@ IDesktopBox*
 k_DesktopBoxFactory::makeFileListBox(k_Desktop* ak_Parent_, 
                                       k_Proteomatic& ak_Proteomatic)
 {
-    return new k_FileListBox(ak_Parent_, ak_Proteomatic, true);
+    return new k_FileListBox(ak_Parent_, ak_Proteomatic, NULL);
 }
 
 
@@ -49,9 +49,10 @@ IDesktopBox*
 k_DesktopBoxFactory::makeOutFileListBox(k_Desktop* ak_Parent_, 
                                         k_Proteomatic& ak_Proteomatic,
                                         QString as_Key,
-                                        QString as_Label)
+                                        QString as_Label,
+                                        IScriptBox* ak_ScriptBoxParent_)
 {
-    k_FileListBox* lk_Box_ = new k_FileListBox(ak_Parent_, ak_Proteomatic, false);
+    k_FileListBox* lk_Box_ = new k_FileListBox(ak_Parent_, ak_Proteomatic, ak_ScriptBoxParent_);
     lk_Box_->setLabel(as_Label);
     lk_Box_->setKey(as_Key);
     return lk_Box_;

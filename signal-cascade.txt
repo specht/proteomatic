@@ -33,8 +33,7 @@ changes:
     - invalidate outgoing script box batch mode
     - invalidate own filename tags if in batch mode
     - invalidate desktop batch mode (to redraw batch frame)
-  - file list changed:
-    - invalidate outgoing boxes filenames
+  - filenames changed:
     - invalidate own filename tags if in batch mode
 
 ScriptBox
@@ -46,4 +45,5 @@ properties:
   - parameters
 
 changes:
-  - 
+  - batch mode invalidated:
+    - invalidate outgoing boxes' batch mode if in batch mode

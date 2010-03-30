@@ -59,6 +59,7 @@ public:
     virtual QSet<IDesktopBox*> incomingBoxes() const;
     virtual QSet<IDesktopBox*> outgoingBoxes() const;
     virtual void update();
+    virtual void updateAll();
     virtual QSet<r_BoxProperty::Enumeration> invalidProperties() const;
     
 public slots:
