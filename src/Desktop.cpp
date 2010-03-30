@@ -549,6 +549,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
 {
     // collect script boxes
     QSet<tk_BoxPair> lk_UnsavedArrows = mk_Arrows.values().toSet();
+    QSet<IDesktopBox*> lk_AlreadySavedFileBoxes;
     
     tk_YamlMap lk_Description;
     tk_YamlSequence lk_ScriptBoxes;
@@ -581,6 +582,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
                 if (lk_ScriptBox_->outputFileActivated(ls_Key))
                 {
                     IDesktopBox* lk_OutputFileBox_ = lk_ScriptBox_->boxForOutputFileKey(ls_Key);
+                    lk_AlreadySavedFileBoxes << lk_OutputFileBox_;
                     tk_YamlMap lk_Map;
                     tk_YamlSequence lk_Coordinates;
                     lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).x());
@@ -598,6 +600,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
             if (lk_ScriptBox_->script()->type() == r_ScriptType::Converter)
             {
                 IDesktopBox* lk_OtherBox_ = lk_Box_->outgoingBoxes().toList().first();
+                lk_AlreadySavedFileBoxes << lk_OtherBox_;
                 tk_YamlSequence lk_Position;
                 lk_Position.push_back(boxLocation(lk_OtherBox_).x());
                 lk_Position.push_back(boxLocation(lk_OtherBox_).y());
@@ -621,6 +624,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
                     lk_Map["id"] = (qint64)lk_ProxyDesktopBox_;
                     lk_InputProxyBoxes[ls_Key] = lk_Map;
                     lk_UnsavedArrows.remove(tk_BoxPair(lk_ProxyBox_, lk_Box_));
+                    lk_AlreadySavedFileBoxes << lk_ProxyBox_;
                 }
             }
             lk_ScriptBoxDescription["inputProxyBoxes"] = lk_InputProxyBoxes;
@@ -635,7 +639,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
     {
         k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(lk_Box_);
-        if (lk_FileListBox_)
+        if (lk_FileListBox_ && (!lk_AlreadySavedFileBoxes.contains(lk_FileListBox_)))
         {
             tk_YamlMap lk_BoxDescription;
             lk_BoxDescription["id"] = (qint64)lk_Box_;
