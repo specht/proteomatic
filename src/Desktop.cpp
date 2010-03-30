@@ -139,6 +139,8 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
         connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptStarted()), this, SLOT(scriptStarted()));
         connect(dynamic_cast<QObject*>(lk_ScriptBox_), SIGNAL(scriptFinished(int)), this, SLOT(scriptFinished(int)));
         mb_Error = false;
+        
+        // add input group proxy boxes
         QSet<QString> lk_InputGroups = lk_ScriptBox_->script()->inputGroupKeys().toSet();
         foreach (QString ls_GroupKey, lk_ScriptBox_->script()->ambiguousInputGroups())
         {
@@ -153,6 +155,7 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
             }
             lk_InputGroups.remove(ls_GroupKey);
         }
+        // ...and add another input group proxy box for remaining files, if necessary
         if (!lk_ScriptBox_->script()->ambiguousInputGroups().empty() && !lk_InputGroups.empty())
         {
             // add another 'remaining files' input proxy box and disallow direct connections to the script box
@@ -978,6 +981,46 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
         return;
     }
     
+    // check whether there are duplicate output files
+    QHash<QString, IDesktopBox*> lk_OutputFilesForFileBox;
+    IDesktopBox* lk_DuplicateOutputFilesBox0_ = NULL;
+    IDesktopBox* lk_DuplicateOutputFilesBox1_ = NULL;
+    QString ls_DuplicatePath;
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+    {
+        IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+        if (lk_FileBox_)
+        {
+            foreach (QString ls_Path, lk_FileBox_->filenames())
+            {
+                if (lk_OutputFilesForFileBox.contains(ls_Path))
+                {
+                    lk_DuplicateOutputFilesBox0_ = lk_OutputFilesForFileBox[ls_Path];
+                    lk_DuplicateOutputFilesBox1_ = lk_Box_;
+                    ls_DuplicatePath = ls_Path;
+                    break;
+                }
+                lk_OutputFilesForFileBox[ls_Path] = lk_Box_;
+            }
+        }
+        if (lk_DuplicateOutputFilesBox0_)
+            break;
+    }
+    
+    if (lk_DuplicateOutputFilesBox0_)
+    {
+        clearSelection();
+        mk_SelectedBoxes << lk_DuplicateOutputFilesBox0_;
+        mk_SelectedBoxes << lk_DuplicateOutputFilesBox1_;
+        
+        redraw();
+        
+        mk_Proteomatic.showMessageBox("Duplicate output filenames", 
+                                      QString("<b>An output filename appears more than once.</b><br />The file boxes containing the offending filenames have been selected.<br />You can solve this problem by specifying a different output directory or prefix for one of the scripts involved."),
+                                      ":/icons/dialog-warning.png");
+        return;
+    }
+    
     // check whether output files are aleady there
     QList<IScriptBox*> lk_ScriptBoxesWithExistingOutputFiles;
     
@@ -1156,7 +1199,7 @@ void k_Desktop::globalUpdate()
     for (; lk_Iter != lk_BoxesByTopologicalIndex.constEnd(); ++lk_Iter)
     {
         IDesktopBox* lk_Box_ = lk_Iter.value();
-        printf("[%d] updating %p\n", lk_Iter.key(), lk_Iter.value());
+//         printf("[%d] updating %p\n", lk_Iter.key(), lk_Iter.value());
         lk_Box_->update();
     }
     

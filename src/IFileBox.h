@@ -19,6 +19,10 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+
+struct IScriptBox;
+
+
 struct IFileBox
 {
     virtual ~IFileBox() {};
@@ -29,6 +33,7 @@ struct IFileBox
     virtual QString prefixWithoutTags() const = 0;
     virtual void setListMode(bool ab_Enabled) = 0;
     virtual bool listMode() const = 0;
+    virtual IScriptBox* scriptBoxParent() const = 0;
     
     // slots
     

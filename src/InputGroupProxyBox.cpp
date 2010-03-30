@@ -51,6 +51,19 @@ QList<IFileBox*> k_InputGroupProxyBox::fileBoxes() const
 }
 
 
+void k_InputGroupProxyBox::invalidate()
+{
+    k_DesktopBox::invalidate();
+    k_DesktopBox::invalidateNext(1);
+}
+
+
+void k_InputGroupProxyBox::invalidateNext(int ai_Distance)
+{
+    k_DesktopBox::invalidateNext(ai_Distance + 1);
+}
+
+
 void k_InputGroupProxyBox::boxConnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming)
 {
     if (ab_Incoming)

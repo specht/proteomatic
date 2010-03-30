@@ -48,6 +48,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     mi_MinHeight = li_FontHeight + mk_FileList.frameWidth() * 2;
     if (mi_MinHeight < 21)
         mi_MinHeight = 21;
+    resize(mk_LastListModeSize);
     update();
 }
 
@@ -110,8 +111,10 @@ void k_FileListBox::setListMode(bool ab_Enabled)
     mb_ListMode = ab_Enabled;
     if (!mk_ScriptBoxParent_)
         mb_ListMode = true;
+    
     if (lb_OldListMode && (!mb_ListMode))
         mk_LastListModeSize = size();
+    
     if ((!lb_OldListMode) && mb_ListMode)
         resize(mk_LastListModeSize);
 }
@@ -120,6 +123,12 @@ void k_FileListBox::setListMode(bool ab_Enabled)
 bool k_FileListBox::listMode() const
 {
     return mb_ListMode;
+}
+
+
+IScriptBox* k_FileListBox::scriptBoxParent() const
+{
+    return mk_ScriptBoxParent_;
 }
 
 
@@ -259,14 +268,20 @@ void k_FileListBox::update()
         mk_FileList.resetAll(false);
         mk_FileList.addInputFiles(mk_ScriptBoxParent_->outputFilesForKey(ms_Key));
         
-        bool lb_ParentInBatchMode = dynamic_cast<IDesktopBox*>(mk_ScriptBoxParent_)->batchMode();
-        if (!lb_ParentInBatchMode)
+        if (mk_ScriptBoxParent_->script()->type() == r_ScriptType::Converter)
         {
-            setListMode(false);
-            setBatchMode(false);
+            setListMode(true);
         }
-        
-        setListMode(lb_ParentInBatchMode);
+        else
+        {
+            bool lb_ParentInBatchMode = dynamic_cast<IDesktopBox*>(mk_ScriptBoxParent_)->batchMode();
+            if (!lb_ParentInBatchMode)
+            {
+                setListMode(false);
+                setBatchMode(false);
+            }
+            setListMode(lb_ParentInBatchMode);
+        }
     }
     // ----------------------------------
     // UPDATE ITERATION TAGS

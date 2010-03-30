@@ -47,6 +47,7 @@ public:
     virtual QString prefixWithoutTags() const;
     virtual void setListMode(bool ab_Enabled);
     virtual bool listMode() const;
+    virtual IScriptBox* scriptBoxParent() const;
     virtual void addPath(const QString& as_Path);
     virtual void addPaths(const QStringList& ak_Paths);
     virtual void update();

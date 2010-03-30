@@ -39,6 +39,10 @@ public:
 
     virtual QList<IFileBox*> fileBoxes() const;
     
+public slots:
+    virtual void invalidate();
+    virtual void invalidateNext(int ai_Distance = 1);
+    
 protected slots:
     virtual void boxConnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
     virtual void boxDisconnectedSlot(IDesktopBox* ak_Other_, bool ab_Incoming);
