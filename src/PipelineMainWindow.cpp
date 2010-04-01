@@ -44,9 +44,13 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     , mk_WordSplitter("\\W+")
 
 {
+}
+
+
+void k_PipelineMainWindow::initialize()
+{
     mk_Proteomatic.setMessageBoxParent(this);
     mk_Proteomatic.setDesktop(mk_Desktop_);
-    mk_Proteomatic.setPipelineMainWindow(this);
     
     connect(mk_Desktop_, SIGNAL(selectionChanged()), this, SLOT(updateStatusBar()));
 
@@ -212,7 +216,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     
     updateStatusBar();
     toggleUi();
-    show();
 }
 
 
@@ -510,11 +513,12 @@ void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
         if (!ls_Title.isEmpty())
             QListWidgetItem* lk_Item_ = new QListWidgetItem(QIcon("src/icons/proteomatic.png"), ls_Title, mk_pSearchPopup.get_Pointer());
     } while (lk_Iter != lk_TargetsSorted.constBegin());
+    
     //mk_pSearchPopup->setWindowModality(Qt::NonModal);
     QWidget* lk_Sender_ = dynamic_cast<QWidget*>(sender());
     if (lk_Sender_)
     {
-        mk_pSearchPopup->move(lk_Sender_->pos() + QPoint(0, lk_Sender_->height()));
+        mk_pSearchPopup->move(mapFromGlobal(lk_Sender_->mapToGlobal(QPoint(0, lk_Sender_->height()))));
         mk_pSearchPopup->resize(250, 100);
         //mk_pSearchPopup->setIconSize(QSize(16, 16));
         mk_pSearchPopup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

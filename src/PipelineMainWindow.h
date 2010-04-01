@@ -32,6 +32,9 @@ class k_PipelineMainWindow: public QMainWindow
 public:
     k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, QApplication& ak_Application);
     virtual ~k_PipelineMainWindow();
+    
+    void initialize();
+    
     //QString outputPrefix();
     virtual void setCurrentScriptBox(IScriptBox* ak_ScriptBox_);
     virtual bool panMode() const;
@@ -45,6 +48,7 @@ public slots:
     void loadPipeline();
     void savePipeline();
     void savePipelineAs();
+    void searchFieldPopup(const QString& as_String);
     void restartProteomatic();
     
 signals:
@@ -68,7 +72,6 @@ protected slots:
     void updateStatusBar();
     void scriptMenuChanged();
     void updateWindowTitle();
-    void searchFieldPopup(const QString& as_String);
 
 protected:
     QApplication& mk_Application;

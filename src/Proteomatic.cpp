@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Proteomatic.h"
 #include "Desktop.h"
+#include "HintLineEdit.h"
 #include "PipelineMainWindow.h"
 #include "RefPtr.h"
 #include "RubyWindow.h"
@@ -34,7 +35,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 
-k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts)
+k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     : mk_Application(ak_Application)
     , mk_Desktop_(NULL)
     , mk_PipelineMainWindow_(NULL)
@@ -43,6 +44,17 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
     , ms_RemoteHubStdout("")
     , ms_ManagedScriptsPath("scripts")
     , ms_ConfigurationPath("proteomatic.conf.yaml")
+{
+}
+
+
+k_Proteomatic::~k_Proteomatic()
+{
+    mk_pSearchWidgetAction = RefPtr<QWidgetAction>(NULL);
+}
+
+
+void k_Proteomatic::initialize()
 {
     mk_StartButton_ = new QToolButton(NULL);
     mk_StartButton_->setIcon(QIcon(":icons/dialog-ok.png"));
@@ -56,7 +68,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
     mk_FileTrackerLabel_ = new QLabel(NULL);
     mk_FileTrackerIconLabel_->setPixmap(QPixmap(":icons/revelio.png").scaledToHeight(16, Qt::SmoothTransformation));
     
-    QString ls_BasePath = ak_Application.applicationDirPath();
+    QString ls_BasePath = mk_Application.applicationDirPath();
 #ifdef PROTEOMATIC_UPDATES_ENABLED
     ls_BasePath += "/..";
 #endif
@@ -80,21 +92,12 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScrip
         }
     }
     
-    if (ab_NeedScripts)
-    {
-        this->checkRuby();
-        
-        collectScriptInfo();
-        createProteomaticScriptsMenu();
-    }
+    this->checkRuby();
+    
+    collectScriptInfo();
+    createProteomaticScriptsMenu();
     
     updateConfigDependentStuff();
-}
-
-
-void k_Proteomatic::setDesktop(k_Desktop* ak_Desktop_)
-{
-    mk_Desktop_ = ak_Desktop_;
 }
 
 
@@ -104,28 +107,9 @@ void k_Proteomatic::setPipelineMainWindow(k_PipelineMainWindow* ak_PipelineMainW
 }
 
 
-k_Proteomatic::~k_Proteomatic()
+void k_Proteomatic::setDesktop(k_Desktop* ak_Desktop_)
 {
-    /*
-    if (mk_RemoteMenu_)
-    {
-        delete mk_RemoteMenu_;
-        mk_RemoteMenu_ = NULL;
-    }
-    */
-        
-    // save configuration
-//  this->saveConfiguration();
-/*  if (mk_pRemoteHubHttp.get_Pointer())
-    {
-        mk_pRemoteHubHttp->abort();
-        mk_pRemoteHubHttp = RefPtr<QHttp>(NULL);
-    }
-    if (mk_pRemoteHubProcess.get_Pointer())
-    {
-        mk_pRemoteHubProcess->kill();
-        mk_pRemoteHubProcess = RefPtr<QProcess>(NULL);
-    }*/
+    mk_Desktop_ = ak_Desktop_;
 }
 
 
@@ -709,7 +693,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                     lk_Script["description"] = ls_Description;
                     lk_Script["uri"] = ls_Path;
                     mk_ScriptInfo.insert(ls_Path, lk_Script);
-                    /*
+                    
                     QStringList lk_Tags = ls_Title.split(lk_WordSplitter, QString::SkipEmptyParts);
                     foreach (QString ls_Tag, lk_Tags)
                     {
@@ -734,7 +718,6 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                             mk_ScriptKeywords[ls_Tag] = QStringList();
                         mk_ScriptKeywords[ls_Tag] << "script/description/" + ls_Path;
                     }
-                    */
                 }
             }
         }
@@ -744,7 +727,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 
 void k_Proteomatic::createProteomaticScriptsMenu()
 {
-    mk_pProteomaticScriptsMenu = RefPtr<QMenu>(NULL);
+    mk_pProteomaticScriptsMenu = RefPtr<QMenu>(new QMenu(mk_PipelineMainWindow_));
     QMenu* lk_Menu_ = new QMenu(NULL);
     QHash<QString, QMenu* > lk_GroupMenus;
     lk_GroupMenus[""] = lk_Menu_;
@@ -805,6 +788,14 @@ void k_Proteomatic::createProteomaticScriptsMenu()
         lk_TargetMenu_->addAction(lk_Action_);
         connect(lk_Action_, SIGNAL(triggered()), this, SLOT(scriptMenuScriptClickedInternal()));
     }
+    
+//     lk_SearchField_->setHint("Search");
+//     mk_pSearchWidgetAction = RefPtr<QWidgetAction>(new QWidgetAction(NULL));
+//     QLineEdit* lk_LineEdit_ = new QLineEdit(NULL);
+//     mk_pSearchWidgetAction->setDefaultWidget(lk_LineEdit_);
+//     connect(lk_LineEdit_, SIGNAL(textEdited(const QString&)), mk_PipelineMainWindow_, SLOT(searchFieldPopup(const QString&)));
+//     lk_Menu_->addSeparator();
+//     lk_Menu_->addAction(mk_pSearchWidgetAction.get_Pointer());
 
 // disable remote scripts as of now!
 //     lk_Menu_->addSeparator();

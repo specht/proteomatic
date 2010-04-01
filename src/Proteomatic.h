@@ -118,11 +118,13 @@ class k_Proteomatic: public QObject
 {
     Q_OBJECT
 public:
-    k_Proteomatic(QCoreApplication& ak_Application, bool ab_NeedScripts = true);
+    k_Proteomatic(QCoreApplication& ak_Application);
     virtual ~k_Proteomatic();
     
-    void setDesktop(k_Desktop* ak_Desktop_);
+    virtual void initialize();
+    
     void setPipelineMainWindow(k_PipelineMainWindow* ak_PipelineMainWindow_);
+    void setDesktop(k_Desktop* ak_Desktop_);
     
     QString interpreterForScript(QString as_Path);
     QString interpreterKeyForScript(QString as_Path);
@@ -254,4 +256,6 @@ protected:
     RefPtr<QProgressDialog> mk_pModalProgressDialog;
     // mb_ModalProcessUserRequested is true if an update button has been clicked
     bool mb_ModalProcessUserRequested;
+    
+    RefPtr<QWidgetAction> mk_pSearchWidgetAction;
 };

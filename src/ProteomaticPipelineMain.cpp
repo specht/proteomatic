@@ -29,8 +29,10 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
     QApplication lk_App(ai_ArgumentCount, ac_Arguments__);
     
     k_Proteomatic lk_Proteomatic(lk_App);
-    
     k_PipelineMainWindow lk_MainWindow(NULL, lk_Proteomatic, lk_App);
+    lk_Proteomatic.setPipelineMainWindow(&lk_MainWindow);
+    lk_Proteomatic.initialize();
+    lk_MainWindow.initialize();
     lk_MainWindow.show();
 
     // check for updates on startup
