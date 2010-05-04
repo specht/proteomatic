@@ -1,0 +1,298 @@
+connections:
+  -
+    - 160949220
+    - 161090172
+  -
+    - 156954196
+    - 157368492
+  -
+    - 159345700
+    - 158720596
+  -
+    - 159698316
+    - 160125308
+  -
+    - 159698316
+    - 159748396
+  -
+    - 160518516
+    - 161129028
+  -
+    - 156954196
+    - 160125308
+  -
+    - 159698316
+    - 161179532
+  -
+    - 158837556
+    - 158721268
+  -
+    - 156009060
+    - 157368492
+inputFileListBoxes:
+  -
+    batchMode: false
+    id: 156009060
+    paths:
+      - /home/michael/data/databases/nr-chlre-Chlre3_1.GeneCatalogProteins.6JUL06.fasta
+      - /home/michael/data/databases/nr-chlre-cp-BK000554.2.fasta
+      - /home/michael/data/databases/nr-chlre-mito-NC_001638.1.fasta
+    position:
+      - -266
+      - -272
+  -
+    batchMode: true
+    id: 156954196
+    paths:
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_01-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_02-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_03-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_04-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_05-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_06-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_07-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_08-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_09-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_10-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_11-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_12-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_13-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_14-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_15-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_16-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_17-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_18-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_19-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_20-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_21-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_22-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_23-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_24-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_25-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_26-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_27-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_28-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_29-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_30-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_31-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_32-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_33-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_34-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_35-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_36-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_37-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_38-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_39-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_40-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_41-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_42-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_43-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_44-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_45-no-ms1.mzML.gz
+      - /home/michael/data/spectra/CPAN1/MT_Hyd_CPAN_040708_46-no-ms1.mzML.gz
+    position:
+      - 159
+      - -267
+scriptBoxes:
+  -
+    activeOutputFiles:
+      outputWriteCroppedPsm:
+        batchMode: false
+        id: 159345700
+        position:
+          - -216
+          - 184
+    id: 158721268
+    inputProxyBoxes: {}
+    outputDirectory: ""
+    outputPrefix: MT_Hyd_CPAN_040708_01-46-no-ms1-omssa-results-
+    parameters:
+      beStrict: true
+      decoyPrefix: __td__decoy_
+      scoreThresholdScope: global
+      targetFpr: 1
+      targetPrefix: __td__target_
+    position:
+      - -97
+      - 98
+    shortIterationTags: false
+    uri: filter-psm-by-fpr.rb
+  -
+    activeOutputFiles:
+      outputWriteQtraceCsv:
+        batchMode: false
+        id: 160518516
+        position:
+          - 452
+          - -104
+    id: 160125308
+    inputProxyBoxes: {}
+    outputDirectory: ""
+    outputPrefix: ""
+    parameters:
+      checkHeavyForbiddenPeaks: false
+      checkLightForbiddenPeaks: true
+      excludeAminoAcids: ""
+      excludeMassAccuracy: 30
+      includeMassAccuracy: 5
+      isotopeCount: 3
+      label: RP
+      maxCharge: 3
+      minCharge: 2
+      minSnr: 2
+      peptides: ""
+      scanType: all
+      searchAllInAll: false
+    position:
+      - 188
+      - -27
+    shortIterationTags: false
+    uri: qtrace.rb
+  -
+    activeOutputFiles:
+      outputWriteProteinGroups:
+        batchMode: false
+        id: 160003092
+        position:
+          - 251
+          - 339
+    id: 159748396
+    inputProxyBoxes: {}
+    outputDirectory: ""
+    outputPrefix: MT_Hyd_CPAN_040708_01-46-no-ms1-omssa-results-filtered-by-fpr-filtered-by-mass-accuracy-
+    parameters: {}
+    position:
+      - 211
+      - 245
+    shortIterationTags: false
+    uri: filter-psm-group-proteins.rb
+  -
+    activeOutputFiles:
+      outputWriteProteinResults:
+        batchMode: false
+        id: 161291852
+        position:
+          - 671
+          - 368
+    id: 161090172
+    inputProxyBoxes: {}
+    outputDirectory: ""
+    outputPrefix: MT_Hyd_CPAN_040708_01-46-no-ms1-qtrace-results-ms2-coupled-
+    parameters: {}
+    position:
+      - 640
+      - 282
+    shortIterationTags: false
+    uri: filter-qe-combine-pbc.rb
+  -
+    activeOutputFiles:
+      outputWriteResultFile:
+        batchMode: false
+        id: 158837556
+        position:
+          - -115
+          - -21
+    id: 157368492
+    inputProxyBoxes: {}
+    outputDirectory: ""
+    outputPrefix: ""
+    parameters:
+      batchSize: 2000
+      omssa.omssacl.TaxonomyIds: 0
+      omssa.omssacl.autoMassToleranceAdjustmentFraction: 1
+      omssa.omssacl.chargeOneDetermination: 1
+      omssa.omssacl.chargeOneDeterminationPeaksFractions: 0.95
+      omssa.omssacl.consecutiveIonProbability: 0.5
+      omssa.omssacl.correlationCorrection: 0
+      omssa.omssacl.dontCleaveNTermM: ""
+      omssa.omssacl.doubleChargePeaksAllowed: 2
+      omssa.omssacl.doubleChargeWindow: 14
+      omssa.omssacl.eValueCutoff: 1
+      omssa.omssacl.eliminateChargeReducedPrecursors: 0
+      omssa.omssacl.enzyme: 0
+      omssa.omssacl.fixedMods: ""
+      omssa.omssacl.hitListSize: 30
+      omssa.omssacl.includeSpectraAndParams: ""
+      omssa.omssacl.ionsToSearch: 1,4
+      omssa.omssacl.lowIntensityCutoff: 0
+      omssa.omssacl.maxIonsSearchPerSeries: 100
+      omssa.omssacl.maxMassLadders: 128
+      omssa.omssacl.maxPrecursorCharge: 3
+      omssa.omssacl.maxProductCharge: 2
+      omssa.omssacl.memoryMappedSeqLibs: ""
+      omssa.omssacl.minMatchingPeaksLibrary: 2
+      omssa.omssacl.minMatchingPeaksSpectrum: 6
+      omssa.omssacl.minPeaksInSpectrum: 4
+      omssa.omssacl.minPrecursorCharge: 1
+      omssa.omssacl.minPrecursorChargeForMulti: 3
+      omssa.omssacl.minPrecursorSpectrumMatchCount: 1
+      omssa.omssacl.missedCleavages: 1
+      omssa.omssacl.neutronAddInExactSearchThreshold: 1446.94
+      omssa.omssacl.noEnzymeMaxPeptideSize: 40
+      omssa.omssacl.noEnzymeMinPeptideSize: 4
+      omssa.omssacl.noProlineRule: ""
+      omssa.omssacl.precursorChargeDetermination: 2
+      omssa.omssacl.precursorIonMassTolerance: 2
+      omssa.omssacl.precursorIonSearchType: 0
+      omssa.omssacl.precursorToleranceChargeDependency: 0
+      omssa.omssacl.productIonMassTolerance: 0.8
+      omssa.omssacl.productIonSearchType: 0
+      omssa.omssacl.searchB1Ions: 1
+      omssa.omssacl.searchCTermIons: 0
+      omssa.omssacl.singleChargePeaksAllowed: 2
+      omssa.omssacl.singleChargeWindow: 20
+      omssa.omssacl.variableMods: ""
+      threadCount: 0
+    position:
+      - -76
+      - -147
+    shortIterationTags: false
+    uri: run-omssa.rb
+  -
+    activeOutputFiles:
+      outputWriteCroppedPsm:
+        batchMode: false
+        id: 159698316
+        position:
+          - 168
+          - 139
+    id: 158720596
+    inputProxyBoxes: {}
+    outputDirectory: ""
+    outputPrefix: MT_Hyd_CPAN_040708_01-46-no-ms1-omssa-results-filtered-by-fpr-
+    parameters:
+      maxPpm: 5
+    position:
+      - -77
+      - 287
+    shortIterationTags: false
+    uri: filter-psm-by-mass-accuracy.rb
+  -
+    activeOutputFiles:
+      outputWriteResults:
+        batchMode: false
+        id: 160949220
+        position:
+          - 584
+          - 190
+    id: 160798556
+    inputProxyBoxes:
+      psmList:
+        id: 161179532
+        position:
+          - 334
+          - 50
+      quantitationEvents:
+        id: 161129028
+        position:
+          - 538
+          - 20
+    outputDirectory: ""
+    outputPrefix: MT_Hyd_CPAN_040708_01-46-no-ms1-qtrace-results-
+    parameters:
+      maxTimeDifference: 1
+    position:
+      - 542
+      - 92
+    shortIterationTags: false
+    uri: filter-qe-require-ms2.rb
