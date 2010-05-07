@@ -61,8 +61,6 @@ else {
     TARGET = ProteomaticCore
 }
 
-include(../base.pro)
-
 
 win32 {
     RC_FILE = Proteomatic.rc
