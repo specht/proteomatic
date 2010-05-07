@@ -46,7 +46,7 @@ protected:
     //k_Surface* mk_Surface_;
     k_Proteomatic& mk_Proteomatic;
     k_Surface mk_Surface;
-    //RefPtr<k_Surface> mk_pSurface;
+    //QSharedPointer<k_Surface> mk_pSurface;
     //QLabel mk_HashLabel;
     //QLabel mk_ParamLabel;
     //QTextEdit mk_StdoutTextEdit;

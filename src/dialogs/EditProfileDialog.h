@@ -45,7 +45,7 @@ protected:
     k_Proteomatic& mk_Proteomatic;
     IScript* mk_CurrentScript_;
     QString ms_TargetScriptUri;
-    RefPtr<IScript> mk_pScript;
+    QSharedPointer<IScript> mk_pScript;
     QString ms_WindowTitle;
     QLineEdit* mk_ProfileTitle_;
     QLineEdit* mk_ProfileDescription_;

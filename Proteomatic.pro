@@ -80,7 +80,6 @@ HEADERS += \
     src/NoSlashValidator.h \
     src/ProfileManager.h \
     src/Proteomatic.h \
-    src/RefPtr.h \
     src/RemoteScript.h \
     src/RubyWindow.h \
     src/Script.h \

@@ -24,7 +24,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "FoldedHeader.h"
 #include "Proteomatic.h"
 #include "ProfileManager.h"
-#include "RefPtr.h"
 #include "Yaml.h"
 
 
@@ -153,7 +152,7 @@ protected:
     QStringList mk_ProposePrefixList;
     QStringList mk_AmbiguousInputGroups;
 
-    RefPtr<QWidget> mk_pParameterWidget;
+    QSharedPointer<QWidget> mk_pParameterWidget;
     
     QStringList mk_ParameterKeys;
     QHash<QString, QStringList> mk_GroupParameters;
@@ -186,7 +185,7 @@ protected:
     
     QStringList mk_DependentParameters;
     
-    RefPtr<QLineEdit> mk_pOutputDirectory;
-    RefPtr<QLineEdit> mk_pOutputPrefix;
-    RefPtr<QToolButton> mk_pClearOutputDirectoryButton;
+    QSharedPointer<QLineEdit> mk_pOutputDirectory;
+    QSharedPointer<QLineEdit> mk_pOutputPrefix;
+    QSharedPointer<QToolButton> mk_pClearOutputDirectoryButton;
 };

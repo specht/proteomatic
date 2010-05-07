@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "CiListWidgetItem.h"
 #include "FoldedHeader.h"
 #include "ProfileManager.h"
-#include "RefPtr.h"
 #include "Script.h"
 #include "dialogs/EditProfileDialog.h"
 

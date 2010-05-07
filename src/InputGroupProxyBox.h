@@ -23,7 +23,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IDesktopBox.h"
 #include "IFileBox.h"
 #include "DesktopBox.h"
-#include "RefPtr.h"
 
 
 class k_Proteomatic;

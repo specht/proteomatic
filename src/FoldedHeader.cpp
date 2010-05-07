@@ -150,14 +150,14 @@ void k_FoldedHeader::update()
         else 
             mk_Timer.stop();
     }
-    mk_Icon.setPixmap(*mk_FoldedIcons[mi_CurrentIndex].get_Pointer());
+    mk_Icon.setPixmap(*mk_FoldedIcons[mi_CurrentIndex].data());
 }
 
 
 void k_FoldedHeader::init()
 {
     for (int i = 0; i < 7; ++i)
-        mk_FoldedIcons.push_back(RefPtr<QPixmap>(new QPixmap(QString(":/icons/folded-%1.png").arg(i))));
+        mk_FoldedIcons.push_back(QSharedPointer<QPixmap>(new QPixmap(QString(":/icons/folded-%1.png").arg(i))));
 
     if (mb_TextClickable)
         mk_Label_ = new k_ClickableLabel(this);
@@ -166,7 +166,7 @@ void k_FoldedHeader::init()
     
     mi_CurrentIndex = 0;
     mb_Increasing = true;
-    mk_Icon.setPixmap(*mk_FoldedIcons[mi_CurrentIndex].get_Pointer());
+    mk_Icon.setPixmap(*mk_FoldedIcons[mi_CurrentIndex].data());
     QBoxLayout* lk_Layout_ = new QHBoxLayout(this);
     lk_Layout_->addWidget(&mk_Icon);
     if (!mb_TextClickable)

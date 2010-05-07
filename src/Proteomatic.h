@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
-#include "RefPtr.h"
 #include "Yaml.h"
 
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
@@ -214,15 +213,16 @@ protected:
     
     QCoreApplication& mk_Application;
     k_Desktop* mk_Desktop_;
+    QString ms_DataDirectory;
     k_PipelineMainWindow* mk_PipelineMainWindow_;
     // uri / path => uri, title, group, description, optional: parameters
     QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
     QWidget* mk_MessageBoxParent_;
-    RefPtr<QMenu> mk_pProteomaticScriptsMenu;
+    QSharedPointer<QMenu> mk_pProteomaticScriptsMenu;
     QMenu* mk_RemoteMenu_;
-//  RefPtr<QProcess> mk_pRemoteHubProcess;
+//  QSharedPointer<QProcess> mk_pRemoteHubProcess;
     QString ms_RemoteHubStdout;
-//  RefPtr<QHttp> mk_pRemoteHubHttp;
+//  QSharedPointer<QHttp> mk_pRemoteHubHttp;
     QFont mk_ConsoleFont;
     QString ms_ManagedScriptsPath;
     QStringList mk_AdditionalScriptPaths;
@@ -252,10 +252,10 @@ protected:
     QHash<QString, bool> mk_ScriptInterpreterWorking;
     
     // mk_ModalProcess and mk_ModalProgressDialog are for updating...
-    RefPtr<QProcess> mk_pModalProcess;
-    RefPtr<QProgressDialog> mk_pModalProgressDialog;
+    QSharedPointer<QProcess> mk_pModalProcess;
+    QSharedPointer<QProgressDialog> mk_pModalProgressDialog;
     // mb_ModalProcessUserRequested is true if an update button has been clicked
     bool mb_ModalProcessUserRequested;
     
-    RefPtr<QWidgetAction> mk_pSearchWidgetAction;
+    QSharedPointer<QWidgetAction> mk_pSearchWidgetAction;
 };

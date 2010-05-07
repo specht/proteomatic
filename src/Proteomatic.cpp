@@ -21,7 +21,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Desktop.h"
 #include "HintLineEdit.h"
 #include "PipelineMainWindow.h"
-#include "RefPtr.h"
 #include "RubyWindow.h"
 #include "Yaml.h"
 #include "version.h"
@@ -44,13 +43,24 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     , ms_RemoteHubStdout("")
     , ms_ManagedScriptsPath("scripts")
     , ms_ConfigurationPath("proteomatic.conf.yaml")
+    , ms_DataDirectory(".")
 {
+#ifndef PROTEOMATIC_UPDATES_ENABLED
+    ms_DataDirectory = QDir::homePath() + "/.proteomatic";
+#endif
+    ms_DataDirectory = QDir::toNativeSeparators(QDir(ms_DataDirectory).absolutePath());
+    // create data directory if it doesn't exist 
+    QDir lk_Dir;
+    if (!lk_Dir.exists(ms_DataDirectory))
+        lk_Dir.mkdir(ms_DataDirectory);
+    ms_ManagedScriptsPath = ms_DataDirectory + "/scripts";
+    ms_ConfigurationPath = ms_DataDirectory + "/proteomatic.conf.yaml";
 }
 
 
 k_Proteomatic::~k_Proteomatic()
 {
-    mk_pSearchWidgetAction = RefPtr<QWidgetAction>(NULL);
+    mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(NULL);
 }
 
 
@@ -118,24 +128,24 @@ void k_Proteomatic::checkForUpdates()
     if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
     {
         QStringList lk_Arguments = QStringList() << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
-        mk_pModalProcess = RefPtr<QProcess>(new QProcess());
+        mk_pModalProcess = QSharedPointer<QProcess>(new QProcess());
         QFileInfo lk_FileInfo(lk_Arguments.first());
         mk_pModalProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
         mk_pModalProcess->setProcessChannelMode(QProcess::MergedChannels);
-        connect(mk_pModalProcess.get_Pointer(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(checkForUpdatesScriptFinished()));
+        connect(mk_pModalProcess.data(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(checkForUpdatesScriptFinished()));
         
         // find parent dialog
         QWidget* lk_Parent_ = dynamic_cast<QWidget*>(sender());
         while (lk_Parent_ != NULL && dynamic_cast<QDialog*>(lk_Parent_) == NULL)
             lk_Parent_ = lk_Parent_->parentWidget();
         
-        mk_pModalProgressDialog = RefPtr<QProgressDialog>(new QProgressDialog("Checking for script updates...", "&Cancel", 0, 0, (lk_Parent_ != NULL) ? lk_Parent_ : mk_MessageBoxParent_));
-        connect(mk_pModalProgressDialog.get_Pointer(), SIGNAL(canceled()), this, SLOT(checkForUpdatesCanceled()));
+        mk_pModalProgressDialog = QSharedPointer<QProgressDialog>(new QProgressDialog("Checking for script updates...", "&Cancel", 0, 0, (lk_Parent_ != NULL) ? lk_Parent_ : mk_MessageBoxParent_));
+        connect(mk_pModalProgressDialog.data(), SIGNAL(canceled()), this, SLOT(checkForUpdatesCanceled()));
         mk_pModalProgressDialog->setAutoClose(false);
         mk_pModalProgressDialog->setWindowTitle("Proteomatic");
         mk_pModalProgressDialog->setMinimumDuration(2000);
         mk_pModalProgressDialog->setWindowModality(Qt::ApplicationModal);
-        QTimer* lk_Timer_ = new QTimer(mk_pModalProgressDialog.get_Pointer());
+        QTimer* lk_Timer_ = new QTimer(mk_pModalProgressDialog.data());
         lk_Timer_->setSingleShot(true);
         connect(lk_Timer_, SIGNAL(timeout()), this, SLOT(checkForUpdatesProgress()));
         
@@ -161,8 +171,8 @@ void k_Proteomatic::checkForUpdatesCanceled()
         mk_PipelineMainWindow_->setEnabled(true);
     mk_pModalProcess->kill();
     mk_pModalProcess->waitForFinished();
-    mk_pModalProgressDialog = RefPtr<QProgressDialog>(NULL);
-    mk_pModalProcess = RefPtr<QProcess>(NULL);
+    mk_pModalProgressDialog = QSharedPointer<QProgressDialog>(NULL);
+    mk_pModalProcess = QSharedPointer<QProcess>(NULL);
 }
 
 
@@ -291,8 +301,8 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                 QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
     }
     
-    mk_pModalProgressDialog = RefPtr<QProgressDialog>(NULL);
-    mk_pModalProcess = RefPtr<QProcess>(NULL);
+    mk_pModalProgressDialog = QSharedPointer<QProgressDialog>(NULL);
+    mk_pModalProcess = QSharedPointer<QProcess>(NULL);
 }
 
 
@@ -352,7 +362,7 @@ QString k_Proteomatic::scriptInfo(QString as_ScriptPath, QString as_Key)
 
 QMenu* k_Proteomatic::proteomaticScriptsMenu() const
 {
-    return mk_pProteomaticScriptsMenu.get_Pointer();
+    return mk_pProteomaticScriptsMenu.data();
 }
 
 
@@ -727,7 +737,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 
 void k_Proteomatic::createProteomaticScriptsMenu()
 {
-    mk_pProteomaticScriptsMenu = RefPtr<QMenu>(new QMenu(mk_PipelineMainWindow_));
+    mk_pProteomaticScriptsMenu = QSharedPointer<QMenu>(new QMenu(mk_PipelineMainWindow_));
     QMenu* lk_Menu_ = new QMenu(NULL);
     QHash<QString, QMenu* > lk_GroupMenus;
     lk_GroupMenus[""] = lk_Menu_;
@@ -790,27 +800,27 @@ void k_Proteomatic::createProteomaticScriptsMenu()
     }
     
 //     lk_SearchField_->setHint("Search");
-//     mk_pSearchWidgetAction = RefPtr<QWidgetAction>(new QWidgetAction(NULL));
+//     mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(new QWidgetAction(NULL));
 //     QLineEdit* lk_LineEdit_ = new QLineEdit(NULL);
 //     mk_pSearchWidgetAction->setDefaultWidget(lk_LineEdit_);
 //     connect(lk_LineEdit_, SIGNAL(textEdited(const QString&)), mk_PipelineMainWindow_, SLOT(searchFieldPopup(const QString&)));
 //     lk_Menu_->addSeparator();
-//     lk_Menu_->addAction(mk_pSearchWidgetAction.get_Pointer());
+//     lk_Menu_->addAction(mk_pSearchWidgetAction.data());
 
 // disable remote scripts as of now!
 //     lk_Menu_->addSeparator();
 //      lk_Menu_->addMenu(mk_RemoteMenu_);
 
-    mk_pProteomaticScriptsMenu = RefPtr<QMenu>(lk_Menu_);
+    mk_pProteomaticScriptsMenu = QSharedPointer<QMenu>(lk_Menu_);
     emit scriptMenuChanged();
 // 
 //  ms_RemoteHubStdout = "";
-//  mk_pRemoteHubHttp = RefPtr<QHttp>(NULL);
+//  mk_pRemoteHubHttp = QSharedPointer<QHttp>(NULL);
 
     // (re-)start remote hub
 /*  QFileInfo lk_FileInfo(ms_ScriptPath + "/" + ms_ScriptPackage + "/remote.rb");
-    mk_pRemoteHubProcess = RefPtr<QProcess>(new QProcess());
-    connect(mk_pRemoteHubProcess.get_Pointer(), SIGNAL(readyRead()), this, SLOT(remoteHubReadyReadSlot()));
+    mk_pRemoteHubProcess = QSharedPointer<QProcess>(new QProcess());
+    connect(mk_pRemoteHubProcess.data(), SIGNAL(readyRead()), this, SLOT(remoteHubReadyReadSlot()));
     mk_pRemoteHubProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
     mk_pRemoteHubProcess->setProcessChannelMode(QProcess::MergedChannels);
     mk_pRemoteHubProcess->start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), QStringList() << "remote.rb" << "--hub", QIODevice::ReadOnly | QIODevice::Unbuffered);*/
@@ -819,7 +829,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 
 int k_Proteomatic::queryRemoteHub(QString as_Uri, QStringList ak_Arguments)
 {
-/*  if (mk_pRemoteHubHttp.get_Pointer() == NULL)
+/*  if (mk_pRemoteHubHttp.data() == NULL)
         return -1;
         
     QString ls_Arguments = QString("%1\r\n").arg(as_Uri);
@@ -887,41 +897,41 @@ QWidget* k_Proteomatic::messageBoxParent() const
 
 void k_Proteomatic::showConfigurationDialog()
 {
-    RefPtr<QDialog> lk_pDialog(new QDialog(mk_MessageBoxParent_));
+    QSharedPointer<QDialog> lk_pDialog(new QDialog(mk_MessageBoxParent_));
     lk_pDialog->setWindowTitle("Preferences");
     lk_pDialog->setWindowIcon(QIcon(":icons/proteomatic.png"));
 
-    QWidget* lk_LayoutWidget_ = new QWidget(lk_pDialog.get_Pointer());
+    QWidget* lk_LayoutWidget_ = new QWidget(lk_pDialog.data());
     QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_LayoutWidget_);
     lk_LayoutWidget_->setLayout(lk_VLayout_);
     
-    QScrollArea* lk_ScrollArea_ = new QScrollArea(lk_pDialog.get_Pointer());
+    QScrollArea* lk_ScrollArea_ = new QScrollArea(lk_pDialog.data());
     lk_ScrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     lk_ScrollArea_->setWidgetResizable(true);
     lk_ScrollArea_->setWidget(lk_LayoutWidget_);
     lk_ScrollArea_->setFrameStyle(QFrame::NoFrame);
     
-    QVBoxLayout* lk_MainLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
+    QVBoxLayout* lk_MainLayout_ = new QVBoxLayout(lk_pDialog.data());
     lk_MainLayout_->setContentsMargins(0, 0, 0, 0);
     lk_MainLayout_->addWidget(lk_ScrollArea_);
     
     QBoxLayout* lk_HLayout_ = NULL;
     QFrame* lk_Frame_ = NULL;
     
-    lk_VLayout_->addWidget(new QLabel("<b>Proteomatic</b>", lk_pDialog.get_Pointer()));
+    lk_VLayout_->addWidget(new QLabel("<b>Proteomatic</b>", lk_pDialog.data()));
 
     lk_HLayout_ = new QHBoxLayout(NULL);
-    lk_HLayout_->addWidget(new QLabel("Update URI:", lk_pDialog.get_Pointer()));
-    QLineEdit* lk_ScriptsUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
+    lk_HLayout_->addWidget(new QLabel("Update URI:", lk_pDialog.data()));
+    QLineEdit* lk_ScriptsUrlLineEdit_ = new QLineEdit(lk_pDialog.data());
     lk_ScriptsUrlLineEdit_->setText(getConfiguration(CONFIG_SCRIPTS_URL).toString());
     lk_ScriptsUrlLineEdit_->home(false);
     lk_HLayout_->addWidget(lk_ScriptsUrlLineEdit_);
     lk_VLayout_->addLayout(lk_HLayout_);
     
     lk_HLayout_ = new QHBoxLayout(NULL);
-    QCheckBox* lk_AutoCheckForUpdates_ = new QCheckBox("Check for updates on startup", lk_pDialog.get_Pointer());
+    QCheckBox* lk_AutoCheckForUpdates_ = new QCheckBox("Check for updates on startup", lk_pDialog.data());
     lk_AutoCheckForUpdates_->setCheckState(getConfiguration(CONFIG_AUTO_CHECK_FOR_UPDATES).toBool() ? Qt::Checked : Qt::Unchecked);
-    QPushButton* lk_CheckNowButton_ = new QPushButton("Check now", lk_pDialog.get_Pointer());
+    QPushButton* lk_CheckNowButton_ = new QPushButton("Check now", lk_pDialog.data());
     connect(lk_CheckNowButton_, SIGNAL(clicked()), this, SLOT(checkForUpdates()));
     lk_HLayout_->addWidget(lk_AutoCheckForUpdates_);
     lk_HLayout_->addStretch();
@@ -930,17 +940,17 @@ void k_Proteomatic::showConfigurationDialog()
     lk_VLayout_->addLayout(lk_HLayout_);
     
     lk_HLayout_ = new QHBoxLayout(NULL);
-    lk_HLayout_->addWidget(new QLabel("Filetracker URL:", lk_pDialog.get_Pointer()));
-    QLineEdit* lk_FileTrackerUrlLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
+    lk_HLayout_->addWidget(new QLabel("Filetracker URL:", lk_pDialog.data()));
+    QLineEdit* lk_FileTrackerUrlLineEdit_ = new QLineEdit(lk_pDialog.data());
     lk_FileTrackerUrlLineEdit_->setText(getConfiguration(CONFIG_FILETRACKER_URL).toString());
     lk_FileTrackerUrlLineEdit_->home(false);
     lk_HLayout_->addWidget(lk_FileTrackerUrlLineEdit_);
     lk_VLayout_->addLayout(lk_HLayout_);
 
-    lk_Frame_ = new QFrame(lk_pDialog.get_Pointer());
+    lk_Frame_ = new QFrame(lk_pDialog.data());
     lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     lk_VLayout_->addWidget(lk_Frame_);
-    lk_VLayout_->addWidget(new QLabel("<b>Interpreters</b>", lk_pDialog.get_Pointer()));
+    lk_VLayout_->addWidget(new QLabel("<b>Interpreters</b>", lk_pDialog.data()));
     
     QStringList lk_Languages;
     lk_Languages << "ruby";
@@ -962,30 +972,30 @@ void k_Proteomatic::showConfigurationDialog()
             ls_Label = "PHP";
         else if (ls_Language == "perl")
             ls_Label = "Perl";
-        lk_HLayout_->addWidget(new QLabel(ls_Label + ":", lk_pDialog.get_Pointer()));
-        QLineEdit* lk_PathLineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
+        lk_HLayout_->addWidget(new QLabel(ls_Label + ":", lk_pDialog.data()));
+        QLineEdit* lk_PathLineEdit_ = new QLineEdit(lk_pDialog.data());
         lk_PathLineEdit_->setText(getConfiguration(ls_Key).toString());
         lk_PathLineEdit_->home(false);
         lk_HLayout_->addWidget(lk_PathLineEdit_);
         lk_VLayout_->addLayout(lk_HLayout_);
         if (mk_ScriptInterpreterWorking[ls_Language] != true)
         {
-            QLabel* lk_PixmapLabel_ = new QLabel(lk_pDialog.get_Pointer());
+            QLabel* lk_PixmapLabel_ = new QLabel(lk_pDialog.data());
             lk_PixmapLabel_->setPixmap(QPixmap(":icons/dialog-warning.png").scaledToHeight(16, Qt::SmoothTransformation));
             lk_HLayout_->addWidget(lk_PixmapLabel_);
-            lk_VLayout_->addWidget(new QLabel("<b>Note:</b> " + ls_Label + " is not available.", lk_pDialog.get_Pointer()));
+            lk_VLayout_->addWidget(new QLabel("<b>Note:</b> " + ls_Label + " is not available.", lk_pDialog.data()));
         }
         lk_LanguagePathLineEdits[ls_Language] = lk_PathLineEdit_;
     }
     
-    lk_Frame_ = new QFrame(lk_pDialog.get_Pointer());
+    lk_Frame_ = new QFrame(lk_pDialog.data());
     lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     lk_VLayout_->addWidget(lk_Frame_);
-    lk_VLayout_->addWidget(new QLabel("<b>User interface</b>", lk_pDialog.get_Pointer()));
+    lk_VLayout_->addWidget(new QLabel("<b>User interface</b>", lk_pDialog.data()));
     
     lk_HLayout_ = new QHBoxLayout(NULL);
-    lk_HLayout_->addWidget(new QLabel("Appearance:", lk_pDialog.get_Pointer()));
-    QComboBox* lk_AppearanceComboBox_ = new QComboBox(lk_pDialog.get_Pointer());
+    lk_HLayout_->addWidget(new QLabel("Appearance:", lk_pDialog.data()));
+    QComboBox* lk_AppearanceComboBox_ = new QComboBox(lk_pDialog.data());
     lk_AppearanceComboBox_->addItem("normal", QVariant(0));
     lk_AppearanceComboBox_->addItem("small", QVariant(1));
     lk_AppearanceComboBox_->addItem("tiny", QVariant(2));
@@ -993,29 +1003,38 @@ void k_Proteomatic::showConfigurationDialog()
     lk_HLayout_->addWidget(lk_AppearanceComboBox_);
     lk_VLayout_->addLayout(lk_HLayout_);
     
-    QCheckBox* lk_Animation_ = new QCheckBox("Use animation", lk_pDialog.get_Pointer());
+    QCheckBox* lk_Animation_ = new QCheckBox("Use animation", lk_pDialog.data());
     lk_Animation_->setCheckState(stringToBool(getConfiguration(CONFIG_ANIMATION).toString()) ? Qt::Checked : Qt::Unchecked);
     lk_VLayout_->addWidget(lk_Animation_);
     
-    QCheckBox* lk_FollowNewBoxes_ = new QCheckBox("Auto-follow new boxes", lk_pDialog.get_Pointer());
+    QCheckBox* lk_FollowNewBoxes_ = new QCheckBox("Auto-follow new boxes", lk_pDialog.data());
     lk_FollowNewBoxes_->setCheckState(stringToBool(getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()) ? Qt::Checked : Qt::Unchecked);
     lk_VLayout_->addWidget(lk_FollowNewBoxes_);
     
+    lk_Frame_ = new QFrame(lk_pDialog.data());
+    lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    lk_VLayout_->addWidget(lk_Frame_);
+    lk_VLayout_->addWidget(new QLabel("<b>Miscellaneous</b>", lk_pDialog.data()));
+    QLabel* lk_DataDirLabel_ = new QLabel("Data directory: <a href='file://" + ms_DataDirectory + "'>" + ms_DataDirectory + "</a>", lk_pDialog.data());
+    lk_DataDirLabel_->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard);
+    lk_DataDirLabel_->setOpenExternalLinks(true);
+    lk_VLayout_->addWidget(lk_DataDirLabel_);
+    
     lk_VLayout_->addStretch();
     
-    lk_Frame_ = new QFrame(lk_pDialog.get_Pointer());
+    lk_Frame_ = new QFrame(lk_pDialog.data());
     lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     lk_MainLayout_->addWidget(lk_Frame_);
     
     lk_HLayout_ = new QHBoxLayout(NULL);
     lk_HLayout_->setContentsMargins(8, 8, 8, 8);
-    QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":icons/dialog-cancel.png"), "Cancel", lk_pDialog.get_Pointer());
-    connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(reject()));
+    QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":icons/dialog-cancel.png"), "Cancel", lk_pDialog.data());
+    connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.data(), SLOT(reject()));
     lk_HLayout_->addStretch();
     lk_HLayout_->addWidget(lk_CancelButton_);
-    QPushButton* lk_OkButton_ = new QPushButton(QIcon(":icons/dialog-ok.png"), "Ok", lk_pDialog.get_Pointer());
+    QPushButton* lk_OkButton_ = new QPushButton(QIcon(":icons/dialog-ok.png"), "Ok", lk_pDialog.data());
     lk_OkButton_->setDefault(true);
-    connect(lk_OkButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(accept()));
+    connect(lk_OkButton_, SIGNAL(clicked()), lk_pDialog.data(), SLOT(accept()));
     lk_HLayout_->addWidget(lk_OkButton_);
     lk_MainLayout_->addLayout(lk_HLayout_);
     lk_pDialog->resize(400, 300);
@@ -1052,7 +1071,7 @@ void k_Proteomatic::remoteHubReadyReadSlot()
     }
     
     // don't care about stdout if we already know our rubylicious remote hub
-    if (mk_pRemoteHubHttp.get_Pointer() != NULL)
+    if (mk_pRemoteHubHttp.data() != NULL)
         return;
         
     ms_RemoteHubStdout += ls_Result;
@@ -1062,8 +1081,8 @@ void k_Proteomatic::remoteHubReadyReadSlot()
         QString ls_Port = lk_RegExp.cap(2);
         bool lb_Ok;
         int li_HubPort = QVariant(ls_Port).toInt(&lb_Ok);
-        mk_pRemoteHubHttp = RefPtr<QHttp>(new QHttp("127.0.0.1", li_HubPort));
-        connect(mk_pRemoteHubHttp.get_Pointer(), SIGNAL(requestFinished(int, bool)), this, SLOT(remoteHubRequestFinishedSlot(int, bool)));
+        mk_pRemoteHubHttp = QSharedPointer<QHttp>(new QHttp("127.0.0.1", li_HubPort));
+        connect(mk_pRemoteHubHttp.data(), SIGNAL(requestFinished(int, bool)), this, SLOT(remoteHubRequestFinishedSlot(int, bool)));
         mk_RemoteMenu_->setEnabled(true);
         mk_RemoteMenu_->setTitle("Remote");
         QList<QVariant> lk_Uris = mk_Configuration[CONFIG_REMOTE_SCRIPTS].toList();
@@ -1089,10 +1108,10 @@ void k_Proteomatic::scriptMenuScriptClickedInternal()
 
 void k_Proteomatic::addRemoteScriptDialog()
 {
-    RefPtr<QDialog> lk_pDialog(new QDialog(mk_MessageBoxParent_));
+    QSharedPointer<QDialog> lk_pDialog(new QDialog(mk_MessageBoxParent_));
     lk_pDialog->setWindowIcon(QIcon(":/icons/proteomatic.png"));
     lk_pDialog->setWindowTitle("Add remote script");
-    QBoxLayout* lk_MainLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
+    QBoxLayout* lk_MainLayout_ = new QVBoxLayout(lk_pDialog.data());
     QBoxLayout* lk_Layout_ = new QHBoxLayout();
     QBoxLayout* lk_SubLayout_ = new QVBoxLayout();
     QLabel* lk_Icon_ = new QLabel();
@@ -1100,26 +1119,26 @@ void k_Proteomatic::addRemoteScriptDialog()
     lk_SubLayout_->addWidget(lk_Icon_);
     lk_SubLayout_->addStretch();
     lk_Layout_->addLayout(lk_SubLayout_);
-    lk_SubLayout_ = new QVBoxLayout(lk_pDialog.get_Pointer());
-    lk_SubLayout_->addWidget(new QLabel("Remote script URI:", lk_pDialog.get_Pointer()));
-    QLineEdit* lk_LineEdit_ = new QLineEdit(lk_pDialog.get_Pointer());
-    QCheckBox* lk_Remember_ = new QCheckBox("Remember this remote script", lk_pDialog.get_Pointer());
+    lk_SubLayout_ = new QVBoxLayout(lk_pDialog.data());
+    lk_SubLayout_->addWidget(new QLabel("Remote script URI:", lk_pDialog.data()));
+    QLineEdit* lk_LineEdit_ = new QLineEdit(lk_pDialog.data());
+    QCheckBox* lk_Remember_ = new QCheckBox("Remember this remote script", lk_pDialog.data());
     lk_Remember_->setCheckState(Qt::Checked);
     lk_SubLayout_->addWidget(lk_LineEdit_);
     lk_SubLayout_->addWidget(lk_Remember_);
     lk_SubLayout_->addStretch();
     lk_Layout_->addLayout(lk_SubLayout_);
     lk_MainLayout_->addLayout(lk_Layout_);
-    lk_Layout_ = new QHBoxLayout(lk_pDialog.get_Pointer());
+    lk_Layout_ = new QHBoxLayout(lk_pDialog.data());
     lk_Layout_->addStretch();
-    QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "Cancel", lk_pDialog.get_Pointer());
-    QPushButton* lk_AddButton_ = new QPushButton(QIcon(":/icons/list-add.png"), "Add", lk_pDialog.get_Pointer());
+    QPushButton* lk_CancelButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "Cancel", lk_pDialog.data());
+    QPushButton* lk_AddButton_ = new QPushButton(QIcon(":/icons/list-add.png"), "Add", lk_pDialog.data());
     lk_AddButton_->setDefault(true);
     lk_AddButton_->setAutoDefault(true);
     lk_Layout_->addWidget(lk_CancelButton_);
     lk_Layout_->addWidget(lk_AddButton_);
-    connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(reject()));
-    connect(lk_AddButton_, SIGNAL(clicked()), lk_pDialog.get_Pointer(), SLOT(accept()));
+    connect(lk_CancelButton_, SIGNAL(clicked()), lk_pDialog.data(), SLOT(reject()));
+    connect(lk_AddButton_, SIGNAL(clicked()), lk_pDialog.data(), SLOT(accept()));
     lk_MainLayout_->addLayout(lk_Layout_);
     lk_pDialog->setLayout(lk_MainLayout_);
     lk_pDialog->resize(300, 10);
@@ -1444,6 +1463,7 @@ void k_Proteomatic::updateConfigDependentStuff()
         mk_StartButton_->setPopupMode(QToolButton::MenuButtonPopup);
         mk_StartButton_->setMenu(&mk_StartButtonMenu);
     }
+    mk_StartButton_->setShortcut(QKeySequence("F5"));
 }
 
 

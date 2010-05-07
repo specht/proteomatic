@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesktopBox.h"
 #include "Desktop.h"
 #include "Tango.h"
-#include "RefPtr.h"
 
 
 k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, 

@@ -28,7 +28,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "HintLineEdit.h"
 #include "NoSlashValidator.h"
 #include "ZoomableWebView.h"
-#include "RefPtr.h"
 
 
 class k_Proteomatic;
@@ -37,7 +36,7 @@ class k_ScriptBox: public k_DesktopBox, public IScriptBox
 {
     Q_OBJECT
 public:
-    k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
+    k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
     virtual ~k_ScriptBox();
     
     virtual IScript* script();
@@ -101,8 +100,8 @@ protected:
     virtual void dropEvent(QDropEvent* event);
     virtual Qt::DropActions supportedDropActions() const;
     
-    RefPtr<IScript> mk_pScript;
-    RefPtr<QWidget> mk_pParameterProxyWidget;
+    QSharedPointer<IScript> mk_pScript;
+    QSharedPointer<QWidget> mk_pParameterProxyWidget;
     QHash<QString, IDesktopBox*> mk_OutputFileBoxes;
     QHash<QString, QCheckBox*> mk_Checkboxes;
     QString ms_CurrentIterationKeyRunning;
@@ -111,7 +110,7 @@ protected:
     k_HintLineEdit mk_Prefix;
     k_HintLineEdit mk_OutputDirectory;
 
-    QHash<QString, RefPtr<k_ConsoleString> > mk_Output;
+    QHash<QString, QSharedPointer<k_ConsoleString> > mk_Output;
     QWidget* mk_OutputBoxContainer_;
     QWidget* mk_OutputFileViewerContainer_;
     QWidget* mk_OutputBoxIterationKeyChooserContainer_;

@@ -74,7 +74,7 @@ k_RevelioMainWindow::k_RevelioMainWindow(k_Proteomatic& ak_Proteomatic, QWidget*
     //lk_VLayout_->addLayout(lk_HLayout_);
     //lk_VLayout_->addWidget(&mk_HashLabel);
     //mk_Surface_ = new k_Surface(this);
-    //mk_pSurface = RefPtr<k_Surface>(new k_Surface(this));
+    //mk_pSurface = QSharedPointer<k_Surface>(new k_Surface(this));
     lk_VLayout_->addWidget(lk_Splitter);
     //lk_VLayout_->addWidget(&mk_PaneScrollArea);
     

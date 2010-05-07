@@ -134,7 +134,7 @@ void k_Surface::createNodes()
     // create central node
     
     k_FileTrackerNode* lk_Node_ = new k_FileTrackerNode();
-    mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+    mk_Nodes.append(QSharedPointer<k_FileTrackerNode>(lk_Node_));
     mk_CentralNode_= lk_Node_;
     mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = mr_FocusNode;
     
@@ -185,7 +185,7 @@ void k_Surface::createNodes()
                     int li_RunId = ls_RunsInQuery.value(1).toInt();
                     QString ls_Time = ls_RunsInQuery.value(2).toDateTime().toString(Qt::SystemLocaleShortDate);
                     lk_Node_ = new k_FileTrackerNode();
-                    mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+                    mk_Nodes.append(QSharedPointer<k_FileTrackerNode>(lk_Node_));
                     mk_RightNodes.append(lk_Node_);
                     lk_Node_->setLabels(QStringList() << ls_Title << ls_Time);
                     lk_TitleInList.append(ls_Title);
@@ -215,7 +215,7 @@ void k_Surface::createNodes()
                     int li_RunId = ls_RunsOutQuery.value(1).toInt();
                     QString ls_Time = ls_RunsOutQuery.value(2).toDateTime().toString(Qt::SystemLocaleShortDate);
                     lk_Node_ = new k_FileTrackerNode();
-                    mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+                    mk_Nodes.append(QSharedPointer<k_FileTrackerNode>(lk_Node_));
                     mk_LeftNodes.append(lk_Node_);
                     lk_Node_->setLabels(QStringList() << ls_Title << ls_Time);
                     lk_TitleOutList.append(ls_Title);
@@ -262,7 +262,7 @@ void k_Surface::createNodes()
                 lk_FilecontentIdQuery.next();
                 int li_FileContentId = lk_FilecontentIdQuery.value(0).toInt();
                 lk_Node_ = new k_FileTrackerNode();
-                mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+                mk_Nodes.append(QSharedPointer<k_FileTrackerNode>(lk_Node_));
                 mk_LeftNodes.append(lk_Node_);
                 lk_Node_->setLabels(QStringList() << ls_CodeBasename);
                 mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = r_NodeInfo(r_NodeType::File, li_FileContentId);
@@ -295,7 +295,7 @@ void k_Surface::createNodes()
                 lk_FilecontentIdQuery.next();
                 int li_FileContentId = lk_FilecontentIdQuery.value(0).toInt();;
                 lk_Node_ = new k_FileTrackerNode();
-                mk_Nodes.append(RefPtr<k_FileTrackerNode>(lk_Node_));
+                mk_Nodes.append(QSharedPointer<k_FileTrackerNode>(lk_Node_));
                 mk_RightNodes.append(lk_Node_);
                 lk_Node_->setLabels(QStringList() << ls_CodeBasename);
                 mk_NodeInfoHash[mk_GraphicsScene.addWidget(lk_Node_)] = r_NodeInfo(r_NodeType::File, li_FileContentId);
@@ -313,9 +313,9 @@ void k_Surface::createNodes()
     if (mk_CentralNode_)
         mk_CentralNode_->setAlignment(0.5, 0.5);
     
-    foreach (RefPtr<k_FileTrackerNode> lk_pNode, mk_Nodes)
+    foreach (QSharedPointer<k_FileTrackerNode> lk_pNode, mk_Nodes)
     {
-        k_FileTrackerNode* lk_Node_ = lk_pNode.get_Pointer();
+        k_FileTrackerNode* lk_Node_ = lk_pNode.data();
         if (lk_Node_ == mk_CentralNode_)
             lk_Node_->setFrameColor(mr_FocusNode.me_Type == r_NodeType::File? TANGO_ALUMINIUM_3 : TANGO_SKY_BLUE_2);
         else

@@ -111,13 +111,13 @@ void k_FileTrackerNode::setLabels(QStringList ak_Labels)
             lk_Separator_->setLineWidth(1);
             lk_Separator_->setStyleSheet("color: " + QString(TANGO_ALUMINIUM_3) + ";");
             lk_Layout_->addWidget(lk_Separator_);
-            mk_LabelWidgets.append(RefPtr<QWidget>(lk_Separator_));
+            mk_LabelWidgets.append(QSharedPointer<QWidget>(lk_Separator_));
         }
         QString ls_Text = ak_Labels[i];
         QLabel* lk_Label_ = new QLabel(ls_Text, this);
         lk_Label_->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
         lk_Layout_->addWidget(lk_Label_);
-        mk_LabelWidgets.append(RefPtr<QWidget>(lk_Label_));
+        mk_LabelWidgets.append(QSharedPointer<QWidget>(lk_Label_));
     }
     
     resize(1, 1);

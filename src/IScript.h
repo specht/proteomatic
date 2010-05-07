@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "Yaml.h"
-#include "RefPtr.h"
 
 class QWidget;
 

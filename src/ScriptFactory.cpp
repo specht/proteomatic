@@ -24,7 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "RemoteScript.h"
 
 
-RefPtr<IScript> k_ScriptFactory::makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
+QSharedPointer<IScript> k_ScriptFactory::makeScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomatic, bool ab_IncludeOutputFiles, bool ab_ProfileMode)
 {
     k_Script* lk_Script_ = NULL;
     if (as_ScriptUri.startsWith("druby://"))
@@ -39,5 +39,5 @@ RefPtr<IScript> k_ScriptFactory::makeScript(QString as_ScriptUri, k_Proteomatic&
         lk_Script_ = NULL;
     }
         
-    return RefPtr<IScript>(lk_Script_);
+    return QSharedPointer<IScript>(lk_Script_);
 }

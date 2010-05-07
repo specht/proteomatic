@@ -23,7 +23,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "FileList.h"
 #include "CiListWidgetItem.h"
 #include "Proteomatic.h"
-#include "RefPtr.h"
 #include "RubyWindow.h"
 #include <limits.h>
 #include <float.h>
@@ -132,7 +131,7 @@ QHash<QString, QString> k_Script::info() const
 
 QWidget* k_Script::parameterWidget() const
 {
-    return mk_pParameterWidget.get_Pointer();
+    return mk_pParameterWidget.data();
 }
 
 
@@ -800,7 +799,7 @@ void k_Script::setOutputDirectoryButtonClicked()
     if (!QFileInfo(ls_StartingPath).isDir())
         ls_StartingPath = QDir::homePath();
     
-    QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.get_Pointer(), tr("Select output directory"), ls_StartingPath);
+    QString ls_Path = QFileDialog::getExistingDirectory(mk_pParameterWidget.data(), tr("Select output directory"), ls_StartingPath);
     if (ls_Path.length() > 0)
     {
         this->setOutputDirectory(ls_Path);
@@ -841,7 +840,7 @@ void k_Script::createParameterWidget(QString as_Info)
     mk_InputGroupLabels.clear();
     mk_InputGroupDescriptions.clear();
     mk_InputGroupExtensions.clear();
-    mk_pParameterWidget = RefPtr<QWidget>(new QWidget());
+    mk_pParameterWidget = QSharedPointer<QWidget>(new QWidget());
 
     QList<QString> lk_ParametersOrder;
     QHash<QString, QHash<QString, QString> > lk_Parameters;
@@ -971,7 +970,7 @@ void k_Script::createParameterWidget(QString as_Info)
     QHash<QString, int> lk_GroupBoxY;
     int li_ContainersAdded = 0;
 
-    QWidget* lk_InternalWidget_ = mk_pParameterWidget.get_Pointer();
+    QWidget* lk_InternalWidget_ = mk_pParameterWidget.data();
     QVBoxLayout* lk_ParameterLayout_ = new QVBoxLayout(lk_InternalWidget_);
     lk_InternalWidget_->setWindowIcon(QIcon(":/icons/proteomatic.png"));
     lk_InternalWidget_->setWindowTitle(ms_Title);
@@ -1178,7 +1177,7 @@ void k_Script::createParameterWidget(QString as_Info)
                 
                 if (ls_Key == "outputDirectory")
                 {
-                    mk_pOutputDirectory = RefPtr<QLineEdit>(lk_LineEdit_);
+                    mk_pOutputDirectory = QSharedPointer<QLineEdit>(lk_LineEdit_);
                     QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
                     lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
                     QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);
@@ -1186,7 +1185,7 @@ void k_Script::createParameterWidget(QString as_Info)
                     lk_GroupBoxLayout_->addWidget(lk_LineEdit_);
                     QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
                     lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
-                    mk_pClearOutputDirectoryButton = RefPtr<QToolButton>(lk_ClearOutputDirectoryButton_);
+                    mk_pClearOutputDirectoryButton = QSharedPointer<QToolButton>(lk_ClearOutputDirectoryButton_);
                     connect(lk_ClearOutputDirectoryButton_, SIGNAL(clicked()), this, SLOT(clearOutputDirectoryButtonClicked()));
                     ((QHBoxLayout*)lk_GroupBoxLayout_)->addWidget(lk_ClearOutputDirectoryButton_, 0, Qt::AlignTop);
                     QToolButton* lk_SetOutputDirectoryButton_ = new QToolButton(lk_SubContainer_);
@@ -1201,7 +1200,7 @@ void k_Script::createParameterWidget(QString as_Info)
                 }
                 else if (ls_Key == "outputPrefix")
                 {
-                    mk_pOutputPrefix = RefPtr<QLineEdit>(lk_LineEdit_);
+                    mk_pOutputPrefix = QSharedPointer<QLineEdit>(lk_LineEdit_);
                     QWidget* lk_SubContainer_ = new QWidget(lk_Container_);
                     lk_SubContainer_->setContentsMargins(0, 0, 0, 0);
                     QBoxLayout* lk_GroupBoxLayout_ = new QHBoxLayout(lk_SubContainer_);

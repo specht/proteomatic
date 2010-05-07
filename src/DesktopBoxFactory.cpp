@@ -29,8 +29,8 @@ IDesktopBox*
 k_DesktopBoxFactory::makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, 
                                     k_Proteomatic& ak_Proteomatic)
 {
-    RefPtr<IScript> lk_pScript = k_ScriptFactory::makeScript(as_ScriptUri, ak_Proteomatic, false, false);
-    k_Script* lk_Script_ = dynamic_cast<k_Script*>(lk_pScript.get_Pointer());
+    QSharedPointer<IScript> lk_pScript = k_ScriptFactory::makeScript(as_ScriptUri, ak_Proteomatic, false, false);
+    k_Script* lk_Script_ = dynamic_cast<k_Script*>(lk_pScript.data());
     if (!lk_Script_ || !lk_Script_->isGood())
         return NULL;
     return new k_ScriptBox(lk_pScript, ak_Parent_, ak_Proteomatic);

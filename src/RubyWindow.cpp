@@ -27,26 +27,26 @@ k_RubyWindow::k_RubyWindow(k_Proteomatic& ak_Proteomatic, QStringList ak_Argumen
     , mk_Arguments(ak_Arguments)
     , ms_Title(as_Title)
 {
-    mk_pDialog = RefPtr<QDialog>(new QDialog(mk_Proteomatic.messageBoxParent()));
+    mk_pDialog = QSharedPointer<QDialog>(new QDialog(mk_Proteomatic.messageBoxParent()));
     mk_pDialog->setWindowIcon(QIcon(as_IconPath));
     mk_pDialog->setWindowTitle(as_Title);
     mk_pDialog->resize(512, 250);
-    QBoxLayout* lk_VLayout_ = new QVBoxLayout(mk_pDialog.get_Pointer());
-    QBoxLayout* lk_HLayout_ = new QHBoxLayout(mk_pDialog.get_Pointer());
-    mk_Output_ = new QTextEdit(mk_pDialog.get_Pointer());
+    QBoxLayout* lk_VLayout_ = new QVBoxLayout(mk_pDialog.data());
+    QBoxLayout* lk_HLayout_ = new QHBoxLayout(mk_pDialog.data());
+    mk_Output_ = new QTextEdit(mk_pDialog.data());
     lk_VLayout_->addWidget(mk_Output_);
     lk_VLayout_->addLayout(lk_HLayout_);
     lk_HLayout_->addStretch();
-    mk_AbortButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "Abort", mk_pDialog.get_Pointer());
+    mk_AbortButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "Abort", mk_pDialog.data());
     lk_HLayout_->addWidget(mk_AbortButton_);
-    mk_CloseButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "Close", mk_pDialog.get_Pointer());
+    mk_CloseButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "Close", mk_pDialog.data());
     lk_HLayout_->addWidget(mk_CloseButton_);
     mk_pDialog->setLayout(lk_VLayout_);
     mk_pDialog->setModal(true);
     mk_Output_->setReadOnly(true);
     
     mk_Output_->setFont(mk_Proteomatic.consoleFont());
-    connect(mk_CloseButton_, SIGNAL(clicked()), mk_pDialog.get_Pointer(), SLOT(accept()));
+    connect(mk_CloseButton_, SIGNAL(clicked()), mk_pDialog.data(), SLOT(accept()));
 }
 
 
@@ -61,12 +61,12 @@ bool k_RubyWindow::exec()
     mk_CloseButton_->setEnabled(false);
     mk_Output_->clear();
     
-    RefPtr<QProcess> lk_pProcess(new QProcess());
-    connect(mk_AbortButton_, SIGNAL(clicked()), lk_pProcess.get_Pointer(), SLOT(kill()));
-    connect(lk_pProcess.get_Pointer(), SIGNAL(started()), this, SLOT(processStarted()));
-    connect(lk_pProcess.get_Pointer(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
-    connect(lk_pProcess.get_Pointer(), SIGNAL(readyReadStandardError()), this, SLOT(processReadyRead()));
-    connect(lk_pProcess.get_Pointer(), SIGNAL(readyReadStandardOutput()), this, SLOT(processReadyRead()));
+    QSharedPointer<QProcess> lk_pProcess(new QProcess());
+    connect(mk_AbortButton_, SIGNAL(clicked()), lk_pProcess.data(), SLOT(kill()));
+    connect(lk_pProcess.data(), SIGNAL(started()), this, SLOT(processStarted()));
+    connect(lk_pProcess.data(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
+    connect(lk_pProcess.data(), SIGNAL(readyReadStandardError()), this, SLOT(processReadyRead()));
+    connect(lk_pProcess.data(), SIGNAL(readyReadStandardOutput()), this, SLOT(processReadyRead()));
     
     mb_ScriptFinishedFine = false;
     

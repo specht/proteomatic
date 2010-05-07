@@ -22,7 +22,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtCore>
 #include <QtGui>
 #include "ClickableLabel.h"
-#include "RefPtr.h"
 
 
 class k_FoldedHeader: public QWidget
@@ -62,7 +61,7 @@ protected:
     QString ms_Text;
     QLabel* mk_Label_;
     k_ClickableLabel mk_Icon;
-    QList<RefPtr<QPixmap> > mk_FoldedIcons;
+    QList<QSharedPointer<QPixmap> > mk_FoldedIcons;
     QTimer mk_Timer;
     int mi_CurrentIndex;
     bool mb_Increasing;

@@ -187,7 +187,10 @@ void k_PipelineMainWindow::initialize()
     mk_ProfileManagerAction_ = mk_AddToolBar_->addAction(QIcon(":icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
     mk_ResetParametersAction_ = mk_AddToolBar_->addAction(QIcon(":icons/edit-clear.png"), "Reset", this, SLOT(resetParameters()));
     mk_AddToolBar_->addSeparator();
-    mk_ShowConfigurationAction_ = mk_AddToolBar_->addAction(QIcon(":icons/preferences-system.png"), "Preferences", &mk_Proteomatic, SLOT(showConfigurationDialog()));
+    mk_ShowConfigurationAction_ = new QAction(QIcon(":icons/preferences-system.png"), "Preferences", this);
+    mk_ShowConfigurationAction_->setShortcut(QKeySequence("Ctrl+P"));
+    connect(mk_ShowConfigurationAction_, SIGNAL(triggered()), &mk_Proteomatic, SLOT(showConfigurationDialog()));
+     mk_AddToolBar_->addAction(mk_ShowConfigurationAction_);
     
 /*  QToolBar* lk_OtherToolBar_ = new QToolBar(this);
     lk_OtherToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -378,7 +381,7 @@ void k_PipelineMainWindow::showProfileManager()
     if (mk_CurrentScriptBox_)
         lk_Script_ = mk_CurrentScriptBox_->script();
     
-    RefPtr<k_ProfileManager> lk_pProfileManager(new k_ProfileManager(mk_Proteomatic, lk_Script_, this));
+    QSharedPointer<k_ProfileManager> lk_pProfileManager(new k_ProfileManager(mk_Proteomatic, lk_Script_, this));
     lk_pProfileManager->reset();
     if (lk_pProfileManager->exec())
     {
@@ -498,7 +501,7 @@ void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
     foreach (QString ls_Target, lk_Targets.keys())
         lk_TargetsSorted.insert(lk_Targets[ls_Target], ls_Target);
     
-    mk_pSearchPopup = RefPtr<QListWidget>(new QListWidget(this));
+    mk_pSearchPopup = QSharedPointer<QListWidget>(new QListWidget(this));
     
     if (lk_TargetsSorted.empty())
         return;
@@ -511,7 +514,7 @@ void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
         QString ls_ScriptPath = lk_Iter.value();
         QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"];
         if (!ls_Title.isEmpty())
-            QListWidgetItem* lk_Item_ = new QListWidgetItem(QIcon("src/icons/proteomatic.png"), ls_Title, mk_pSearchPopup.get_Pointer());
+            QListWidgetItem* lk_Item_ = new QListWidgetItem(QIcon("src/icons/proteomatic.png"), ls_Title, mk_pSearchPopup.data());
     } while (lk_Iter != lk_TargetsSorted.constBegin());
     
     //mk_pSearchPopup->setWindowModality(Qt::NonModal);
@@ -523,7 +526,7 @@ void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
         //mk_pSearchPopup->setIconSize(QSize(16, 16));
         mk_pSearchPopup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         mk_pSearchPopup->show();
-        //connect(lk_Sender_, SIGNAL(focusOut()), mk_pSearchPopup.get_Pointer(), SLOT(hide()));
+        //connect(lk_Sender_, SIGNAL(focusOut()), mk_pSearchPopup.data(), SLOT(hide()));
         //lk_Sender_->setFocus(Qt::MouseFocusReason);
     }
 }
@@ -548,6 +551,7 @@ void k_PipelineMainWindow::toggleUi()
     mk_AddFileListAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_Proteomatic.startButton()->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
     mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());
+//     mk_AbortAction_->setVisible(mk_Desktop_ && mk_Desktop_->running());
     mk_RefreshAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
     mk_ProfileManagerAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));
     mk_ShowConfigurationAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()));

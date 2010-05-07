@@ -60,7 +60,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
     lk_CopyFromButton_->setMenu(lk_CopyFromMenu_);
     
     QAction* lk_ClearAction_ = lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "&Reset");
-    connect(lk_ClearAction_, SIGNAL(triggered()), dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SLOT(resetAndUncheck()));
+    connect(lk_ClearAction_, SIGNAL(triggered()), dynamic_cast<QObject*>(mk_pScript.data()), SLOT(resetAndUncheck()));
     
     // determine incoming parameters that are non-applicable to the current script
     QStringList lk_ScriptKeys = mk_pScript->parameterKeys();
@@ -178,7 +178,7 @@ k_EditProfileDialog::k_EditProfileDialog(k_Proteomatic& ak_Proteomatic,
     lk_MainLayout_->addLayout(lk_HLayout_);
     this->setLayout(lk_MainLayout_);
     mk_ProfileDescriptionText_->setText(mk_pScript->profileDescription());
-    connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(profileDescriptionChanged(const QString&)), mk_ProfileDescriptionText_, SLOT(setText(const QString&)));
+    connect(dynamic_cast<QObject*>(mk_pScript.data()), SIGNAL(profileDescriptionChanged(const QString&)), mk_ProfileDescriptionText_, SLOT(setText(const QString&)));
 
     lk_HSplitter_->setStretchFactor(0, 4);
     lk_HSplitter_->setStretchFactor(1, 5);

@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include <QtGui>
 #include <QtSql>
-#include "RefPtr.h"
 #include "FileTrackerNode.h"
 
 
@@ -104,7 +103,7 @@ protected:
     double md_RightScrollOffset;
     QGraphicsPathItem* mk_ScrollLinesPathItem_;
     
-    QList<RefPtr<k_FileTrackerNode> > mk_Nodes;
+    QList<QSharedPointer<k_FileTrackerNode> > mk_Nodes;
     QList<k_FileTrackerNode*> mk_LeftNodes;
     QList<k_FileTrackerNode*> mk_RightNodes;
     k_FileTrackerNode* mk_CentralNode_;

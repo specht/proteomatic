@@ -21,7 +21,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtCore>
 #include "Proteomatic.h"
-#include "RefPtr.h"
 #include "Script.h"
 
 

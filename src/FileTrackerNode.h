@@ -19,7 +19,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 #include <QtGui>
-#include "RefPtr.h"
 #include "Tango.h"
 
 class k_FileTrackerNode: public QWidget
@@ -52,7 +51,7 @@ protected:
     float mf_HorizontalAlignment;
     float mf_VerticalAlignment;
     QPointF mk_Position;
-    QList<RefPtr<QWidget> > mk_LabelWidgets;
+    QList<QSharedPointer<QWidget> > mk_LabelWidgets;
     int mi_MaximumWidth;
     QPen mk_FramePen;
 };

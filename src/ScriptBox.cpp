@@ -31,7 +31,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "InputGroupProxyBox.h"
 
 
-k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
+k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
     : k_DesktopBox(ak_Parent_, ak_Proteomatic, false, false)
     , mk_pScript(ak_pScript)
     , mk_OutputBoxContainer_(NULL)
@@ -51,10 +51,10 @@ k_ScriptBox::k_ScriptBox(RefPtr<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Pr
 {
     mk_PreviewSuffixes << ".html" << ".xhtml" << ".svg" << ".png" << ".jpg";
     connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
-    connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
-    connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
-    connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(scriptFinished(int)), this, SLOT(refreshOutputFileView()));
-    connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(readyRead()), this, SIGNAL(readyRead()));
+    connect(dynamic_cast<QObject*>(mk_pScript.data()), SIGNAL(scriptStarted()), this, SIGNAL(scriptStarted()));
+    connect(dynamic_cast<QObject*>(mk_pScript.data()), SIGNAL(scriptFinished(int)), this, SIGNAL(scriptFinished(int)));
+    connect(dynamic_cast<QObject*>(mk_pScript.data()), SIGNAL(scriptFinished(int)), this, SLOT(refreshOutputFileView()));
+    connect(dynamic_cast<QObject*>(mk_pScript.data()), SIGNAL(readyRead()), this, SIGNAL(readyRead()));
     connect(this, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
     setupLayout();
 }
@@ -71,7 +71,7 @@ k_ScriptBox::~k_ScriptBox()
 
 IScript* k_ScriptBox::script()
 {
-    return mk_pScript.get_Pointer();
+    return mk_pScript.data();
 }
 
 
@@ -156,7 +156,7 @@ QStringList k_ScriptBox::outputFilesForKey(QString as_Key) const
 
 QWidget* k_ScriptBox::paneWidget()
 {
-    return mk_pParameterProxyWidget.get_Pointer();
+    return mk_pParameterProxyWidget.data();
 }
 
 
@@ -394,7 +394,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
     mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->findText(ms_CurrentIterationKeyShowing));
     
     if (!mk_Output.contains(as_IterationKey))
-        mk_Output.insert(as_IterationKey, RefPtr<k_ConsoleString>(new k_ConsoleString()));
+        mk_Output.insert(as_IterationKey, QSharedPointer<k_ConsoleString>(new k_ConsoleString()));
     mk_Output[as_IterationKey]->clear();
     emit readyRead();
     mk_pScript->start(lk_InputFiles, lk_Parameters, mk_Desktop_->useFileTrackerIfAvailable());
@@ -622,7 +622,7 @@ void k_ScriptBox::update()
     {
         mk_OutputBoxIterationKeyChooser_->addItem(ls_Key);
         if (!mk_Output.contains(ls_Key))
-            mk_Output[ls_Key] = RefPtr<k_ConsoleString>(new k_ConsoleString());
+            mk_Output[ls_Key] = QSharedPointer<k_ConsoleString>(new k_ConsoleString());
         if (ls_Key == ls_CurrentText)
             mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->count() - 1);
     }
@@ -873,19 +873,19 @@ void k_ScriptBox::setupLayout()
     
     mk_TabWidget_ = new QTabWidget(this);
 
-    mk_pParameterProxyWidget = RefPtr<QWidget>(mk_TabWidget_);
+    mk_pParameterProxyWidget = QSharedPointer<QWidget>(mk_TabWidget_);
     
 
-//  QToolBar* lk_ToolBar_ = new QToolBar(mk_pParameterProxyWidget.get_Pointer());
+//  QToolBar* lk_ToolBar_ = new QToolBar(mk_pParameterProxyWidget.data());
 //  lk_ToolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 // 
 //  lk_ToolBar_->addAction(QIcon(":/icons/document-properties.png"), "Profiles", this, SLOT(showProfileManager()));
-//  lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SLOT(reset()));
-//  QWidget* lk_StretchLabel_ = new QWidget(mk_pParameterProxyWidget.get_Pointer());
+//  lk_ToolBar_->addAction(QIcon(":/icons/edit-clear.png"), "Reset", dynamic_cast<QObject*>(mk_pScript.data()), SLOT(reset()));
+//  QWidget* lk_StretchLabel_ = new QWidget(mk_pParameterProxyWidget.data());
 //  lk_StretchLabel_->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
 //  lk_StretchLabel_->setContentsMargins(0, 0, 0, 0);
 //  lk_ToolBar_->addWidget(lk_StretchLabel_);
-//  lk_ToolBar_->addAction(QIcon(":/icons/dialog-ok.png"), "Close", mk_pParameterProxyWidget.get_Pointer(), SLOT(accept()));
+//  lk_ToolBar_->addAction(QIcon(":/icons/dialog-ok.png"), "Close", mk_pParameterProxyWidget.data(), SLOT(accept()));
 //  
 //  lk_VLayout_->addWidget(lk_ToolBar_);
 
@@ -1097,7 +1097,7 @@ void k_ScriptBox::setupLayout()
                 ls_DestinationFilename.replace(ls_Capture, "");
             }
             
-            connect(dynamic_cast<QObject*>(mk_pScript.get_Pointer()), SIGNAL(parameterChanged(const QString&)), this, SLOT(scriptParameterChanged(const QString&)));
+            connect(dynamic_cast<QObject*>(mk_pScript.data()), SIGNAL(parameterChanged(const QString&)), this, SLOT(scriptParameterChanged(const QString&)));
 
         }
         lk_VLayout_->addStretch();

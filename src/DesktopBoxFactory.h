@@ -23,7 +23,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "IScriptBox.h"
 #include <QtCore>
 #include <QtGui>
-#include "RefPtr.h"
 
 
 class k_Desktop;

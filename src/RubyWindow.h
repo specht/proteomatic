@@ -20,7 +20,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtCore>
 #include "ConsoleString.h"
 #include "Proteomatic.h"
-#include "RefPtr.h"
 
 
 class k_RubyWindow: public QObject
@@ -42,7 +41,7 @@ protected:
     QStringList mk_Arguments;
     QString ms_Title;
     
-    RefPtr<QDialog> mk_pDialog;
+    QSharedPointer<QDialog> mk_pDialog;
     QTextEdit* mk_Output_;
     QPushButton* mk_AbortButton_;
     QPushButton* mk_CloseButton_;

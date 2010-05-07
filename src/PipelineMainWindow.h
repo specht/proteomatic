@@ -110,5 +110,5 @@ protected:
     QWidget* mk_FauxTitleBarWidgetFloating_;
     bool mb_JustStarted;
     QRegExp mk_WordSplitter;
-    RefPtr<QListWidget> mk_pSearchPopup;
+    QSharedPointer<QListWidget> mk_pSearchPopup;
 };
