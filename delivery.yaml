@@ -4,7 +4,7 @@ projects:
 #binaryPath: bin
 qt: [core, gui, webkit]
 versionInject:
-  src/version.cpp: |
+  src/version.cpp: >
     /*
     Copyright (c) 2007-2009 Michael Specht
     
@@ -27,7 +27,7 @@ versionInject:
     #include "version.h"
     
     QString gs_ProteomaticVersion = "#{VERSION}";
-  debian/changelog: |
+  debian/changelog: >
     proteomatic (#{VERSION}) #{STABILITY}; urgency=low
 
     * Proteomatic #{VERSION}
