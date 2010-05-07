@@ -10,7 +10,8 @@ versionInject:
       * Proteomatic #{VERSION}
 
      -- Michael Specht <micha.specht@gmail.com>  #{DATE}
-
+    
+    
   src/version.cpp: |
     /*
     Copyright (c) 2007-2009 Michael Specht
