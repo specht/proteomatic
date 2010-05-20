@@ -1,7 +1,7 @@
 TEMPLATE = app
 
 win32 {
-    INCLUDEPATH += c:/Qt/2009.04/mingw/include
+    INCLUDEPATH += e:/Qt/2010.02.1/mingw/include
 }
 
 !isEmpty(PROTEOMATIC_UPDATES_ENABLED) {
@@ -38,7 +38,7 @@ QT = core gui webkit
 INCLUDEPATH += src/ src/dialogs
 
 win32 {
-    LIBPATH += c:\Qt\2009.04\mingw\lib\
+    LIBPATH += e:\Qt\2010.02.1\mingw\lib\
 }
 macx {
     LIBPATH += /Users/michael/programming/ext/lib
