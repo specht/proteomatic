@@ -988,23 +988,28 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
     QString ls_DuplicatePath;
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
     {
-        IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
-        if (lk_FileBox_)
+        // make sure it's not an input file list box here,
+        // because there duplicate files are allowed
+        if (!lk_Box_->incomingBoxes().empty())
         {
-            foreach (QString ls_Path, lk_FileBox_->filenames())
+            IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+            if (lk_FileBox_)
             {
-                if (lk_OutputFilesForFileBox.contains(ls_Path))
+                foreach (QString ls_Path, lk_FileBox_->filenames())
                 {
-                    lk_DuplicateOutputFilesBox0_ = lk_OutputFilesForFileBox[ls_Path];
-                    lk_DuplicateOutputFilesBox1_ = lk_Box_;
-                    ls_DuplicatePath = ls_Path;
-                    break;
+                    if (lk_OutputFilesForFileBox.contains(ls_Path))
+                    {
+                        lk_DuplicateOutputFilesBox0_ = lk_OutputFilesForFileBox[ls_Path];
+                        lk_DuplicateOutputFilesBox1_ = lk_Box_;
+                        ls_DuplicatePath = ls_Path;
+                        break;
+                    }
+                    lk_OutputFilesForFileBox[ls_Path] = lk_Box_;
                 }
-                lk_OutputFilesForFileBox[ls_Path] = lk_Box_;
             }
+            if (lk_DuplicateOutputFilesBox0_)
+                break;
         }
-        if (lk_DuplicateOutputFilesBox0_)
-            break;
     }
     
     if (lk_DuplicateOutputFilesBox0_)

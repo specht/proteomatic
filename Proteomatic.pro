@@ -74,53 +74,61 @@ HEADERS += \
     src/ClickableGraphicsProxyWidget.h \
     src/ClickableLabel.h \
     src/ConsoleString.h \
+    src/Desktop.h \
+    src/DesktopBox.h \
+    src/DesktopBoxFactory.h \
     src/FileList.h \
+    src/FileListBox.h \
     src/FoldedHeader.h \
     src/HintLineEdit.h \
+    src/IDesktopBox.h \
+    src/IFileBox.h \
+    src/InputGroupProxyBox.h \
     src/IScript.h \
+    src/IScriptBox.h \
     src/LocalScript.h \
     src/NoSlashValidator.h \
+    src/PipelineMainWindow.h \
     src/ProfileManager.h \
     src/Proteomatic.h \
     src/RemoteScript.h \
     src/RubyWindow.h \
     src/Script.h \
+    src/ScriptBox.h \
     src/ScriptFactory.h \
     src/StopWatch.h \
     src/Tango.h \
     src/TicketWindow.h \
     src/UnclickableLabel.h \
-    src/version.h \
     src/Yaml.h \
     src/YamlEmitter.h \
     src/YamlParser.h \
-    src/dialogs/EditProfileDialog.h \
-    src/Desktop.h \
-    src/DesktopBox.h \
-    src/DesktopBoxFactory.h \
-    src/IDesktopBox.h \
-    src/IFileBox.h \
-    src/InputGroupProxyBox.h \
-    src/IScriptBox.h \
-    src/FileListBox.h \
-    src/PipelineMainWindow.h \
-    src/ScriptBox.h \
     src/ZoomableWebView.h \
+    src/version.h \
+    src/dialogs/EditProfileDialog.h \
     
 SOURCES += \
     src/ClickableGraphicsProxyWidget.cpp \
     src/ClickableLabel.cpp \
     src/ConsoleString.cpp \
+    src/Desktop.cpp \
+    src/DesktopBox.cpp \
+    src/DesktopBoxFactory.cpp \
     src/FileList.cpp \
+    src/FileListBox.cpp \
     src/FoldedHeader.cpp \
     src/HintLineEdit.cpp \
+    src/InputGroupProxyBox.cpp \
     src/LocalScript.cpp \
     src/NoSlashValidator.cpp \
+    src/PipelineMainWindow.cpp \
     src/ProfileManager.cpp \
     src/Proteomatic.cpp \
+    src/ProteomaticPipelineMain.cpp \
     src/RemoteScript.cpp \
     src/RubyWindow.cpp \
     src/Script.cpp \
+    src/ScriptBox.cpp \
     src/ScriptFactory.cpp \
     src/StopWatch.cpp \
     src/TicketWindow.cpp \
@@ -129,16 +137,8 @@ SOURCES += \
     src/Yaml.cpp \
     src/YamlEmitter.cpp \
     src/YamlParser.cpp \
-    src/dialogs/EditProfileDialog.cpp \
-    src/Desktop.cpp \
-    src/DesktopBox.cpp \
-    src/DesktopBoxFactory.cpp \
-    src/FileListBox.cpp \
-    src/InputGroupProxyBox.cpp \
-    src/PipelineMainWindow.cpp \
-    src/ProteomaticPipelineMain.cpp \
-    src/ScriptBox.cpp \
     src/ZoomableWebView.cpp \
+    src/dialogs/EditProfileDialog.cpp \
     
 RESOURCES += \
     src/Proteomatic.qrc \
