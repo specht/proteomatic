@@ -228,7 +228,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                             if (lk_RubyWindow.exec())
                             {
                                 // purge cache
-                                QStringList lk_CacheFiles = QDir("cache").entryList(QDir::Files);
+                                QStringList lk_CacheFiles = QDir(QDir::cleanPath(ms_DataDirectory + "/cache")).entryList(QDir::Files);
                                 foreach (QString ls_Path, lk_CacheFiles)
                                     QFile(ls_Path).remove();
                                 
@@ -272,7 +272,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                             lk_RubyWindow.exec();
                             
                             // purge cache
-                            QStringList lk_CacheFiles = QDir("cache").entryList(QDir::Files);
+                            QStringList lk_CacheFiles = QDir(QDir::cleanPath(ms_DataDirectory + "/cache")).entryList(QDir::Files);
                             foreach (QString ls_Path, lk_CacheFiles)
                                 QFile(ls_Path).remove();
 
@@ -619,15 +619,15 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             
         if (lb_SeenProteomatic)
         {
-            if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists("cache")))
+            if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && (!QFile::exists(QDir::cleanPath(ms_DataDirectory + "/cache"))))
             {
                 QDir lk_Dir;
-                lk_Dir.mkdir("cache");
+                lk_Dir.mkdir(QDir::cleanPath(ms_DataDirectory + "/cache"));
             }
 
             QFileInfo lk_FileInfo(ls_Path);
             QString ls_Response;
-            QString ls_CacheFilename = QString("cache/%1.%2.info").arg(lk_FileInfo.fileName()).arg(md5ForString(ls_Path));
+            QString ls_CacheFilename = QDir::cleanPath(ms_DataDirectory + "/cache" + QString("/%1.%2.info").arg(lk_FileInfo.fileName()).arg(md5ForString(ls_Path)));
             bool lb_UseCache = getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool() && fileUpToDate(ls_CacheFilename, QStringList() << ls_Path);
             
             if (lb_UseCache)
