@@ -1,0 +1,33 @@
+<html>
+<head>
+<style type='text/css'>
+body {
+    font-family: sans;
+    font-size: 9pt;
+}
+table {
+    font-family: sans;
+    font-size: 9pt;
+    border: 1px solid #000;
+    border-collapse: collapse;
+}
+td, th {
+    border: 1px solid #000;
+    padding: 0.2em;
+    text-align: left;
+}
+</style>
+</head>
+
+<body>
+<table>
+<tr><th>Item</th><th>Win Portable</th><th>Win Installer</th><th>Linux Portable</th><th>Linux DEB</th><th>Mac OS X App</th></tr>
+<tr><td>File</td><td>Proteomatic 0.9.12.zip</td><td>Proteomatic 0.9.12 Setup.exe</td><td>proteomatic-0.9.12.tar.bz2</td><td>proteomatic_0.9.12_i386.deb</td><td>Proteomatic 0.9.12.app</td></tr>
+<tr><td>Binary dir writable</td><td>yes</td><td>no (?)</td><td>yes</td><td>no</td><td>yes (?)</td></tr>
+<tr><td>Binary updates</td><td>self</td><td>self (?)</td><td>self</td><td>apt</td><td>self</td></tr>
+<tr><td>Script updates</td><td>self</td><td>self</td><td>self</td><td>apt</td><td>self</td></tr>
+<tr><td>Data directory ($DATA)</td><td>./</td><td>($APPDATA)/proteomatic/</td><td>./</td><td>~/.proteomatic/</td><td>./</td></tr>
+<tr><td>Script yaml info cache</td><td colspan='5'>$DATA/cache</td></tr>
+</table>
+</body>
+</html>
