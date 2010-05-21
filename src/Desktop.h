@@ -79,10 +79,10 @@ public slots:
     virtual void invalidate();
     
 signals:
-    virtual void pipelineIdle(bool);
-    virtual void showAllRequested();
-    virtual void selectionChanged();
-    virtual void requestGlobalUpdate();
+    void pipelineIdle(bool);
+    void showAllRequested();
+    void selectionChanged();
+    void requestGlobalUpdate();
     
 protected slots:
     virtual void markBoxForUpdate();

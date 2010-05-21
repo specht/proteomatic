@@ -106,9 +106,9 @@ public:
     virtual QString readAll() = 0;
     
 signals:
-    virtual void scriptStarted();
-    virtual void scriptFinished(int ai_ExitCode);
-    virtual void parameterChanged(const QString& as_Key);
+    void scriptStarted();
+    void scriptFinished(int ai_ExitCode);
+    void parameterChanged(const QString& as_Key);
     void profileDescriptionChanged(const QString&);
     void proposePrefixButtonClicked();
     

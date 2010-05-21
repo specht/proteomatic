@@ -41,9 +41,9 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
     , mk_ArrowEndBox_(NULL)
     , mk_UserArrowPathItem_(NULL)
     , mk_ArrowStartBoxAutoConnect_(NULL)
+    , mk_CurrentScriptBox_(NULL)
     , mb_Running(false)
     , mb_Error(false)
-    , mk_CurrentScriptBox_(NULL)
     , md_BoxZ(0.0)
     , mb_HasUnsavedChanges(false)
     , mb_Moving(false)
@@ -1232,7 +1232,7 @@ void k_Desktop::globalUpdate()
 }
 
 
-void k_Desktop::boxMovedOrResized(QPoint ak_Delta)
+void k_Desktop::boxMovedOrResized(QPoint /*ak_Delta*/)
 {
     IDesktopBox* lk_Sender_ = dynamic_cast<IDesktopBox*>(sender());
     if (lk_Sender_ && mk_ArrowsForBox.contains(lk_Sender_))

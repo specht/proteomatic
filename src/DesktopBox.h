@@ -63,12 +63,12 @@ public slots:
     virtual void invalidateNext(int ai_Distance = 1);
     
 signals:
-    virtual void moved(QPoint ak_Delta);
-    virtual void resized();
-    virtual void clicked(QMouseEvent* event);
-    virtual void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
-    virtual void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
-    virtual void requestGlobalUpdate();
+    void moved(QPoint ak_Delta);
+    void resized();
+    void clicked(QMouseEvent* event);
+    void boxConnected(IDesktopBox* ak_Other_, bool ab_Incoming);
+    void boxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming);
+    void requestGlobalUpdate();
     
 protected:
     virtual void resizeEvent(QResizeEvent* event);

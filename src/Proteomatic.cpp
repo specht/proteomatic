@@ -41,9 +41,9 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     , mk_MessageBoxParent_(NULL)
     , mk_RemoteMenu_(NULL)
     , ms_RemoteHubStdout("")
+    , ms_DataDirectory(".")
     , ms_ManagedScriptsPath("scripts")
     , ms_ConfigurationPath("proteomatic.conf.yaml")
-    , ms_DataDirectory(".")
 {
 #ifndef PROTEOMATIC_UPDATES_ENABLED
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
@@ -827,7 +827,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 }
 
 
-int k_Proteomatic::queryRemoteHub(QString as_Uri, QStringList ak_Arguments)
+int k_Proteomatic::queryRemoteHub(QString /*as_Uri*/, QStringList /*ak_Arguments*/)
 {
 /*  if (mk_pRemoteHubHttp.data() == NULL)
         return -1;
@@ -1157,7 +1157,7 @@ void k_Proteomatic::addRemoteScriptDialog()
 }
 
 
-void k_Proteomatic::remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error)
+void k_Proteomatic::remoteHubRequestFinishedSlot(int /*ai_SocketId*/, bool /*ab_Error*/)
 {
 /*  QString ls_Response = QString(mk_pRemoteHubHttp->readAll());
     

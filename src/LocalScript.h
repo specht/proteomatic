@@ -42,9 +42,9 @@ protected slots:
     virtual void scriptFinishedSlot(int ae_ExitCode, QProcess::ExitStatus ae_Status);
 
 signals:
-    virtual void scriptStarted();
-    virtual void scriptFinished(int);
-    virtual void readyRead();
+    void scriptStarted();
+    void scriptFinished(int);
+    void readyRead();
 
 protected:
     QProcess mk_Process;

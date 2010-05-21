@@ -213,7 +213,6 @@ protected:
     
     QCoreApplication& mk_Application;
     k_Desktop* mk_Desktop_;
-    QString ms_DataDirectory;
     k_PipelineMainWindow* mk_PipelineMainWindow_;
     // uri / path => uri, title, group, description, optional: parameters
     QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
@@ -224,6 +223,7 @@ protected:
     QString ms_RemoteHubStdout;
 //  QSharedPointer<QHttp> mk_pRemoteHubHttp;
     QFont mk_ConsoleFont;
+    QString ms_DataDirectory;
     QString ms_ManagedScriptsPath;
     QStringList mk_AdditionalScriptPaths;
     QString ms_ConfigurationPath;

@@ -124,7 +124,7 @@ void k_DesktopBox::update()
 
 void k_DesktopBox::setBatchMode(bool ab_Enabled)
 {
-    bool lb_OldBatchMode = mb_BatchMode;
+//     bool lb_OldBatchMode = mb_BatchMode;
     mb_BatchMode = ab_Enabled;
     repaint();
 }

@@ -88,10 +88,10 @@ protected slots:
     virtual void outputFilenameDetailsChanged();
     
 signals:
-    virtual void scriptStarted();
-    virtual void scriptFinished(int ai_ExitCode);
-    virtual void readyRead();
-    virtual void outputDirectoryChanged();
+    void scriptStarted();
+    void scriptFinished(int ai_ExitCode);
+    void readyRead();
+    void outputDirectoryChanged();
     
 protected:
     virtual void setupLayout();

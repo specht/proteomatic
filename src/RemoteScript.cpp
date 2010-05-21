@@ -46,7 +46,7 @@ k_RemoteScript::~k_RemoteScript()
 }
 
 
-QString k_RemoteScript::start(const QStringList& /*ak_Parameters*/, tk_StringStringHash, bool ab_UseFileTrackerIfAvailable)
+QString k_RemoteScript::start(const QStringList& /*ak_Parameters*/, tk_StringStringHash, bool /*ab_UseFileTrackerIfAvailable*/)
 {
     return "";
 }

@@ -26,8 +26,8 @@ k_FoldedHeader::k_FoldedHeader(QWidget* ak_Buddy_, bool ab_TextClickable,
                                QWidget* parent, Qt::WindowFlags f)
     : QWidget(parent, f)
     , mk_Buddy_(ak_Buddy_)
-    , mb_TextClickable(ab_TextClickable)
     , mk_Label_(NULL)
+    , mb_TextClickable(ab_TextClickable)
 {
     init();
 }
@@ -38,9 +38,9 @@ k_FoldedHeader::k_FoldedHeader(const QString& text, QWidget* ak_Buddy_,
                                QWidget* parent, Qt::WindowFlags f)
     : QWidget(parent, f)
     , mk_Buddy_(ak_Buddy_)
-    , mb_TextClickable(ab_TextClickable)
     , ms_Text(text)
     , mk_Label_(NULL)
+    , mb_TextClickable(ab_TextClickable)
 {
     init();
     mk_Label_->setText(ms_Text);

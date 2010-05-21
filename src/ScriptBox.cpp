@@ -34,18 +34,18 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
     : k_DesktopBox(ak_Parent_, ak_Proteomatic, false, false)
     , mk_pScript(ak_pScript)
+    , ms_CurrentIterationKeyRunning(QString())
+    , ms_CurrentIterationKeyShowing(QString())
     , mk_OutputBoxContainer_(NULL)
     , mk_OutputFileViewerContainer_(NULL)
     , mk_OutputBoxIterationKeyChooserContainer_(NULL)
     , mk_OutputBoxIterationKeyChooser_(NULL)
     , mk_OutputBox_(NULL)
     , mk_IterationsTagsDontMatchIcon_(NULL)
+    , mk_UseShortTagsCheckBox_(NULL)
     , mk_LastUserAdjustedSize(0, 0)
-    , ms_CurrentIterationKeyRunning(QString())
-    , ms_CurrentIterationKeyShowing(QString())
     , mb_IterationsTagsDontMatch(false)
     , mb_MultipleInputBatches(false)
-    , mk_UseShortTagsCheckBox_(NULL)
     , mk_OutputFileChooser_(NULL)
     , mk_WebView_(NULL)
 {
@@ -75,7 +75,7 @@ IScript* k_ScriptBox::script()
 }
 
 
-bool k_ScriptBox::checkReady(QString& as_Error)
+bool k_ScriptBox::checkReady(QString& /*as_Error*/)
 {
     QStringList lk_IterationKeys = iterationKeys();
     if (lk_IterationKeys.empty())
@@ -444,13 +444,13 @@ void k_ScriptBox::invalidate()
 }
 
 
-void k_ScriptBox::showOutputBox(bool ab_Flag/* = true*/)
+void k_ScriptBox::showOutputBox(bool /*ab_Flag*//* = true*/)
 {
     mk_TabWidget_->setCurrentWidget(mk_OutputBoxContainer_);
 }
 
 
-void k_ScriptBox::showOutputFileBox(bool ab_Flag/* = true*/)
+void k_ScriptBox::showOutputFileBox(bool /*ab_Flag*//* = true*/)
 {
     //mk_TabWidget_->setCurrentWidget(mk_OutputFileViewerContainer_);
 }

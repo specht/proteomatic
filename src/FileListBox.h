@@ -57,9 +57,9 @@ public slots:
     virtual void invalidate();
     
 signals:
-    virtual void arrowPressed();
-    virtual void arrowReleased();
-    virtual void filenamesChanged();
+    void arrowPressed();
+    void arrowReleased();
+    void filenamesChanged();
     
 protected slots:
     virtual void addFilesButtonClicked();
