@@ -54,7 +54,7 @@ void k_HintLineEdit::paintEvent(QPaintEvent* event)
     {
         QPainter lk_Painter(this);
         lk_Painter.setPen(QColor("#888"));
-#ifdef WIN32
+#ifdef __win32__
         lk_Painter.drawText(4, 14, ms_Hint);
 #else
         lk_Painter.drawText(5, 17, ms_Hint);

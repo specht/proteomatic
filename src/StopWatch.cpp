@@ -20,7 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "StopWatch.h"
 
 
-#ifndef _WIN32
+#ifndef __win32__
 #include <sys/time.h>
 #endif
 
@@ -31,7 +31,7 @@ k_StopWatch::k_StopWatch()
     , mk_OutputStream_(&mk_StdOutputStream)
     , mb_Print(false)
 {
-#ifdef _WIN32
+#ifdef __win32__
     ::QueryPerformanceFrequency(&ml_Frequency);
 #endif
     this->reset();
@@ -44,7 +44,7 @@ k_StopWatch::k_StopWatch(QString as_Message, QTextStream* ak_OutputStream_)
     , mk_OutputStream_(ak_OutputStream_ != NULL? ak_OutputStream_: &mk_StdOutputStream)
     , mb_Print(true)
 {
-#ifdef _WIN32
+#ifdef __win32__
     ::QueryPerformanceFrequency(&ml_Frequency);
 #endif
     this->reset();
@@ -107,7 +107,7 @@ void k_StopWatch::setExitMessage(QString as_Message)
 
 double k_StopWatch::get_AbsoluteTime()
 {
-#ifdef _WIN32
+#ifdef __win32__
     LARGE_INTEGER ll_Time;
     ::QueryPerformanceCounter(&ll_Time);
     return (double)ll_Time.QuadPart / (double)ml_Frequency.QuadPart;

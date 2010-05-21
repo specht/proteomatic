@@ -27,7 +27,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <md5.h>
 
 
-#ifdef WIN32
+#ifdef __win32__
     #define FILE_URL_PREFIX "file:///"
 #else
     #define FILE_URL_PREFIX "file://"
@@ -53,8 +53,8 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     QDir lk_Dir;
     if (!lk_Dir.exists(ms_DataDirectory))
         lk_Dir.mkdir(ms_DataDirectory);
-    ms_ManagedScriptsPath = ms_DataDirectory + "/scripts";
-    ms_ConfigurationPath = ms_DataDirectory + "/proteomatic.conf.yaml";
+    ms_ManagedScriptsPath = QDir::cleanPath(ms_DataDirectory + "/scripts");
+    ms_ConfigurationPath = QDir::cleanPath(ms_DataDirectory + "/proteomatic.conf.yaml");
 }
 
 
@@ -95,7 +95,7 @@ void k_Proteomatic::initialize()
         {
             mk_ConsoleFont = QFont(ls_Font);
             mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.8);
-#ifdef WIN32            
+#ifdef __win32__
             mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.9);
 #endif
             break;

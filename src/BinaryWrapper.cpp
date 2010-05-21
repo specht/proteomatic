@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef WIN32
+#ifdef __win32__
 #include <windows.h>
 int WinMain(HINSTANCE,HINSTANCE,LPSTR commandLine,int)
 #else
@@ -14,7 +14,7 @@ int main(int argc, char** argv__)
     char* DIR = new char[16384];
     char* SEARCH_PATTERN = new char[16384];
     strcpy(SEARCH_PATTERN, BINARY);
-#ifdef WIN32
+#ifdef __win32__
     char* TEMP = new char[16384];
     strcpy(TEMP, GetCommandLine());
     if (strlen(TEMP) > 0 && TEMP[0] == '"')
@@ -28,7 +28,7 @@ int main(int argc, char** argv__)
     DIR[strlen(DIR) - strlen(BINARY)] = 0;
     strcat(DIR, "bin/");
 #endif
-#ifdef WIN32
+#ifdef __win32__
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
 
@@ -44,7 +44,7 @@ int main(int argc, char** argv__)
     char* fixedPath_ = new char[16384];
 
     
-#ifdef WIN32
+#ifdef __win32__
     DWORD li_ReturnCode = 0;
 #else
     int li_ReturnCode = 0;
@@ -52,7 +52,7 @@ int main(int argc, char** argv__)
     bool lb_Repeat = false;
     do
     {
-#ifdef WIN32
+#ifdef __win32__
         /*
         FILE* fd = fopen("out.txt", "a");
         fprintf(fd, "[%s] [%s]\n", ls_Dir_, DIR);
@@ -82,14 +82,14 @@ int main(int argc, char** argv__)
                     if (strlen(path_) > 0)
                     {
                         // fix slashes on Windows
-#ifdef WIN32
+#ifdef __win32__
                         for (int i = 0; i < strlen(path_); ++i)
                             if (path_[i] == '/')
                                 path_[i] = '\\';
 #endif                        
                         strcpy(fixedPath_, path_);
                         fixedPath_[strlen(fixedPath_) - 8] = 0;
-#ifdef WIN32
+#ifdef __win32__
                         unlink(fixedPath_);
 #endif
                         rename(path_, fixedPath_);
