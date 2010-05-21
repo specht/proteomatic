@@ -55,6 +55,8 @@ macx {
     QMAKE_INFO_PLIST    = Info.plist
 }
 
+DESTDIR = ./
+
 !isEmpty(PROTEOMATIC_UPDATES_ENABLED) {
     DESTDIR = bin/
     TARGET = ProteomaticCore
