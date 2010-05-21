@@ -21,7 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtCore>
 
-#ifdef __win32__
+#ifdef Q_OS_WIN32
 #include <windows.h>
 #endif
 
@@ -44,7 +44,7 @@ private:
 
     double get_AbsoluteTime();
 
-#ifdef __win32__
+#ifdef Q_OS_WIN32
     LARGE_INTEGER ml_Frequency;
 #endif
 

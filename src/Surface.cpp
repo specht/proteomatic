@@ -22,7 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Proteomatic.h"
 #include "RevelioMainWindow.h"
 
-#ifdef __win32__
+#ifdef Q_OS_WIN32
     #define FILE_URL_PREFIX "file:///"
 #else
     #define FILE_URL_PREFIX "file://"

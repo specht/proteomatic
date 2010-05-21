@@ -26,8 +26,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include <md5.h>
 
+#ifdef Q_OS_WIN32
+#define _WIN32_IE 0x0400
+#include <windows.h>
+#include <shlobj.h>
+#endif
 
-#ifdef __win32__
+
+#ifdef Q_OS_WIN32
     #define FILE_URL_PREFIX "file:///"
 #else
     #define FILE_URL_PREFIX "file://"
@@ -48,7 +54,22 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
 #ifndef PROTEOMATIC_UPDATES_ENABLED
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
 #endif
-    ms_DataDirectory = QDir::toNativeSeparators(QDir(ms_DataDirectory).absolutePath());
+#ifdef Q_OS_WIN32
+    TCHAR ls_TempPath_[MAX_PATH + 1]; 
+    // MSDN says it's FOLDERID_LocalAppData from Vista on
+    // but that it's still valid... but for how long??
+    // On the other hand, it did not seem to work in Win XP
+    if (SHGetSpecialFolderPath(NULL, ls_TempPath_, CSIDL_APPDATA, NULL))
+    {
+#ifdef UNICODE
+        ms_DataDirectory = QString::fromUtf16((ushort*)ls_TempPath_);
+#else
+        ms_DataDirectory = QString::fromLocal8Bit(ls_TempPath_);
+#endif
+        ms_DataDirectory += "/Proteomatic";
+    }
+#endif
+    ms_DataDirectory = QDir::cleanPath(ms_DataDirectory);
     // create data directory if it doesn't exist 
     QDir lk_Dir;
     if (!lk_Dir.exists(ms_DataDirectory))
@@ -95,7 +116,7 @@ void k_Proteomatic::initialize()
         {
             mk_ConsoleFont = QFont(ls_Font);
             mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.8);
-#ifdef __win32__
+#ifdef Q_OS_WIN32
             mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.9);
 #endif
             break;
