@@ -79,6 +79,8 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
         {
             QStringList lk_Arguments;
             lk_Arguments << as_ScriptPath << "---yamlInfo";
+            lk_Arguments << "--extToolsPath";
+            lk_Arguments << mk_Proteomatic.externalToolsPath();
             // ignore Ruby warnings for ---yamlInfo
             if (mk_Proteomatic.interpreterKeyForScript(as_ScriptPath) == "ruby")
                 lk_Arguments.insert(0, "-W0");
@@ -120,11 +122,13 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
             + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
             if (li_Result == QMessageBox::Yes)
             {
-                QSharedPointer<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(mk_Proteomatic, QStringList() << as_ScriptPath << "--resolveDependencies", "Installing external tools", ":/icons/package-x-generic.png"));
+                QSharedPointer<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(mk_Proteomatic, QStringList() << as_ScriptPath << "--resolveDependencies" << "--extToolsPath" << mk_Proteomatic.externalToolsPath(), "Installing external tools", ":/icons/package-x-generic.png"));
                 lk_pRubyWindow->exec();
                 // retry loading the script
                 QStringList lk_Arguments;
                 lk_Arguments << as_ScriptPath << "---yamlInfo";
+                lk_Arguments << "--extToolsPath";
+                lk_Arguments << mk_Proteomatic.externalToolsPath();
                 // ignore Ruby warnings for ---yamlInfo
                 if (mk_Proteomatic.interpreterKeyForScript(as_ScriptPath) == "ruby")
                     lk_Arguments.insert(0, "-W0");
@@ -178,6 +182,8 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
         lk_AdditionalParameters << "--useFileTracker";
         lk_AdditionalParameters << mk_Proteomatic.getConfiguration(CONFIG_FILETRACKER_URL).toString();
     }
+    lk_AdditionalParameters << "--extToolsPath";
+    lk_AdditionalParameters << mk_Proteomatic.externalToolsPath();
     mk_Process.start(mk_Proteomatic.interpreterForScript(this->uri()), (QStringList() << this->uri()) + commandLineArguments() + lk_AdditionalParameters + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
     return QString();
 }

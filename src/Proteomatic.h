@@ -173,6 +173,7 @@ public:
     bool stringToBool(const QString& as_String);
     QString scriptsVersion();
     QString completePathForScript(QString as_ScriptFilename);
+    QString externalToolsPath() const;
     
     QHash<QString, QStringList> mk_ScriptKeywords;
     
@@ -224,6 +225,7 @@ protected:
 //  QSharedPointer<QHttp> mk_pRemoteHubHttp;
     QFont mk_ConsoleFont;
     QString ms_DataDirectory;
+    QString ms_ExternalToolsPath;
     QString ms_ManagedScriptsPath;
     QStringList mk_AdditionalScriptPaths;
     QString ms_ConfigurationPath;

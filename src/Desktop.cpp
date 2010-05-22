@@ -1128,36 +1128,22 @@ void k_Desktop::clearPrefixForAllScripts()
 
 void k_Desktop::proposePrefixForAllScripts()
 {
-    QSet<IScriptBox*> lk_BoxSet;
+    QMultiMap<int, IDesktopBox*> lk_BoxesByTopologicalIndex;
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        lk_BoxesByTopologicalIndex.insert(lk_Box_->topologicalIndex(), lk_Box_);
+    
+    QMultiMap<int, IDesktopBox*>::const_iterator lk_Iter = lk_BoxesByTopologicalIndex.constBegin();
+    for (; lk_Iter != lk_BoxesByTopologicalIndex.constEnd(); ++lk_Iter)
     {
-        IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
-        if (lk_ScriptBox_)
-            lk_BoxSet.insert(lk_ScriptBox_);
-    }
-    while (true)
-    {
-        IScriptBox* lk_ScriptBox_ = NULL;
-        foreach (IScriptBox* lk_SetBox_, lk_BoxSet)
+        IDesktopBox* lk_Box_ = lk_Iter.value();
+        k_ScriptBox* lk_KScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
+/*        if (lk_KScriptBox_)
+            printf("[%d] updating %s\n", lk_Iter.key(), lk_KScriptBox_->script()->title().toStdString().c_str());*/
+        if (lk_KScriptBox_ && lk_KScriptBox_->script()->type() != r_ScriptType::Converter)
         {
-            bool lb_Good = false;
-            IDesktopBox* lk_DesktopBox_ = dynamic_cast<IDesktopBox*>(lk_SetBox_);
-            if (lk_DesktopBox_)
-                lb_Good = (incomingScriptBoxes(lk_DesktopBox_).intersect(lk_BoxSet).size() == 0);
-            if (lb_Good)
-            {
-                lk_ScriptBox_ = lk_SetBox_;
-                break;
-            }
-        }
-        
-        if (!lk_ScriptBox_)
-            break;
-        
-        lk_BoxSet.remove(lk_ScriptBox_);
-        k_ScriptBox* lk_KScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_ScriptBox_);
-        if (lk_KScriptBox_ && lk_ScriptBox_->script()->type() != r_ScriptType::Converter)
             lk_KScriptBox_->proposePrefixButtonClicked(false);
+            lk_Box_->update();
+        }
     }
 }
 

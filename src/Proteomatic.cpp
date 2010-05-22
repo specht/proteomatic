@@ -70,10 +70,17 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     }
 #endif
     ms_DataDirectory = QDir::cleanPath(ms_DataDirectory);
+
     // create data directory if it doesn't exist 
     QDir lk_Dir;
     if (!lk_Dir.exists(ms_DataDirectory))
         lk_Dir.mkdir(ms_DataDirectory);
+    
+    // create ext tools directory if it doesn't exist 
+    ms_ExternalToolsPath = QDir::cleanPath(ms_DataDirectory + "/ext");
+    if (!lk_Dir.exists(ms_ExternalToolsPath))
+        lk_Dir.mkdir(ms_ExternalToolsPath);
+
     ms_ManagedScriptsPath = QDir::cleanPath(ms_DataDirectory + "/scripts");
     ms_ConfigurationPath = QDir::cleanPath(ms_DataDirectory + "/proteomatic.conf.yaml");
 }
@@ -1036,7 +1043,7 @@ void k_Proteomatic::showConfigurationDialog()
     lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     lk_VLayout_->addWidget(lk_Frame_);
     lk_VLayout_->addWidget(new QLabel("<b>Miscellaneous</b>", lk_pDialog.data()));
-    QLabel* lk_DataDirLabel_ = new QLabel("Data directory: <a href='file://" + ms_DataDirectory + "'>" + ms_DataDirectory + "</a>", lk_pDialog.data());
+    QLabel* lk_DataDirLabel_ = new QLabel("Data directory: <a href='" + QString(FILE_URL_PREFIX) + ms_DataDirectory + "'>" + ms_DataDirectory + "</a>", lk_pDialog.data());
     lk_DataDirLabel_->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard);
     lk_DataDirLabel_->setOpenExternalLinks(true);
     lk_VLayout_->addWidget(lk_DataDirLabel_);
@@ -1058,7 +1065,7 @@ void k_Proteomatic::showConfigurationDialog()
     connect(lk_OkButton_, SIGNAL(clicked()), lk_pDialog.data(), SLOT(accept()));
     lk_HLayout_->addWidget(lk_OkButton_);
     lk_MainLayout_->addLayout(lk_HLayout_);
-    lk_pDialog->resize(400, 300);
+    lk_pDialog->resize(600, 400);
     if (lk_pDialog->exec())
     {
         mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = lk_AutoCheckForUpdates_->checkState() == Qt::Checked;
@@ -1308,6 +1315,13 @@ QString k_Proteomatic::completePathForScript(QString as_ScriptFilename)
             return ls_Path;
     return QString();
 }
+
+
+QString k_Proteomatic::externalToolsPath() const
+{
+    return ms_ExternalToolsPath;
+}
+
 
 void k_Proteomatic::checkRuby()
 {

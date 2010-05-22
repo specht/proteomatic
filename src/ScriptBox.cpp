@@ -298,6 +298,7 @@ void k_ScriptBox::proposePrefixButtonClicked(bool ab_NotifyOnFailure)
     {
         mk_Prefix.setText(ls_Result);
         mk_Desktop_->setHasUnsavedChanges(true);
+        invalidate();
     }
     if (ls_Result.isEmpty() && ab_NotifyOnFailure)
         mk_Proteomatic.showMessageBox("Propose prefix", 
