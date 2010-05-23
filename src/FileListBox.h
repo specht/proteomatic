@@ -38,6 +38,7 @@ public:
     k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, IScriptBox* ak_ScriptBoxParent_);
     virtual ~k_FileListBox();
 
+    virtual QString description();
     virtual void setKey(QString as_Key);
     virtual void setLabel(QString as_Label);
     

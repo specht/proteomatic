@@ -66,6 +66,8 @@ public:
     virtual bool useFileTrackerIfAvailable() const;
     virtual void bringBoxToFront(IDesktopBox* ak_Box_);
     
+    virtual QList<IDesktopBox*> boxesByTopologicalOrder();
+    
 public slots:
     virtual void clearAll();
     virtual void refresh();

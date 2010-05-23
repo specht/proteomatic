@@ -903,6 +903,15 @@ void k_Desktop::bringBoxToFront(IDesktopBox* ak_Box_)
 }
 
 
+QList<IDesktopBox*> k_Desktop::boxesByTopologicalOrder()
+{
+    QMultiMap<int, IDesktopBox*> lk_BoxesByTopologicalIndex;
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        lk_BoxesByTopologicalIndex.insert(lk_Box_->topologicalIndex(), lk_Box_);
+    return lk_BoxesByTopologicalIndex.values();
+}
+
+
 void k_Desktop::bringBoxToFrontSender()
 {
     QGraphicsProxyWidget* lk_ProxyWidget_ = dynamic_cast<QGraphicsProxyWidget*>(sender());
@@ -1126,23 +1135,16 @@ void k_Desktop::clearPrefixForAllScripts()
     }
 }
 
+
 void k_Desktop::proposePrefixForAllScripts()
 {
-    QMultiMap<int, IDesktopBox*> lk_BoxesByTopologicalIndex;
-    foreach (IDesktopBox* lk_Box_, mk_Boxes)
-        lk_BoxesByTopologicalIndex.insert(lk_Box_->topologicalIndex(), lk_Box_);
-    
-    QMultiMap<int, IDesktopBox*>::const_iterator lk_Iter = lk_BoxesByTopologicalIndex.constBegin();
-    for (; lk_Iter != lk_BoxesByTopologicalIndex.constEnd(); ++lk_Iter)
+    foreach (IDesktopBox* lk_Box_, boxesByTopologicalOrder())
     {
-        IDesktopBox* lk_Box_ = lk_Iter.value();
         k_ScriptBox* lk_KScriptBox_ = dynamic_cast<k_ScriptBox*>(lk_Box_);
-/*        if (lk_KScriptBox_)
-            printf("[%d] updating %s\n", lk_Iter.key(), lk_KScriptBox_->script()->title().toStdString().c_str());*/
         if (lk_KScriptBox_ && lk_KScriptBox_->script()->type() != r_ScriptType::Converter)
         {
             lk_KScriptBox_->proposePrefixButtonClicked(false);
-            lk_Box_->update();
+            globalUpdate();
         }
     }
 }

@@ -58,6 +58,17 @@ k_FileListBox::~k_FileListBox()
 }
 
 
+QString k_FileListBox::description()
+{
+    return QString("file box [%1] (%2 in, %3 out)%4 %5").
+        arg(topologicalIndex()).
+        arg(incomingBoxes().size()).
+        arg(outgoingBoxes().size()).
+        arg(mb_BatchMode ? " (batch mode)" : "").
+        arg(ms_Label);
+}
+
+
 void k_FileListBox::setKey(QString as_Key)
 {
     ms_Key = as_Key;
@@ -107,6 +118,9 @@ QString k_FileListBox::prefixWithoutTags() const
 
 void k_FileListBox::setListMode(bool ab_Enabled)
 {
+    if (mb_ListMode == ab_Enabled)
+        return;
+    
     bool lb_OldListMode = mb_ListMode;
     mb_ListMode = ab_Enabled;
     if (!mk_ScriptBoxParent_)
@@ -154,6 +168,8 @@ void k_FileListBox::addPaths(const QStringList& ak_Paths)
 
 void k_FileListBox::setBatchMode(bool ab_Enabled)
 {
+    if (ab_Enabled == mb_BatchMode)
+        return;
     k_DesktopBox::setBatchMode(ab_Enabled);
     if (mk_BatchModeButton.isChecked() != ab_Enabled)
         mk_BatchModeButton.setChecked(ab_Enabled);
@@ -256,13 +272,15 @@ void k_FileListBox::showContextMenu()
 void k_FileListBox::invalidate()
 {
     k_DesktopBox::invalidate();
-    if (batchMode())
-        invalidateNext(2);
+    invalidateNext(batchMode() ? 2 : 1);
 }
 
 
 void k_FileListBox::update()
 {
+#ifdef DEBUG
+    printf("updating [%s]\n", this->description().toStdString().c_str());
+#endif
     if (mk_ScriptBoxParent_)
     {
         mk_FileList.resetAll(false);
@@ -414,5 +432,5 @@ void k_FileListBox::openContainingDirectory()
 
 void k_FileListBox::fileBoxChanged()
 {
-    invalidate();
+//     invalidate();
 }

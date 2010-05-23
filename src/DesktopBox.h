@@ -47,6 +47,7 @@ public:
     virtual void setProtectedFromUserDeletion(bool ab_Flag);
     virtual QSet<IDesktopBox*> incomingBoxes() const;
     virtual QSet<IDesktopBox*> outgoingBoxes() const;
+    virtual QString description();
     virtual void update();
     
 public slots:

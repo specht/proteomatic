@@ -69,6 +69,17 @@ k_ScriptBox::~k_ScriptBox()
 }
 
 
+QString k_ScriptBox::description()
+{
+    return QString("script box [%1] (%2 in, %3 out)%4 %5").
+        arg(topologicalIndex()).
+        arg(incomingBoxes().size()).
+        arg(outgoingBoxes().size()).
+        arg(mb_BatchMode ? " (batch mode)" : "").
+        arg(script()->title());
+}
+
+
 IScript* k_ScriptBox::script()
 {
     return mk_pScript.data();
@@ -293,12 +304,15 @@ void k_ScriptBox::handleBoxDisconnected(IDesktopBox* ak_Other_, bool ab_Incoming
 
 void k_ScriptBox::proposePrefixButtonClicked(bool ab_NotifyOnFailure)
 {
+#ifdef DEBUG
+    printf("proposing prefix for [%s]\n", description().toStdString().c_str());
+#endif
     QString ls_Result = mk_pScript->proposePrefix(mk_InputFilesForKey);
     if (!ls_Result.isEmpty())
     {
         mk_Prefix.setText(ls_Result);
+        outputFilenameDetailsChanged();
         mk_Desktop_->setHasUnsavedChanges(true);
-        invalidate();
     }
     if (ls_Result.isEmpty() && ab_NotifyOnFailure)
         mk_Proteomatic.showMessageBox("Propose prefix", 
@@ -309,17 +323,21 @@ void k_ScriptBox::proposePrefixButtonClicked(bool ab_NotifyOnFailure)
 
 void k_ScriptBox::clearPrefixButtonClicked()
 {
+    if (mk_Prefix.text().isEmpty())
+        return;
     mk_Prefix.setText(QString());
+    outputFilenameDetailsChanged();
     mk_Desktop_->setHasUnsavedChanges(true);
-    invalidate();
 }
 
 
 void k_ScriptBox::clearOutputDirectoryButtonClicked()
 {
+    if (mk_OutputDirectory.text().isEmpty())
+        return;
     mk_OutputDirectory.setText(QString());
+    outputFilenameDetailsChanged();
     mk_Desktop_->setHasUnsavedChanges(true);
-    invalidate();
 }
 
 
@@ -438,13 +456,6 @@ void k_ScriptBox::refreshOutputFileView()
 }
 
 
-void k_ScriptBox::invalidate()
-{
-    k_DesktopBox::invalidate();
-    invalidateNext();
-}
-
-
 void k_ScriptBox::showOutputBox(bool /*ab_Flag*//* = true*/)
 {
     mk_TabWidget_->setCurrentWidget(mk_OutputBoxContainer_);
@@ -509,6 +520,9 @@ void k_ScriptBox::outputBoxIterationKeyChooserChanged()
 
 void k_ScriptBox::update()
 {
+#ifdef DEBUG
+    printf("updating [%s]\n", this->description().toStdString().c_str());
+#endif
     IFileBox* lk_FirstBatchFileBox_ = NULL;
     
     // ----------------------------------------------
@@ -793,7 +807,6 @@ void k_ScriptBox::update()
 }
 
 
-
 void k_ScriptBox::toggleUi()
 {
     k_DesktopBox::toggleUi();
@@ -992,7 +1005,7 @@ void k_ScriptBox::setupLayout()
         mk_Prefix.setValidator(&mk_NoSlashValidator);
         lk_HLayout_->addWidget(&mk_Prefix);
         connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_Prefix, SLOT(setEnabled(bool)));
-        connect(&mk_Prefix, SIGNAL(textChanged(const QString&)), this, SLOT(outputFilenameDetailsChanged()));
+        connect(&mk_Prefix, SIGNAL(textEdited(const QString&)), this, SLOT(outputFilenameDetailsChanged()));
 
         QToolButton* lk_ClearPrefixButton_ = new QToolButton(this);
         lk_ClearPrefixButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));
@@ -1016,7 +1029,7 @@ void k_ScriptBox::setupLayout()
         mk_OutputDirectory.setReadOnly(true);
         mk_OutputDirectory.setMinimumWidth(120);
         lk_HLayout_->addWidget(&mk_OutputDirectory);
-        connect(&mk_OutputDirectory, SIGNAL(textChanged(const QString&)), this, SLOT(outputFilenameDetailsChanged()));
+        connect(&mk_OutputDirectory, SIGNAL(textEdited(const QString&)), this, SLOT(outputFilenameDetailsChanged()));
 
         QToolButton* lk_ClearOutputDirectoryButton_ = new QToolButton(this);
         lk_ClearOutputDirectoryButton_->setIcon(QIcon(":/icons/dialog-cancel.png"));

@@ -39,6 +39,7 @@ public:
     k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic);
     virtual ~k_ScriptBox();
     
+    virtual QString description();
     virtual IScript* script();
     virtual bool checkReady(QString& as_Error);
     virtual bool checkReadyToGo();
@@ -58,17 +59,16 @@ public:
     virtual void setUseShortIterationTags(bool ab_Flag);
     virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key);
     virtual QString boxOutputPrefix() const;
+    virtual void update();
     
 public slots:
     virtual void start(const QString& as_IterationKey);
     virtual void abort();
-    // :TODO: these two guys should be in IScriptBox!!
     virtual void proposePrefixButtonClicked(bool ab_NotifyOnFailure = true);
     virtual void clearPrefixButtonClicked();
     virtual void clearOutputDirectoryButtonClicked();
     virtual void addOutput(QString as_String);
     virtual void refreshOutputFileView();
-    virtual void invalidate();
     
 protected slots:
     virtual void outputFileActionToggled();
@@ -81,7 +81,6 @@ protected slots:
     virtual void hidingBuddy();
     virtual void showingBuddy();
     virtual void outputBoxIterationKeyChooserChanged();
-    virtual void update();
     virtual void toggleUi();
     virtual void toggleOutputFileChooser(int ai_Index);
     virtual void zoomWebView(int ai_Delta);

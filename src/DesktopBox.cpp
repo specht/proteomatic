@@ -117,6 +117,16 @@ QSet<IDesktopBox*> k_DesktopBox::outgoingBoxes() const
 }
 
 
+QString k_DesktopBox::description()
+{
+    return QString("generic box [%1] (%2 in, %3 out)%4").
+        arg(topologicalIndex()).
+        arg(incomingBoxes().size()).
+        arg(outgoingBoxes().size()).
+        arg(mb_BatchMode ? " (batch mode)" : "");
+}
+
+
 void k_DesktopBox::update()
 {
 }
@@ -124,7 +134,8 @@ void k_DesktopBox::update()
 
 void k_DesktopBox::setBatchMode(bool ab_Enabled)
 {
-//     bool lb_OldBatchMode = mb_BatchMode;
+    if (ab_Enabled == mb_BatchMode)
+        return;
     mb_BatchMode = ab_Enabled;
     repaint();
 }
@@ -209,6 +220,9 @@ QRectF k_DesktopBox::rect()
 
 void k_DesktopBox::invalidate()
 {
+#ifdef DEBUG
+    printf("invalidating [%s]\n", this->description().toStdString().c_str());
+#endif
     emit requestGlobalUpdate();
 }
 

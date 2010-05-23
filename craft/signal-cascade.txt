@@ -1,0 +1,10 @@
+Signal cascade:
+---------------
+
+Whenever a box is changed, changes might be far-reaching. To cope with this
+the design is as follows:
+
+1. Whenever a box has changed, its invalidate() slot is called, which 
+triggers SIGNAL(requestGlobalUpdate()), which is called via a queued 
+signal/slot connection so that the actual update is not carried out until
+the big fuss is over and everything's calm again, or at leats hopefully so >:)
