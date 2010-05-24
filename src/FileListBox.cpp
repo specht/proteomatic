@@ -60,11 +60,11 @@ k_FileListBox::~k_FileListBox()
 
 QString k_FileListBox::description()
 {
-    return QString("file box [%1] (%2 in, %3 out)%4 %5").
+    return QString("[%1] (%2/%3) file box   %4%5").
         arg(topologicalIndex()).
         arg(incomingBoxes().size()).
         arg(outgoingBoxes().size()).
-        arg(mb_BatchMode ? " (batch mode)" : "").
+        arg(mb_BatchMode ? "(batch mode) " : "").
         arg(ms_Label);
 }
 

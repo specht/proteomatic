@@ -71,11 +71,11 @@ k_ScriptBox::~k_ScriptBox()
 
 QString k_ScriptBox::description()
 {
-    return QString("script box [%1] (%2 in, %3 out)%4 %5").
+    return QString("[%1] (%2/%3) script box %4%5").
         arg(topologicalIndex()).
         arg(incomingBoxes().size()).
         arg(outgoingBoxes().size()).
-        arg(mb_BatchMode ? " (batch mode)" : "").
+        arg(mb_BatchMode ? "(batch mode) " : "").
         arg(script()->title());
 }
 
@@ -610,6 +610,8 @@ void k_ScriptBox::update()
         mk_IterationTags = lk_ConsensusIterationTags.toList();
         qSort(mk_IterationTags.begin(), mk_IterationTags.end());
     }
+    else
+        mk_IterationTags = QStringList() << "";
     
     // ------------------------------------------------
     // UPDATE ITERATION TAG DROP-DOWN BOX
@@ -749,7 +751,11 @@ void k_ScriptBox::update()
                     }
                 }
                 else
-                    mk_OutputFilesForKey[ls_Key] << scriptOutputDirectory() + "/" + boxOutputPrefix() + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                {
+                    QString ls_Path = scriptOutputDirectory() + "/" + boxOutputPrefix() + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                    mk_OutputFilesForKey[ls_Key] << ls_Path;
+                    mk_OutputFilesForIterationTag[""] << ls_Path;
+                }
             }
         }
     }

@@ -1735,6 +1735,29 @@ void k_Desktop::keyPressEvent(QKeyEvent* event)
     {
         if ((event->matches(QKeySequence::Delete) || (event->key() == Qt::Key_Backspace)) && !mb_Running)
             deleteSelected();
+#ifdef DEBUG
+        
+        if (event->text().toLower() == "d")
+        {
+            printf("\n");
+            printf("DEBUG OUTPUT\n");
+            printf("Got %d boxes.\n", mk_Boxes.size());
+            foreach (IDesktopBox* lk_Box_, boxesByTopologicalOrder())
+            {
+                printf("%s\n", lk_Box_->description().toStdString().c_str());
+                IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+                if (lk_ScriptBox_)
+                {
+                    foreach (QString ls_Key, lk_ScriptBox_->iterationKeys())
+                    {
+                        printf("    [%s] (files: %s)\n", ls_Key.toStdString().c_str(), lk_ScriptBox_->iterationHasNoExistingOutputFiles(ls_Key) ? "no" : "yes");
+                    }
+                }
+            }
+            printf("\n");
+            printf("\n");
+        }
+#endif
     }
 }
 
