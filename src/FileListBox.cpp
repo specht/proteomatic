@@ -393,6 +393,7 @@ void k_FileListBox::setupLayout()
     lk_HLayout_->addWidget(&mk_FileName);
     
     QBoxLayout* lk_VSubLayout_ = new QVBoxLayout();
+    lk_HLayout_->addStretch();
     lk_HLayout_->addLayout(lk_VSubLayout_);
     lk_VSubLayout_->addStretch();
     

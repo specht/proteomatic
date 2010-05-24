@@ -1988,6 +1988,10 @@ IDesktopBox* k_Desktop::connectionAllowed(IDesktopBox* ak_StartBox_, IDesktopBox
     if (ak_StartBox_->outgoingBoxes().contains(ak_EndBox_))
         return NULL;
     
+    // make sure the arrow end box is not a predecessor of the arrow start box
+    if (ak_StartBox_->hasAnchestor(ak_EndBox_))
+        return NULL;
+    
     return ak_EndBox_;
 }
 

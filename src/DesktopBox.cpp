@@ -71,6 +71,15 @@ void k_DesktopBox::updateTopologicalIndex()
 }
 
 
+bool k_DesktopBox::hasAnchestor(IDesktopBox* ak_Other_)
+{
+    foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+        if ((lk_Box_ == ak_Other_) || lk_Box_->hasAnchestor(ak_Other_))
+            return true;
+    return false;
+}
+
+
 void k_DesktopBox::resize(int w, int h)
 {
     if (w < minimumWidth())

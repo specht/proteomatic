@@ -29,6 +29,7 @@ struct IDesktopBox
 
     virtual int topologicalIndex() const = 0;
     virtual void updateTopologicalIndex() = 0;
+    virtual bool hasAnchestor(IDesktopBox* ak_Other_) = 0;
     virtual bool batchMode() const = 0;
     virtual bool protectedFromUserDeletion() const = 0;
     virtual void setProtectedFromUserDeletion(bool ab_Flag) = 0;

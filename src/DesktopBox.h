@@ -37,6 +37,7 @@ public:
     
     virtual int topologicalIndex() const;
     virtual void updateTopologicalIndex();
+    virtual bool hasAnchestor(IDesktopBox* ak_Other_);
     virtual void resize(int w, int h);
     virtual void resize(const QSize& ak_Size);
     
