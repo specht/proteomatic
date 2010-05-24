@@ -54,6 +54,8 @@ public:
     virtual void update();
     
 public slots:
+    virtual void connectOutgoingBox(IDesktopBox* ak_Other_);
+    virtual void disconnectOutgoingBox(IDesktopBox* ak_Other_);
     virtual void setBatchMode(bool ab_Enabled);
     virtual void invalidate();
     

@@ -167,6 +167,22 @@ void k_FileListBox::addPaths(const QStringList& ak_Paths)
 }
 
 
+void k_FileListBox::connectOutgoingBox(IDesktopBox* ak_Other_)
+{
+    k_DesktopBox::connectOutgoingBox(ak_Other_);
+    if (batchMode())
+        invalidateNext(2);
+}
+
+
+void k_FileListBox::disconnectOutgoingBox(IDesktopBox* ak_Other_)
+{
+    if (batchMode())
+        invalidateNext(2);
+    k_DesktopBox::disconnectOutgoingBox(ak_Other_);
+}
+
+
 void k_FileListBox::setBatchMode(bool ab_Enabled)
 {
     if (ab_Enabled == mb_BatchMode)
