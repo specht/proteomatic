@@ -367,6 +367,9 @@ void k_FileList::itemDoubleClicked(QListWidgetItem* ak_Item_)
 
 void k_FileList::showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point)
 {
+    if (!mb_FileMode)
+        return;
+    
     if (!ak_Item_)
         return;
     
