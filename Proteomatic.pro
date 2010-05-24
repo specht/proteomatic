@@ -20,12 +20,14 @@ macx {
     INCLUDEPATH += '/Users/dimitris/michael/ext/include'
 }
 
+TARGET = Proteomatic
+
 CONFIG(debug, debug|release) {
+    DEFINES += DEBUG
     OBJECTS_DIR = obj/debug/
     MOC_DIR = obj/debug/
     RCC_DIR = obj/debug/
     TARGET = $$join(TARGET,,,_debug)
-    DEFINES += DEBUG
 }
 else {
     OBJECTS_DIR = obj/release/
@@ -47,8 +49,6 @@ macx {
 
 #LIBS += $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
 LIBS += -lyaml-cpp -lmd5
-
-TARGET = Proteomatic
 
 macx {
     TARGET = Proteomatic
