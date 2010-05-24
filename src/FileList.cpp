@@ -22,10 +22,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Proteomatic.h"
 
 
-k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_FileMode)
+k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, 
+                       k_Proteomatic& ak_Proteomatic, bool ab_FileMode)
     : QListWidget(ak_Parent_)
+    , mk_Proteomatic(ak_Proteomatic)
     , mk_OpenFileAction(QIcon(":icons/document-open.png"), "&Open file", this)
     , mk_OpenContainingFolderAction(QIcon(":icons/folder.png"), "Open containing &folder", this)
+    , mk_RemoveFileFromListAction(QIcon(":icons/list-remove.png"), "&Remove from list", this)
+    , mk_DeleteFileAction(QIcon(":icons/dialog-cancel.png"), "&Delete file", this)
     , mb_ReallyRemoveItems(ab_ReallyRemoveItems)
     , mb_FileMode(ab_FileMode)
     , mb_Refreshing(false)
@@ -39,8 +43,13 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_F
     connect(this, SIGNAL(myItemRightClicked(QListWidgetItem*)), this, SLOT(showFilePopupMenu(QListWidgetItem*)));
     connect(&mk_OpenFileAction, SIGNAL(triggered()), this, SLOT(menuOpenFileSlot()));
     connect(&mk_OpenContainingFolderAction, SIGNAL(triggered()), this, SLOT(menuOpenContainingDirectorySlot()));
+    connect(&mk_RemoveFileFromListAction, SIGNAL(triggered()), this, SLOT(menuRemoveFileFromListSlot()));
+    connect(&mk_DeleteFileAction, SIGNAL(triggered()), this, SLOT(menuDeleteFileSlot()));
     mk_PopupMenu.addAction(&mk_OpenFileAction);
     mk_PopupMenu.addAction(&mk_OpenContainingFolderAction);
+    mk_PopupMenu.addSeparator();
+    mk_PopupMenu.addAction(&mk_RemoveFileFromListAction);
+    mk_PopupMenu.addAction(&mk_DeleteFileAction);
 }
 
 
@@ -364,10 +373,18 @@ void k_FileList::showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point)
     if (ak_Point == QPoint())
         ak_Point = QCursor::pos();
     
-    QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
-    mk_OpenFileAction.setEnabled(QFileInfo(ls_Path).exists());
-    ls_Path = QFileInfo(ls_Path).absolutePath();
-    mk_OpenContainingFolderAction.setEnabled(QFileInfo(ls_Path).isDir());
+    bool lb_OneItemSelected = selectedItems().size() == 1;
+    
+    QString ls_Path = QDir::cleanPath(QFileInfo(ak_Item_->data(Qt::UserRole).toString()).absoluteFilePath());
+    mk_OpenFileAction.setEnabled(lb_OneItemSelected && QFileInfo(ls_Path).exists());
+    QSet<QString> lk_SelectedFolders;
+    foreach (QListWidgetItem* lk_Item_, selectedItems())
+        lk_SelectedFolders << QFileInfo(ls_Path).absolutePath();
+    mk_OpenContainingFolderAction.setEnabled((lk_SelectedFolders.size() == 1) && QFileInfo(QFileInfo(ls_Path).absolutePath()).isDir());
+    mk_RemoveFileFromListAction.setText(lb_OneItemSelected ? "&Remove from list" : "&Remove selected items from list");
+    mk_DeleteFileAction.setText(lb_OneItemSelected ? "&Delete file" : "&Delete selected files");
+    mk_RemoveFileFromListAction.setEnabled(mb_ReallyRemoveItems);
+    mk_DeleteFileAction.setEnabled(QFileInfo(ls_Path).exists());
     
     mk_PopupMenu.exec(ak_Point);
 }
@@ -382,6 +399,18 @@ void k_FileList::menuOpenFileSlot()
 void k_FileList::menuOpenContainingDirectorySlot()
 {
     openContainingDirectory(currentItem());
+}
+
+
+void k_FileList::menuRemoveFileFromListSlot()
+{
+    removeFileFromList(currentItem());
+}
+
+
+void k_FileList::menuDeleteFileSlot()
+{
+    deleteFile(currentItem());
 }
 
 
@@ -404,4 +433,63 @@ void k_FileList::openContainingDirectory(QListWidgetItem* ak_Item_)
     QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
     if (QFileInfo(QFileInfo(ls_Path).absolutePath()).isDir())
         k_Proteomatic::openFileLink(QFileInfo(ls_Path).absolutePath());
+}
+
+
+void k_FileList::removeFileFromList(QListWidgetItem* ak_Item_)
+{
+    if (!ak_Item_)
+        return;
+    
+    removeSelection();
+}
+
+
+void k_FileList::deleteFile(QListWidgetItem* ak_Item_)
+{
+    if (!ak_Item_)
+        return;
+    
+    if (selectedItems().size() > 1)
+    {
+        QStringList lk_Paths;
+        foreach (QListWidgetItem* lk_Item_, selectedItems())
+        {
+            QString ls_Path = lk_Item_->data(Qt::UserRole).toString();
+            if (QFileInfo(ls_Path).exists())
+                lk_Paths << ls_Path;
+        }
+        if (lk_Paths.size() > 0)
+        {
+            if (mk_Proteomatic.showMessageBox("Delete selected files", QString("Are you sure you want to delete %1 file%2?").arg(lk_Paths.size()).arg(lk_Paths.size() == 1 ? "" : "s"), ":icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+            {
+                QDir lk_Dir;
+                int li_ErrorCount = 0;
+                foreach (QString ls_Path, lk_Paths)
+                {
+                    if (!lk_Dir.remove(ls_Path))
+                        ++li_ErrorCount;
+                }
+                if (li_ErrorCount > 0)
+                    mk_Proteomatic.showMessageBox("Delete selected files", 
+                                                  QString("Error: Unable to delete %1 of %2 files.").
+                                                    arg(li_ErrorCount).arg(lk_Paths.size()), 
+                                                  ":icons/dialog-warning.png");
+            }
+        }
+    }
+    else
+    {
+        QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
+        if (QFileInfo(ls_Path).exists())
+        {
+            ls_Path = QDir::cleanPath(ls_Path);
+            if (mk_Proteomatic.showMessageBox("Delete file", QString("Are you sure you want to delete %1?").arg(ls_Path), ":icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+            {
+                QDir lk_Dir;
+                if (!lk_Dir.remove(ls_Path))
+                    mk_Proteomatic.showMessageBox("Delete file", "Error: The file could not be deleted.", ":icons/dialog-warning.png");
+            }
+        }
+    }
 }

@@ -31,11 +31,12 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     , mb_ListMode(!ak_ScriptBoxParent_)
     , ms_Key("")
     , ms_Label("")
-    , mk_FileList(this, !ak_ScriptBoxParent_, true)
+    , mk_FileList(this, !ak_ScriptBoxParent_, ak_Proteomatic, true)
     , mk_Label("<b>File list</b> (empty)", this)
     , mi_MinHeight(21)
     , mk_OpenFileAction_(new QAction(QIcon(":icons/document-open.png"), "&Open file", this))
     , mk_OpenContainingFolderAction_(new QAction(QIcon(":icons/folder.png"), "Open containing &folder", this))
+    , mk_DeleteFileAction_(new QAction(QIcon(":icons/dialog-cancel.png"), "&Delete file", this))
     , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ScriptBoxParent_(ak_ScriptBoxParent_)
@@ -264,6 +265,7 @@ void k_FileListBox::showContextMenu()
 {
     QString ls_Path = mk_FileList.files().first();
     mk_OpenFileAction_->setEnabled(QFileInfo(ls_Path).exists());
+    mk_DeleteFileAction_->setEnabled(QFileInfo(ls_Path).exists());
     ls_Path = QFileInfo(ls_Path).absolutePath();
     mk_OpenContainingFolderAction_->setEnabled(QFileInfo(ls_Path).isDir());
     mk_PopupMenu.exec(QCursor::pos());
@@ -332,8 +334,11 @@ void k_FileListBox::setupLayout()
 
     mk_PopupMenu.addAction(mk_OpenFileAction_);
     mk_PopupMenu.addAction(mk_OpenContainingFolderAction_);
+    mk_PopupMenu.addSeparator();
+    mk_PopupMenu.addAction(mk_DeleteFileAction_);
     connect(mk_OpenFileAction_, SIGNAL(triggered()), this, SLOT(openFile()));
     connect(mk_OpenContainingFolderAction_, SIGNAL(triggered()), this, SLOT(openContainingDirectory()));
+    connect(mk_DeleteFileAction_, SIGNAL(triggered()), this, SLOT(deleteFile()));
     
     lk_VLayout_ = new QVBoxLayout(this);
     lk_VLayout_->setContentsMargins(11, 11, 11, 11);
@@ -431,7 +436,19 @@ void k_FileListBox::openContainingDirectory()
 }
 
 
+void k_FileListBox::deleteFile()
+{
+    QString ls_Path = QDir::cleanPath(mk_FileList.files().first());
+    if (mk_Proteomatic.showMessageBox("Delete file", QString("Are you sure you want to delete %1?").arg(ls_Path), ":icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+    {
+        QDir lk_Dir;
+        if (!lk_Dir.remove(ls_Path))
+            mk_Proteomatic.showMessageBox("Delete file", "Error: The file could not be deleted.", ":icons/dialog-warning.png");
+    }
+}
+
+
 void k_FileListBox::fileBoxChanged()
 {
-//     invalidate();
+     invalidate();
 }

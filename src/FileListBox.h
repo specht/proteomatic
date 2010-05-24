@@ -71,6 +71,7 @@ protected slots:
     virtual void arrowReleasedSlot();
     virtual void openFile();
     virtual void openContainingDirectory();
+    virtual void deleteFile();
     virtual void fileBoxChanged();
     
 protected:
@@ -91,6 +92,7 @@ protected:
     QMenu mk_PopupMenu;
     QAction* mk_OpenFileAction_;
     QAction* mk_OpenContainingFolderAction_;
+    QAction* mk_DeleteFileAction_;
     QPixmap mk_InactiveArrow;
     QPixmap mk_ActiveArrow;
     k_ClickableLabel mk_ArrowLabel;

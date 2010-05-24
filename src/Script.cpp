@@ -1331,7 +1331,7 @@ void k_Script::createParameterWidget(QString as_Info)
                 lk_Widget_ = new QWidget(lk_Container_);
                 QHBoxLayout* lk_WidgetLayout_ = new QHBoxLayout(lk_Widget_);
                 QVBoxLayout* lk_ButtonLayout_ = new QVBoxLayout(NULL);
-                k_FileList* lk_ListWidget_ = new k_FileList(lk_Widget_, false);
+                k_FileList* lk_ListWidget_ = new k_FileList(lk_Widget_, false, mk_Proteomatic);
                 lk_ListWidget_->setSelectionMode(QAbstractItemView::ExtendedSelection);
                 lk_WidgetLayout_->addWidget(lk_ListWidget_);
                 QToolButton* lk_AddButton_ = new QToolButton(lk_Widget_);
@@ -1361,7 +1361,7 @@ void k_Script::createParameterWidget(QString as_Info)
                 lk_Dialog_->resize(240, 280);
                 QBoxLayout* lk_VLayout_ = new QVBoxLayout(lk_Dialog_);
                 QBoxLayout* lk_HLayout_ = new QHBoxLayout(NULL);
-                k_FileList* lk_ChoicesWidget_ = new k_FileList(lk_Dialog_, false);
+                k_FileList* lk_ChoicesWidget_ = new k_FileList(lk_Dialog_, false, mk_Proteomatic);
                 lk_ChoicesWidget_->setSortingEnabled(true);
                 lk_ChoicesWidget_->setObjectName("choices-stock");
                 lk_VLayout_->addWidget(lk_ChoicesWidget_);

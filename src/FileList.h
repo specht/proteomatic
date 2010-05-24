@@ -20,13 +20,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include "Proteomatic.h"
 
 
 class k_FileList: public QListWidget
 {
     Q_OBJECT
 public:
-    k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, bool ab_FileMode = false);
+    k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems, k_Proteomatic& ak_Proteomatic, bool ab_FileMode = false);
     ~k_FileList();
     void resetAll(bool ab_EmitSignal = true);
     void forceRemove(QList<QListWidgetItem *> ak_List);
@@ -55,8 +56,12 @@ protected slots:
     virtual void showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point = QPoint());
     virtual void menuOpenFileSlot();
     virtual void menuOpenContainingDirectorySlot();
+    virtual void menuRemoveFileFromListSlot();
+    virtual void menuDeleteFileSlot();
     virtual void openFile(QListWidgetItem* ak_Item_);
     virtual void openContainingDirectory(QListWidgetItem* ak_Item_);
+    virtual void removeFileFromList(QListWidgetItem* ak_Item_);
+    virtual void deleteFile(QListWidgetItem* ak_Item_);
 
 protected:
     virtual void keyPressEvent(QKeyEvent* ak_Event_);
@@ -67,12 +72,15 @@ protected:
     virtual void dropEvent(QDropEvent* event);
     virtual Qt::DropActions supportedDropActions() const;
     
+    k_Proteomatic& mk_Proteomatic;
     QStringList mk_Keys;
     QHash<QString, QString> mk_Labels;
     QHash<QString, QStringList> mk_Extensions;
     QHash<QString, QMap<QString, bool> > mk_Files;
     QAction mk_OpenFileAction;
     QAction mk_OpenContainingFolderAction;
+    QAction mk_RemoveFileFromListAction;
+    QAction mk_DeleteFileAction;
     QMenu mk_PopupMenu;
 
 private:
