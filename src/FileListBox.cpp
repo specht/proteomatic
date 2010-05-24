@@ -174,7 +174,8 @@ void k_FileListBox::setBatchMode(bool ab_Enabled)
     if (mk_BatchModeButton.isChecked() != ab_Enabled)
         mk_BatchModeButton.setChecked(ab_Enabled);
     invalidate();
-    invalidateNext(batchMode() ? 2 : 1);
+    // always invalidate next 2 batch mode boxes
+    invalidateNext(2);
     mk_Desktop_->invalidate();
     if ((!mk_ScriptBoxParent_) && batchMode() && (mk_FileList.fileCount() > 0))
         invalidate();
