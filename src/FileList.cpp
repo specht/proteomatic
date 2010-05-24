@@ -379,7 +379,7 @@ void k_FileList::showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point)
     mk_OpenFileAction.setEnabled(lb_OneItemSelected && QFileInfo(ls_Path).exists());
     QSet<QString> lk_SelectedFolders;
     foreach (QListWidgetItem* lk_Item_, selectedItems())
-        lk_SelectedFolders << QFileInfo(ls_Path).absolutePath();
+        lk_SelectedFolders << QFileInfo(lk_Item_->data(Qt::UserRole).toString()).absolutePath();
     mk_OpenContainingFolderAction.setEnabled((lk_SelectedFolders.size() == 1) && QFileInfo(QFileInfo(ls_Path).absolutePath()).isDir());
     mk_RemoveFileFromListAction.setText(lb_OneItemSelected ? "&Remove from list" : "&Remove selected items from list");
     mk_DeleteFileAction.setText(lb_OneItemSelected ? "&Delete file" : "&Delete selected files");

@@ -4,7 +4,15 @@ Signal cascade:
 Whenever a box is changed, changes might be far-reaching. To cope with this
 the design is as follows:
 
-1. Whenever a box has changed, its invalidate() slot is called, which 
-triggers SIGNAL(requestGlobalUpdate()), which is called via a queued 
-signal/slot connection so that the actual update is not carried out until
-the big fuss is over and everything's calm again, or at leats hopefully so >:)
+Whenever a box changes, it decides whether to invalidate itself via invalidate()
+or not. In addition, it may call invalidateNext(int), which invalidates all 
+following boxes up the specified distance. 
+
+Input group proxy boxes reimplement invalidate() and invalidateNext(int) to
+invalidate one box further.
+
+Invalidate is directly called via a direct signal/slot connection, marking the
+box as requiring an update.
+
+When the fuzz in the event queue is over, globalUpate is called, which updates
+the boxes in topological order, and resets all boxes to a clean state.
