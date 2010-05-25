@@ -1,17 +1,18 @@
-Proteomatic
-
+PROTEOMATIC
 ===========
 
-Prerequisites
--------------
+Proteomatic provides a free and accessible proteomics data processing pipeline.
+Bits of functionality can be chained together, and functionality is provided
+through self-describing scripts.
 
-Proteomatic requires the Qt framework.
 
+BUILDING PROTEOMATIC
+--------------------
 
-Building
---------
+Proteomatic requires Qt, and building is straightforward:
 
-$ qmake
+$ qmake "PROTEOMATIC_PORTABLE=1"
 $ make release
 
-
+This gives you a version which will run from within the source directory, and
+does not change anything else in the file tree.
