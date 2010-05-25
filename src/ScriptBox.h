@@ -20,14 +20,14 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
-#include <QtWebKit>
+// #include <QtWebKit>
 #include "ConsoleString.h"
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
 #include "DesktopBox.h"
 #include "HintLineEdit.h"
 #include "NoSlashValidator.h"
-#include "ZoomableWebView.h"
+// #include "ZoomableWebView.h"
 
 
 class k_Proteomatic;
@@ -133,6 +133,6 @@ protected:
     bool mb_MultipleInputBatches;
     k_NoSlashValidator mk_NoSlashValidator;
     QComboBox* mk_OutputFileChooser_;
-    k_ZoomableWebView* mk_WebView_;
+//     k_ZoomableWebView* mk_WebView_;
     QStringList mk_PreviewSuffixes;
 };

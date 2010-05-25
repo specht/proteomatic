@@ -103,7 +103,7 @@ HEADERS += \
     src/Yaml.h \
     src/YamlEmitter.h \
     src/YamlParser.h \
-    src/ZoomableWebView.h \
+#     src/ZoomableWebView.h \
     src/version.h \
     src/dialogs/EditProfileDialog.h \
     
@@ -137,7 +137,7 @@ SOURCES += \
     src/Yaml.cpp \
     src/YamlEmitter.cpp \
     src/YamlParser.cpp \
-    src/ZoomableWebView.cpp \
+#     src/ZoomableWebView.cpp \
     src/dialogs/EditProfileDialog.cpp \
     
 RESOURCES += \
