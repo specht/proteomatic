@@ -35,7 +35,7 @@ else {
     RCC_DIR = obj/release/
 }
 
-QT = core gui webkit
+QT = core gui
 
 INCLUDEPATH += src/ src/dialogs
 
