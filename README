@@ -1,0 +1,17 @@
+Proteomatic
+
+===========
+
+Prerequisites
+-------------
+
+Proteomatic requires the Qt framework.
+
+
+Building
+--------
+
+$ qmake
+$ make release
+
+
