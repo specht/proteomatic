@@ -5,8 +5,13 @@ win32 {
 }
 
 !isEmpty(PROTEOMATIC_UPDATES_ENABLED) {
-    message("updates enabled!")
+    message("BUILD FLAG: updates enabled!")
     DEFINES += PROTEOMATIC_UPDATES_ENABLED
+}
+
+!isEmpty(PROTEOMATIC_PORTABLE) {
+    message("BUILD FLAG: portable!")
+    DEFINES += PROTEOMATIC_PORTABLE
 }
 
 CONFIG += debug_and_release

@@ -51,9 +51,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     , ms_ManagedScriptsPath("scripts")
     , ms_ConfigurationPath("proteomatic.conf.yaml")
 {
-#ifndef PROTEOMATIC_UPDATES_ENABLED
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
-#endif
 #ifdef Q_OS_WIN32
     TCHAR ls_TempPath_[MAX_PATH + 1]; 
     // MSDN says it's FOLDERID_LocalAppData from Vista on
@@ -69,6 +67,10 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
         ms_DataDirectory += "/Proteomatic";
     }
 #endif
+#ifdef PROTEOMATIC_PORTABLE
+    ms_DataDirectory = ".";
+#endif
+    ms_DataDirectory = QFileInfo(ms_DataDirectory).absoluteFilePath();
     ms_DataDirectory = QDir::cleanPath(ms_DataDirectory);
 
     // create data directory if it doesn't exist 

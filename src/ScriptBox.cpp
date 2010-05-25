@@ -826,7 +826,7 @@ void k_ScriptBox::toggleUi()
 }
 
 
-void k_ScriptBox::toggleOutputFileChooser(int ai_Index)
+void k_ScriptBox::toggleOutputFileChooser(int /*ai_Index*/)
 {
 /*    QString ls_Path = mk_OutputFileChooser_->itemData(ai_Index).toString();
     bool lb_Ok = false;
@@ -844,7 +844,7 @@ void k_ScriptBox::toggleOutputFileChooser(int ai_Index)
 }
 
 
-void k_ScriptBox::zoomWebView(int ai_Delta)
+void k_ScriptBox::zoomWebView(int /*ai_Delta*/)
 {
 /*    if (mk_WebView_)
     {
