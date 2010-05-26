@@ -1045,7 +1045,7 @@ void k_Proteomatic::showConfigurationDialog()
     lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     lk_VLayout_->addWidget(lk_Frame_);
     lk_VLayout_->addWidget(new QLabel("<b>Miscellaneous</b>", lk_pDialog.data()));
-    QLabel* lk_DataDirLabel_ = new QLabel("Data directory: <a href='" + QString(FILE_URL_PREFIX) + ms_DataDirectory + "'>" + ms_DataDirectory + "</a>", lk_pDialog.data());
+    QLabel* lk_DataDirLabel_ = new QLabel("Data directory: <a href='" + QString(FILE_URL_PREFIX) + ms_DataDirectory + "'>" + QDir::toNativeSeparators(ms_DataDirectory) + "</a>", lk_pDialog.data());
     lk_DataDirLabel_->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard);
     lk_DataDirLabel_->setOpenExternalLinks(true);
     lk_VLayout_->addWidget(lk_DataDirLabel_);
