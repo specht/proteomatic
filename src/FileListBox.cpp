@@ -271,7 +271,13 @@ void k_FileListBox::toggleUi()
 
 void k_FileListBox::filenameDoubleClicked()
 {
-    QString ls_Path = filenames().first();
+#ifdef DEBUG
+    printf("double click!\n");
+#endif
+    if (mk_FileList.files().empty())
+        return;
+    
+    QString ls_Path = mk_FileList.files().first();
     if (QFileInfo(ls_Path).exists())
         k_Proteomatic::openFileLink(ls_Path);
 }
