@@ -27,6 +27,7 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
 {
     Q_INIT_RESOURCE(Proteomatic);
     QApplication lk_App(ai_ArgumentCount, ac_Arguments__);
+    QDir::setCurrent(lk_App.applicationDirPath());
     
     k_Proteomatic lk_Proteomatic(lk_App);
     k_PipelineMainWindow lk_MainWindow(NULL, lk_Proteomatic, lk_App);
