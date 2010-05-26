@@ -147,12 +147,14 @@ QString k_ScriptBox::boxOutputDirectory() const
 void k_ScriptBox::setBoxOutputPrefix(const QString& as_Prefix)
 {
     mk_Prefix.setText(as_Prefix);
+    outputFilenameDetailsChanged();
 }
 
 
 void k_ScriptBox::setBoxOutputDirectory(const QString& as_Directory)
 {
     mk_OutputDirectory.setText(as_Directory);
+    outputFilenameDetailsChanged();
 }
 
 
@@ -487,6 +489,7 @@ void k_ScriptBox::chooseOutputDirectory()
     if (ls_Path.length() > 0)
     {
         mk_OutputDirectory.setText(ls_Path);
+        outputFilenameDetailsChanged();
         mk_Desktop_->setHasUnsavedChanges(true);
     }
 }
@@ -1155,7 +1158,10 @@ void k_ScriptBox::dropEvent(QDropEvent* event)
         if (!ls_Path.isEmpty())
         {
             if (QFileInfo(ls_Path).isDir())
+            {
                 mk_OutputDirectory.setText(ls_Path);
+                outputFilenameDetailsChanged();
+            }
         }
     }
 }
