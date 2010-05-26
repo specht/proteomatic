@@ -89,6 +89,10 @@ def unpack(path)
     if ($platform == 'win32')
         command = "\"#{File::join($scriptDir, '7zip', '7za457', '7za.exe')}\" x -bd \"#{path}\""
 		output = %x{#{command}}
+        FileUtils::rm_f(path)
+        command = "\"#{File::join($scriptDir, '7zip', '7za457', '7za.exe')}\" x -bd \"#{path.sub('.bz2', '')}\""
+		output = %x{#{command}}
+        FileUtils::rm_f(path.sub('.bz2', ''))
 		return $?.exitstatus == 0
     else
         system("tar xjf \"#{path}\"")
@@ -213,15 +217,13 @@ def updateScripts(info)
         puts "Proteomatic scripts is up-to-date (version #{mostRecentVersion})."
     else
         puts "Fetching Proteomatic scripts #{info['version']}..."
-        lk_TempFile = Tempfile.new('ps-', 'temp')
-        tempPath = lk_TempFile.path()
+        tempPath = File::join('temp', File::basename(info['path']))
         fetchUriAsFile(info['path'], tempPath)
         puts
         print "Unpacking..."
         Dir::chdir('temp')
         unpack(File::basename(tempPath))
         Dir::chdir('..')
-        lk_TempFile.close!
         # check whether there is a directory
         dirs = Dir['temp/*']
         if dirs.size == 1
