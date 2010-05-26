@@ -545,7 +545,7 @@ void k_Proteomatic::loadConfiguration()
     }
     if (!mk_Configuration.contains(CONFIG_APPEARANCE_SIZE) || mk_Configuration[CONFIG_APPEARANCE_SIZE].type() != QVariant::String)
     {
-        mk_Configuration[CONFIG_APPEARANCE_SIZE] = "0";
+        mk_Configuration[CONFIG_APPEARANCE_SIZE] = "1";
         lb_InsertedDefaultValue = true;
     }
     if (mk_Configuration.contains(CONFIG_ADDITIONAL_SCRIPT_PATHS))
