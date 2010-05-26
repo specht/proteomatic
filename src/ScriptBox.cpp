@@ -47,7 +47,7 @@ k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Paren
     , mb_IterationsTagsDontMatch(false)
     , mb_MultipleInputBatches(false)
     , mk_OutputFileChooser_(NULL)
-    , mk_WebView_(NULL)
+//     , mk_WebView_(NULL)
 {
     mk_PreviewSuffixes << ".html" << ".xhtml" << ".svg" << ".png" << ".jpg";
     connect(this, SIGNAL(boxDisconnected(IDesktopBox*, bool)), this, SLOT(handleBoxDisconnected(IDesktopBox*, bool)));
@@ -451,7 +451,7 @@ void k_ScriptBox::refreshOutputFileView()
     if (mk_OutputFileChooser_)
     {
         toggleOutputFileChooser(mk_OutputFileChooser_->currentIndex());
-        mk_WebView_->setZoomFactor(1.0);
+//         mk_WebView_->setZoomFactor(1.0);
     }
 }
 
@@ -826,9 +826,9 @@ void k_ScriptBox::toggleUi()
 }
 
 
-void k_ScriptBox::toggleOutputFileChooser(int ai_Index)
+void k_ScriptBox::toggleOutputFileChooser(int /*ai_Index*/)
 {
-    QString ls_Path = mk_OutputFileChooser_->itemData(ai_Index).toString();
+/*    QString ls_Path = mk_OutputFileChooser_->itemData(ai_Index).toString();
     bool lb_Ok = false;
     if (QFileInfo(ls_Path).exists())
     {
@@ -840,13 +840,13 @@ void k_ScriptBox::toggleOutputFileChooser(int ai_Index)
     }
     if (!lb_Ok)
         mk_WebView_->setHtml("");
-    mk_WebView_->setZoomFactor(1.0);
+    mk_WebView_->setZoomFactor(1.0);*/
 }
 
 
-void k_ScriptBox::zoomWebView(int ai_Delta)
+void k_ScriptBox::zoomWebView(int /*ai_Delta*/)
 {
-    if (mk_WebView_)
+/*    if (mk_WebView_)
     {
         double ld_Factor = mk_WebView_->zoomFactor();
         ld_Factor *= pow(1.1, (double)ai_Delta / 120.0);
@@ -855,7 +855,7 @@ void k_ScriptBox::zoomWebView(int ai_Delta)
         if (ld_Factor > 10.0)
             ld_Factor = 10.0;
         mk_WebView_->setZoomFactor(ld_Factor);
-    }
+    }*/
 }
 
 

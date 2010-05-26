@@ -51,9 +51,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     , ms_ManagedScriptsPath("scripts")
     , ms_ConfigurationPath("proteomatic.conf.yaml")
 {
-#ifndef PROTEOMATIC_UPDATES_ENABLED
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
-#endif
 #ifdef Q_OS_WIN32
     TCHAR ls_TempPath_[MAX_PATH + 1]; 
     // MSDN says it's FOLDERID_LocalAppData from Vista on
@@ -69,6 +67,10 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
         ms_DataDirectory += "/Proteomatic";
     }
 #endif
+#ifdef PROTEOMATIC_PORTABLE
+    ms_DataDirectory = ".";
+#endif
+    ms_DataDirectory = QFileInfo(ms_DataDirectory).absoluteFilePath();
     ms_DataDirectory = QDir::cleanPath(ms_DataDirectory);
 
     // create data directory if it doesn't exist 
@@ -543,7 +545,7 @@ void k_Proteomatic::loadConfiguration()
     }
     if (!mk_Configuration.contains(CONFIG_APPEARANCE_SIZE) || mk_Configuration[CONFIG_APPEARANCE_SIZE].type() != QVariant::String)
     {
-        mk_Configuration[CONFIG_APPEARANCE_SIZE] = "0";
+        mk_Configuration[CONFIG_APPEARANCE_SIZE] = "1";
         lb_InsertedDefaultValue = true;
     }
     if (mk_Configuration.contains(CONFIG_ADDITIONAL_SCRIPT_PATHS))
@@ -1043,7 +1045,7 @@ void k_Proteomatic::showConfigurationDialog()
     lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     lk_VLayout_->addWidget(lk_Frame_);
     lk_VLayout_->addWidget(new QLabel("<b>Miscellaneous</b>", lk_pDialog.data()));
-    QLabel* lk_DataDirLabel_ = new QLabel("Data directory: <a href='" + QString(FILE_URL_PREFIX) + ms_DataDirectory + "'>" + ms_DataDirectory + "</a>", lk_pDialog.data());
+    QLabel* lk_DataDirLabel_ = new QLabel("Data directory: <a href='" + QString(FILE_URL_PREFIX) + ms_DataDirectory + "'>" + QDir::toNativeSeparators(ms_DataDirectory) + "</a>", lk_pDialog.data());
     lk_DataDirLabel_->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard);
     lk_DataDirLabel_->setOpenExternalLinks(true);
     lk_VLayout_->addWidget(lk_DataDirLabel_);

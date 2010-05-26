@@ -2,7 +2,7 @@ projects:
   - .
   #- src/projects/Revelio
 #binaryPath: bin
-qt: [core, gui, webkit]
+qt: [core, gui]
 versionInject:
   debian/changelog: |
     proteomatic (#{VERSION}) #{STABILITY}; urgency=low
