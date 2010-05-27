@@ -202,8 +202,11 @@ protected slots:
     void rebuildRemoteScriptsMenu();
     void checkRubyTextChanged(const QString& as_Text);
     void checkRubySearchDialog();
+    void purgeCacheAndTempFiles();
 
 protected:
+    QList<QFileInfo> getCacheAndTempFiles();
+    bool canPurgeCacheAndTempFiles();
     void loadConfiguration();
     void collectScriptInfo(bool ab_ShowImmediately = false);
     void createProteomaticScriptsMenu();

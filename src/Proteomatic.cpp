@@ -257,10 +257,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             if (lk_RubyWindow.exec())
                             {
-                                // purge cache
-                                QStringList lk_CacheFiles = QDir(QDir::cleanPath(ms_DataDirectory + "/cache")).entryList(QDir::Files);
-                                foreach (QString ls_Path, lk_CacheFiles)
-                                    QFile(ls_Path).remove();
+                                purgeCacheAndTempFiles();
                                 
                                 this->showMessageBox("Online update", 
                                     "Press OK to restart Proteomatic",
@@ -301,10 +298,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             lk_RubyWindow.exec();
                             
-                            // purge cache
-                            QStringList lk_CacheFiles = QDir(QDir::cleanPath(ms_DataDirectory + "/cache")).entryList(QDir::Files);
-                            foreach (QString ls_Path, lk_CacheFiles)
-                                QFile(ls_Path).remove();
+                            purgeCacheAndTempFiles();
 
                             this->collectScriptInfo();
                             this->createProteomaticScriptsMenu();
@@ -1050,6 +1044,14 @@ void k_Proteomatic::showConfigurationDialog()
     lk_DataDirLabel_->setOpenExternalLinks(true);
     lk_VLayout_->addWidget(lk_DataDirLabel_);
     
+    lk_HLayout_ = new QHBoxLayout(NULL);
+    QPushButton* lk_PurgeCacheButton_ = new QPushButton(QIcon(":icons/edit-clear.png"), "&Purge cache");
+    lk_HLayout_->addWidget(new QLabel("Remove cached script information and temporary files:", lk_pDialog.data()));
+    lk_HLayout_->addStretch();
+    lk_HLayout_->addWidget(lk_PurgeCacheButton_);
+    lk_VLayout_->addLayout(lk_HLayout_);
+    connect(lk_PurgeCacheButton_, SIGNAL(clicked()), this, SLOT(purgeCacheAndTempFiles()));
+    
     lk_VLayout_->addStretch();
     
     lk_Frame_ = new QFrame(lk_pDialog.data());
@@ -1438,6 +1440,32 @@ void k_Proteomatic::checkRubySearchDialog()
         mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
         mk_CheckRubyRetryButton_->setEnabled(true);
     }
+}
+
+
+void k_Proteomatic::purgeCacheAndTempFiles()
+{
+    foreach (QFileInfo lk_FileInfo, this->getCacheAndTempFiles())
+    {
+        QString ls_Path = lk_FileInfo.absoluteFilePath();
+        QFile::remove(ls_Path);
+    }
+    // :ATTENTION: This function will now disable the sender widget, if there is any
+    QWidget* lk_Sender_ = dynamic_cast<QWidget*>(sender());
+    if (lk_Sender_)
+        lk_Sender_->setEnabled(false);
+}
+
+
+QList<QFileInfo> k_Proteomatic::getCacheAndTempFiles()
+{
+    return QDir(QDir::cleanPath(ms_DataDirectory + "/cache")).entryInfoList(QDir::Files);
+}
+
+
+bool k_Proteomatic::canPurgeCacheAndTempFiles()
+{
+    return !this->getCacheAndTempFiles().empty();
 }
 
 
