@@ -83,7 +83,7 @@ protected:
     QAction* mk_SavePipelineAsAction_;
     QAction* mk_QuitAction_;
     QToolButton* mk_AddScriptButton_;
-    QAction* mk_AddFileListAction_;
+    QToolButton* mk_AddFileListButton_;
     QAction* mk_AbortAction_;
     QAction* mk_RefreshAction_;
     QAction* mk_ProfileManagerAction_;

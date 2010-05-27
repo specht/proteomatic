@@ -149,7 +149,18 @@ void k_PipelineMainWindow::initialize()
     mk_AddToolBar_->addWidget(lk_SearchField_);
     */
     
-    mk_AddFileListAction_ = mk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
+    
+    mk_AddFileListButton_ = new QToolButton(this);
+    mk_AddFileListButton_->setIcon(QIcon(":icons/document-open.png"));
+    mk_AddFileListButton_->setText("Add file list");
+    mk_AddFileListButton_->setPopupMode(QToolButton::MenuButtonPopup);
+    mk_AddFileListButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    mk_AddFileListButton_->setMenu(new QMenu(mk_AddFileListButton_));
+    mk_AddFileListButton_->menu()->addAction(QIcon(":icons/document-edit.png"), "Add snippet");
+    connect(mk_AddFileListButton_, SIGNAL(clicked()), this, SLOT(addFileListBox()));
+    mk_AddToolBar_->addWidget(mk_AddFileListButton_);
+    
+//     mk_AddFileListAction_ = mk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
 
     mk_AddToolBar_->addSeparator();
     
@@ -548,7 +559,7 @@ void k_PipelineMainWindow::toggleUi()
     mk_SavePipelineAsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_AddScriptAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-    mk_AddFileListAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+    mk_AddFileListButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_Proteomatic.startButton()->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
     mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());
 //     mk_AbortAction_->setVisible(mk_Desktop_ && mk_Desktop_->running());
