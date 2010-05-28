@@ -111,4 +111,5 @@ protected:
     bool mb_JustStarted;
     QRegExp mk_WordSplitter;
     QSharedPointer<QListWidget> mk_pSearchPopup;
+    QString ms_CurrentStyleSheet;
 };

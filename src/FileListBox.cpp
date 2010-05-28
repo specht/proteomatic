@@ -331,9 +331,9 @@ void k_FileListBox::update()
     // ----------------------------------
     // UPDATE ITERATION TAGS
     // ----------------------------------
-    
+
     mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
-    
+
     // build tag => filename hash
     mk_FilenamesForTag.clear();
     foreach (QString ls_Filename, mk_TagForFilename.keys())

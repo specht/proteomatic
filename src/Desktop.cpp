@@ -946,6 +946,11 @@ void k_Desktop::clearAll()
 void k_Desktop::refresh()
 {
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        mk_BoxesMarkedForUpdate.insert(lk_Box_);
+
+    globalUpdate();
+
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
         lk_Box_->toggleUi();
 }
 
@@ -961,6 +966,7 @@ void k_Desktop::redraw()
 
 void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
 {
+    refresh();
     mb_UseFileTrackerIfAvailable = ab_UseFileTrackingIfAvailable;
     // collect all script boxes
     mk_RemainingScriptBoxes.clear();
