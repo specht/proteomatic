@@ -1,3 +1,9 @@
+require 'fileutils'
+
+deps = ['./src/Proteomatic_template.qrc', './.gitmodules', './src/ext/cli-tools-atlas']
+
+exit if FileUtils::uptodate?('./src/Proteomatic.qrc', deps)
+
 puts "Updating Proteomatic.qrc..."
 
 system("git submodule update")

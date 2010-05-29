@@ -59,6 +59,7 @@
   <file>icons/view-refresh.png</file>
   <file>ext/cli-tools-atlas/text-formats.txt</file>
 <!-- FORMAT FILES -->
+<!-- insert files here -->
 <!-- FORMAT FILES -->
 </qresource>
 </RCC>
