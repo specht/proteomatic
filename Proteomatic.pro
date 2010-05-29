@@ -1,3 +1,5 @@
+system(ruby add-format-files.rb)
+
 TEMPLATE = app
 
 win32 {
@@ -146,7 +148,7 @@ SOURCES += \
     src/dialogs/EditProfileDialog.cpp \
     
 RESOURCES += \
-    src/Proteomatic.qrc \
+    src/Proteomatic_spiked.qrc \
 
 isEmpty( PREFIX ) {
     PREFIX = /usr

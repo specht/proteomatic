@@ -59,32 +59,6 @@
   <file>icons/view-refresh.png</file>
   <file>ext/cli-tools-atlas/text-formats.txt</file>
 <!-- FORMAT FILES -->
-  <file>ext/cli-tools-atlas/formats/txt.yaml</file>
-  <file>ext/cli-tools-atlas/formats/gpf-queries.yaml</file>
-  <file>ext/cli-tools-atlas/formats/raw-thermo.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml-mzdata.yaml</file>
-  <file>ext/cli-tools-atlas/formats/blastdb.yaml</file>
-  <file>ext/cli-tools-atlas/formats/mgf.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml-mzml.yaml</file>
-  <file>ext/cli-tools-atlas/formats/yaml.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml-mzdata-compressed.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml-pepxml.yaml</file>
-  <file>ext/cli-tools-atlas/formats/aln.yaml</file>
-  <file>ext/cli-tools-atlas/formats/dta.yaml</file>
-  <file>ext/cli-tools-atlas/formats/gpfindex.yaml</file>
-  <file>ext/cli-tools-atlas/formats/fasta.yaml</file>
-  <file>ext/cli-tools-atlas/formats/csv.yaml</file>
-  <file>ext/cli-tools-atlas/formats/png.yaml</file>
-  <file>ext/cli-tools-atlas/formats/zip.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xhtml.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml-mzml-compressed.yaml</file>
-  <file>ext/cli-tools-atlas/formats/html.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml-mzxml.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml-mzxml-compressed.yaml</file>
-  <file>ext/cli-tools-atlas/formats/xml-peaks-ann.yaml</file>
-  <file>ext/cli-tools-atlas/formats/ams.yaml</file>
-  <file>ext/cli-tools-atlas/formats/svg.yaml</file>
 <!-- FORMAT FILES -->
 </qresource>
 </RCC>

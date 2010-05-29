@@ -12,7 +12,7 @@ qrc = File::read('./src/Proteomatic.qrc')
 qrc.sub!(/<!-- FORMAT FILES -->.+<!-- FORMAT FILES -->/m, 
          "<!-- FORMAT FILES -->\n" + files.join("\n") + "\n<!-- FORMAT FILES -->")
 
-File::open('./src/Proteomatic.qrc', 'w') do |f|
+File::open('./src/Proteomatic_spiked.qrc', 'w') do |f|
     f.puts qrc
 end
 
