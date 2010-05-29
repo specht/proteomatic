@@ -170,15 +170,15 @@ void k_FileListBox::addPaths(const QStringList& ak_Paths)
 void k_FileListBox::connectOutgoingBox(IDesktopBox* ak_Other_)
 {
     k_DesktopBox::connectOutgoingBox(ak_Other_);
-    if (batchMode())
-        invalidateNext(2);
+//     if (batchMode())
+    invalidateNext(2);
 }
 
 
 void k_FileListBox::disconnectOutgoingBox(IDesktopBox* ak_Other_)
 {
-    if (batchMode())
-        invalidateNext(2);
+//     if (batchMode())
+    invalidateNext(2);
     k_DesktopBox::disconnectOutgoingBox(ak_Other_);
 }
 
@@ -297,7 +297,9 @@ void k_FileListBox::showContextMenu()
 void k_FileListBox::invalidate()
 {
     k_DesktopBox::invalidate();
-    invalidateNext(batchMode() ? 2 : 1);
+    //invalidateNext(batchMode() ? 2 : 1);
+    // always invalidate next 2 because the output directory might be updated
+    invalidateNext(2);
 }
 
 
@@ -329,9 +331,9 @@ void k_FileListBox::update()
     // ----------------------------------
     // UPDATE ITERATION TAGS
     // ----------------------------------
-    
+
     mk_Desktop_->createFilenameTags(mk_FileList.files(), mk_TagForFilename, ms_PrefixWithoutTags);
-    
+
     // build tag => filename hash
     mk_FilenamesForTag.clear();
     foreach (QString ls_Filename, mk_TagForFilename.keys())

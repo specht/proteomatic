@@ -946,6 +946,11 @@ void k_Desktop::clearAll()
 void k_Desktop::refresh()
 {
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        mk_BoxesMarkedForUpdate.insert(lk_Box_);
+
+    globalUpdate();
+
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
         lk_Box_->toggleUi();
 }
 
@@ -961,6 +966,7 @@ void k_Desktop::redraw()
 
 void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
 {
+    refresh();
     mb_UseFileTrackerIfAvailable = ab_UseFileTrackingIfAvailable;
     // collect all script boxes
     mk_RemainingScriptBoxes.clear();
@@ -2268,19 +2274,13 @@ void k_Desktop::dropEvent(QDropEvent* event)
     }
     event->accept();
     QStringList lk_Files;
-    QStringList lk_Scripts;
     foreach (QUrl lk_Url, event->mimeData()->urls())
     {
         QString ls_Path = lk_Url.toLocalFile();
         if (!ls_Path.isEmpty())
         {
             if (QFileInfo(ls_Path).isFile())
-            {
-                if (mk_Proteomatic.interpreterForScript(ls_Path).isEmpty())
-                    lk_Files << ls_Path;
-                else
-                    lk_Scripts << ls_Path;
-            }
+                lk_Files << ls_Path;
         }
     }
     if (!lk_Files.empty())
@@ -2295,8 +2295,6 @@ void k_Desktop::dropEvent(QDropEvent* event)
             lk_FileListBox_->move(mapToScene(event->pos()).toPoint() - QPoint(lk_Size.width(), lk_Size.height()));
         }
     }
-    foreach (QString ls_ScriptUri, lk_Scripts)
-        addScriptBox(ls_ScriptUri);
 }
 
 

@@ -35,5 +35,10 @@ versionInject:
     #include "version.h"
     
     QString gs_ProteomaticVersion = "#{VERSION}";
+addFiles:
+  proteomatic.conf.yaml: |
+    autoCheckForUpdates: true
+    fileTrackerUrl: peaks.uni-muenster.de:5556
+    scriptsUrl: "ftp://gpf.uni-muenster.de/download/proteomatic/update"
 
 externals: [helper]

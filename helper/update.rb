@@ -118,6 +118,9 @@ def updateProteomatic(info)
     Dir::chdir('..')
     FileUtils::rm(tempPath)
     dirs = Dir['temp/*']
+    dirs.reject! do |path|
+        !File::directory?(path)
+    end
     if dirs.size != 1
         puts "Error: The downloaded package was corrupt."
         exit(1)
@@ -226,6 +229,9 @@ def updateScripts(info)
         Dir::chdir('..')
         # check whether there is a directory
         dirs = Dir['temp/*']
+        dirs.reject! do |path|
+            !File::directory?(path)
+        end
         if dirs.size == 1
             # maybe insert consistency check here
             FileUtils::mv(dirs.first, scriptsDir)

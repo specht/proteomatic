@@ -575,7 +575,12 @@ void k_PipelineMainWindow::toggleUi()
         mk_PanButton_->setChecked(true);
     
     mk_AddToolBar_->setToolButtonStyle(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 2 ? Qt::ToolButtonTextBesideIcon : Qt::ToolButtonIconOnly);
-    mk_Application.setStyleSheet(QString("* { icon-size: %1px; }").arg((mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1) ? 20 : 16));
+    QString ls_NewStyleSheet = QString("* { icon-size: %1px; }").arg((mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1) ? 20 : 16);
+    if (ls_NewStyleSheet != ms_CurrentStyleSheet)
+    {
+        mk_Application.setStyleSheet(ls_NewStyleSheet);
+        ms_CurrentStyleSheet = ls_NewStyleSheet;
+    }
     if (!mk_Desktop_->hasScriptBoxes())
         mk_PaneDockWidget_->hide();
     else

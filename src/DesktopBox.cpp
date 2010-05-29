@@ -230,7 +230,7 @@ QRectF k_DesktopBox::rect()
 void k_DesktopBox::invalidate()
 {
 #ifdef DEBUG
-    printf("invalidating [%s]\n", this->description().toStdString().c_str());
+//     printf("invalidating [%s]\n", this->description().toStdString().c_str());
 #endif
     emit requestGlobalUpdate();
 }
