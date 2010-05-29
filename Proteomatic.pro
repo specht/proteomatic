@@ -147,8 +147,7 @@ SOURCES += \
 #     src/ZoomableWebView.cpp \
     src/dialogs/EditProfileDialog.cpp \
     
-RESOURCES += \
-    src/Proteomatic_spiked.qrc \
+RESOURCES += src/Proteomatic.qrc
 
 isEmpty( PREFIX ) {
     PREFIX = /usr

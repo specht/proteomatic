@@ -7,12 +7,9 @@ files.collect! do |x|
     "  <file>#{x.sub('./src/', '')}</file>"
 end
 
-qrc = File::read('./src/Proteomatic.qrc')
+qrc = File::read('src/Proteomatic_template.qrc')
 
 qrc.sub!(/<!-- FORMAT FILES -->.+<!-- FORMAT FILES -->/m, 
          "<!-- FORMAT FILES -->\n" + files.join("\n") + "\n<!-- FORMAT FILES -->")
 
-File::open('./src/Proteomatic_spiked.qrc', 'w') do |f|
-    f.puts qrc
-end
-
+File::open('src/Proteomatic.qrc', 'w') { |f| f.puts qrc }

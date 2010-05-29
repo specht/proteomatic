@@ -10,5 +10,5 @@ doxygen/
 Proteomatic.exe
 Revelio.exe
 bin
-src/Proteomatic_spiked.qrc
+src/Proteomatic.qrc
 
