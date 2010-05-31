@@ -472,13 +472,10 @@ void k_ScriptBox::showOutputFileBox(bool /*ab_Flag*//* = true*/)
 
 void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 {
-    if (mk_pScript->type() == r_ScriptType::Converter)
+    if (mk_FilenameAffectingParameters.contains(as_Key))
     {
-        if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
-        {
-            invalidate();
-            invalidateNext(1);
-        }
+        invalidate();
+        invalidateNext(1);
     }
     mk_Desktop_->setHasUnsavedChanges(true);
 }
@@ -727,10 +724,10 @@ void k_ScriptBox::update()
     // ----------------------------------------------
     
     mk_OutputFilesForIterationTag.clear();
+    mk_OutputFilesForKey.clear();
     
     if (mk_pScript->type() == r_ScriptType::Processor)
     {
-        mk_OutputFilesForKey.clear();
         foreach (QString ls_Key, mk_Checkboxes.keys())
         {
             if (mk_Checkboxes[ls_Key]->checkState() == Qt::Checked)
@@ -753,6 +750,7 @@ void k_ScriptBox::update()
                                 ls_UseTag += "-";
                             
                             QString ls_Path = scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_UseTag + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                            ls_Path = finishedOutputFilename(ls_Path);
                             mk_OutputFilesForKey[ls_Key] << ls_Path;
                             mk_OutputFilesForIterationTag[ls_Tag] << ls_Path;
                         }
@@ -761,6 +759,7 @@ void k_ScriptBox::update()
                 else
                 {
                     QString ls_Path = scriptOutputDirectory() + "/" + boxOutputPrefix() + mk_pScript->outputFileDetails(ls_Key)["filename"];
+                    ls_Path = finishedOutputFilename(ls_Path);
                     mk_OutputFilesForKey[ls_Key] << ls_Path;
                     mk_OutputFilesForIterationTag[""] << ls_Path;
                 }
@@ -769,13 +768,13 @@ void k_ScriptBox::update()
     }
     else if (mk_pScript->type() == r_ScriptType::Converter)
     {
-        mk_OutputFilesForKey.clear();
         QString ls_ConverterKey = mk_pScript->info()["converterKey"];
         mk_OutputFilesForKey[ls_ConverterKey] = QStringList();
         QString ls_ConverterFilename = mk_pScript->info()["converterFilename"];
         foreach (QString ls_Path, mk_InputFilesForKey[ls_ConverterKey])
         {
             QString ls_OutPath = ls_ConverterFilename;
+            ls_OutPath = finishedOutputFilename(ls_OutPath);
             QString ls_Basename = QFileInfo(ls_Path).baseName();
             QString ls_Extension = QFileInfo(ls_Path).completeSuffix(); 
             QString ls_Filename = QFileInfo(ls_Path).fileName(); 
@@ -794,14 +793,10 @@ void k_ScriptBox::update()
                     ls_Value = ls_Extension;
                 else if (ls_Key == "filename")
                     ls_Value = ls_Filename;
-                else
-                {
-                    // it must be a parameter!
-                    ls_Value = mk_pScript->parameterValue(ls_Key);
-                }
                 ls_OutPath.replace(ls_Capture, ls_Value);
             }
-            mk_OutputFilesForKey[ls_ConverterKey] << scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_OutPath;
+            QString ls_FinalOutPath = scriptOutputDirectory() + "/" + boxOutputPrefix() + ls_OutPath;
+            mk_OutputFilesForKey[ls_ConverterKey] << ls_FinalOutPath;
         }
     }
     
@@ -955,8 +950,6 @@ void k_ScriptBox::setupLayout()
     lk_VLayout_ = new QVBoxLayout(this);
     lk_VLayout_->setContentsMargins(11, 11, 11, 11);
     
-
-    
     // only do this if there are output files for this script!
     if (!((mk_pScript->type() == r_ScriptType::Processor) && mk_pScript->outputFileKeys().empty()))
     {
@@ -1083,6 +1076,20 @@ void k_ScriptBox::setupLayout()
             mk_Checkboxes[ls_Key] = lk_CheckBox_;
             if (lk_OutputFileDetails["default"] == "yes" || lk_OutputFileDetails["default"] == "true")
                 lk_CheckBox_->setChecked(true);
+
+            // collect parameters that affect the output filename
+            QString ls_Filename = lk_OutputFileDetails["filename"];
+            QRegExp lk_RegExp("(#\\{[a-zA-Z0-9_]+\\})", Qt::CaseSensitive, QRegExp::RegExp2);
+            int li_Position = 0;
+            while ((li_Position = lk_RegExp.indexIn(ls_Filename)) != -1)
+            {
+                QString ls_Capture = lk_RegExp.cap(1);
+                QString ls_Key = ls_Capture;
+                ls_Key.replace("#{", "");
+                ls_Key.replace("}", "");
+                mk_FilenameAffectingParameters.insert(ls_Key);
+                ls_Filename.replace(ls_Capture, "");
+            }
         }
         
         if (mk_pScript->type() == r_ScriptType::Converter)
@@ -1121,13 +1128,11 @@ void k_ScriptBox::setupLayout()
                 QString ls_Key = ls_Capture;
                 ls_Key.replace("#{", "");
                 ls_Key.replace("}", "");
-                mk_ConverterFilenameAffectingParameters.insert(ls_Key);
+                mk_FilenameAffectingParameters.insert(ls_Key);
                 ls_DestinationFilename.replace(ls_Capture, "");
             }
-            
-            connect(dynamic_cast<QObject*>(mk_pScript.data()), SIGNAL(parameterChanged(const QString&)), this, SLOT(scriptParameterChanged(const QString&)));
-
         }
+        connect(dynamic_cast<QObject*>(mk_pScript.data()), SIGNAL(parameterChanged(const QString&)), this, SLOT(scriptParameterChanged(const QString&)));
         lk_VLayout_->addStretch();
     }
     else
@@ -1175,4 +1180,14 @@ void k_ScriptBox::dropEvent(QDropEvent* event)
 Qt::DropActions k_ScriptBox::supportedDropActions() const
 {
     return Qt::ActionMask;
+}
+
+
+QString k_ScriptBox::finishedOutputFilename(QString& as_Filename)
+{
+    QString ls_Result = as_Filename;
+    foreach (QString ls_Key, mk_FilenameAffectingParameters)
+        if (mk_pScript->parameterKeys().contains(ls_Key))
+            ls_Result.replace("#{" + ls_Key + "}", mk_pScript->parameterValue(ls_Key));
+    return ls_Result;
 }
