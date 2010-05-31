@@ -473,8 +473,13 @@ void k_ScriptBox::showOutputFileBox(bool /*ab_Flag*//* = true*/)
 void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 {
     if (mk_pScript->type() == r_ScriptType::Converter)
+    {
         if (mk_ConverterFilenameAffectingParameters.contains(as_Key))
+        {
             invalidate();
+            invalidateNext(1);
+        }
+    }
     mk_Desktop_->setHasUnsavedChanges(true);
 }
 
