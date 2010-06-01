@@ -33,7 +33,7 @@ k_RubyWindow::k_RubyWindow(k_Proteomatic& ak_Proteomatic, QStringList ak_Argumen
     mk_pDialog->resize(512, 250);
     QBoxLayout* lk_VLayout_ = new QVBoxLayout(mk_pDialog.data());
     QBoxLayout* lk_HLayout_ = new QHBoxLayout(mk_pDialog.data());
-    mk_Output_ = new QTextEdit(mk_pDialog.data());
+    mk_Output_ = new k_ConsoleTextEdit(mk_pDialog.data());
     lk_VLayout_->addWidget(mk_Output_);
     lk_VLayout_->addLayout(lk_HLayout_);
     lk_HLayout_->addStretch();
@@ -113,8 +113,5 @@ void k_RubyWindow::processReadyRead()
 
 void k_RubyWindow::addOutput(QString as_Text)
 {
-    mk_Output.append(as_Text);
-    mk_Output_->setText(mk_Output.text());
-    mk_Output_->moveCursor(QTextCursor::End);
-    mk_Output_->ensureCursorVisible();
+    mk_Output.appendConsoleOutput(as_Text);
 }

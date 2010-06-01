@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Michael Specht
+Copyright (c) 2010 Michael Specht
 
 This file is part of Proteomatic.
 
@@ -17,27 +17,27 @@ You should have received a copy of the GNU General Public License
 along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include <QtCore>
+#include "ConsoleTextEdit.h"
 
 
-class k_ConsoleString: public QObject
+k_ConsoleTextEdit::k_ConsoleTextEdit(QWidget* parent)
+    : QTextEdit(parent)
 {
-    Q_OBJECT
-public:
-    k_ConsoleString();
-    virtual ~k_ConsoleString();
-    
-    void clear();
-    QString text() const;
-    void append(QString as_Text);
-    
-signals:
-    void changed();
-    
-protected:
-    QString ms_Output;
-    QString ms_CurrentLine;
-    int mi_CurrentLineIndex;
-};
+}
+
+
+k_ConsoleTextEdit::k_ConsoleTextEdit(const QString& text, QWidget* parent)
+    : QTextEdit(text, parent)
+{
+}
+
+
+k_ConsoleTextEdit::~k_ConsoleTextEdit()
+{
+}
+
+
+void k_ConsoleTextEdit::appendConsoleOutput(const QString& as_Text)
+{
+    this->append(as_Text);
+}

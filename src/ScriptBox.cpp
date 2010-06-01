@@ -40,7 +40,6 @@ k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Paren
     , mk_OutputFileViewerContainer_(NULL)
     , mk_OutputBoxIterationKeyChooserContainer_(NULL)
     , mk_OutputBoxIterationKeyChooser_(NULL)
-    , mk_OutputBox_(NULL)
     , mk_IterationsTagsDontMatchIcon_(NULL)
     , mk_UseShortTagsCheckBox_(NULL)
     , mk_LastUserAdjustedSize(0, 0)
@@ -438,13 +437,7 @@ void k_ScriptBox::readyReadSlot()
 void k_ScriptBox::addOutput(QString as_Text)
 {
     if (mk_Output.contains(ms_CurrentIterationKeyRunning))
-        mk_Output[ms_CurrentIterationKeyRunning]->append(as_Text);
-    if (ms_CurrentIterationKeyRunning == ms_CurrentIterationKeyShowing)
-    {
-        mk_OutputBox_->setText(mk_Output[ms_CurrentIterationKeyShowing]->text());
-        mk_OutputBox_->moveCursor(QTextCursor::End);
-        mk_OutputBox_->ensureCursorVisible();
-    }
+        mk_Output[ms_CurrentIterationKeyRunning]->appendConsoleOutput(as_Text);
 }
 
 
@@ -516,9 +509,7 @@ void k_ScriptBox::outputBoxIterationKeyChooserChanged()
     ms_CurrentIterationKeyShowing = mk_OutputBoxIterationKeyChooser_->currentText(); 
     if (mk_Output.contains(ms_CurrentIterationKeyShowing))
     {
-        mk_OutputBox_->setText(mk_Output[ms_CurrentIterationKeyShowing]->text());
-        mk_OutputBox_->moveCursor(QTextCursor::End);
-        mk_OutputBox_->ensureCursorVisible();
+        INSERT CURRENT OUTPUT BOX INTO LAYOUT HERE
     }
 }
 

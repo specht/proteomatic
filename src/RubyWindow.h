@@ -18,7 +18,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <QtCore>
-#include "ConsoleString.h"
+#include "ConsoleTextEdit.h"
 #include "Proteomatic.h"
 
 
@@ -42,10 +42,9 @@ protected:
     QString ms_Title;
     
     QSharedPointer<QDialog> mk_pDialog;
-    QTextEdit* mk_Output_;
+    k_ConsoleTextEdit* mk_Output_;
     QPushButton* mk_AbortButton_;
     QPushButton* mk_CloseButton_;
-    k_ConsoleString mk_Output;
     bool mb_ScriptFinishedFine;
     
     void addOutput(QString as_Text);

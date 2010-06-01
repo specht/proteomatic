@@ -22,7 +22,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "Desktop.h"
 #include "Proteomatic.h"
-#include "ConsoleString.h"
 #include "FoldedHeader.h"
 
 
@@ -95,7 +94,6 @@ protected:
     //QAction* mk_ClearPrefixForAllScriptsAction_;
     QAction* mk_ProposePrefixForAllScriptsAction_;
     k_Proteomatic& mk_Proteomatic;
-    k_ConsoleString ms_Log;
     IScriptBox* mk_CurrentScriptBox_;
     QWidget* mk_PaneLayoutWidget_;
     QBoxLayout* mk_PaneLayout_;

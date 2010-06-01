@@ -78,7 +78,7 @@ HEADERS += \
     src/CiListWidgetItem.h \
     src/ClickableGraphicsProxyWidget.h \
     src/ClickableLabel.h \
-    src/ConsoleString.h \
+    src/ConsoleTextEdit.h \
     src/Desktop.h \
     src/DesktopBox.h \
     src/DesktopBoxFactory.h \
@@ -115,7 +115,7 @@ HEADERS += \
 SOURCES += \
     src/ClickableGraphicsProxyWidget.cpp \
     src/ClickableLabel.cpp \
-    src/ConsoleString.cpp \
+    src/ConsoleTextEdit.cpp \
     src/Desktop.cpp \
     src/DesktopBox.cpp \
     src/DesktopBoxFactory.cpp \
