@@ -717,7 +717,10 @@ void k_ScriptBox::update()
                 ls_SmallestPath = ls_Path;
         ms_OutputDirectoryDefiningInputPath = ls_SmallestPath;
     }
-    mk_OutputDirectory.setHint(QDir::toNativeSeparators(QFileInfo(ms_OutputDirectoryDefiningInputPath).absolutePath()));
+    if (ms_OutputDirectoryDefiningInputPath.isEmpty())
+        mk_OutputDirectory.setHint("output directory");
+    else
+        mk_OutputDirectory.setHint(QDir::toNativeSeparators(QFileInfo(ms_OutputDirectoryDefiningInputPath).absolutePath()));
     emit outputDirectoryChanged();
     
     // ----------------------------------------------
