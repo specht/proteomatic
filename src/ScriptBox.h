@@ -98,6 +98,7 @@ protected:
     virtual void dragMoveEvent(QDragMoveEvent* event);
     virtual void dropEvent(QDropEvent* event);
     virtual Qt::DropActions supportedDropActions() const;
+    QString finishedOutputFilename(QString& as_Filename);
     
     QSharedPointer<IScript> mk_pScript;
     QSharedPointer<QWidget> mk_pParameterProxyWidget;
@@ -119,7 +120,7 @@ protected:
     QWidget* mk_IterationsTagsDontMatchIcon_;
     QCheckBox* mk_UseShortTagsCheckBox_;
     QString ms_ConverterFilenamePattern;
-    QSet<QString> mk_ConverterFilenameAffectingParameters;
+    QSet<QString> mk_FilenameAffectingParameters;
     QSize mk_LastUserAdjustedSize;
     
     // this is the path to the input file which has been chosen 

@@ -429,7 +429,7 @@ void k_PipelineMainWindow::updateStatusBar()
             QString ls_OutputDirectory = lk_ScriptBox_->scriptOutputDirectory();
             if (ls_OutputDirectory.isEmpty())
                 ls_OutputDirectory = "<i>undefined</i>";
-            mk_StatusBarMessage_->setText("<b>Output directory:</b> " + ls_OutputDirectory);
+            mk_StatusBarMessage_->setText("<b>Output directory:</b> " + QDir::toNativeSeparators(ls_OutputDirectory));
             QObject* lk_BoxObject_ = dynamic_cast<QObject*>(lk_ScriptBox_);
             //connect(lk_BoxObject_, SIGNAL(outputDirectoryChanged()), this, SLOT(updateStatusBar()));
             mk_WatchedBoxObject_ = lk_BoxObject_;
@@ -440,7 +440,7 @@ void k_PipelineMainWindow::updateStatusBar()
             if (lk_Filenames.size() == 1)
             {
                 QString ls_Path = lk_Filenames.first();
-                mk_StatusBarMessage_->setText(ls_Path);
+                mk_StatusBarMessage_->setText(QDir::toNativeSeparators(ls_Path));
                 QObject* lk_BoxObject_ = dynamic_cast<QObject*>(lk_FileBox_);
                 //connect(lk_BoxObject_, SIGNAL(filenamesChanged()), this, SLOT(updateStatusBar()));
                 mk_WatchedBoxObject_ = lk_BoxObject_;
