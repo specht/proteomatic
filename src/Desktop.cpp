@@ -1967,7 +1967,7 @@ IDesktopBox* k_Desktop::connectionAllowed(IDesktopBox* ak_StartBox_, IDesktopBox
     // and don't connect if the end box is the start box
     if (((dynamic_cast<IScriptBox*>(ak_EndBox_) == NULL) && (dynamic_cast<k_InputGroupProxyBox*>(ak_EndBox_) == NULL)) || ak_EndBox_ == ak_StartBox_)
         return NULL;
-    
+
     // make sure that the output of one script is not connected to one of its input proxy boxes
     foreach (IDesktopBox* lk_Box_, ak_StartBox_->incomingBoxes())
     {
@@ -1980,12 +1980,16 @@ IDesktopBox* k_Desktop::connectionAllowed(IDesktopBox* ak_StartBox_, IDesktopBox
             }
         }
     }
-    // make sure the arrow end box is not a script box which has ambiguous input groups
-    // in that case, the files should go to one of the proxy boxes
+    
     IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(ak_EndBox_);
     if (lk_ScriptBox_)
     {
+        // make sure the arrow end box is not a script box which has ambiguous input groups
+        // in that case, the files should go to one of the proxy boxes
         if (!lk_ScriptBox_->script()->ambiguousInputGroups().empty())
+            return NULL;
+        // don't connect if the end box is a script box that has no input files
+        if (lk_ScriptBox_->script()->inputGroupKeys().empty()) 
             return NULL;
     }
     
