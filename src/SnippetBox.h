@@ -45,6 +45,7 @@ public:
     virtual IScriptBox* scriptBoxParent() const;
     virtual QString text() const;
     virtual QString fileType() const;
+    virtual void flushFile();
     
 public slots:
     virtual void setText(const QString& as_Text);
@@ -60,12 +61,13 @@ signals:
     void filenamesChanged();
     
 protected:
+    virtual void setupLayout();
+
     IScriptBox* mk_ScriptBoxParent_;
     QComboBox mk_FileTypeComboBox;
     QTextEdit mk_TextEdit;
     QPixmap mk_InactiveArrow;
     QPixmap mk_ActiveArrow;
     k_ClickableLabel mk_ArrowLabel;
-    
-    virtual void setupLayout();
+    QString ms_Basename;
 };

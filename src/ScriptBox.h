@@ -127,6 +127,7 @@ protected:
     // for determining the automatic output directory 
     QString ms_OutputDirectoryDefiningInputPath;
     QHash<QString, QStringList> mk_InputFilesForKey;
+    QSet<QString> mk_SnippetInputFiles;
     QHash<QString, QStringList> mk_OutputFilesForKey;
     QStringList mk_IterationTags;
     QHash<QString, QSet<QString> > mk_OutputFilesForIterationTag;

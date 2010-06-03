@@ -148,11 +148,7 @@ public:
     QWidget* messageBoxParent() const;
     int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);
     QFont& consoleFont();
-    /*
-    QStringList scriptPaths() const;
-    QString scriptPathAndPackage() const;
-    */
-    QString managedScriptPath() const;
+    QString tempPath() const;
     QStringList additionalScriptPaths() const;
     
     QVariant getConfiguration(QString as_Key);
@@ -231,6 +227,7 @@ protected:
     QFont mk_ConsoleFont;
     QString ms_DataDirectory;
     QString ms_ExternalToolsPath;
+    QString ms_TempPath;
     QString ms_ManagedScriptsPath;
     QStringList mk_AdditionalScriptPaths;
     QString ms_ConfigurationPath;

@@ -29,6 +29,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "UnclickableLabel.h"
 #include "LocalScript.h"
 #include "InputGroupProxyBox.h"
+#include "SnippetBox.h"
 
 
 k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
@@ -101,7 +102,7 @@ bool k_ScriptBox::checkReadyToGo()
     foreach (QString ls_Key, mk_InputFilesForKey.keys())
     {
         foreach (QString ls_Path, mk_InputFilesForKey[ls_Key])
-            if (!QFileInfo(ls_Path).exists())
+            if ((!mk_SnippetInputFiles.contains(ls_Path)) && (!QFileInfo(ls_Path).exists()))
                 return false;
     }
     return true;
@@ -346,6 +347,14 @@ void k_ScriptBox::clearOutputDirectoryButtonClicked()
 void k_ScriptBox::start(const QString& as_IterationKey)
 {
     QHash<QString, QString> lk_Parameters;
+    
+    // if we have input snippets, flush them to disk
+    foreach (IDesktopBox* lk_Box_, incomingBoxes())
+    {
+        k_SnippetBox* lk_SnippetBox_ = dynamic_cast<k_SnippetBox*>(lk_Box_);
+        if (lk_SnippetBox_)
+            lk_SnippetBox_->flushFile();
+    }
 
     // set output directory
     if (!this->scriptOutputDirectory().isEmpty())
@@ -670,6 +679,7 @@ void k_ScriptBox::update()
     
     // iterate over all incoming boxes, sort input files into right groups
     mk_InputFilesForKey.clear();
+    mk_SnippetInputFiles.clear();
     foreach (QString ls_Key, mk_pScript->inputGroupKeys())
         mk_InputFilesForKey[ls_Key] = QStringList();
     
@@ -681,11 +691,14 @@ void k_ScriptBox::update()
             QString ls_InputKey = lk_InputGroupProxyBox_->groupKey();
             foreach (IFileBox* lk_FileBox_, lk_InputGroupProxyBox_->fileBoxes())
             {
+                k_SnippetBox* lk_SnippetBox_ = dynamic_cast<k_SnippetBox*>(lk_FileBox_);
                 foreach (QString ls_Path, lk_FileBox_->filenames())
                 {
                     if (ls_InputKey.isEmpty())
                         ls_InputKey = mk_pScript->inputGroupForFilename(ls_Path);
                     mk_InputFilesForKey[ls_InputKey] << ls_Path;
+                    if (lk_SnippetBox_)
+                        mk_SnippetInputFiles << ls_Path;
                 }
             }
         }
@@ -694,10 +707,13 @@ void k_ScriptBox::update()
             IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
             if (lk_FileBox_)
             {
+                k_SnippetBox* lk_SnippetBox_ = dynamic_cast<k_SnippetBox*>(lk_FileBox_);
                 foreach (QString ls_Path, lk_FileBox_->filenames())
                 {
                     QString ls_InputKey = mk_pScript->inputGroupForFilename(ls_Path);
                     mk_InputFilesForKey[ls_InputKey] << ls_Path;
+                    if (lk_SnippetBox_)
+                        mk_SnippetInputFiles << ls_Path;
                 }
             }
         }

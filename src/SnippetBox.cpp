@@ -30,6 +30,11 @@ k_SnippetBox::k_SnippetBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
 {
     mk_TextEdit.setAcceptRichText(false);
     setupLayout();
+    // basename contains snippet box pointer and current date/time
+    ms_Basename = QString("%1/snippet-%2-%3")
+        .arg(mk_Proteomatic.tempPath())
+        .arg((size_t)this, 0, 36)
+        .arg(QDateTime::currentDateTime().toTime_t(), 0, 36);
 }
 
 
@@ -40,7 +45,7 @@ k_SnippetBox::~k_SnippetBox()
 
 QStringList k_SnippetBox::filenames() const
 {
-    return QStringList();
+    return QStringList() << ms_Basename + fileType();
 }
 
 
@@ -52,7 +57,7 @@ QString k_SnippetBox::tagForFilename(const QString& /*as_Filename*/) const
 
 QStringList k_SnippetBox::filenamesForTag(const QString& /*as_Tag*/) const
 {
-    return QStringList();
+    return filenames();
 }
 
 
@@ -88,6 +93,19 @@ QString k_SnippetBox::text() const
 QString k_SnippetBox::fileType() const
 {
     return mk_FileTypeComboBox.itemData(mk_FileTypeComboBox.currentIndex()).toString();
+}
+
+
+void k_SnippetBox::flushFile()
+{
+    QFile lk_File(filenames().first());
+    if (lk_File.open(QIODevice::WriteOnly))
+    {
+        QTextStream lk_Stream(&lk_File);
+        lk_Stream << text();
+        lk_Stream.flush();
+        lk_File.close();
+    }
 }
 
 

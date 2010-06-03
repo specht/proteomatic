@@ -82,6 +82,9 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     ms_ExternalToolsPath = QDir::cleanPath(ms_DataDirectory + "/ext");
     if (!lk_Dir.exists(ms_ExternalToolsPath))
         lk_Dir.mkdir(ms_ExternalToolsPath);
+    ms_TempPath = QDir::cleanPath(ms_DataDirectory + "/temp");
+    if (!lk_Dir.exists(ms_TempPath))
+        lk_Dir.mkdir(ms_TempPath);
 
     ms_ManagedScriptsPath = QDir::cleanPath(ms_DataDirectory + "/scripts");
     ms_ConfigurationPath = QDir::cleanPath(ms_DataDirectory + "/proteomatic.conf.yaml");
@@ -931,6 +934,12 @@ int k_Proteomatic::queryRemoteHub(QString /*as_Uri*/, QStringList /*ak_Arguments
 QFont& k_Proteomatic::consoleFont()
 {
     return mk_ConsoleFont;
+}
+
+
+QString k_Proteomatic::tempPath() const
+{
+    return ms_TempPath;
 }
 
 
