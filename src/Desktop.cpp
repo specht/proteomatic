@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesktopBoxFactory.h"
 #include "DesktopBox.h"
 #include "FileListBox.h"
+#include "SnippetBox.h"
 #include "IFileBox.h"
 #include "InputGroupProxyBox.h"
 #include "IScriptBox.h"
@@ -583,6 +584,10 @@ tk_YamlMap k_Desktop::pipelineDescription()
             lk_Coordinates.push_back(boxLocation(lk_Box_).x());
             lk_Coordinates.push_back(boxLocation(lk_Box_).y());
             lk_ScriptBoxDescription["position"] = lk_Coordinates;
+            tk_YamlSequence lk_Size;
+            lk_Size.push_back(lk_Box_->rect().width());
+            lk_Size.push_back(lk_Box_->rect().height());
+            lk_ScriptBoxDescription["size"] = lk_Size;
             lk_ScriptBoxDescription["shortIterationTags"] = lk_ScriptBox_->useShortIterationTags();
             lk_ScriptBoxDescription["outputPrefix"] = lk_ScriptBox_->boxOutputPrefix();
             lk_ScriptBoxDescription["outputDirectory"] = lk_ScriptBox_->boxOutputDirectory();
@@ -600,6 +605,10 @@ tk_YamlMap k_Desktop::pipelineDescription()
                     lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).x());
                     lk_Coordinates.push_back(boxLocation(lk_OutputFileBox_).y());
                     lk_Map["position"] = lk_Coordinates;
+                    tk_YamlSequence lk_Size;
+                    lk_Size.push_back(lk_OutputFileBox_->rect().width());
+                    lk_Size.push_back(lk_OutputFileBox_->rect().height());
+                    lk_Map["size"] = lk_Size;
                     lk_Map["batchMode"] = lk_OutputFileBox_->batchMode();
                     lk_Map["id"] = (qint64)lk_OutputFileBox_;
                     lk_ActiveOutputFileBoxes[ls_Key] = lk_Map;
@@ -617,6 +626,11 @@ tk_YamlMap k_Desktop::pipelineDescription()
                 lk_Position.push_back(boxLocation(lk_OtherBox_).x());
                 lk_Position.push_back(boxLocation(lk_OtherBox_).y());
                 lk_ScriptBoxDescription["converterOutputFileBoxPosition"] = lk_Position;
+                tk_YamlSequence lk_Size;
+                lk_Size.push_back(lk_OtherBox_->rect().width());
+                lk_Size.push_back(lk_OtherBox_->rect().height());
+                lk_ScriptBoxDescription["converterOutputFileBoxSize"] = lk_Size;
+                lk_ScriptBoxDescription["converterOutputFileBoxBatchMode"] = lk_OtherBox_->batchMode();
                 lk_ScriptBoxDescription["converterOutputFileBoxId"] = (qint64)lk_OtherBox_;
             }
             
@@ -633,6 +647,10 @@ tk_YamlMap k_Desktop::pipelineDescription()
                     lk_Coordinates.push_back(boxLocation(lk_ProxyBox_).x());
                     lk_Coordinates.push_back(boxLocation(lk_ProxyBox_).y());
                     lk_Map["position"] = lk_Coordinates;
+                    tk_YamlSequence lk_Size;
+                    lk_Size.push_back(lk_ProxyBox_->rect().width());
+                    lk_Size.push_back(lk_ProxyBox_->rect().height());
+                    lk_Map["size"] = lk_Size;
                     lk_Map["id"] = (qint64)lk_ProxyDesktopBox_;
                     lk_InputProxyBoxes[ls_Key] = lk_Map;
                     lk_UnsavedArrows.remove(tk_BoxPair(lk_ProxyBox_, lk_Box_));
@@ -650,6 +668,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
     tk_YamlSequence lk_InputFileListBoxes;
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
     {
+        // is it a true input file box?
         k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(lk_Box_);
         if (lk_FileListBox_ && (!lk_AlreadySavedFileBoxes.contains(lk_FileListBox_)))
         {
@@ -659,6 +678,10 @@ tk_YamlMap k_Desktop::pipelineDescription()
             lk_Coordinates.push_back(boxLocation(lk_Box_).x());
             lk_Coordinates.push_back(boxLocation(lk_Box_).y());
             lk_BoxDescription["position"] = lk_Coordinates;
+            tk_YamlSequence lk_Size;
+            lk_Size.push_back(lk_Box_->rect().width());
+            lk_Size.push_back(lk_Box_->rect().height());
+            lk_BoxDescription["size"] = lk_Size;
             lk_BoxDescription["batchMode"] = lk_Box_->batchMode();
             tk_YamlSequence lk_Paths;
             foreach (QString ls_Path, lk_FileListBox_->filenames())
@@ -668,6 +691,31 @@ tk_YamlMap k_Desktop::pipelineDescription()
         }
     }
     lk_Description["inputFileListBoxes"] = lk_InputFileListBoxes;
+    
+    // now come the snippet boxes
+    tk_YamlSequence lk_SnippetBoxes;
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+    {
+        // is it a snippet?
+        k_SnippetBox* lk_SnippetBox_ = dynamic_cast<k_SnippetBox*>(lk_Box_);
+        if (lk_SnippetBox_ && (!lk_AlreadySavedFileBoxes.contains(lk_SnippetBox_)))
+        {
+            tk_YamlMap lk_BoxDescription;
+            lk_BoxDescription["id"] = (qint64)lk_Box_;
+            tk_YamlSequence lk_Coordinates;
+            lk_Coordinates.push_back(boxLocation(lk_Box_).x());
+            lk_Coordinates.push_back(boxLocation(lk_Box_).y());
+            lk_BoxDescription["position"] = lk_Coordinates;
+            tk_YamlSequence lk_Size;
+            lk_Size.push_back(lk_Box_->rect().width());
+            lk_Size.push_back(lk_Box_->rect().height());
+            lk_BoxDescription["size"] = lk_Size;
+            lk_BoxDescription["text"] = lk_SnippetBox_->text();
+            lk_BoxDescription["type"] = lk_SnippetBox_->fileType();
+            lk_SnippetBoxes.push_back(lk_BoxDescription);
+        }
+    }
+    lk_Description["snippetBoxes"] = lk_SnippetBoxes;
     
     // continue with with remaining arrows
     tk_YamlSequence lk_Arrows;
@@ -746,6 +794,11 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                 tk_YamlMap lk_Parameters = lk_BoxDescription["parameters"].toMap();
                 foreach (QString ls_Key, lk_Parameters.keys())
                     lk_ScriptBox_->script()->setParameter(ls_Key, lk_Parameters[ls_Key].toString());
+                if (lk_BoxDescription["size"].toList().size() == 2)
+                {
+                    tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                    dynamic_cast<k_DesktopBox*>(lk_Box_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
+                }
                 tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
                 moveBoxTo(lk_Box_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                 bool lb_ShortTags = false;
@@ -761,8 +814,13 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                     {
                         IDesktopBox* lk_OutputBox_ = lk_ScriptBox_->boxForOutputFileKey(ls_Key);
                         tk_YamlMap lk_OutBoxDescription = lk_OutputBoxes[ls_Key].toMap();
-                        tk_YamlSequence lk_Position = lk_OutBoxDescription["position"].toList();
                         lk_BoxForId[lk_OutBoxDescription["id"].toString()] = lk_OutputBox_;
+                        if (lk_OutBoxDescription["size"].toList().size() == 2)
+                        {
+                            tk_YamlSequence lk_Size = lk_OutBoxDescription["size"].toList();
+                            dynamic_cast<k_DesktopBox*>(lk_OutputBox_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
+                        }
+                        tk_YamlSequence lk_Position = lk_OutBoxDescription["position"].toList();
                         moveBoxTo(lk_OutputBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         if (lk_OutBoxDescription["batchMode"].toString() == "yes" || 
                             lk_OutBoxDescription["batchMode"].toString() == "true")
@@ -772,9 +830,17 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                 // fix converter out box
                 if (lk_ScriptBox_->script()->type() == r_ScriptType::Converter && lk_BoxDescription.contains("converterOutputFileBoxPosition"))
                 {
+                    if (lk_BoxDescription["size"].toList().size() == 2)
+                    {
+                        tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                        dynamic_cast<k_DesktopBox*>(lk_Box_->outgoingBoxes().toList().first())->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
+                    }
                     tk_YamlSequence lk_Position = lk_BoxDescription["converterOutputFileBoxPosition"].toList();
                     moveBoxTo(lk_Box_->outgoingBoxes().toList().first(), QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                     lk_BoxForId[lk_BoxDescription["converterOutputFileBoxId"].toString()] = lk_Box_->outgoingBoxes().toList().first();
+                    if (lk_BoxDescription["converterOutputFileBoxBatchMode"].toString() == "yes" || 
+                        lk_BoxDescription["converterOutputFileBoxBatchMode"].toString() == "true")
+                        lk_BatchModeFileListBoxes << dynamic_cast<k_FileListBox*>(lk_Box_->outgoingBoxes().toList().first());
                 }
                 // fix input proxy boxes
                 foreach (IDesktopBox* lk_ProxyDesktopBox_, dynamic_cast<IDesktopBox*>(lk_ScriptBox_)->incomingBoxes())
@@ -786,8 +852,13 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                         if (lk_InputProxyBoxes.contains(ls_Key))
                         {
                             tk_YamlMap lk_BoxDescription = lk_InputProxyBoxes[ls_Key].toMap();
-                            tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
                             lk_BoxForId[lk_BoxDescription["id"].toString()] = lk_ProxyBox_;
+                            if (lk_BoxDescription["size"].toList().size() == 2)
+                            {
+                                tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                                dynamic_cast<k_DesktopBox*>(lk_ProxyBox_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
+                            }
+                            tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
                             moveBoxTo(lk_ProxyBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         }
                     }
@@ -801,8 +872,13 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     {
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
         QString ls_Id = lk_BoxDescription["id"].toString();
-        tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
         lk_BoxForId[ls_Id] = addInputFileListBox(false);
+        if (lk_BoxDescription["size"].toList().size() == 2)
+        {
+            tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+            dynamic_cast<k_DesktopBox*>(lk_BoxForId[ls_Id])->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
+        }
+        tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
         moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
         tk_YamlSequence lk_Paths = lk_BoxDescription["paths"].toList();
         foreach (QVariant ls_Path, lk_Paths)
@@ -810,6 +886,22 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
         if (lk_BoxDescription["batchMode"].toString() == "yes" || 
             lk_BoxDescription["batchMode"].toString() == "true")
             lk_BatchModeFileListBoxes << dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id]);
+    }
+    foreach (QVariant lk_Item, ak_Description["snippetBoxes"].toList())
+    {
+        tk_YamlMap lk_BoxDescription = lk_Item.toMap();
+        QString ls_Id = lk_BoxDescription["id"].toString();
+        lk_BoxForId[ls_Id] = addSnippetBox(false);
+        if (lk_BoxDescription["size"].toList().size() == 2)
+        {
+            tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+            dynamic_cast<k_DesktopBox*>(lk_BoxForId[ls_Id])->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
+        }
+        tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+        moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
+        
+        dynamic_cast<k_SnippetBox*>(lk_BoxForId[ls_Id])->setText(lk_BoxDescription["text"].toString());
+        dynamic_cast<k_SnippetBox*>(lk_BoxForId[ls_Id])->setFileType(lk_BoxDescription["type"].toString());
     }
     foreach (QVariant lk_Item, ak_Description["connections"].toList())
     {

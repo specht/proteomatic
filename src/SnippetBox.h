@@ -43,6 +43,12 @@ public:
     virtual void setListMode(bool ab_Enabled);
     virtual bool listMode() const;
     virtual IScriptBox* scriptBoxParent() const;
+    virtual QString text() const;
+    virtual QString fileType() const;
+    
+public slots:
+    virtual void setText(const QString& as_Text);
+    virtual void setFileType(const QString& as_FileType);
     
 protected slots:
     virtual void arrowPressedSlot();
@@ -61,5 +67,5 @@ protected:
     QPixmap mk_ActiveArrow;
     k_ClickableLabel mk_ArrowLabel;
     
-    void setupLayout();
+    virtual void setupLayout();
 };

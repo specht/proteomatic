@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "SnippetBox.h"
 #include "Proteomatic.h"
+#include "Desktop.h"
 
 
 k_SnippetBox::k_SnippetBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, IScriptBox* ak_ScriptBoxParent_)
@@ -27,6 +28,7 @@ k_SnippetBox::k_SnippetBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
     , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
 {
+    mk_TextEdit.setAcceptRichText(false);
     setupLayout();
 }
 
@@ -77,6 +79,30 @@ IScriptBox* k_SnippetBox::scriptBoxParent() const
 }
 
 
+QString k_SnippetBox::text() const
+{
+    return mk_TextEdit.toPlainText();
+}
+
+
+QString k_SnippetBox::fileType() const
+{
+    return mk_FileTypeComboBox.itemData(mk_FileTypeComboBox.currentIndex()).toString();
+}
+
+
+void k_SnippetBox::setText(const QString& as_Text)
+{
+    mk_TextEdit.setPlainText(as_Text);
+}
+
+
+void k_SnippetBox::setFileType(const QString& as_FileType)
+{
+    mk_FileTypeComboBox.setCurrentIndex(mk_FileTypeComboBox.findData(as_FileType));
+}
+
+
 void k_SnippetBox::arrowPressedSlot()
 {
     mk_ArrowLabel.setPixmap(mk_ActiveArrow);
@@ -94,8 +120,8 @@ void k_SnippetBox::setupLayout()
     QBoxLayout* lk_VLayout_;
     QBoxLayout* lk_HLayout_;
     
-//     connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_FileTypeComboBox, SLOT(setEnabled(bool)));
-//     connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_TextEdit, SLOT(setEnabled(bool)));
+    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_FileTypeComboBox, SLOT(setEnabled(bool)));
+    connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_TextEdit, SLOT(setEnabled(bool)));
 
     lk_VLayout_ = new QVBoxLayout(this);
     lk_VLayout_->setContentsMargins(11, 11, 11, 11);
@@ -131,7 +157,7 @@ void k_SnippetBox::setupLayout()
             .arg(lk_TextFileFormats[ls_Description].join("|"));
         mk_FileTypeComboBox.addItem(ls_Label, lk_TextFileFormats[ls_Description].first());
     }
-    mk_FileTypeComboBox.setCurrentIndex(mk_FileTypeComboBox.findData(".txt"));
+    setFileType(".txt");
     mk_TextEdit.setFont(mk_Proteomatic.consoleFont());
     
     emit resized();
