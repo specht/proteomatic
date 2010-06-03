@@ -70,4 +70,5 @@ protected:
     QPixmap mk_ActiveArrow;
     k_ClickableLabel mk_ArrowLabel;
     QString ms_Basename;
+    QString ms_CompleteBasename;
 };

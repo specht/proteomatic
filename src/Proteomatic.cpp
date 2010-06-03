@@ -1537,7 +1537,8 @@ void k_Proteomatic::purgeCacheAndTempFiles()
 
 QList<QFileInfo> k_Proteomatic::getCacheAndTempFiles()
 {
-    return QDir(QDir::cleanPath(ms_DataDirectory + "/cache")).entryInfoList(QDir::Files);
+    return QDir(QDir::cleanPath(ms_DataDirectory + "/cache")).entryInfoList(QDir::Files)
+        + QDir(QDir::cleanPath(ms_TempPath)).entryInfoList(QDir::Files);
 }
 
 

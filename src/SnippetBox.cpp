@@ -31,21 +31,28 @@ k_SnippetBox::k_SnippetBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
     mk_TextEdit.setAcceptRichText(false);
     setupLayout();
     // basename contains snippet box pointer and current date/time
-    ms_Basename = QString("%1/snippet-%2-%3")
-        .arg(mk_Proteomatic.tempPath())
+    ms_Basename = QString("snippet-%2-%3")
         .arg((size_t)this, 0, 36)
         .arg(QDateTime::currentDateTime().toTime_t(), 0, 36);
+    ms_CompleteBasename = QString("%1/%2")
+        .arg(mk_Proteomatic.tempPath())
+        .arg(ms_Basename);
 }
 
 
 k_SnippetBox::~k_SnippetBox()
 {
+    // delete temp files
+    QDir lk_TempDir(mk_Proteomatic.tempPath());
+    QStringList lk_TempFiles = lk_TempDir.entryList(QStringList() << ms_Basename + "*");
+    foreach (QString ls_Path, lk_TempFiles)
+        lk_TempDir.remove(ls_Path);
 }
 
 
 QStringList k_SnippetBox::filenames() const
 {
-    return QStringList() << ms_Basename + fileType();
+    return QStringList() << ms_CompleteBasename + fileType();
 }
 
 
