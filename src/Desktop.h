@@ -43,8 +43,9 @@ public:
     virtual k_PipelineMainWindow& pipelineMainWindow() const;
     virtual QGraphicsScene& graphicsScene();
     virtual IDesktopBox* addInputFileListBox(bool ab_AutoAdjust = true);
+    virtual IDesktopBox* addSnippetBox(bool ab_AutoAdjust = true);
     virtual IDesktopBox* addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust = true);
-    virtual void addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox = true, bool ab_AutoAdjust = true);
+    virtual void addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox = true, bool ab_AutoAdjust = true, int ai_Width = 1, int ai_Height = 1);
     virtual void removeBox(IDesktopBox* ak_Box_);
     virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
     virtual void disconnectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);

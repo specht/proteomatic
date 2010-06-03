@@ -134,6 +134,9 @@ void k_Proteomatic::initialize()
     
     this->checkRuby();
     
+    collectTextFileFormats(mk_OwnTextFileFormats);
+    mk_OwnPlusScriptsTextFileFormats = mk_OwnTextFileFormats;
+    
     collectScriptInfo();
     createProteomaticScriptsMenu();
     
@@ -593,6 +596,60 @@ void k_Proteomatic::loadConfiguration()
 }
 
 
+void k_Proteomatic::collectTextFileFormats(QMap<QString, QStringList>& ak_Results, QString as_Path)
+{
+    QFile lk_File(as_Path + "/text-formats.txt");
+    if (lk_File.open(QIODevice::ReadOnly))
+    {
+        QTextStream lk_Stream(&lk_File);
+        while (!lk_Stream.atEnd())
+        {
+            QString ls_Key = lk_Stream.readLine().trimmed();
+            if (ls_Key.isEmpty())
+                continue;
+            QFile lk_FormatFile(QString(as_Path + "/formats/%1.yaml").arg(ls_Key));
+            if (lk_FormatFile.exists())
+            {
+                QVariant lk_Info = k_Yaml::parseFromFile(lk_FormatFile.fileName());
+                /*
+                extensions: ['.txt']
+                description: Plain text
+                */
+                QStringList lk_Extensions;
+                QString ls_Description;
+                tk_YamlMap lk_Description = lk_Info.toMap();
+                if (lk_Description.contains("extensions"))
+                {
+                    foreach (QVariant lk_Item, lk_Description["extensions"].toList())
+                    {
+                        QString ls_Extension = lk_Item.toString().trimmed();
+                        if (ls_Extension.isEmpty())
+                            continue;
+                        if (!ls_Extension.startsWith("."))
+                            ls_Extension = "." + ls_Extension;
+                        lk_Extensions << ls_Extension;
+                    }
+                }
+                if (lk_Description.contains("description"))
+                    ls_Description = lk_Description["description"].toString();
+                if ((!ls_Description.isEmpty()) && (!lk_Extensions.empty()))
+                {
+                    if (!ak_Results.contains(ls_Description))
+                        ak_Results[ls_Description] = QStringList();
+                    foreach (QString ls_Extension, lk_Extensions)
+                    {
+                        if (!ak_Results[ls_Description].contains(ls_Extension))
+                            ak_Results[ls_Description] << ls_Extension;
+                    }
+                }
+            }
+        }
+    }
+    foreach (QString ls_Key, ak_Results.keys())
+        qSort(ak_Results[ls_Key].begin(), ak_Results[ls_Key].end());
+}
+
+
 void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 {
     mk_ScriptInfo.clear();
@@ -606,6 +663,12 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
         foreach (QString ls_Path, lk_Paths)
             lk_Scripts << lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
     }
+    
+    // collect scripts text file formats
+    mk_OwnPlusScriptsTextFileFormats = mk_OwnTextFileFormats;
+    // :TODO: maybe search for the cli-tools-directory
+    collectTextFileFormats(mk_OwnPlusScriptsTextFileFormats, ms_ManagedScriptsPath + "/" + ls_CurrentPackage + "/include/cli-tools-atlas");
+
     foreach (QString ls_ScriptPath, mk_AdditionalScriptPaths)
     {
         QDir lk_Dir(ls_ScriptPath);
@@ -1324,6 +1387,12 @@ QString k_Proteomatic::completePathForScript(QString as_ScriptFilename)
 QString k_Proteomatic::externalToolsPath() const
 {
     return ms_ExternalToolsPath;
+}
+
+
+QMap<QString, QStringList> k_Proteomatic::textFileFormats() const
+{
+    return mk_OwnPlusScriptsTextFileFormats;
 }
 
 

@@ -174,6 +174,7 @@ public:
     QString scriptsVersion();
     QString completePathForScript(QString as_ScriptFilename);
     QString externalToolsPath() const;
+    QMap<QString, QStringList> textFileFormats() const;
     
     QHash<QString, QStringList> mk_ScriptKeywords;
     
@@ -208,6 +209,7 @@ protected:
     QList<QFileInfo> getCacheAndTempFiles();
     bool canPurgeCacheAndTempFiles();
     void loadConfiguration();
+    void collectTextFileFormats(QMap<QString, QStringList>& ak_Results, QString as_Path = ":ext/cli-tools-atlas");
     void collectScriptInfo(bool ab_ShowImmediately = false);
     void createProteomaticScriptsMenu();
     void checkRuby();
@@ -263,4 +265,7 @@ protected:
     bool mb_ModalProcessUserRequested;
     
     QSharedPointer<QWidgetAction> mk_pSearchWidgetAction;
+    
+    QMap<QString, QStringList> mk_OwnTextFileFormats;
+    QMap<QString, QStringList> mk_OwnPlusScriptsTextFileFormats;
 };

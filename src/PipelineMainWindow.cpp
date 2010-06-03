@@ -156,7 +156,8 @@ void k_PipelineMainWindow::initialize()
     mk_AddFileListButton_->setPopupMode(QToolButton::MenuButtonPopup);
     mk_AddFileListButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     mk_AddFileListButton_->setMenu(new QMenu(mk_AddFileListButton_));
-    mk_AddFileListButton_->menu()->addAction(QIcon(":icons/document-edit.png"), "Add snippet");
+    mk_AddSnippetAction_ = mk_AddFileListButton_->menu()->addAction(QIcon(":icons/document-edit.png"), "Add snippet");
+    connect(mk_AddSnippetAction_, SIGNAL(triggered()), this, SLOT(addSnippetBox()));
     connect(mk_AddFileListButton_, SIGNAL(clicked()), this, SLOT(addFileListBox()));
     mk_AddToolBar_->addWidget(mk_AddFileListButton_);
     
@@ -378,6 +379,15 @@ void k_PipelineMainWindow::addFileListBox()
 }
 
 
+void k_PipelineMainWindow::addSnippetBox()
+{
+    if (!mk_Desktop_)
+        return;
+    
+    mk_Desktop_->addSnippetBox();
+}
+
+
 void k_PipelineMainWindow::resetParameters()
 {
     if (!mk_CurrentScriptBox_)
@@ -560,6 +570,7 @@ void k_PipelineMainWindow::toggleUi()
     mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_AddScriptAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_AddFileListButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+    mk_AddSnippetAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_Proteomatic.startButton()->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
     mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());
 //     mk_AbortAction_->setVisible(mk_Desktop_ && mk_Desktop_->running());

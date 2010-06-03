@@ -115,11 +115,20 @@ IDesktopBox* k_Desktop::addInputFileListBox(bool ab_AutoAdjust)
 {
     IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
     k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
-    addBox(lk_Box_, true, ab_AutoAdjust);
-    lk_DesktopBox_->resize(270, 120);
+    addBox(lk_Box_, true, ab_AutoAdjust, 270, 120);
     k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(lk_Box_);
     if (lk_FileListBox_)
         connect(lk_FileListBox_, SIGNAL(filenamesChanged()), this, SLOT(updateWatchedDirectories()));
+    refresh();
+    return lk_DesktopBox_;
+}
+
+
+IDesktopBox* k_Desktop::addSnippetBox(bool ab_AutoAdjust)
+{
+    IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeSnippetBox(this, mk_Proteomatic);
+    k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
+    addBox(lk_Box_, true, ab_AutoAdjust, 400, 250);
     refresh();
     return lk_DesktopBox_;
 }
@@ -270,7 +279,7 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
 }
 
 
-void k_Desktop::addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox, bool ab_AutoAdjust)
+void k_Desktop::addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox, bool ab_AutoAdjust, int ai_Width, int ai_Height)
 {
     k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(ak_Box_);
     
@@ -295,7 +304,7 @@ void k_Desktop::addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox, bool ab_AutoAdjus
     connect(lk_DesktopBox_, SIGNAL(resized()), this, SLOT(boxMovedOrResized()));
     connect(lk_DesktopBox_, SIGNAL(clicked(QMouseEvent*)), this, SLOT(boxClicked(QMouseEvent*)));
     mk_Boxes.insert(ak_Box_);
-    lk_DesktopBox_->resize(1, 1);
+    lk_DesktopBox_->resize(ai_Width, ai_Height);
     if (ab_PlaceBox)
     {
         QPointF lk_FreeSpace = findFreeSpace(lk_BoundingRect, mk_Boxes.size() - 1, QRectF(dynamic_cast<QWidget*>(ak_Box_)->frameGeometry()));

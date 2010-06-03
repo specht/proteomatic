@@ -66,6 +66,7 @@ protected slots:
     void startUntracked();
     void abort();
     void addFileListBox();
+    void addSnippetBox();
     void resetParameters();
     void showProfileManager();
     void showAll();
@@ -84,6 +85,7 @@ protected:
     QAction* mk_QuitAction_;
     QToolButton* mk_AddScriptButton_;
     QToolButton* mk_AddFileListButton_;
+    QAction* mk_AddSnippetAction_;
     QAction* mk_AbortAction_;
     QAction* mk_RefreshAction_;
     QAction* mk_ProfileManagerAction_;
