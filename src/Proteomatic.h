@@ -171,6 +171,7 @@ public:
     QString completePathForScript(QString as_ScriptFilename);
     QString externalToolsPath() const;
     QMap<QString, QPair<QString, QStringList> > textFileFormats() const;
+    void highlightScriptsMenu(QStringList ak_InputPaths = QStringList());
     
     QHash<QString, QStringList> mk_ScriptKeywords;
     
@@ -265,4 +266,8 @@ protected:
     
     QMap<QString, QPair<QString, QStringList> > mk_OwnTextFileFormats;
     QMap<QString, QPair<QString, QStringList> > mk_OwnPlusScriptsTextFileFormats;
+    QIcon mk_FolderEnabledIcon;
+    QIcon mk_FolderDisabledIcon;
+    QIcon mk_ScriptEnabledIcon;
+    QIcon mk_ScriptDisabledIcon;
 };

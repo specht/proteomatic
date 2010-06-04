@@ -1409,7 +1409,17 @@ void k_Desktop::arrowReleased()
         if (!boxAt(mk_ArrowEndPoint))
         {
             mk_ArrowStartBoxAutoConnect_ = mk_ArrowStartBox_;
+            QStringList lk_InputPaths;
+            IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(mk_ArrowStartBox_);
+            if (lk_FileBox_)
+            {
+                foreach (QString ls_Path, lk_FileBox_->filenames())
+                    lk_InputPaths << ls_Path;
+                mk_Proteomatic.highlightScriptsMenu(lk_InputPaths);
+            }
             QAction* lk_Action_ = mk_Proteomatic.proteomaticScriptsMenu()->exec(mapFromScene(mk_ArrowEndPoint) + mapToGlobal(pos()) - QPoint(8, 8));
+            if (lk_FileBox_)
+                mk_Proteomatic.highlightScriptsMenu();
             if (!lk_Action_)
                 mk_ArrowStartBoxAutoConnect_ = NULL;
         }
