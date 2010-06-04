@@ -10,7 +10,7 @@ flushThread = Thread.new do
     loop do
         STDOUT.flush
         STDERR.flush
-        sleep 1.0
+        sleep 1
     end
 end
 

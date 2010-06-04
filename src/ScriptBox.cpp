@@ -756,7 +756,7 @@ void k_ScriptBox::update()
         {
             if (mk_SnippetInputFiles.contains(ls_Path))
                 continue;
-            if ((ls_Path.isEmpty()) || (ls_Path < ls_SmallestPath))
+            if ((ls_SmallestPath.isEmpty()) || (ls_Path < ls_SmallestPath))
                 ls_SmallestPath = ls_Path;
         }
         ms_OutputDirectoryDefiningInputPath = ls_SmallestPath;

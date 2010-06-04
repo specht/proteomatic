@@ -259,7 +259,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                         if (!mk_Desktop_->hasUnsavedChanges())
                         {
                             QStringList lk_Arguments;
-                            lk_Arguments = QStringList() << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
+                            lk_Arguments = QStringList() << "-W0" << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             if (lk_RubyWindow.exec())
                             {
@@ -300,7 +300,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                                 QDir().mkpath(ms_ManagedScriptsPath);
                             
                             QStringList lk_Arguments;
-                            lk_Arguments = QStringList() << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
+                            lk_Arguments = QStringList() << "-W0" << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             lk_RubyWindow.exec();
                             
