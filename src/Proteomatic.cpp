@@ -32,8 +32,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <shlobj.h>
 #endif
 
-#define INPUT_FILE_EXTENSIONS "INPUT_FILE_EXTENSIONS"
-
 
 #ifdef Q_OS_WIN32
     #define FILE_URL_PREFIX "file:///"
@@ -795,9 +793,11 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                     QString ls_Title = lk_Response.toMap()["title"].toString();
                     QString ls_Group = lk_Response.toMap()["group"].toString();
                     QString ls_Description = lk_Response.toMap()["description"].toString();
+                    QString ls_InputExtensions = lk_Response.toMap()["inputExtensions"].toString();
                     lk_Script["title"] = ls_Title;
                     lk_Script["group"] = ls_Group;
                     lk_Script["description"] = ls_Description;
+                    lk_Script["inputExtensions"] = ls_InputExtensions;
                     lk_Script["uri"] = ls_Path;
                     mk_ScriptInfo.insert(ls_Path, lk_Script);
                     
@@ -850,6 +850,9 @@ void k_Proteomatic::createProteomaticScriptsMenu()
     }
     QList<QString> lk_GroupKeys = lk_Groups.toList();
     qSort(lk_GroupKeys);
+    
+    mk_ExtensionsForScriptsMenuSubMenu.clear();
+    mk_ExtensionsForScriptsMenuAction.clear();
 
     // create sub menus
     foreach (QString ls_Group, lk_GroupKeys)
@@ -868,7 +871,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
                 lk_SubMenu_->setIcon(mk_FolderEnabledIcon);
                 lk_ParentMenu_->addMenu(lk_SubMenu_);
                 lk_GroupMenus[ls_IncPath] = lk_SubMenu_;
-                lk_GroupMenus[ls_IncPath]->setProperty(INPUT_FILE_EXTENSIONS, QString());
+                mk_ExtensionsForScriptsMenuSubMenu[lk_SubMenu_] = QSet<QString>();
             }
             lk_ParentMenu_ = lk_GroupMenus[ls_IncPath];
         }
@@ -893,21 +896,17 @@ void k_Proteomatic::createProteomaticScriptsMenu()
         doc.setHtml(doc.toPlainText());
         lk_Action_->setStatusTip(doc.toPlainText());
         lk_Action_->setData(lk_ScriptInfo["uri"]);
-        lk_Action_->setProperty(INPUT_FILE_EXTENSIONS, lk_ScriptInfo["inputExtensions"]);
-        lk_TargetMenu_->setProperty(INPUT_FILE_EXTENSIONS, lk_TargetMenu_->property(INPUT_FILE_EXTENSIONS).toString() + "|" + lk_ScriptInfo["inputExtensions"]);
+        mk_ExtensionsForScriptsMenuAction[lk_Action_] = QSet<QString>();
+        QSet<QString> lk_ThisExtensionsSet = lk_ScriptInfo["inputExtensions"].split("|").toSet();
+        mk_ExtensionsForScriptsMenuAction[lk_Action_] |= lk_ThisExtensionsSet;
+        QStringList lk_Group = ls_Group.split("/");
+        for (int i = 1; i <= lk_Group.size(); ++i)
+        {
+            QMenu* lk_TempMenu_ = lk_GroupMenus[QStringList(lk_Group.mid(0, i)).join("/")];
+            mk_ExtensionsForScriptsMenuSubMenu[lk_TempMenu_] |= lk_ThisExtensionsSet;
+        }
         lk_TargetMenu_->addAction(lk_Action_);
         connect(lk_Action_, SIGNAL(triggered()), this, SLOT(scriptMenuScriptClickedInternal()));
-    }
-    
-    QStringList lk_GroupList = lk_GroupMenus.keys();
-    qSort(lk_GroupList.begin(), lk_GroupList.end(), qGreater<QString>());
-    foreach (QString ls_Group, lk_GroupList)
-    {
-        QMenu* lk_TargetMenu_ = lk_GroupMenus[ls_Group];
-        QSet<QString> lk_ExtensionSet = lk_TargetMenu_->property(INPUT_FILE_EXTENSIONS).toString().split("|").toSet();
-        if (lk_ExtensionSet.contains(""))
-            lk_ExtensionSet.remove("");
-        lk_TargetMenu_->setProperty(INPUT_FILE_EXTENSIONS, QStringList(lk_ExtensionSet.toList()).join("|"));
     }
     
 //     lk_SearchField_->setHint("Search");
@@ -1428,18 +1427,32 @@ QMap<QString, QPair<QString, QStringList> > k_Proteomatic::textFileFormats() con
 
 void k_Proteomatic::highlightScriptsMenu(QStringList ak_InputPaths)
 {
+    QSet<QString> lk_AllInputSuffixes;
+    foreach (QString ls_Path, ak_InputPaths)
+    {
+        QString ls_Suffix = QFileInfo(ls_Path).completeSuffix().toLower();
+        QStringList lk_SuffixList = ls_Suffix.split(".");
+        for (int i = 0; i < lk_SuffixList.size(); ++i)
+        {
+            QString ls_SubSuffix = QStringList(lk_SuffixList.mid(lk_SuffixList.size() - 1 - i, i + 1)).join(".");
+            lk_AllInputSuffixes << "." + ls_SubSuffix;
+        }
+    }
     // go through all script menu items and set icon according to ak_InputPaths,
     // empty ak_InputPaths means 'enable all'
-//     mk_pProteomaticScriptsMenu->
-    foreach (QObject* lk_Object_, mk_pProteomaticScriptsMenu->children())
+    foreach (QMenu* lk_Menu_, mk_ExtensionsForScriptsMenuSubMenu.keys())
     {
-        printf("child!\n");
-        QMenu* lk_Menu_ = qobject_cast<QMenu*>(lk_Object_);
-        if (lk_Menu_)
-            printf("menu!\n");
-        QAction* lk_Action_ = qobject_cast<QAction*>(lk_Object_);
-        if (lk_Action_)
-            printf("action!\n");
+        if (lk_AllInputSuffixes.empty() || (!(lk_AllInputSuffixes & mk_ExtensionsForScriptsMenuSubMenu[lk_Menu_]).empty()))
+            lk_Menu_->setIcon(mk_FolderEnabledIcon);
+        else
+            lk_Menu_->setIcon(mk_FolderDisabledIcon);
+    }
+    foreach (QAction* lk_Action_, mk_ExtensionsForScriptsMenuAction.keys())
+    {
+        if (lk_AllInputSuffixes.empty() || (!(lk_AllInputSuffixes & mk_ExtensionsForScriptsMenuAction[lk_Action_]).empty()))
+            lk_Action_->setIcon(mk_ScriptEnabledIcon);
+        else
+            lk_Action_->setIcon(mk_ScriptDisabledIcon);
     }
 }
 

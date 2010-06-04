@@ -270,4 +270,6 @@ protected:
     QIcon mk_FolderDisabledIcon;
     QIcon mk_ScriptEnabledIcon;
     QIcon mk_ScriptDisabledIcon;
+    QHash<QMenu*, QSet<QString> > mk_ExtensionsForScriptsMenuSubMenu;
+    QHash<QAction*, QSet<QString> > mk_ExtensionsForScriptsMenuAction;
 };
