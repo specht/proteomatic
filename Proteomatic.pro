@@ -42,7 +42,7 @@ else {
     RCC_DIR = obj/release/
 }
 
-QT = core gui
+QT = core gui webkit
 
 INCLUDEPATH += src/ src/dialogs
 
@@ -111,7 +111,7 @@ HEADERS += \
     src/Yaml.h \
     src/YamlEmitter.h \
     src/YamlParser.h \
-#     src/ZoomableWebView.h \
+    src/ZoomableWebView.h \
     src/version.h \
     src/dialogs/EditProfileDialog.h \
     
@@ -146,7 +146,7 @@ SOURCES += \
     src/Yaml.cpp \
     src/YamlEmitter.cpp \
     src/YamlParser.cpp \
-#     src/ZoomableWebView.cpp \
+    src/ZoomableWebView.cpp \
     src/dialogs/EditProfileDialog.cpp \
     
 RESOURCES += src/Proteomatic.qrc

@@ -20,7 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
-// #include <QtWebKit>
+#include <QtWebKit>
 #include "ConsoleString.h"
 #include "FoldedHeader.h"
 #include "IDesktopBox.h"
@@ -28,7 +28,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesktopBox.h"
 #include "HintLineEdit.h"
 #include "NoSlashValidator.h"
-// #include "ZoomableWebView.h"
+#include "ZoomableWebView.h"
 
 
 class k_Proteomatic;
@@ -70,7 +70,7 @@ public slots:
     virtual void clearPrefixButtonClicked();
     virtual void clearOutputDirectoryButtonClicked();
     virtual void addOutput(QString as_String);
-    virtual void refreshOutputFileView();
+//     virtual void refreshOutputFileView();
     virtual void setExpanded(bool ab_Flag);
     
 protected slots:
@@ -85,8 +85,8 @@ protected slots:
     virtual void showingBuddy();
     virtual void outputBoxIterationKeyChooserChanged();
     virtual void toggleUi();
-    virtual void toggleOutputFileChooser(int ai_Index);
-    virtual void zoomWebView(int ai_Delta);
+//     virtual void toggleOutputFileChooser(int ai_Index);
+//     virtual void zoomWebView(int ai_Delta);
     virtual void outputFilenameDetailsChanged();
     
 signals:
@@ -137,8 +137,8 @@ protected:
     bool mb_IterationsTagsDontMatch;
     bool mb_MultipleInputBatches;
     k_NoSlashValidator mk_NoSlashValidator;
-    QComboBox* mk_OutputFileChooser_;
-//     k_ZoomableWebView* mk_WebView_;
+/*    QComboBox* mk_OutputFileChooser_;
+    k_ZoomableWebView* mk_WebView_;*/
     QStringList mk_PreviewSuffixes;
     k_FoldedHeader* mk_FoldedHeader_;
 };

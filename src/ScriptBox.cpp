@@ -47,7 +47,7 @@ k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Paren
     , mk_LastUserAdjustedSize(0, 0)
     , mb_IterationsTagsDontMatch(false)
     , mb_MultipleInputBatches(false)
-    , mk_OutputFileChooser_(NULL)
+//     , mk_OutputFileChooser_(NULL)
     , mk_FoldedHeader_(NULL)
 //     , mk_WebView_(NULL)
 {
@@ -470,14 +470,14 @@ void k_ScriptBox::addOutput(QString as_Text)
 }
 
 
-void k_ScriptBox::refreshOutputFileView()
-{
-    if (mk_OutputFileChooser_)
-    {
-        toggleOutputFileChooser(mk_OutputFileChooser_->currentIndex());
+// void k_ScriptBox::refreshOutputFileView()
+// {
+//     if (mk_OutputFileChooser_)
+//     {
+//         toggleOutputFileChooser(mk_OutputFileChooser_->currentIndex());
 //         mk_WebView_->setZoomFactor(1.0);
-    }
-}
+//     }
+// }
 
 
 void k_ScriptBox::setExpanded(bool ab_Flag)
@@ -497,9 +497,9 @@ void k_ScriptBox::showOutputBox(bool /*ab_Flag*//* = true*/)
 }
 
 
-void k_ScriptBox::showOutputFileBox(bool /*ab_Flag*//* = true*/)
+void k_ScriptBox::showOutputFileBox(bool ab_Flag/* = true*/)
 {
-    //mk_TabWidget_->setCurrentWidget(mk_OutputFileViewerContainer_);
+    mk_TabWidget_->setCurrentWidget(mk_OutputFileViewerContainer_);
 }
 
 
@@ -848,7 +848,7 @@ void k_ScriptBox::update()
         }
     }
     
-    if (mk_OutputFileChooser_)
+/*    if (mk_OutputFileChooser_)
     {
         mk_OutputFileChooser_->clear();
         foreach (QString ls_Key, mk_OutputFilesForKey.keys())
@@ -859,7 +859,7 @@ void k_ScriptBox::update()
             }
         }
     }
-    
+    */
     toggleUi();
 }
 
@@ -883,9 +883,9 @@ void k_ScriptBox::toggleUi()
 }
 
 
-void k_ScriptBox::toggleOutputFileChooser(int /*ai_Index*/)
+/*void k_ScriptBox::toggleOutputFileChooser(int ai_Index)
 {
-/*    QString ls_Path = mk_OutputFileChooser_->itemData(ai_Index).toString();
+    QString ls_Path = mk_OutputFileChooser_->itemData(ai_Index).toString();
     bool lb_Ok = false;
     if (QFileInfo(ls_Path).exists())
     {
@@ -897,13 +897,13 @@ void k_ScriptBox::toggleOutputFileChooser(int /*ai_Index*/)
     }
     if (!lb_Ok)
         mk_WebView_->setHtml("");
-    mk_WebView_->setZoomFactor(1.0);*/
+    mk_WebView_->setZoomFactor(1.0);
 }
 
-
-void k_ScriptBox::zoomWebView(int /*ai_Delta*/)
+*/
+/*void k_ScriptBox::zoomWebView(int ai_Delta)
 {
-/*    if (mk_WebView_)
+    if (mk_WebView_)
     {
         double ld_Factor = mk_WebView_->zoomFactor();
         ld_Factor *= pow(1.1, (double)ai_Delta / 120.0);
@@ -912,10 +912,10 @@ void k_ScriptBox::zoomWebView(int /*ai_Delta*/)
         if (ld_Factor > 10.0)
             ld_Factor = 10.0;
         mk_WebView_->setZoomFactor(ld_Factor);
-    }*/
+    }
 }
 
-
+*/
 void k_ScriptBox::outputFilenameDetailsChanged()
 {
     invalidate();
