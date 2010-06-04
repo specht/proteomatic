@@ -599,7 +599,7 @@ void k_Proteomatic::loadConfiguration()
 }
 
 
-void k_Proteomatic::collectTextFileFormats(QMap<QString, QStringList>& ak_Results, QString as_Path)
+void k_Proteomatic::collectTextFileFormats(QMap<QString, QPair<QString, QStringList> >& ak_Results, QString as_Path)
 {
     QFile lk_File(as_Path + "/text-formats.txt");
     if (lk_File.open(QIODevice::ReadOnly))
@@ -637,19 +637,20 @@ void k_Proteomatic::collectTextFileFormats(QMap<QString, QStringList>& ak_Result
                     ls_Description = lk_Description["description"].toString();
                 if ((!ls_Description.isEmpty()) && (!lk_Extensions.empty()))
                 {
-                    if (!ak_Results.contains(ls_Description))
-                        ak_Results[ls_Description] = QStringList();
+                    QString ls_LowerDescription = ls_Description.toLower();
+                    if (!ak_Results.contains(ls_LowerDescription))
+                        ak_Results[ls_LowerDescription] = QPair<QString, QStringList>(ls_Description, QStringList());
                     foreach (QString ls_Extension, lk_Extensions)
                     {
-                        if (!ak_Results[ls_Description].contains(ls_Extension))
-                            ak_Results[ls_Description] << ls_Extension;
+                        if (!ak_Results[ls_LowerDescription].second.contains(ls_Extension))
+                            ak_Results[ls_LowerDescription].second << ls_Extension;
                     }
                 }
             }
         }
     }
     foreach (QString ls_Key, ak_Results.keys())
-        qSort(ak_Results[ls_Key].begin(), ak_Results[ls_Key].end());
+        qSort(ak_Results[ls_Key].second.begin(), ak_Results[ls_Key].second.end());
 }
 
 
@@ -1399,7 +1400,7 @@ QString k_Proteomatic::externalToolsPath() const
 }
 
 
-QMap<QString, QStringList> k_Proteomatic::textFileFormats() const
+QMap<QString, QPair<QString, QStringList> > k_Proteomatic::textFileFormats() const
 {
     return mk_OwnPlusScriptsTextFileFormats;
 }

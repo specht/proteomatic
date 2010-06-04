@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "SnippetBox.h"
 #include "Proteomatic.h"
 #include "Desktop.h"
+#include "UnclickableLabel.h"
 
 
 k_SnippetBox::k_SnippetBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic, IScriptBox* ak_ScriptBoxParent_)
@@ -124,7 +125,9 @@ void k_SnippetBox::setText(const QString& as_Text)
 
 void k_SnippetBox::setFileType(const QString& as_FileType)
 {
-    mk_FileTypeComboBox.setCurrentIndex(mk_FileTypeComboBox.findData(as_FileType));
+    int li_Index = mk_FileTypeComboBox.findData(as_FileType);
+    if (li_Index >= 0)
+        mk_FileTypeComboBox.setCurrentIndex(li_Index);
 }
 
 
@@ -153,7 +156,7 @@ void k_SnippetBox::setupLayout()
     
     lk_HLayout_ = new QHBoxLayout();
     lk_VLayout_->addLayout(lk_HLayout_);
-    lk_HLayout_->addWidget(new QLabel("<b>Snippet</b>", this));
+    lk_HLayout_->addWidget(new k_UnclickableLabel("<b>Snippet</b>", this));
     lk_HLayout_->addStretch();
     lk_HLayout_->addWidget(&mk_FileTypeComboBox);
     
@@ -174,13 +177,14 @@ void k_SnippetBox::setupLayout()
     connect(&mk_ArrowLabel, SIGNAL(released()), this, SIGNAL(arrowReleased()));
     connect(&mk_ArrowLabel, SIGNAL(released()), this, SLOT(arrowReleasedSlot()));
     
-    QMap<QString, QStringList> lk_TextFileFormats = mk_Proteomatic.textFileFormats();
-    foreach (QString ls_Description, lk_TextFileFormats.keys())
+    QMap<QString, QPair<QString, QStringList> > lk_TextFileFormats = mk_Proteomatic.textFileFormats();
+    foreach (QString ls_LowerDescription, lk_TextFileFormats.keys())
     {
+        QString ls_Description = lk_TextFileFormats[ls_LowerDescription].first;
         QString ls_Label = QString("%1 (%2)")
             .arg(ls_Description)
-            .arg(lk_TextFileFormats[ls_Description].join("|"));
-        mk_FileTypeComboBox.addItem(ls_Label, lk_TextFileFormats[ls_Description].first());
+            .arg(lk_TextFileFormats[ls_LowerDescription].second.join("|"));
+        mk_FileTypeComboBox.addItem(ls_Label, lk_TextFileFormats[ls_LowerDescription].second.first());
     }
     setFileType(".txt");
     mk_TextEdit.setFont(mk_Proteomatic.consoleFont());

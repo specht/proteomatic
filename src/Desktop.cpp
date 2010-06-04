@@ -591,6 +591,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
             lk_ScriptBoxDescription["shortIterationTags"] = lk_ScriptBox_->useShortIterationTags();
             lk_ScriptBoxDescription["outputPrefix"] = lk_ScriptBox_->boxOutputPrefix();
             lk_ScriptBoxDescription["outputDirectory"] = lk_ScriptBox_->boxOutputDirectory();
+            lk_ScriptBoxDescription["expanded"] = lk_ScriptBox_->isExpanded();
 
             // now add active output boxes
             tk_YamlMap lk_ActiveOutputFileBoxes;
@@ -794,6 +795,8 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                 tk_YamlMap lk_Parameters = lk_BoxDescription["parameters"].toMap();
                 foreach (QString ls_Key, lk_Parameters.keys())
                     lk_ScriptBox_->script()->setParameter(ls_Key, lk_Parameters[ls_Key].toString());
+                if (lk_BoxDescription.contains("expanded"))
+                    lk_ScriptBox_->setExpanded(lk_BoxDescription["expanded"].toBool());
                 if (lk_BoxDescription["size"].toList().size() == 2)
                 {
                     tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();

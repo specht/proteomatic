@@ -293,6 +293,7 @@ void k_PipelineMainWindow::loadPipeline()
         tk_YamlMap lk_Description = k_Yaml::parseFromFile(ls_Path).toMap();
         ms_PipelineFilename = ls_Path;
         mk_Desktop_->applyPipelineDescription(lk_Description);
+        forceRefresh();
         mk_Desktop_->setHasUnsavedChanges(false);
     }
 }

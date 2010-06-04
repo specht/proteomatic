@@ -48,6 +48,7 @@ k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Paren
     , mb_IterationsTagsDontMatch(false)
     , mb_MultipleInputBatches(false)
     , mk_OutputFileChooser_(NULL)
+    , mk_FoldedHeader_(NULL)
 //     , mk_WebView_(NULL)
 {
     mk_PreviewSuffixes << ".html" << ".xhtml" << ".svg" << ".png" << ".jpg";
@@ -310,7 +311,19 @@ void k_ScriptBox::proposePrefixButtonClicked(bool ab_NotifyOnFailure)
 #ifdef DEBUG
     printf("proposing prefix for [%s]\n", description().toStdString().c_str());
 #endif
-    QString ls_Result = mk_pScript->proposePrefix(mk_InputFilesForKey);
+    QHash<QString, QStringList> lk_InputFilesForKeyWithoutSnippets;
+    foreach (QString ls_Key, mk_InputFilesForKey.keys())
+    {
+        foreach (QString ls_Path, mk_InputFilesForKey[ls_Key])
+        {
+            if (mk_SnippetInputFiles.contains(ls_Path))
+                continue;
+            if (!lk_InputFilesForKeyWithoutSnippets.contains(ls_Key))
+                lk_InputFilesForKeyWithoutSnippets[ls_Key] = QStringList();
+            lk_InputFilesForKeyWithoutSnippets[ls_Key] << ls_Path;
+        }
+    }
+    QString ls_Result = mk_pScript->proposePrefix(lk_InputFilesForKeyWithoutSnippets);
     if (!ls_Result.isEmpty())
     {
         mk_Prefix.setText(ls_Result);
@@ -464,6 +477,17 @@ void k_ScriptBox::refreshOutputFileView()
         toggleOutputFileChooser(mk_OutputFileChooser_->currentIndex());
 //         mk_WebView_->setZoomFactor(1.0);
     }
+}
+
+
+void k_ScriptBox::setExpanded(bool ab_Flag)
+{
+    if (!mk_FoldedHeader_)
+        return;
+    if (ab_Flag)
+        mk_FoldedHeader_->showBuddy();
+    else
+        mk_FoldedHeader_->hideBuddy();
 }
 
 
@@ -727,14 +751,18 @@ void k_ScriptBox::update()
     ms_OutputDirectoryDefiningInputPath = QString();
     if (!mk_InputFilesForKey[mk_pScript->defaultOutputDirectoryInputGroup()].empty())
     {
-        QString ls_SmallestPath = mk_InputFilesForKey[mk_pScript->defaultOutputDirectoryInputGroup()].first();
+        QString ls_SmallestPath;
         foreach (QString ls_Path, mk_InputFilesForKey[mk_pScript->defaultOutputDirectoryInputGroup()])
-            if (ls_Path < ls_SmallestPath)
+        {
+            if (mk_SnippetInputFiles.contains(ls_Path))
+                continue;
+            if ((ls_Path.isEmpty()) || (ls_Path < ls_SmallestPath))
                 ls_SmallestPath = ls_Path;
+        }
         ms_OutputDirectoryDefiningInputPath = ls_SmallestPath;
     }
     if (ms_OutputDirectoryDefiningInputPath.isEmpty())
-        mk_OutputDirectory.setHint("output directory");
+        mk_OutputDirectory.setHint(QDir::toNativeSeparators(QDir::homePath()));
     else
         mk_OutputDirectory.setHint(QDir::toNativeSeparators(QFileInfo(ms_OutputDirectoryDefiningInputPath).absolutePath()));
     emit outputDirectoryChanged();
@@ -833,6 +861,12 @@ void k_ScriptBox::update()
     }
     
     toggleUi();
+}
+
+
+bool k_ScriptBox::isExpanded() const
+{
+    return mk_FoldedHeader_ && mk_FoldedHeader_->buddyVisible();
 }
 
 
@@ -1007,13 +1041,13 @@ void k_ScriptBox::setupLayout()
         lk_WarningHLayout_->setContentsMargins(0, 0, 0, 0);
         lk_VLayout_->addWidget(mk_IterationsTagsDontMatchIcon_);
         
-        k_FoldedHeader* lk_FoldedHeader_ = new k_FoldedHeader("<b>" + mk_pScript->title() + "</b>", lk_Container_, false, this);
+        mk_FoldedHeader_ = new k_FoldedHeader("<b>" + mk_pScript->title() + "</b>", lk_Container_, false, this);
         
-        lk_VLayout_->addWidget(lk_FoldedHeader_);
+        lk_VLayout_->addWidget(mk_FoldedHeader_);
         lk_VLayout_->addWidget(lk_Container_);
-        connect(lk_FoldedHeader_, SIGNAL(hidingBuddy()), this, SLOT(hidingBuddy()));
-        connect(lk_FoldedHeader_, SIGNAL(showingBuddy()), this, SLOT(showingBuddy()));
-        lk_FoldedHeader_->hideBuddy();
+        connect(mk_FoldedHeader_, SIGNAL(hidingBuddy()), this, SLOT(hidingBuddy()));
+        connect(mk_FoldedHeader_, SIGNAL(showingBuddy()), this, SLOT(showingBuddy()));
+        mk_FoldedHeader_->hideBuddy();
         
         lk_VLayout_ = new QVBoxLayout(lk_Container_);
         lk_VLayout_->setContentsMargins(0, 0, 0, 0);
@@ -1052,7 +1086,7 @@ void k_ScriptBox::setupLayout()
         lk_VLayout_->addLayout(lk_HLayout_);
 
         connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_OutputDirectory, SLOT(setEnabled(bool)));
-        mk_OutputDirectory.setHint("output directory");
+        mk_OutputDirectory.setHint(QDir::toNativeSeparators(QDir::homePath()));
         mk_OutputDirectory.setReadOnly(true);
         mk_OutputDirectory.setMinimumWidth(120);
         lk_HLayout_->addWidget(&mk_OutputDirectory);
