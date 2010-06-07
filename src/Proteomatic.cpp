@@ -914,12 +914,12 @@ void k_Proteomatic::createProteomaticScriptsMenu()
     }
     
 //     lk_SearchField_->setHint("Search");
-//     mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(new QWidgetAction(NULL));
-//     QLineEdit* lk_LineEdit_ = new QLineEdit(NULL);
-//     mk_pSearchWidgetAction->setDefaultWidget(lk_LineEdit_);
-//     connect(lk_LineEdit_, SIGNAL(textEdited(const QString&)), mk_PipelineMainWindow_, SLOT(searchFieldPopup(const QString&)));
-//     lk_Menu_->addSeparator();
-//     lk_Menu_->addAction(mk_pSearchWidgetAction.data());
+    mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(new QWidgetAction(NULL));
+    QLineEdit* lk_LineEdit_ = new QLineEdit(NULL);
+    mk_pSearchWidgetAction->setDefaultWidget(lk_LineEdit_);
+    connect(lk_LineEdit_, SIGNAL(textEdited(const QString&)), mk_PipelineMainWindow_, SLOT(searchFieldPopup(const QString&)));
+    lk_Menu_->addSeparator();
+    lk_Menu_->addAction(mk_pSearchWidgetAction.data());
 
 // disable remote scripts as of now!
 //     lk_Menu_->addSeparator();
