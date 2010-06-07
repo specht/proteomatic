@@ -128,8 +128,8 @@ public:
     QString interpreterForScript(QString as_Path);
     QString interpreterKeyForScript(QString as_Path);
     QStringList availableScripts();
-    QHash<QString, QString> scriptInfo(QString as_ScriptPath);
-    QString scriptInfo(QString as_ScriptPath, QString as_Key);
+    QHash<QString, QVariant> scriptInfo(QString as_ScriptPath);
+    QVariant scriptInfo(QString as_ScriptPath, QString as_Key);
     bool hasScriptInfo(QString as_ScriptPath);
     QMenu* proteomaticScriptsMenu() const;
     QString syncRuby(QStringList ak_Arguments);
@@ -218,7 +218,7 @@ protected:
     k_Desktop* mk_Desktop_;
     k_PipelineMainWindow* mk_PipelineMainWindow_;
     // uri / path => uri, title, group, description, optional: parameters
-    QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
+    QHash<QString, QHash<QString, QVariant> > mk_ScriptInfo;
     QWidget* mk_MessageBoxParent_;
     QSharedPointer<QMenu> mk_pProteomaticScriptsMenu;
     QMenu* mk_RemoteMenu_;

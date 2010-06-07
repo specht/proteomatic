@@ -534,7 +534,7 @@ void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
         --lk_Iter;
         
         QString ls_ScriptPath = lk_Iter.value();
-        QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"];
+        QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
         if (!ls_Title.isEmpty())
             new QListWidgetItem(QIcon("src/icons/proteomatic.png"), ls_Title, mk_pSearchPopup.data());
     } while (lk_Iter != lk_TargetsSorted.constBegin());

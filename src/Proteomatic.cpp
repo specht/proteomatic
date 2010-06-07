@@ -376,7 +376,7 @@ QStringList k_Proteomatic::availableScripts()
 }
 
 
-QHash<QString, QString> k_Proteomatic::scriptInfo(QString as_ScriptPath)
+QHash<QString, QVariant> k_Proteomatic::scriptInfo(QString as_ScriptPath)
 {
     return mk_ScriptInfo[as_ScriptPath];
 }
@@ -388,7 +388,7 @@ bool k_Proteomatic::hasScriptInfo(QString as_ScriptPath)
 }
 
 
-QString k_Proteomatic::scriptInfo(QString as_ScriptPath, QString as_Key)
+QVariant k_Proteomatic::scriptInfo(QString as_ScriptPath, QString as_Key)
 {
     return mk_ScriptInfo[as_ScriptPath][as_Key];
 }
@@ -788,16 +788,15 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                 QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
                 if (lk_Response.canConvert<tk_YamlMap>())
                 {
-                    QHash<QString, QString> lk_Script;
+                    QHash<QString, QVariant> lk_Script;
                     
                     QString ls_Title = lk_Response.toMap()["title"].toString();
                     QString ls_Group = lk_Response.toMap()["group"].toString();
                     QString ls_Description = lk_Response.toMap()["description"].toString();
-                    QString ls_InputExtensions = lk_Response.toMap()["inputExtensions"].toString();
                     lk_Script["title"] = ls_Title;
                     lk_Script["group"] = ls_Group;
                     lk_Script["description"] = ls_Description;
-                    lk_Script["inputExtensions"] = ls_InputExtensions;
+                    lk_Script["input"] = lk_Response.toMap()["input"];
                     lk_Script["uri"] = ls_Path;
                     mk_ScriptInfo.insert(ls_Path, lk_Script);
                     
@@ -844,9 +843,9 @@ void k_Proteomatic::createProteomaticScriptsMenu()
     QStringList lk_Scripts = availableScripts();
     foreach (QString ls_Path, lk_Scripts)
     {
-        QHash<QString, QString> lk_ScriptInfo = scriptInfo(ls_Path);
-        lk_ScriptOrder.insert(lk_ScriptInfo["title"], ls_Path);
-        lk_Groups.insert(lk_ScriptInfo["group"]);
+        QHash<QString, QVariant> lk_ScriptInfo = scriptInfo(ls_Path);
+        lk_ScriptOrder.insert(lk_ScriptInfo["title"].toString(), ls_Path);
+        lk_Groups.insert(lk_ScriptInfo["group"].toString());
     }
     QList<QString> lk_GroupKeys = lk_Groups.toList();
     qSort(lk_GroupKeys);
@@ -887,17 +886,22 @@ void k_Proteomatic::createProteomaticScriptsMenu()
     foreach (QString ls_Title, lk_ScriptOrder.keys())
     {
         QString ls_Path = lk_ScriptOrder[ls_Title];
-        QHash<QString, QString> lk_ScriptInfo = scriptInfo(ls_Path);
-        QString ls_Group = lk_ScriptInfo["group"];
+        QHash<QString, QVariant> lk_ScriptInfo = scriptInfo(ls_Path);
+        QString ls_Group = lk_ScriptInfo["group"].toString();
         QMenu* lk_TargetMenu_ = lk_GroupMenus[ls_Group];
         QAction* lk_Action_ = new QAction(mk_ScriptEnabledIcon, ls_Title, lk_TargetMenu_);
         QTextDocument doc;
-        doc.setHtml(lk_ScriptInfo["description"]);
+        doc.setHtml(lk_ScriptInfo["description"].toString());
         doc.setHtml(doc.toPlainText());
         lk_Action_->setStatusTip(doc.toPlainText());
-        lk_Action_->setData(lk_ScriptInfo["uri"]);
+        lk_Action_->setData(lk_ScriptInfo["uri"].toString());
         mk_ExtensionsForScriptsMenuAction[lk_Action_] = QSet<QString>();
-        QSet<QString> lk_ThisExtensionsSet = lk_ScriptInfo["inputExtensions"].split("|").toSet();
+        QSet<QString> lk_ThisExtensionsSet;
+        foreach (QVariant lk_InputItem, lk_ScriptInfo["input"].toList())
+        {
+            tk_YamlMap lk_InputItemMap = lk_InputItem.toMap();
+            lk_ThisExtensionsSet |= lk_InputItemMap["extensions"].toString().split("/").toSet();
+        }
         mk_ExtensionsForScriptsMenuAction[lk_Action_] |= lk_ThisExtensionsSet;
         QStringList lk_Group = ls_Group.split("/");
         for (int i = 1; i <= lk_Group.size(); ++i)

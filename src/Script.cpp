@@ -47,8 +47,8 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
     {
         // if this script is from the scripts menu, title and description are
         // already known
-        ms_Title = mk_Proteomatic.scriptInfo(ms_Uri, "title");
-        ms_Description = mk_Proteomatic.scriptInfo(ms_Uri, "description");
+        ms_Title = mk_Proteomatic.scriptInfo(ms_Uri, "title").toString();
+        ms_Description = mk_Proteomatic.scriptInfo(ms_Uri, "description").toString();
     }
     else
     {
