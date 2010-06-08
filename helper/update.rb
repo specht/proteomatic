@@ -21,11 +21,11 @@ $scriptDir = Dir::pwd()
 
 def determinePlatform()
     case RUBY_PLATFORM.downcase
-    when /linux/
+    when /linux/ then
         'linux'
-    when /darwin/
+    when /darwin/ then
         'macx'
-    when /mswin/
+    when /mswin/ then
         'win32'
     else
         puts "Internal error: #{RUBY_PLATFORM} platform not supported."
@@ -307,9 +307,9 @@ updatePackages.sort!
 updatePackages.each do |package|
     if lk_CurrentInfo[package]
         case package
-        when 'proteomatic':
+        when 'proteomatic' then
             updateProteomatic(lk_CurrentInfo[package])
-        when 'scripts':
+        when 'scripts' then
             updateScripts(lk_CurrentInfo[package])
         end
     end
