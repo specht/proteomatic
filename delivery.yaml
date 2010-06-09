@@ -42,3 +42,4 @@ addFiles:
     scriptsUrl: "ftp://gpf.uni-muenster.de/download/proteomatic/update"
 
 externals: [helper]
+macAppPackage: true
