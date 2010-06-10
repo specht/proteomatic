@@ -981,6 +981,9 @@ void k_ScriptBox::setupLayout()
     mk_OutputBox_->setFont(mk_Proteomatic.consoleFont());
     
     lk_VLayout_ = new QVBoxLayout(mk_OutputBoxContainer_);
+    #ifdef Q_OS_MAC
+    lk_VLayout_->setContentsMargins(4, 4, 4, 4);
+    #endif
     
     mk_OutputBoxIterationKeyChooserContainer_ = new QWidget(this);
     lk_HLayout_ = new QHBoxLayout(mk_OutputBoxIterationKeyChooserContainer_);
@@ -1050,6 +1053,10 @@ void k_ScriptBox::setupLayout()
         mk_FoldedHeader_->hideBuddy();
         
         lk_VLayout_ = new QVBoxLayout(lk_Container_);
+        #ifdef Q_OS_MAC
+        lk_VLayout_->setSpacing(6);
+        #endif
+
         lk_VLayout_->setContentsMargins(0, 0, 0, 0);
 
         // horizontal rule
