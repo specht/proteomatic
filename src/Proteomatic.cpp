@@ -1659,7 +1659,11 @@ void k_Proteomatic::updateConfigDependentStuff()
     {
         mk_FileTrackerIconLabel_->setEnabled(true);
         mk_FileTrackerLabel_->setText("File tracker: " + ls_FiletrackerUrl);
+        #ifdef Q_OS_MAC
+        mk_StartButton_->setText("Start & track");
+        #else
         mk_StartButton_->setText("Start && track");
+        #endif
         mk_StartButton_->setPopupMode(QToolButton::MenuButtonPopup);
         mk_StartButton_->setMenu(&mk_StartButtonMenu);
     }

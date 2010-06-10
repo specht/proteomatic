@@ -36,7 +36,7 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
     , mb_Moving(false)
     , mb_Resizing(false)
 {
-    setAttribute(Qt::WA_OpaquePaintEvent, true);
+    setAttribute(Qt::WA_NoSystemBackground, true);
     setFocusPolicy(Qt::StrongFocus);
     setContentsMargins(0, 0, 0, 0);
 }
@@ -266,6 +266,7 @@ void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
     compactSize();
     
     QPainter lk_Painter(this);
+    lk_Painter.setRenderHint(QPainter::Antialiasing, true);
     
     QPen lk_Pen(TANGO_ALUMINIUM_3);
     float lf_PenWidth = 1.5;
