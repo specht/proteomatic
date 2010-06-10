@@ -199,6 +199,7 @@ protected slots:
     void remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error);
     void rebuildRemoteScriptsMenu();
     void checkRubyTextChanged(const QString& as_Text);
+    void checkRubyResize();
     void checkRubySearchDialog();
     void purgeCacheAndTempFiles();
 

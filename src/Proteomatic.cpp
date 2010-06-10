@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Proteomatic.h"
 #include "Desktop.h"
+#include "FoldedHeader.h"
 #include "HintLineEdit.h"
 #include "PipelineMainWindow.h"
 #include "RubyWindow.h"
@@ -1475,6 +1476,55 @@ void k_Proteomatic::checkRuby()
     lk_HLayout_->addWidget(lk_ErrorLabel_);
     lk_VLayout_->addLayout(lk_HLayout_);
     
+    QString ls_Platform = 
+    #ifdef Q_OS_LINUX
+        "Linux"
+    #endif
+    #ifdef Q_OS_MAC
+        "Mac OS X"
+    #endif
+    #ifdef Q_OS_WIN32
+        "Windows"
+    #endif
+        ;
+    
+    QLabel* lk_Instructions_ = 
+        new QLabel(QString(
+    #ifdef Q_OS_LINUX
+            "<p><b>Debian/Ubuntu</b></p>\
+<p>In order to install Ruby, please open a terminal (Applications &#8594; Accessories<br />&#8594; Terminal) and type the following:<p>\n\
+<pre>\n\
+$ sudo apt-get install ruby\n\
+</pre>\n\
+<p><b>Fedora</b></p>\
+<p>In order to install Ruby, please open a terminal (Applications &#8594; System Tools<br />&#8594; Terminal) and type the following:<p>\n\
+<pre>\n\
+$ su\n\
+# yum install ruby\n\
+</pre>\n"
+    #endif
+    #ifdef Q_OS_WIN32
+            "<p>Please download and run the Ruby 1.9.1 installer: <a href='http://rubyforge.org/frs/download.php/71078/rubyinstaller-1.9.1-p378.exe'>rubyinstaller-1.9.1-p378.exe</a>.</p>\n"
+    #endif
+    #ifdef Q_OS_MAC
+        "<p>If you have installed MacPorts, you can install Ruby by opening a terminal<br />and typing the following:<p>\n\
+<pre>\n\
+% port install ruby\n\
+</pre>"
+    #endif
+            ) + "<p>After you have installed Ruby, it might be necessary to quit and restart Proteomatic.</p>"
+            , &mk_CheckRubyDialog);
+            
+    lk_Instructions_->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    lk_Instructions_->setOpenExternalLinks(true);
+    
+    k_FoldedHeader* lk_Header_ = new k_FoldedHeader("Detailed instructions for " + ls_Platform, lk_Instructions_, true, &mk_CheckRubyDialog);
+    connect(lk_Header_, SIGNAL(showingBuddy()), this, SLOT(checkRubyResize()), Qt::QueuedConnection);
+    connect(lk_Header_, SIGNAL(hidingBuddy()), this, SLOT(checkRubyResize()), Qt::QueuedConnection);
+    lk_VLayout_->addWidget(lk_Header_);
+    lk_VLayout_->addWidget(lk_Instructions_);
+    lk_Header_->hideBuddy();
+    
     lk_HLayout_ = new QHBoxLayout();
     lk_HLayout_->addWidget(new QLabel("Path to Ruby:", &mk_CheckRubyDialog));
     mk_CheckRubyLocation_ = new QLineEdit(&mk_CheckRubyDialog);
@@ -1493,14 +1543,13 @@ void k_Proteomatic::checkRuby()
     lk_HLayout_->addWidget(mk_CheckRubyRetryButton_);
     lk_VLayout_->addLayout(lk_HLayout_);
     
-    mk_CheckRubyRetryButton_->setEnabled(false);
-    
     connect(mk_CheckRubyRetryButton_, SIGNAL(clicked()), &mk_CheckRubyDialog, SLOT(accept()));
     connect(lk_QuitButton_, SIGNAL(clicked()), &mk_CheckRubyDialog, SLOT(reject()));
     connect(mk_CheckRubyLocation_, SIGNAL(textChanged(const QString&)), this, SLOT(checkRubyTextChanged(const QString&)));
     connect(lk_FindRubyButton_, SIGNAL(clicked()), this, SLOT(checkRubySearchDialog()));
     
     mk_CheckRubyDialog.setLayout(lk_VLayout_);
+    mk_CheckRubyDialog.resize(300, 1);
     
     // see whether there's a local Ruby installed and prefer that
     // if there is a local Ruby then overwrite the configuration
@@ -1524,22 +1573,13 @@ void k_Proteomatic::checkRuby()
     
     while (true)
     {
+        mk_Configuration[CONFIG_PATH_TO_RUBY] = QVariant(mk_CheckRubyLocation_->text());
         QString ls_Version = syncRuby(QStringList() << "-v");
         QString ls_Error;
         if (!ls_Version.startsWith("ruby"))
             ls_Error = "Proteomatic cannot find Ruby, which is required in order to run the scripts.";
         else
         {
-            /*
-            ls_Version.replace("ruby", "");
-            ls_Version = ls_Version.trimmed();
-            QStringList lk_Tokens = ls_Version.split(" ");
-            ls_Version = lk_Tokens.first();
-            if (ls_Version != "1.8.6")
-                ls_Error = QString("The Ruby version on this computer is %1, but Proteomatic needs Ruby 1.8.6.").arg(ls_Version);
-            else
-                ls_Error = "";
-            */
             // if we're here, we have found a Ruby! Now we save the configuration so that the dialog won't pop up the next time.
             this->saveConfiguration();
             updateConfigDependentStuff();
@@ -1556,11 +1596,29 @@ void k_Proteomatic::checkRuby()
         else
             break;
     }
+
+    foreach (QString ls_Language, lk_Languages)
+    {
+        QString ls_Key = configKeyForScriptingLanguage(ls_Language);
+        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language).toLower();
+        if (ls_Language == "perl")
+        {
+            ls_Result.replace("this is", "");
+            ls_Result = ls_Result.trimmed();
+        }
+        mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
+    }
 }
 
 void k_Proteomatic::checkRubyTextChanged(const QString& as_Text)
 {
     mk_CheckRubyRetryButton_->setEnabled(!as_Text.isEmpty());
+}
+
+
+void k_Proteomatic::checkRubyResize()
+{
+    mk_CheckRubyDialog.resize(300, 1);
 }
 
 
@@ -1570,7 +1628,6 @@ void k_Proteomatic::checkRubySearchDialog()
     lk_FileDialog.setFileMode(QFileDialog::ExistingFile);
     if (lk_FileDialog.exec())
     {
-        mk_Configuration[CONFIG_PATH_TO_RUBY] = QVariant(lk_FileDialog.selectedFiles().first());
         mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
         mk_CheckRubyRetryButton_->setEnabled(true);
     }
