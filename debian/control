@@ -8,9 +8,9 @@ Homepage: http://www.proteomatic.org
 
 Package: proteomatic
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, bzip2, gzip, unzip, ruby
+Depends: ${shlibs:Depends}, ${misc:Depends}, bzip2, gzip, unzip, ruby, libqt4-core (>= 4.6), libqt4-gui (>= 4.6)
 Description: Proteomatic - the Proteomics researcher's swiss army knife
- Proteomatic is an open data processing pipeline oringinally created for the purpose of evaluating Proteomics experiments. Functionality is provided via scripts, and these scripts can be chained together into a high-throughput data processing pipeline.
+ Proteomatic is a free proteomics data processing pipeline. Functionality is provided via scripts, and these scripts can be chained together into a high-throughput data processing pipeline.
  .
  All functionality can be used either from the command-line or via a GUI (graphical user interface).
  .
