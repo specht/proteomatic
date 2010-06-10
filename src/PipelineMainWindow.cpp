@@ -589,6 +589,9 @@ void k_PipelineMainWindow::toggleUi()
     
     mk_AddToolBar_->setToolButtonStyle(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 2 ? Qt::ToolButtonTextBesideIcon : Qt::ToolButtonIconOnly);
     QString ls_NewStyleSheet = QString("* { icon-size: %1px; }").arg((mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1) ? 20 : 16);
+    #ifdef Q_OS_MAC
+    ls_NewStyleSheet += " QToolButton { font-size: 12pt;}";
+    #endif
     if (ls_NewStyleSheet != ms_CurrentStyleSheet)
     {
         mk_Application.setStyleSheet(ls_NewStyleSheet);

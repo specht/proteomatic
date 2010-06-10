@@ -125,7 +125,7 @@ void k_Proteomatic::initialize()
     this->loadConfiguration();
 
     QFontDatabase lk_FontDatabase;
-    QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
+    QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Monaco" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
     while (!lk_Fonts.empty())
     {
         QString ls_Font = lk_Fonts.takeFirst();
@@ -133,10 +133,13 @@ void k_Proteomatic::initialize()
         {
             mk_ConsoleFont = QFont(ls_Font);
             mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.8);
-#ifdef Q_OS_WIN32
+			#ifdef Q_OS_WIN32
             mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.9);
-#endif
-            break;
+			#endif
+			#ifdef Q_OS_MAC
+            mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 1.2);
+			#endif
+			break;
         }
     }
     
