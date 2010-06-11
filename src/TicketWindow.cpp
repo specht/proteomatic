@@ -25,6 +25,7 @@ k_TicketWindow::k_TicketWindow(k_Proteomatic& ak_Proteomatic, QString as_ScriptU
     , mk_Proteomatic(ak_Proteomatic)
     , ms_ScriptUri(as_ScriptUri)
     , ms_Ticket(as_Ticket)
+    , mk_StandardOutput(mk_Proteomatic)
     , mb_GotStandardOutput(false)
     , mi_Delay(1)
 {

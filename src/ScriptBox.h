@@ -140,4 +140,5 @@ protected:
 //     k_ZoomableWebView* mk_WebView_;
     QStringList mk_PreviewSuffixes;
     k_FoldedHeader* mk_FoldedHeader_;
+    QBoxLayout* mk_OutputBoxLayout_;
 };

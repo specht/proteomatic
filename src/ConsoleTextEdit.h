@@ -20,16 +20,22 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
-// #include <QtWebKit>
+#include "Proteomatic.h"
+
 
 class k_ConsoleTextEdit: public QTextEdit
 {
     Q_OBJECT
 public:
-    k_ConsoleTextEdit(QWidget* parent = 0);
-    k_ConsoleTextEdit(const QString& text, QWidget* parent = 0);
+    k_ConsoleTextEdit(k_Proteomatic& ak_Proteomatic, QWidget* parent = 0);
+    k_ConsoleTextEdit(const QString& text, k_Proteomatic& ak_Proteomatic, QWidget* parent = 0);
     virtual ~k_ConsoleTextEdit();
     
 public slots:
-    void appendConsoleOutput(const QString& as_Text);
+    virtual void append(const QString& as_Text);
+    
+protected:
+    void initialize();
+    
+    k_Proteomatic& mk_Proteomatic;
 };
