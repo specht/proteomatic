@@ -26,6 +26,7 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems,
                        k_Proteomatic& ak_Proteomatic, bool ab_FileMode)
     : QListWidget(ak_Parent_)
     , mk_Proteomatic(ak_Proteomatic)
+    , mk_PreviewFileAction(QIcon(":icons/system-search.png"), "&Preview file", this)
     , mk_OpenFileAction(QIcon(":icons/document-open.png"), "&Open file", this)
     , mk_OpenContainingFolderAction(QIcon(":icons/folder.png"), "Open containing &folder", this)
     , mk_RemoveFileFromListAction(QIcon(":icons/list-remove.png"), "&Remove from list", this)
@@ -41,10 +42,13 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems,
     connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
     connect(this, SIGNAL(myItemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
     connect(this, SIGNAL(myItemRightClicked(QListWidgetItem*)), this, SLOT(showFilePopupMenu(QListWidgetItem*)));
+    connect(&mk_PreviewFileAction, SIGNAL(triggered()), this, SLOT(menuPreviewFileSlot()));
     connect(&mk_OpenFileAction, SIGNAL(triggered()), this, SLOT(menuOpenFileSlot()));
     connect(&mk_OpenContainingFolderAction, SIGNAL(triggered()), this, SLOT(menuOpenContainingDirectorySlot()));
     connect(&mk_RemoveFileFromListAction, SIGNAL(triggered()), this, SLOT(menuRemoveFileFromListSlot()));
     connect(&mk_DeleteFileAction, SIGNAL(triggered()), this, SLOT(menuDeleteFileSlot()));
+    mk_PopupMenu.addAction(&mk_PreviewFileAction);
+    mk_PopupMenu.addSeparator();
     mk_PopupMenu.addAction(&mk_OpenFileAction);
     mk_PopupMenu.addAction(&mk_OpenContainingFolderAction);
     mk_PopupMenu.addSeparator();
@@ -379,6 +383,7 @@ void k_FileList::showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point)
     bool lb_OneItemSelected = selectedItems().size() == 1;
     
     QString ls_Path = QDir::cleanPath(QFileInfo(ak_Item_->data(Qt::UserRole).toString()).absoluteFilePath());
+    mk_PreviewFileAction.setEnabled(lb_OneItemSelected && QFileInfo(ls_Path).exists());
     mk_OpenFileAction.setEnabled(lb_OneItemSelected && QFileInfo(ls_Path).exists());
     QSet<QString> lk_SelectedFolders;
     foreach (QListWidgetItem* lk_Item_, selectedItems())
@@ -390,6 +395,12 @@ void k_FileList::showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point)
     mk_DeleteFileAction.setEnabled(QFileInfo(ls_Path).exists());
     
     mk_PopupMenu.exec(ak_Point);
+}
+
+
+void k_FileList::menuPreviewFileSlot()
+{
+    previewFile(currentItem());
 }
 
 
@@ -414,6 +425,17 @@ void k_FileList::menuRemoveFileFromListSlot()
 void k_FileList::menuDeleteFileSlot()
 {
     deleteFile(currentItem());
+}
+
+
+void k_FileList::previewFile(QListWidgetItem* ak_Item_)
+{
+    if (!ak_Item_)
+        return;
+    
+    QString ls_Path = ak_Item_->data(Qt::UserRole).toString();
+    if (QFileInfo(ls_Path).exists())
+        mk_Proteomatic.previewUrl(ls_Path);
 }
 
 

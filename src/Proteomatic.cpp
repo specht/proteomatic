@@ -344,6 +344,12 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
 }
 
 
+void k_Proteomatic::previewUrl(const QString& as_Url)
+{
+    mk_PipelineMainWindow_->previewFile(as_Url);
+}
+
+
 QString k_Proteomatic::interpreterForScript(QString as_Path)
 {
     QString ls_Interpreter = interpreterKeyForScript(as_Path);

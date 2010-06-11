@@ -70,7 +70,6 @@ public slots:
     virtual void clearPrefixButtonClicked();
     virtual void clearOutputDirectoryButtonClicked();
     virtual void addOutput(QString as_String);
-//     virtual void refreshOutputFileView();
     virtual void setExpanded(bool ab_Flag);
     
 protected slots:
@@ -85,8 +84,6 @@ protected slots:
     virtual void showingBuddy();
     virtual void outputBoxIterationKeyChooserChanged();
     virtual void toggleUi();
-//     virtual void toggleOutputFileChooser(int ai_Index);
-//     virtual void zoomWebView(int ai_Delta);
     virtual void outputFilenameDetailsChanged();
     
 signals:
@@ -136,8 +133,6 @@ protected:
     bool mb_IterationsTagsDontMatch;
     bool mb_MultipleInputBatches;
     k_NoSlashValidator mk_NoSlashValidator;
-/*    QComboBox* mk_OutputFileChooser_;
-    k_ZoomableWebView* mk_WebView_;*/
     QStringList mk_PreviewSuffixes;
     k_FoldedHeader* mk_FoldedHeader_;
     QBoxLayout* mk_OutputBoxLayout_;

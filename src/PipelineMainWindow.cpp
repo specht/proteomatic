@@ -23,6 +23,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "HintLineEdit.h"
 #include "IFileBox.h"
 #include "IScriptBox.h"
+#include "Preview.h"
 #include "ProfileManager.h"
 #include "Proteomatic.h"
 #include "Tango.h"
@@ -42,7 +43,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     , mk_WatchedBoxObject_(NULL)
     , mb_JustStarted(true)
     , mk_WordSplitter("\\W+")
-
+    , mk_PreviewTabWidget_(NULL)
 {
 }
 
@@ -64,7 +65,14 @@ void k_PipelineMainWindow::initialize()
     mk_PaneLayout_ = new QVBoxLayout(mk_PaneLayoutWidget_);
     mk_PaneLayout_->setContentsMargins(0, 0, 0, 0);
     
-    setCentralWidget(mk_HSplitter_);
+    mk_PreviewTabWidget_ = new k_PipelineTabWidget(this);
+    mk_PreviewTabWidget_->setDocumentMode(true);
+    mk_PreviewTabWidget_->setElideMode(Qt::ElideLeft);
+    mk_PreviewTabWidget_->setUsesScrollButtons(true);
+    mk_PreviewTabWidget_->addTab(mk_HSplitter_, "Pipeline");
+    setCentralWidget(mk_PreviewTabWidget_);
+    connect(mk_PreviewTabWidget_, SIGNAL(currentChanged(int)), this, SLOT(toggleUi()));
+    connect(mk_PreviewTabWidget_, SIGNAL(tabCloseRequested(int)), this, SLOT(previewTabCloseRequested(int)));
 
     // lk_FauxTitleBarWidget_ is an empty widget so that
     // the pane widget will have no title bar
@@ -219,6 +227,7 @@ void k_PipelineMainWindow::initialize()
     
     addToolBar(Qt::TopToolBarArea, mk_AddToolBar_);
     addDockWidget(Qt::RightDockWidgetArea, mk_PaneDockWidget_);
+    connect(mk_PaneDockWidget_, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(toggleUi()));
 /*  addToolBarBreak(Qt::TopToolBarArea);
     addToolBar(Qt::TopToolBarArea, lk_OtherToolBar_);*/
     
@@ -476,13 +485,25 @@ void k_PipelineMainWindow::updateWindowTitle()
     if (mk_Proteomatic.scriptsVersion() != "")
         ls_ScriptsVersion = "(using scripts " + mk_Proteomatic.scriptsVersion();
     ls_ScriptsVersion += ")";
+    QString ls_PipelineTitle = ms_PipelineFilename.isEmpty()? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName();
     QString ls_WindowTitle = QString("%1[*] - Proteomatic %3 %4")
-        .arg(ms_PipelineFilename.isEmpty()? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName())
+        .arg(ls_PipelineTitle)
         //.arg(mk_Desktop_->hasUnsavedChanges() ? " [modified]" : "")
         .arg(mk_Proteomatic.version())
         .arg(ls_ScriptsVersion);
     setWindowTitle(ls_WindowTitle);
     setWindowModified(mk_Desktop_->hasUnsavedChanges());
+    if (mk_PreviewTabWidget_ && (mk_PreviewTabWidget_->count() > 0))
+        mk_PreviewTabWidget_->setTabText(0, ls_PipelineTitle);
+}
+
+
+void k_PipelineMainWindow::previewTabCloseRequested(int ai_Index)
+{
+    QString ls_Key = mk_PreviewTabWidget_->widget(ai_Index)->property("path").toString();
+    if (ls_Key.isEmpty())
+        return;
+    mk_Previews.remove(ls_Key);
 }
 
 
@@ -562,6 +583,27 @@ void k_PipelineMainWindow::restartProteomatic()
 }
 
 
+void k_PipelineMainWindow::previewFile(const QString& as_Path)
+{
+    QString ls_AbsolutePath = QFileInfo(as_Path).canonicalFilePath();
+    if (mk_Previews.contains(ls_AbsolutePath))
+    {
+        // just switch to the preview
+        mk_PreviewTabWidget_->setCurrentWidget(mk_Previews[ls_AbsolutePath].data());
+    }
+    else
+    {
+        // create a new preview
+        k_Preview* lk_Preview_ = new k_Preview(ls_AbsolutePath, this);
+        mk_Previews[ls_AbsolutePath] = QSharedPointer<QWidget>(lk_Preview_);
+        mk_Previews[ls_AbsolutePath].data()->setProperty("path", ls_AbsolutePath);
+        mk_PreviewTabWidget_->addTab(mk_Previews[ls_AbsolutePath].data(), QFileInfo(ls_AbsolutePath).fileName());
+        mk_PreviewTabWidget_->setCurrentWidget(mk_Previews[ls_AbsolutePath].data());
+    }
+    toggleUi();
+}
+
+
 void k_PipelineMainWindow::toggleUi()
 {
     updateWindowTitle();
@@ -597,10 +639,17 @@ void k_PipelineMainWindow::toggleUi()
         mk_Application.setStyleSheet(ls_NewStyleSheet);
         ms_CurrentStyleSheet = ls_NewStyleSheet;
     }
-    if (!mk_Desktop_->hasScriptBoxes())
-        mk_PaneDockWidget_->hide();
+    bool lb_ShowPaneDockWidget = true;
+    if (mk_Desktop_->hasScriptBoxes())
+        lb_ShowPaneDockWidget = true;
     else
+        lb_ShowPaneDockWidget = false;
+    if ((mk_PreviewTabWidget_->currentWidget() != mk_HSplitter_) && (!mk_PaneDockWidget_->isFloating()))
+        lb_ShowPaneDockWidget = false;
+    if (lb_ShowPaneDockWidget)
         mk_PaneDockWidget_->show();
+    else
+        mk_PaneDockWidget_->hide();
 }
 
 

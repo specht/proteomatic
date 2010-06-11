@@ -71,6 +71,7 @@ protected slots:
     virtual void showContextMenu();
     virtual void arrowPressedSlot();
     virtual void arrowReleasedSlot();
+    virtual void previewFile();
     virtual void openFile();
     virtual void openContainingDirectory();
     virtual void deleteFile();
@@ -92,6 +93,7 @@ protected:
     QHash<QString, QStringList> mk_FilenamesForTag;
     QString ms_PrefixWithoutTags;
     QMenu mk_PopupMenu;
+    QAction* mk_PreviewFileAction_;
     QAction* mk_OpenFileAction_;
     QAction* mk_OpenContainingFolderAction_;
     QAction* mk_DeleteFileAction_;

@@ -180,6 +180,7 @@ public slots:
     void checkForUpdatesProgress();
     void checkForUpdatesCanceled();
     void checkForUpdatesScriptFinished();
+    void previewUrl(const QString& as_Url);
 
 signals: 
     void scriptMenuScriptClicked(QAction* ak_Action_);

@@ -34,6 +34,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     , mk_FileList(this, !ak_ScriptBoxParent_, ak_Proteomatic, true)
     , mk_Label("<b>File list</b> (empty)", this)
     , mi_MinHeight(21)
+    , mk_PreviewFileAction_(new QAction(QIcon(":icons/system-search.png"), "&Preview file", this))
     , mk_OpenFileAction_(new QAction(QIcon(":icons/document-open.png"), "&Open file", this))
     , mk_OpenContainingFolderAction_(new QAction(QIcon(":icons/folder.png"), "Open containing &folder", this))
     , mk_DeleteFileAction_(new QAction(QIcon(":icons/dialog-cancel.png"), "&Delete file", this))
@@ -286,6 +287,7 @@ void k_FileListBox::filenameDoubleClicked()
 void k_FileListBox::showContextMenu()
 {
     QString ls_Path = mk_FileList.files().first();
+    mk_PreviewFileAction_->setEnabled(QFileInfo(ls_Path).exists());
     mk_OpenFileAction_->setEnabled(QFileInfo(ls_Path).exists());
     mk_DeleteFileAction_->setEnabled(QFileInfo(ls_Path).exists());
     ls_Path = QFileInfo(ls_Path).absolutePath();
@@ -356,10 +358,13 @@ void k_FileListBox::setupLayout()
     
     connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), &mk_FileList, SLOT(setEnabled(bool)));
 
+    mk_PopupMenu.addAction(mk_PreviewFileAction_);
+    mk_PopupMenu.addSeparator();
     mk_PopupMenu.addAction(mk_OpenFileAction_);
     mk_PopupMenu.addAction(mk_OpenContainingFolderAction_);
     mk_PopupMenu.addSeparator();
     mk_PopupMenu.addAction(mk_DeleteFileAction_);
+    connect(mk_PreviewFileAction_, SIGNAL(triggered()), this, SLOT(previewFile()));
     connect(mk_OpenFileAction_, SIGNAL(triggered()), this, SLOT(openFile()));
     connect(mk_OpenContainingFolderAction_, SIGNAL(triggered()), this, SLOT(openContainingDirectory()));
     connect(mk_DeleteFileAction_, SIGNAL(triggered()), this, SLOT(deleteFile()));
@@ -435,6 +440,17 @@ void k_FileListBox::arrowPressedSlot()
 void k_FileListBox::arrowReleasedSlot()
 {
     mk_ArrowLabel.setPixmap(mk_InactiveArrow);
+}
+
+
+void k_FileListBox::previewFile()
+{
+    if (mk_FileList.files().empty())
+        return;
+    
+    QString ls_Path = mk_FileList.files().first();
+    if (QFileInfo(ls_Path).exists())
+        mk_Proteomatic.previewUrl(ls_Path);
 }
 
 

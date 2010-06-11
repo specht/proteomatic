@@ -96,6 +96,8 @@ HEADERS += \
     src/LocalScript.h \
     src/NoSlashValidator.h \
     src/PipelineMainWindow.h \
+    src/PipelineTabWidget.h \
+    src/Preview.h \
     src/ProfileManager.h \
     src/Proteomatic.h \
     src/RemoteScript.h \
@@ -130,6 +132,8 @@ SOURCES += \
     src/LocalScript.cpp \
     src/NoSlashValidator.cpp \
     src/PipelineMainWindow.cpp \
+    src/PipelineTabWidget.cpp \
+    src/Preview.cpp \
     src/ProfileManager.cpp \
     src/Proteomatic.cpp \
     src/ProteomaticPipelineMain.cpp \

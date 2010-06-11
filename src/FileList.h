@@ -54,10 +54,12 @@ public slots:
 protected slots:
     virtual void itemDoubleClicked(QListWidgetItem* ak_Item_);
     virtual void showFilePopupMenu(QListWidgetItem* ak_Item_, QPoint ak_Point = QPoint());
+    virtual void menuPreviewFileSlot();
     virtual void menuOpenFileSlot();
     virtual void menuOpenContainingDirectorySlot();
     virtual void menuRemoveFileFromListSlot();
     virtual void menuDeleteFileSlot();
+    virtual void previewFile(QListWidgetItem* ak_Item_);
     virtual void openFile(QListWidgetItem* ak_Item_);
     virtual void openContainingDirectory(QListWidgetItem* ak_Item_);
     virtual void removeFileFromList(QListWidgetItem* ak_Item_);
@@ -77,6 +79,7 @@ protected:
     QHash<QString, QString> mk_Labels;
     QHash<QString, QStringList> mk_Extensions;
     QHash<QString, QMap<QString, bool> > mk_Files;
+    QAction mk_PreviewFileAction;
     QAction mk_OpenFileAction;
     QAction mk_OpenContainingFolderAction;
     QAction mk_RemoveFileFromListAction;

@@ -23,6 +23,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Desktop.h"
 #include "Proteomatic.h"
 #include "FoldedHeader.h"
+#include "PipelineTabWidget.h"
 
 
 class k_PipelineMainWindow: public QMainWindow
@@ -49,6 +50,7 @@ public slots:
     void savePipelineAs();
     void searchFieldPopup(const QString& as_String);
     void restartProteomatic();
+    void previewFile(const QString& as_Path);
     
 signals:
     //void outputPrefixChanged(const QString& as_Prefix);
@@ -72,6 +74,7 @@ protected slots:
     void updateStatusBar();
     void scriptMenuChanged();
     void updateWindowTitle();
+    void previewTabCloseRequested(int ai_Index);
 
 protected:
     QApplication& mk_Application;
@@ -114,4 +117,6 @@ protected:
     QRegExp mk_WordSplitter;
     QSharedPointer<QListWidget> mk_pSearchPopup;
     QString ms_CurrentStyleSheet;
+    k_PipelineTabWidget* mk_PreviewTabWidget_;
+    QHash<QString, QSharedPointer<QWidget> > mk_Previews;
 };
