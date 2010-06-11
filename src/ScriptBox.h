@@ -22,6 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 // #include <QtWebKit>
 #include "ConsoleTextEdit.h"
+#include "FoldedHeader.h"
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
 #include "DesktopBox.h"
@@ -60,6 +61,7 @@ public:
     virtual IDesktopBox* boxForOutputFileKey(const QString& as_Key);
     virtual QString boxOutputPrefix() const;
     virtual void update();
+    virtual bool isExpanded() const;
     
 public slots:
     virtual void start(const QString& as_IterationKey);
@@ -69,6 +71,7 @@ public slots:
     virtual void clearOutputDirectoryButtonClicked();
     virtual void addOutput(QString as_String);
     virtual void refreshOutputFileView();
+    virtual void setExpanded(bool ab_Flag);
     
 protected slots:
     virtual void outputFileActionToggled();
@@ -126,6 +129,7 @@ protected:
     // for determining the automatic output directory 
     QString ms_OutputDirectoryDefiningInputPath;
     QHash<QString, QStringList> mk_InputFilesForKey;
+    QSet<QString> mk_SnippetInputFiles;
     QHash<QString, QStringList> mk_OutputFilesForKey;
     QStringList mk_IterationTags;
     QHash<QString, QSet<QString> > mk_OutputFilesForIterationTag;
@@ -135,4 +139,5 @@ protected:
     QComboBox* mk_OutputFileChooser_;
 //     k_ZoomableWebView* mk_WebView_;
     QStringList mk_PreviewSuffixes;
+    k_FoldedHeader* mk_FoldedHeader_;
 };

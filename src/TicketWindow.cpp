@@ -37,7 +37,7 @@ k_TicketWindow::k_TicketWindow(k_Proteomatic& ak_Proteomatic, QString as_ScriptU
     QBoxLayout* lk_SubSubLayout_ = new QVBoxLayout(this);
     lk_SubLayout_->addWidget(mk_StateIcon_);
     lk_SubSubLayout_->addWidget(new QLabel(QString("Ticket: <b>%1</b>").arg(ms_Ticket), this));
-    lk_SubSubLayout_->addWidget(new QLabel(QString("Remote script: %1").arg(mk_Proteomatic.scriptInfo(ms_ScriptUri, "title")), this));
+    lk_SubSubLayout_->addWidget(new QLabel(QString("Remote script: %1").arg(mk_Proteomatic.scriptInfo(ms_ScriptUri, "title").toString()), this));
     lk_SubLayout_->addLayout(lk_SubSubLayout_);
     lk_SubLayout_->addStretch();
     lk_Layout_->addLayout(lk_SubLayout_);

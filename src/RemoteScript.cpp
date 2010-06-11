@@ -24,7 +24,7 @@ k_RemoteScript::k_RemoteScript(QString as_ScriptUri, k_Proteomatic& ak_Proteomat
     : k_Script(r_ScriptLocation::Remote, as_ScriptUri, ak_Proteomatic, ab_IncludeOutputFiles, ab_ProfileMode)
     , ms_Host("")
 {
-    QStringList lk_Response = ak_Proteomatic.scriptInfo(as_ScriptUri, "parameters").split(QChar('\n'));
+    QStringList lk_Response = ak_Proteomatic.scriptInfo(as_ScriptUri, "parameters").toString().split(QChar('\n'));
     if (!lk_Response.empty())
     {
         QString ls_FirstLine = lk_Response.takeFirst().trimmed();

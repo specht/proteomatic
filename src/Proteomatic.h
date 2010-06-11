@@ -128,8 +128,8 @@ public:
     QString interpreterForScript(QString as_Path);
     QString interpreterKeyForScript(QString as_Path);
     QStringList availableScripts();
-    QHash<QString, QString> scriptInfo(QString as_ScriptPath);
-    QString scriptInfo(QString as_ScriptPath, QString as_Key);
+    QHash<QString, QVariant> scriptInfo(QString as_ScriptPath);
+    QVariant scriptInfo(QString as_ScriptPath, QString as_Key);
     bool hasScriptInfo(QString as_ScriptPath);
     QMenu* proteomaticScriptsMenu() const;
     QString syncRuby(QStringList ak_Arguments);
@@ -148,11 +148,7 @@ public:
     QWidget* messageBoxParent() const;
     int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);
     QFont& consoleFont();
-    /*
-    QStringList scriptPaths() const;
-    QString scriptPathAndPackage() const;
-    */
-    QString managedScriptPath() const;
+    QString tempPath() const;
     QStringList additionalScriptPaths() const;
     
     QVariant getConfiguration(QString as_Key);
@@ -174,6 +170,8 @@ public:
     QString scriptsVersion();
     QString completePathForScript(QString as_ScriptFilename);
     QString externalToolsPath() const;
+    QMap<QString, QPair<QString, QStringList> > textFileFormats() const;
+    void highlightScriptsMenu(QStringList ak_InputPaths = QStringList());
     
     QHash<QString, QStringList> mk_ScriptKeywords;
     
@@ -201,6 +199,7 @@ protected slots:
     void remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error);
     void rebuildRemoteScriptsMenu();
     void checkRubyTextChanged(const QString& as_Text);
+    void checkRubyResize();
     void checkRubySearchDialog();
     void purgeCacheAndTempFiles();
 
@@ -208,6 +207,7 @@ protected:
     QList<QFileInfo> getCacheAndTempFiles();
     bool canPurgeCacheAndTempFiles();
     void loadConfiguration();
+    void collectTextFileFormats(QMap<QString, QPair<QString, QStringList> >& ak_Results, QString as_Path = ":ext/cli-tools-atlas");
     void collectScriptInfo(bool ab_ShowImmediately = false);
     void createProteomaticScriptsMenu();
     void checkRuby();
@@ -219,7 +219,7 @@ protected:
     k_Desktop* mk_Desktop_;
     k_PipelineMainWindow* mk_PipelineMainWindow_;
     // uri / path => uri, title, group, description, optional: parameters
-    QHash<QString, QHash<QString, QString> > mk_ScriptInfo;
+    QHash<QString, QHash<QString, QVariant> > mk_ScriptInfo;
     QWidget* mk_MessageBoxParent_;
     QSharedPointer<QMenu> mk_pProteomaticScriptsMenu;
     QMenu* mk_RemoteMenu_;
@@ -229,6 +229,7 @@ protected:
     QFont mk_ConsoleFont;
     QString ms_DataDirectory;
     QString ms_ExternalToolsPath;
+    QString ms_TempPath;
     QString ms_ManagedScriptsPath;
     QStringList mk_AdditionalScriptPaths;
     QString ms_ConfigurationPath;
@@ -263,4 +264,13 @@ protected:
     bool mb_ModalProcessUserRequested;
     
     QSharedPointer<QWidgetAction> mk_pSearchWidgetAction;
+    
+    QMap<QString, QPair<QString, QStringList> > mk_OwnTextFileFormats;
+    QMap<QString, QPair<QString, QStringList> > mk_OwnPlusScriptsTextFileFormats;
+    QIcon mk_FolderEnabledIcon;
+    QIcon mk_FolderDisabledIcon;
+    QIcon mk_ScriptEnabledIcon;
+    QIcon mk_ScriptDisabledIcon;
+    QHash<QMenu*, QSet<QString> > mk_ExtensionsForScriptsMenuSubMenu;
+    QHash<QAction*, QSet<QString> > mk_ExtensionsForScriptsMenuAction;
 };

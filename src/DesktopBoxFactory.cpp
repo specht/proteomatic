@@ -22,12 +22,13 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScriptFactory.h"
 #include "ScriptBox.h"
 #include "FileListBox.h"
+#include "SnippetBox.h"
 #include "Script.h"
 
 
 IDesktopBox*
 k_DesktopBoxFactory::makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_, 
-                                    k_Proteomatic& ak_Proteomatic)
+                                   k_Proteomatic& ak_Proteomatic)
 {
     QSharedPointer<IScript> lk_pScript = k_ScriptFactory::makeScript(as_ScriptUri, ak_Proteomatic, false, false);
     k_Script* lk_Script_ = dynamic_cast<k_Script*>(lk_pScript.data());
@@ -39,9 +40,17 @@ k_DesktopBoxFactory::makeScriptBox(QString as_ScriptUri, k_Desktop* ak_Parent_,
 
 IDesktopBox*
 k_DesktopBoxFactory::makeFileListBox(k_Desktop* ak_Parent_, 
-                                      k_Proteomatic& ak_Proteomatic)
+                                     k_Proteomatic& ak_Proteomatic)
 {
     return new k_FileListBox(ak_Parent_, ak_Proteomatic, NULL);
+}
+
+
+IDesktopBox* 
+k_DesktopBoxFactory::makeSnippetBox(k_Desktop* ak_Parent_, 
+                                    k_Proteomatic& ak_Proteomatic)
+{
+    return new k_SnippetBox(ak_Parent_, ak_Proteomatic, NULL);
 }
 
 
@@ -61,8 +70,8 @@ k_DesktopBoxFactory::makeOutFileListBox(k_Desktop* ak_Parent_,
 
 IDesktopBox* 
 k_DesktopBoxFactory::makeInputGroupProxyBox(k_Desktop* ak_Parent_, 
-                                             k_Proteomatic& ak_Proteomatic,
-                                             QString as_Label, QString as_GroupKey)
+                                            k_Proteomatic& ak_Proteomatic,
+                                            QString as_Label, QString as_GroupKey)
 {
     return new k_InputGroupProxyBox(ak_Parent_, ak_Proteomatic, as_Label, as_GroupKey);
 }

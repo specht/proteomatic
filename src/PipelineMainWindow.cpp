@@ -115,9 +115,9 @@ void k_PipelineMainWindow::initialize()
     mk_AddToolBar_->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
 
 
-    QToolButton* lk_ProteomaticButton_ = new QToolButton(mk_AddToolBar_);
-    lk_ProteomaticButton_->setIcon(QIcon(":/icons/proteomatic-pipeline.png"));
-    lk_ProteomaticButton_->setText("Pipeline");
+    mk_ProteomaticButton_ = new QToolButton(mk_AddToolBar_);
+    mk_ProteomaticButton_->setIcon(QIcon(":/icons/proteomatic-pipeline.png"));
+    mk_ProteomaticButton_->setText("Pipeline");
     QMenu* lk_ProteomaticMenu_ = new QMenu(this);
     mk_NewPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-new.png"), "New pipeline", this, SLOT(newPipeline()), QKeySequence("Ctrl+N"));
     mk_LoadPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-open.png"), "Open pipeline...", this, SLOT(loadPipeline()), QKeySequence("Ctrl+O"));
@@ -125,10 +125,10 @@ void k_PipelineMainWindow::initialize()
     mk_SavePipelineAsAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-save-as.png"), "Save pipeline as...", this, SLOT(savePipelineAs()));
     lk_ProteomaticMenu_->addSeparator();
     mk_QuitAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/system-shutdown.png"), "Quit", this, SLOT(quit()));
-    lk_ProteomaticButton_->setMenu(lk_ProteomaticMenu_);
-    lk_ProteomaticButton_->setPopupMode(QToolButton::InstantPopup);
-    lk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    mk_AddToolBar_->addWidget(lk_ProteomaticButton_);
+    mk_ProteomaticButton_->setMenu(lk_ProteomaticMenu_);
+    mk_ProteomaticButton_->setPopupMode(QToolButton::InstantPopup);
+    mk_ProteomaticButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    mk_AddToolBar_->addWidget(mk_ProteomaticButton_);
 
     mk_AddScriptButton_ = new QToolButton(mk_AddToolBar_);
     mk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
@@ -149,7 +149,20 @@ void k_PipelineMainWindow::initialize()
     mk_AddToolBar_->addWidget(lk_SearchField_);
     */
     
-    mk_AddFileListAction_ = mk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
+    
+    mk_AddFilesButton_ = new QToolButton(this);
+    mk_AddFilesButton_->setIcon(QIcon(":icons/document-open.png"));
+    mk_AddFilesButton_->setText("Add files");
+    mk_AddFilesButton_->setPopupMode(QToolButton::InstantPopup);
+    mk_AddFilesButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    mk_AddFilesButton_->setMenu(new QMenu(mk_AddFilesButton_));
+    mk_AddFileListAction_ = mk_AddFilesButton_->menu()->addAction(QIcon(":icons/document-open.png"), "Add file list");
+    mk_AddSnippetAction_ = mk_AddFilesButton_->menu()->addAction(QIcon(":icons/document-edit.png"), "Add snippet");
+    connect(mk_AddSnippetAction_, SIGNAL(triggered()), this, SLOT(addSnippetBox()));
+    connect(mk_AddFileListAction_, SIGNAL(triggered()), this, SLOT(addFileListBox()));
+    mk_AddToolBar_->addWidget(mk_AddFilesButton_);
+    
+//     mk_AddFileListAction_ = mk_AddToolBar_->addAction(QIcon(":/icons/document-open.png"), "Add file list", this, SLOT(addFileListBox()));
 
     mk_AddToolBar_->addSeparator();
     
@@ -281,6 +294,7 @@ void k_PipelineMainWindow::loadPipeline()
         tk_YamlMap lk_Description = k_Yaml::parseFromFile(ls_Path).toMap();
         ms_PipelineFilename = ls_Path;
         mk_Desktop_->applyPipelineDescription(lk_Description);
+        forceRefresh();
         mk_Desktop_->setHasUnsavedChanges(false);
     }
 }
@@ -364,6 +378,15 @@ void k_PipelineMainWindow::addFileListBox()
         return;
     
     mk_Desktop_->addInputFileListBox();
+}
+
+
+void k_PipelineMainWindow::addSnippetBox()
+{
+    if (!mk_Desktop_)
+        return;
+    
+    mk_Desktop_->addSnippetBox();
 }
 
 
@@ -512,7 +535,7 @@ void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
         --lk_Iter;
         
         QString ls_ScriptPath = lk_Iter.value();
-        QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"];
+        QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
         if (!ls_Title.isEmpty())
             new QListWidgetItem(QIcon("src/icons/proteomatic.png"), ls_Title, mk_pSearchPopup.data());
     } while (lk_Iter != lk_TargetsSorted.constBegin());
@@ -542,13 +565,14 @@ void k_PipelineMainWindow::restartProteomatic()
 void k_PipelineMainWindow::toggleUi()
 {
     updateWindowTitle();
+    mk_ProteomaticButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_NewPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_LoadPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_SavePipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_SavePipelineAsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_AddScriptAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-    mk_AddFileListAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+    mk_AddFilesButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_Proteomatic.startButton()->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
     mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());
 //     mk_AbortAction_->setVisible(mk_Desktop_ && mk_Desktop_->running());
@@ -565,6 +589,9 @@ void k_PipelineMainWindow::toggleUi()
     
     mk_AddToolBar_->setToolButtonStyle(mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 2 ? Qt::ToolButtonTextBesideIcon : Qt::ToolButtonIconOnly);
     QString ls_NewStyleSheet = QString("* { icon-size: %1px; }").arg((mk_Proteomatic.getConfiguration(CONFIG_APPEARANCE_SIZE).toInt() < 1) ? 20 : 16);
+    #ifdef Q_OS_MAC
+    ls_NewStyleSheet += " QToolButton { font-size: 12pt;}";
+    #endif
     if (ls_NewStyleSheet != ms_CurrentStyleSheet)
     {
         mk_Application.setStyleSheet(ls_NewStyleSheet);

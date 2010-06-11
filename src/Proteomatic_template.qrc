@@ -13,6 +13,7 @@
   <file>icons/dialog-cancel.png</file>
   <file>icons/dialog-ok.png</file>
   <file>icons/dialog-warning.png</file>
+  <file>icons/document-edit.png</file>
   <file>icons/document-new.png</file>
   <file>icons/document-open.png</file>
   <file>icons/document-open-multiple.png</file>
@@ -31,6 +32,7 @@
   <file>icons/folded-5.png</file>
   <file>icons/folded-6.png</file>
   <file>icons/folder.png</file>
+  <file>icons/folder-disabled.png</file>
   <file>icons/lasso-cursor.png</file>
   <file>icons/list-add.png</file>
   <file>icons/list-remove.png</file>
@@ -40,6 +42,7 @@
   <file>icons/preferences-system-windows.png</file>
   <file>icons/process-stop.png</file>
   <file>icons/proteomatic.png</file>
+  <file>icons/proteomatic-disabled.png</file>
   <file>icons/proteomatic-pipeline.png</file>
   <file>icons/revelio.png</file>
   <file>icons/ruby.png</file>
@@ -56,5 +59,9 @@
   <file>icons/utilities-terminal.png</file>
   <file>icons/view-fullscreen.png</file>
   <file>icons/view-refresh.png</file>
+  <file>ext/cli-tools-atlas/text-formats.txt</file>
+<!-- FORMAT FILES -->
+<!-- insert files here -->
+<!-- FORMAT FILES -->
 </qresource>
 </RCC>

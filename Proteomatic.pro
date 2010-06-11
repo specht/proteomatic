@@ -1,3 +1,5 @@
+system(ruby add-format-files.rb)
+
 TEMPLATE = app
 
 win32 {
@@ -101,6 +103,7 @@ HEADERS += \
     src/Script.h \
     src/ScriptBox.h \
     src/ScriptFactory.h \
+    src/SnippetBox.h \
     src/StopWatch.h \
     src/Tango.h \
     src/TicketWindow.h \
@@ -135,6 +138,7 @@ SOURCES += \
     src/Script.cpp \
     src/ScriptBox.cpp \
     src/ScriptFactory.cpp \
+    src/SnippetBox.cpp \
     src/StopWatch.cpp \
     src/TicketWindow.cpp \
     src/UnclickableLabel.cpp \
@@ -145,8 +149,7 @@ SOURCES += \
 #     src/ZoomableWebView.cpp \
     src/dialogs/EditProfileDialog.cpp \
     
-RESOURCES += \
-    src/Proteomatic.qrc \
+RESOURCES += src/Proteomatic.qrc
 
 isEmpty( PREFIX ) {
     PREFIX = /usr
