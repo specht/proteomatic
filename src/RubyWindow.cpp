@@ -113,5 +113,5 @@ void k_RubyWindow::processReadyRead()
 
 void k_RubyWindow::addOutput(QString as_Text)
 {
-    mk_Output.appendConsoleOutput(as_Text);
+    mk_Output_->append(as_Text);
 }

@@ -436,7 +436,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
     mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->findText(ms_CurrentIterationKeyShowing));
     
     if (!mk_Output.contains(as_IterationKey))
-        mk_Output.insert(as_IterationKey, QSharedPointer<k_ConsoleString>(new k_ConsoleString()));
+        mk_Output.insert(as_IterationKey, QSharedPointer<k_ConsoleTextEdit>(new k_ConsoleTextEdit()));
     mk_Output[as_IterationKey]->clear();
     emit readyRead();
     mk_pScript->start(lk_InputFiles, lk_Parameters, mk_Desktop_->useFileTrackerIfAvailable());
@@ -542,7 +542,7 @@ void k_ScriptBox::outputBoxIterationKeyChooserChanged()
     ms_CurrentIterationKeyShowing = mk_OutputBoxIterationKeyChooser_->currentText(); 
     if (mk_Output.contains(ms_CurrentIterationKeyShowing))
     {
-        INSERT CURRENT OUTPUT BOX INTO LAYOUT HERE
+        // INSERT CURRENT OUTPUT BOX INTO LAYOUT HERE
     }
 }
 
@@ -668,7 +668,7 @@ void k_ScriptBox::update()
     {
         mk_OutputBoxIterationKeyChooser_->addItem(ls_Key);
         if (!mk_Output.contains(ls_Key))
-            mk_Output[ls_Key] = QSharedPointer<k_ConsoleString>(new k_ConsoleString());
+            mk_Output[ls_Key] = QSharedPointer<k_ConsoleTextEdit>(new k_ConsoleTextEdit());
         if (ls_Key == ls_CurrentText)
             mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->count() - 1);
     }
@@ -966,10 +966,10 @@ void k_ScriptBox::setupLayout()
 
     // now comes the output box
     mk_OutputBoxContainer_ = new QWidget(this);
-    mk_OutputBox_ = new QTextEdit(mk_OutputBoxContainer_);
+//     mk_OutputBox_ = new QTextEdit(mk_OutputBoxContainer_);
     mk_OutputBoxIterationKeyChooser_ = new QComboBox(mk_OutputBoxContainer_);
-    mk_OutputBox_->setReadOnly(true);
-    mk_OutputBox_->setFont(mk_Proteomatic.consoleFont());
+//     mk_OutputBox_->setReadOnly(true);
+//     mk_OutputBox_->setFont(mk_Proteomatic.consoleFont());
     
     lk_VLayout_ = new QVBoxLayout(mk_OutputBoxContainer_);
     #ifdef Q_OS_MAC
@@ -987,7 +987,7 @@ void k_ScriptBox::setupLayout()
     lk_HLayout_->setStretch(1, 1);
 
     lk_VLayout_->addWidget(mk_OutputBoxIterationKeyChooserContainer_);
-    lk_VLayout_->addWidget(mk_OutputBox_);
+//     lk_VLayout_->addWidget(mk_OutputBox_);
     
     mk_OutputBoxIterationKeyChooserContainer_->hide();
     

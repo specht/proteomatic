@@ -193,7 +193,6 @@ void k_TicketWindow::remoteRequestFinished(int ai_SocketId, bool /*ab_Error*/, Q
         else if (lr_RemoteRequest.me_Type == r_RemoteRequestType::GetStandardOutput)
         {
             mk_StandardOutput.append(as_Result);
-            mk_Output_->setText(mk_StandardOutput.text());
         }
         else if (lr_RemoteRequest.me_Type == r_RemoteRequestType::GetOutputFiles)
         {
