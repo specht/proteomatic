@@ -68,10 +68,11 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
             // if we see the previous newline, we can resolve this \r !!!
             int li_NextNewLine = ls_Text.indexOf("\n", li_Position + 1);
             if (li_NextNewLine < 0)
-                li_NextNewLine = ls_Text.length() - 1;
+                li_NextNewLine = ls_Text.length();
             int li_LeftLength = li_Position - li_PreviousNewLine;
             int li_RightLength = li_NextNewLine - li_Position;
             int li_DeleteLength = qMin(li_LeftLength, li_RightLength);
+            // remove text before \r and also the \r itself
             ls_Text.remove(li_PreviousNewLine + 1, li_DeleteLength);
         }
         li_Offset = li_Position + 1;
