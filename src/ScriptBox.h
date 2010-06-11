@@ -21,7 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
 #include <QtWebKit>
-#include "ConsoleString.h"
+#include "ConsoleTextEdit.h"
 #include "FoldedHeader.h"
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
@@ -113,12 +113,11 @@ protected:
     k_HintLineEdit mk_Prefix;
     k_HintLineEdit mk_OutputDirectory;
 
-    QHash<QString, QSharedPointer<k_ConsoleString> > mk_Output;
+    QHash<QString, QSharedPointer<k_ConsoleTextEdit> > mk_Output;
     QWidget* mk_OutputBoxContainer_;
     QWidget* mk_OutputFileViewerContainer_;
     QWidget* mk_OutputBoxIterationKeyChooserContainer_;
     QComboBox* mk_OutputBoxIterationKeyChooser_;
-    QTextEdit* mk_OutputBox_;
     QTabWidget* mk_TabWidget_;
     QWidget* mk_IterationsTagsDontMatchIcon_;
     QCheckBox* mk_UseShortTagsCheckBox_;
@@ -141,4 +140,5 @@ protected:
     k_ZoomableWebView* mk_WebView_;*/
     QStringList mk_PreviewSuffixes;
     k_FoldedHeader* mk_FoldedHeader_;
+    QBoxLayout* mk_OutputBoxLayout_;
 };

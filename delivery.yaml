@@ -14,7 +14,7 @@ versionInject:
     
   src/version.cpp: |
     /*
-    Copyright (c) 2007-2009 Michael Specht
+    Copyright (c) 2007-2010 Michael Specht
     
     This file is part of Proteomatic.
     
@@ -42,3 +42,4 @@ addFiles:
     scriptsUrl: "ftp://gpf.uni-muenster.de/download/proteomatic/update"
 
 externals: [helper]
+macAppPackage: true

@@ -47,8 +47,8 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
     {
         // if this script is from the scripts menu, title and description are
         // already known
-        ms_Title = mk_Proteomatic.scriptInfo(ms_Uri, "title");
-        ms_Description = mk_Proteomatic.scriptInfo(ms_Uri, "description");
+        ms_Title = mk_Proteomatic.scriptInfo(ms_Uri, "title").toString();
+        ms_Description = mk_Proteomatic.scriptInfo(ms_Uri, "description").toString();
     }
     else
     {
@@ -845,7 +845,7 @@ void k_Script::createParameterWidget(QString as_Info)
     mk_InputGroupDescriptions.clear();
     mk_InputGroupExtensions.clear();
     mk_pParameterWidget = QSharedPointer<QWidget>(new QWidget());
-
+    
     QList<QString> lk_ParametersOrder;
     QHash<QString, QHash<QString, QString> > lk_Parameters;
     QHash<QString, QList<QVariant> > lk_ParametersValues;
@@ -976,6 +976,10 @@ void k_Script::createParameterWidget(QString as_Info)
 
     QWidget* lk_InternalWidget_ = mk_pParameterWidget.data();
     QVBoxLayout* lk_ParameterLayout_ = new QVBoxLayout(lk_InternalWidget_);
+    #ifdef Q_OS_MAC
+    lk_ParameterLayout_->setSpacing(8);
+    lk_ParameterLayout_->setContentsMargins(4, 4, 4, 4);
+    #endif
     lk_InternalWidget_->setWindowIcon(QIcon(":/icons/proteomatic.png"));
     lk_InternalWidget_->setWindowTitle(ms_Title);
     lk_InternalWidget_->setWindowFlags(Qt::WindowStaysOnTopHint);

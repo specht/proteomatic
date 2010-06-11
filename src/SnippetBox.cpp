@@ -188,6 +188,7 @@ void k_SnippetBox::setupLayout()
     }
     setFileType(".txt");
     mk_TextEdit.setFont(mk_Proteomatic.consoleFont());
+    mk_TextEdit.setWordWrapMode(QTextOption::NoWrap);
     
     emit resized();
 }

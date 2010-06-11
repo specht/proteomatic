@@ -25,6 +25,7 @@ k_TicketWindow::k_TicketWindow(k_Proteomatic& ak_Proteomatic, QString as_ScriptU
     , mk_Proteomatic(ak_Proteomatic)
     , ms_ScriptUri(as_ScriptUri)
     , ms_Ticket(as_Ticket)
+    , mk_StandardOutput(mk_Proteomatic)
     , mb_GotStandardOutput(false)
     , mi_Delay(1)
 {
@@ -37,7 +38,7 @@ k_TicketWindow::k_TicketWindow(k_Proteomatic& ak_Proteomatic, QString as_ScriptU
     QBoxLayout* lk_SubSubLayout_ = new QVBoxLayout(this);
     lk_SubLayout_->addWidget(mk_StateIcon_);
     lk_SubSubLayout_->addWidget(new QLabel(QString("Ticket: <b>%1</b>").arg(ms_Ticket), this));
-    lk_SubSubLayout_->addWidget(new QLabel(QString("Remote script: %1").arg(mk_Proteomatic.scriptInfo(ms_ScriptUri, "title")), this));
+    lk_SubSubLayout_->addWidget(new QLabel(QString("Remote script: %1").arg(mk_Proteomatic.scriptInfo(ms_ScriptUri, "title").toString()), this));
     lk_SubLayout_->addLayout(lk_SubSubLayout_);
     lk_SubLayout_->addStretch();
     lk_Layout_->addLayout(lk_SubLayout_);
@@ -193,7 +194,6 @@ void k_TicketWindow::remoteRequestFinished(int ai_SocketId, bool /*ab_Error*/, Q
         else if (lr_RemoteRequest.me_Type == r_RemoteRequestType::GetStandardOutput)
         {
             mk_StandardOutput.append(as_Result);
-            mk_Output_->setText(mk_StandardOutput.text());
         }
         else if (lr_RemoteRequest.me_Type == r_RemoteRequestType::GetOutputFiles)
         {

@@ -19,6 +19,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Proteomatic.h"
 #include "Desktop.h"
+#include "FoldedHeader.h"
 #include "HintLineEdit.h"
 #include "PipelineMainWindow.h"
 #include "RubyWindow.h"
@@ -50,6 +51,10 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     , ms_DataDirectory(".")
     , ms_ManagedScriptsPath("scripts")
     , ms_ConfigurationPath("proteomatic.conf.yaml")
+    , mk_FolderEnabledIcon(":icons/folder.png")
+    , mk_FolderDisabledIcon(":icons/folder-disabled.png")
+    , mk_ScriptEnabledIcon(":icons/proteomatic.png")
+    , mk_ScriptDisabledIcon(":icons/proteomatic-disabled.png")
 {
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
 #ifdef Q_OS_WIN32
@@ -120,7 +125,7 @@ void k_Proteomatic::initialize()
     this->loadConfiguration();
 
     QFontDatabase lk_FontDatabase;
-    QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
+    QStringList lk_Fonts = QStringList() << "Consolas" << "Bitstream Vera Sans Mono" << "Lucida Console" << "Monaco" << "Liberation Mono" << "Courier New" << "Courier" << "Fixed" << "System";
     while (!lk_Fonts.empty())
     {
         QString ls_Font = lk_Fonts.takeFirst();
@@ -128,10 +133,13 @@ void k_Proteomatic::initialize()
         {
             mk_ConsoleFont = QFont(ls_Font);
             mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.8);
-#ifdef Q_OS_WIN32
+			#ifdef Q_OS_WIN32
             mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 0.9);
-#endif
-            break;
+			#endif
+			#ifdef Q_OS_MAC
+            mk_ConsoleFont.setPointSizeF(mk_ConsoleFont.pointSizeF() * 1.2);
+			#endif
+			break;
         }
     }
     
@@ -372,7 +380,7 @@ QStringList k_Proteomatic::availableScripts()
 }
 
 
-QHash<QString, QString> k_Proteomatic::scriptInfo(QString as_ScriptPath)
+QHash<QString, QVariant> k_Proteomatic::scriptInfo(QString as_ScriptPath)
 {
     return mk_ScriptInfo[as_ScriptPath];
 }
@@ -384,7 +392,7 @@ bool k_Proteomatic::hasScriptInfo(QString as_ScriptPath)
 }
 
 
-QString k_Proteomatic::scriptInfo(QString as_ScriptPath, QString as_Key)
+QVariant k_Proteomatic::scriptInfo(QString as_ScriptPath, QString as_Key)
 {
     return mk_ScriptInfo[as_ScriptPath][as_Key];
 }
@@ -784,7 +792,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                 QVariant lk_Response = k_Yaml::parseFromString(ls_Response);
                 if (lk_Response.canConvert<tk_YamlMap>())
                 {
-                    QHash<QString, QString> lk_Script;
+                    QHash<QString, QVariant> lk_Script;
                     
                     QString ls_Title = lk_Response.toMap()["title"].toString();
                     QString ls_Group = lk_Response.toMap()["group"].toString();
@@ -792,6 +800,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                     lk_Script["title"] = ls_Title;
                     lk_Script["group"] = ls_Group;
                     lk_Script["description"] = ls_Description;
+                    lk_Script["input"] = lk_Response.toMap()["input"];
                     lk_Script["uri"] = ls_Path;
                     mk_ScriptInfo.insert(ls_Path, lk_Script);
                     
@@ -838,12 +847,15 @@ void k_Proteomatic::createProteomaticScriptsMenu()
     QStringList lk_Scripts = availableScripts();
     foreach (QString ls_Path, lk_Scripts)
     {
-        QHash<QString, QString> lk_ScriptInfo = scriptInfo(ls_Path);
-        lk_ScriptOrder.insert(lk_ScriptInfo["title"], ls_Path);
-        lk_Groups.insert(lk_ScriptInfo["group"]);
+        QHash<QString, QVariant> lk_ScriptInfo = scriptInfo(ls_Path);
+        lk_ScriptOrder.insert(lk_ScriptInfo["title"].toString(), ls_Path);
+        lk_Groups.insert(lk_ScriptInfo["group"].toString());
     }
     QList<QString> lk_GroupKeys = lk_Groups.toList();
     qSort(lk_GroupKeys);
+    
+    mk_ExtensionsForScriptsMenuSubMenu.clear();
+    mk_ExtensionsForScriptsMenuAction.clear();
 
     // create sub menus
     foreach (QString ls_Group, lk_GroupKeys)
@@ -859,9 +871,10 @@ void k_Proteomatic::createProteomaticScriptsMenu()
             if (!lk_GroupMenus.contains(ls_IncPath))
             {
                 QMenu* lk_SubMenu_ = new QMenu(ls_GroupElement, lk_ParentMenu_);
-                lk_SubMenu_->setIcon(QIcon(":/icons/folder.png"));
+                lk_SubMenu_->setIcon(mk_FolderEnabledIcon);
                 lk_ParentMenu_->addMenu(lk_SubMenu_);
                 lk_GroupMenus[ls_IncPath] = lk_SubMenu_;
+                mk_ExtensionsForScriptsMenuSubMenu[lk_SubMenu_] = QSet<QString>();
             }
             lk_ParentMenu_ = lk_GroupMenus[ls_IncPath];
         }
@@ -877,15 +890,29 @@ void k_Proteomatic::createProteomaticScriptsMenu()
     foreach (QString ls_Title, lk_ScriptOrder.keys())
     {
         QString ls_Path = lk_ScriptOrder[ls_Title];
-        QHash<QString, QString> lk_ScriptInfo = scriptInfo(ls_Path);
-        QString ls_Group = lk_ScriptInfo["group"];
+        QHash<QString, QVariant> lk_ScriptInfo = scriptInfo(ls_Path);
+        QString ls_Group = lk_ScriptInfo["group"].toString();
         QMenu* lk_TargetMenu_ = lk_GroupMenus[ls_Group];
-        QAction* lk_Action_ = new QAction(QIcon(":/icons/proteomatic.png"), ls_Title, lk_TargetMenu_);
+        QAction* lk_Action_ = new QAction(mk_ScriptEnabledIcon, ls_Title, lk_TargetMenu_);
         QTextDocument doc;
-        doc.setHtml(lk_ScriptInfo["description"]);
+        doc.setHtml(lk_ScriptInfo["description"].toString());
         doc.setHtml(doc.toPlainText());
         lk_Action_->setStatusTip(doc.toPlainText());
-        lk_Action_->setData(lk_ScriptInfo["uri"]);
+        lk_Action_->setData(lk_ScriptInfo["uri"].toString());
+        mk_ExtensionsForScriptsMenuAction[lk_Action_] = QSet<QString>();
+        QSet<QString> lk_ThisExtensionsSet;
+        foreach (QVariant lk_InputItem, lk_ScriptInfo["input"].toList())
+        {
+            tk_YamlMap lk_InputItemMap = lk_InputItem.toMap();
+            lk_ThisExtensionsSet |= lk_InputItemMap["extensions"].toString().split("/").toSet();
+        }
+        mk_ExtensionsForScriptsMenuAction[lk_Action_] |= lk_ThisExtensionsSet;
+        QStringList lk_Group = ls_Group.split("/");
+        for (int i = 1; i <= lk_Group.size(); ++i)
+        {
+            QMenu* lk_TempMenu_ = lk_GroupMenus[QStringList(lk_Group.mid(0, i)).join("/")];
+            mk_ExtensionsForScriptsMenuSubMenu[lk_TempMenu_] |= lk_ThisExtensionsSet;
+        }
         lk_TargetMenu_->addAction(lk_Action_);
         connect(lk_Action_, SIGNAL(triggered()), this, SLOT(scriptMenuScriptClickedInternal()));
     }
@@ -1406,6 +1433,38 @@ QMap<QString, QPair<QString, QStringList> > k_Proteomatic::textFileFormats() con
 }
 
 
+void k_Proteomatic::highlightScriptsMenu(QStringList ak_InputPaths)
+{
+    QSet<QString> lk_AllInputSuffixes;
+    foreach (QString ls_Path, ak_InputPaths)
+    {
+        QString ls_Suffix = QFileInfo(ls_Path).completeSuffix().toLower();
+        QStringList lk_SuffixList = ls_Suffix.split(".");
+        for (int i = 0; i < lk_SuffixList.size(); ++i)
+        {
+            QString ls_SubSuffix = QStringList(lk_SuffixList.mid(lk_SuffixList.size() - 1 - i, i + 1)).join(".");
+            lk_AllInputSuffixes << "." + ls_SubSuffix;
+        }
+    }
+    // go through all script menu items and set icon according to ak_InputPaths,
+    // empty ak_InputPaths means 'enable all'
+    foreach (QMenu* lk_Menu_, mk_ExtensionsForScriptsMenuSubMenu.keys())
+    {
+        if (lk_AllInputSuffixes.empty() || (!(lk_AllInputSuffixes & mk_ExtensionsForScriptsMenuSubMenu[lk_Menu_]).empty()))
+            lk_Menu_->setIcon(mk_FolderEnabledIcon);
+        else
+            lk_Menu_->setIcon(mk_FolderDisabledIcon);
+    }
+    foreach (QAction* lk_Action_, mk_ExtensionsForScriptsMenuAction.keys())
+    {
+        if (lk_AllInputSuffixes.empty() || (!(lk_AllInputSuffixes & mk_ExtensionsForScriptsMenuAction[lk_Action_]).empty()))
+            lk_Action_->setIcon(mk_ScriptEnabledIcon);
+        else
+            lk_Action_->setIcon(mk_ScriptDisabledIcon);
+    }
+}
+
+
 void k_Proteomatic::checkRuby()
 {
     mk_CheckRubyDialog.setMaximumWidth(300);
@@ -1419,6 +1478,55 @@ void k_Proteomatic::checkRuby()
     lk_ErrorLabel_->setOpenExternalLinks(true);
     lk_HLayout_->addWidget(lk_ErrorLabel_);
     lk_VLayout_->addLayout(lk_HLayout_);
+    
+    QString ls_Platform = 
+    #ifdef Q_OS_LINUX
+        "Linux"
+    #endif
+    #ifdef Q_OS_MAC
+        "Mac OS X"
+    #endif
+    #ifdef Q_OS_WIN32
+        "Windows"
+    #endif
+        ;
+    
+    QLabel* lk_Instructions_ = 
+        new QLabel(QString(
+    #ifdef Q_OS_LINUX
+            "<p><b>Debian/Ubuntu</b></p>\
+<p>In order to install Ruby, please open a terminal (Applications &#8594; Accessories<br />&#8594; Terminal) and type the following:<p>\n\
+<pre>\n\
+$ sudo apt-get install ruby\n\
+</pre>\n\
+<p><b>Fedora</b></p>\
+<p>In order to install Ruby, please open a terminal (Applications &#8594; System Tools<br />&#8594; Terminal) and type the following:<p>\n\
+<pre>\n\
+$ su\n\
+# yum install ruby\n\
+</pre>\n"
+    #endif
+    #ifdef Q_OS_WIN32
+            "<p>Please download and run the Ruby 1.9.1 installer: <a href='http://rubyforge.org/frs/download.php/71078/rubyinstaller-1.9.1-p378.exe'>rubyinstaller-1.9.1-p378.exe</a>.</p>\n"
+    #endif
+    #ifdef Q_OS_MAC
+        "<p>If you have installed MacPorts, you can install Ruby by opening a terminal<br />and typing the following:<p>\n\
+<pre>\n\
+% port install ruby\n\
+</pre>"
+    #endif
+            ) + "<p>After you have installed Ruby, it might be necessary to quit and restart Proteomatic.</p>"
+            , &mk_CheckRubyDialog);
+            
+    lk_Instructions_->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    lk_Instructions_->setOpenExternalLinks(true);
+    
+    k_FoldedHeader* lk_Header_ = new k_FoldedHeader("Detailed instructions for " + ls_Platform, lk_Instructions_, true, &mk_CheckRubyDialog);
+    connect(lk_Header_, SIGNAL(showingBuddy()), this, SLOT(checkRubyResize()), Qt::QueuedConnection);
+    connect(lk_Header_, SIGNAL(hidingBuddy()), this, SLOT(checkRubyResize()), Qt::QueuedConnection);
+    lk_VLayout_->addWidget(lk_Header_);
+    lk_VLayout_->addWidget(lk_Instructions_);
+    lk_Header_->hideBuddy();
     
     lk_HLayout_ = new QHBoxLayout();
     lk_HLayout_->addWidget(new QLabel("Path to Ruby:", &mk_CheckRubyDialog));
@@ -1438,14 +1546,13 @@ void k_Proteomatic::checkRuby()
     lk_HLayout_->addWidget(mk_CheckRubyRetryButton_);
     lk_VLayout_->addLayout(lk_HLayout_);
     
-    mk_CheckRubyRetryButton_->setEnabled(false);
-    
     connect(mk_CheckRubyRetryButton_, SIGNAL(clicked()), &mk_CheckRubyDialog, SLOT(accept()));
     connect(lk_QuitButton_, SIGNAL(clicked()), &mk_CheckRubyDialog, SLOT(reject()));
     connect(mk_CheckRubyLocation_, SIGNAL(textChanged(const QString&)), this, SLOT(checkRubyTextChanged(const QString&)));
     connect(lk_FindRubyButton_, SIGNAL(clicked()), this, SLOT(checkRubySearchDialog()));
     
     mk_CheckRubyDialog.setLayout(lk_VLayout_);
+    mk_CheckRubyDialog.resize(300, 1);
     
     // see whether there's a local Ruby installed and prefer that
     // if there is a local Ruby then overwrite the configuration
@@ -1469,22 +1576,13 @@ void k_Proteomatic::checkRuby()
     
     while (true)
     {
+        mk_Configuration[CONFIG_PATH_TO_RUBY] = QVariant(mk_CheckRubyLocation_->text());
         QString ls_Version = syncRuby(QStringList() << "-v");
         QString ls_Error;
         if (!ls_Version.startsWith("ruby"))
             ls_Error = "Proteomatic cannot find Ruby, which is required in order to run the scripts.";
         else
         {
-            /*
-            ls_Version.replace("ruby", "");
-            ls_Version = ls_Version.trimmed();
-            QStringList lk_Tokens = ls_Version.split(" ");
-            ls_Version = lk_Tokens.first();
-            if (ls_Version != "1.8.6")
-                ls_Error = QString("The Ruby version on this computer is %1, but Proteomatic needs Ruby 1.8.6.").arg(ls_Version);
-            else
-                ls_Error = "";
-            */
             // if we're here, we have found a Ruby! Now we save the configuration so that the dialog won't pop up the next time.
             this->saveConfiguration();
             updateConfigDependentStuff();
@@ -1501,11 +1599,29 @@ void k_Proteomatic::checkRuby()
         else
             break;
     }
+
+    foreach (QString ls_Language, lk_Languages)
+    {
+        QString ls_Key = configKeyForScriptingLanguage(ls_Language);
+        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language).toLower();
+        if (ls_Language == "perl")
+        {
+            ls_Result.replace("this is", "");
+            ls_Result = ls_Result.trimmed();
+        }
+        mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
+    }
 }
 
 void k_Proteomatic::checkRubyTextChanged(const QString& as_Text)
 {
     mk_CheckRubyRetryButton_->setEnabled(!as_Text.isEmpty());
+}
+
+
+void k_Proteomatic::checkRubyResize()
+{
+    mk_CheckRubyDialog.resize(300, 1);
 }
 
 
@@ -1515,7 +1631,6 @@ void k_Proteomatic::checkRubySearchDialog()
     lk_FileDialog.setFileMode(QFileDialog::ExistingFile);
     if (lk_FileDialog.exec())
     {
-        mk_Configuration[CONFIG_PATH_TO_RUBY] = QVariant(lk_FileDialog.selectedFiles().first());
         mk_CheckRubyLocation_->setText(mk_Configuration[CONFIG_PATH_TO_RUBY].toString());
         mk_CheckRubyRetryButton_->setEnabled(true);
     }
@@ -1604,7 +1719,11 @@ void k_Proteomatic::updateConfigDependentStuff()
     {
         mk_FileTrackerIconLabel_->setEnabled(true);
         mk_FileTrackerLabel_->setText("File tracker: " + ls_FiletrackerUrl);
+        #ifdef Q_OS_MAC
+        mk_StartButton_->setText("Start & track");
+        #else
         mk_StartButton_->setText("Start && track");
+        #endif
         mk_StartButton_->setPopupMode(QToolButton::MenuButtonPopup);
         mk_StartButton_->setMenu(&mk_StartButtonMenu);
     }
