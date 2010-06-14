@@ -2028,6 +2028,8 @@ void k_Desktop::wheelEvent(QWheelEvent* event)
         lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
         this->setMatrix(lk_Matrix);
     }
+    else if (event->modifiers() == 0)
+        QGraphicsView::wheelEvent(event);
 }
 
 

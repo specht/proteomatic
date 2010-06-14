@@ -1436,6 +1436,9 @@ QMap<QString, QPair<QString, QStringList> > k_Proteomatic::textFileFormats() con
 void k_Proteomatic::highlightScriptsMenu(QStringList ak_InputPaths)
 {
     QSet<QString> lk_AllInputSuffixes;
+    // always add the 'any' file suffix
+    if (!ak_InputPaths.empty())
+        lk_AllInputSuffixes << "";
     foreach (QString ls_Path, ak_InputPaths)
     {
         QString ls_Suffix = QFileInfo(ls_Path).completeSuffix().toLower();
