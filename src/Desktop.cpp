@@ -139,6 +139,8 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
 {
     int li_OldBoxCount = mk_Boxes.size();
     
+    bool lb_DesktopWasEmpty = mk_Boxes.empty();
+    
     IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeScriptBox(as_ScriptUri, this, mk_Proteomatic);
     if (lk_Box_)
     {
@@ -175,6 +177,15 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
                 addBox(lk_ProxyBox_, false, false);
                 connectBoxes(lk_ProxyBox_, lk_Box_);
             }
+        }
+        // if this script has input files, and there is not input file box (and no snippet)
+        // yet, add and connect an input file box
+        if (lb_DesktopWasEmpty && (!lk_ScriptBox_->script()->inputGroupKeys().isEmpty()) && lk_Box_->incomingBoxes().empty())
+        {
+            //IDesktopBox* lk_InputFileBox_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
+            IDesktopBox* lk_InputFileBox_ = addInputFileListBox(false);
+            if (lk_InputFileBox_)
+                connectBoxes(lk_InputFileBox_, lk_Box_);
         }
         
         // place box construct

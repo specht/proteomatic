@@ -271,7 +271,7 @@ void k_ScriptBox::outputFileActionToggled()
             mk_pScript->outputFileDetails(ls_Key)["label"], this);
         dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
         mk_OutputFileBoxes[ls_Key] = lk_Box_;
-        mk_Desktop_->addBox(lk_Box_, false);
+        mk_Desktop_->addBox(lk_Box_, false, false, 270, 120);
         mk_Desktop_->connectBoxes(this, lk_Box_);
         QPoint lk_BoxPosition = pos() + QPoint(width() / 2, height() + 80);
         dynamic_cast<k_DesktopBox*>(lk_Box_)->move(lk_BoxPosition - QPoint(dynamic_cast<k_DesktopBox*>(lk_Box_)->width() / 2, dynamic_cast<k_DesktopBox*>(lk_Box_)->height() / 2));
@@ -1162,7 +1162,7 @@ void k_ScriptBox::setupLayout()
             lk_Box_->setProtectedFromUserDeletion(true);
             dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
             mk_OutputFileBoxes[ls_Key] = lk_Box_;
-            mk_Desktop_->addBox(lk_Box_, false);
+            mk_Desktop_->addBox(lk_Box_, false, false, 270, 120);
             mk_Desktop_->connectBoxes(this, lk_Box_);
             // make the output file box of a converter script a list
             dynamic_cast<k_FileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());

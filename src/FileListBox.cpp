@@ -420,7 +420,7 @@ void k_FileListBox::setupLayout()
 
     
     lk_VLayout_->addLayout(lk_HLayout_);
-    
+
     toggleUi();
     emit resized();
 }
