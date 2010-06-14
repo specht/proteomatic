@@ -297,6 +297,7 @@ void k_DesktopBox::mousePressEvent(QMouseEvent* event)
     else
         emit clicked(event);
     event->accept();
+//     QWidget::mousePressEvent(event);
 }
 
 
@@ -305,6 +306,7 @@ void k_DesktopBox::mouseReleaseEvent(QMouseEvent* event)
     mb_Moving = false;
     mb_Resizing = false;
     event->accept();
+//     QWidget::mouseReleaseEvent(event);
 }
 
 

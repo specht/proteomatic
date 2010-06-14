@@ -271,9 +271,6 @@ void k_FileListBox::toggleUi()
 
 void k_FileListBox::filenameDoubleClicked()
 {
-#ifdef DEBUG
-    printf("double click!\n");
-#endif
     if (mk_FileList.files().empty())
         return;
     

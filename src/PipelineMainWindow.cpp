@@ -632,7 +632,7 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
             mk_HSplitter_->setSizes(lk_Sizes);*/
             //ak_ScriptBox_->paneWidget()->resize(QSize(450, ak_ScriptBox_->paneWidget()->height()));
             //mk_PaneDockWidget_->resize(QSize(500, mk_PaneDockWidget_->height()));
-            mk_Desktop_->showAll();
+//             mk_Desktop_->showAll();
         }
         mk_FauxTitleBarWidgetFloatingLabel_->setText("<b>" + mk_CurrentScriptBox_->script()->title() + "</b>");
         mk_PaneDockWidget_->setWindowTitle(mk_CurrentScriptBox_->script()->title());

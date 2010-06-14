@@ -63,6 +63,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setAcceptDrops(true);
     setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+    setResizeAnchor(QGraphicsView::AnchorViewCenter);
     setScene(&mk_GraphicsScene);
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::TextAntialiasing, true);
@@ -279,14 +280,21 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
             }
         }
         setCurrentScriptBox(lk_ScriptBox_);
+        mk_ArrowStartBoxAutoConnect_ = NULL;
+        redrawSelection();
+        emit selectionChanged();
+        refresh();
+        if (mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()))
+        {
+            if (ab_AutoAdjust)
+            {
+                if (lb_DesktopWasEmpty)
+                    animateAdjustView(true, QSet<IDesktopBox*>(), false);
+                else
+                    animateAdjustView(false, mk_SelectedBoxes);
+            }
+        }
     }
-    mk_ArrowStartBoxAutoConnect_ = NULL;
-    redrawSelection();
-    emit selectionChanged();
-    if (mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()))
-        if (ab_AutoAdjust)
-            animateAdjustView(false, mk_SelectedBoxes);
-    refresh();
     return lk_Box_;
 }
 
@@ -1205,44 +1213,6 @@ void k_Desktop::abort()
 void k_Desktop::showAll()
 {
     animateAdjustView();
-    return;
-    if (mk_Boxes.empty())
-        return;
-
-    // reset scaling to 1.0
-    md_Scale = 1.0;
-    QMatrix lk_Matrix = this->matrix();
-    lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
-    this->setMatrix(lk_Matrix);
-    
-    // determine bounding box
-    QRectF lk_Rect;
-    foreach (IDesktopBox* lk_Box_, mk_Boxes)
-        lk_Rect = lk_Rect.united(lk_Box_->rect());
-    lk_Rect.adjust(-10.0, -10.0, 10.0, 10.0);
-    
-    // center
-    centerOn(lk_Rect.center());
-    
-    // adjust scaling
-    QPointF lk_A = mapToScene(QPoint(0, 0));
-    QPointF lk_B = mapToScene(QPoint(frameRect().width(), frameRect().height()));
-    double ld_WindowX = lk_B.x() - lk_A.x();
-    double ld_WindowY = lk_B.y() - lk_A.y();
-    double ld_SceneX = lk_Rect.width();
-    double ld_SceneY = lk_Rect.height();
-    double a = ld_WindowX / ld_SceneX;
-    if (ld_WindowY / ld_SceneY < a)
-        a = ld_WindowY / ld_SceneY;
-    if (a < 1.0)
-    {
-        md_Scale *= a;
-        md_Scale = std::max<double>(md_Scale, 0.3);
-        md_Scale = std::min<double>(md_Scale, 1.0);
-        QMatrix lk_Matrix = this->matrix();
-        lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
-        this->setMatrix(lk_Matrix);
-    }
 }
 
 
@@ -1990,7 +1960,7 @@ void k_Desktop::mouseDoubleClickEvent(QMouseEvent* event)
     }
     event->ignore();
     mk_MoveStartPoint = mapToScene(event->globalPos());
-    QGraphicsView::mousePressEvent(event);
+    QGraphicsView::mouseDoubleClickEvent(event);
 }
 
 
