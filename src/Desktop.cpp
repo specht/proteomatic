@@ -911,7 +911,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
             QString ls_Path = lk_Path.toString();
             // if the file does not exist, try a path relative to the pipeline file
             if (!QFileInfo(ls_Path).exists())
-                ls_Path = QFileInfo(QDir(as_DescriptionBasePath), QFileInfo(ls_Path).fileName()).absoluteFilePath();
+                ls_Path = as_DescriptionBasePath + "/" + ls_Path;
             dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id])->addPath(ls_Path);
         }
         if (lk_BoxDescription["batchMode"].toString() == "yes" || 
