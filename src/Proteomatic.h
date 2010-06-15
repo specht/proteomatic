@@ -42,6 +42,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_ANIMATION "animation"
 #define CONFIG_APPEARANCE_SIZE "appearanceSize"
 
+#define FILE_EXTENSION_PIPELINE ".pipeline"
+#define FILE_EXTENSION_PROFILE ".pp"
+
 /*
  we need locations for the following:
  - APPDATA (cache, helper)

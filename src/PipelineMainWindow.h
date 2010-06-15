@@ -44,7 +44,7 @@ public slots:
     void toggleUi();
     void togglePaneFloat();
     void newPipeline();
-    void loadPipeline();
+    void loadPipeline(QString as_Path = QString());
     void savePipeline();
     void savePipelineAs();
     void searchFieldPopup(const QString& as_String);

@@ -136,7 +136,7 @@ IDesktopBox* k_Desktop::addSnippetBox(bool ab_AutoAdjust)
 }
 
 
-IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust)
+IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust, bool ab_AutoAddFileBoxIfEmpty)
 {
     int li_OldBoxCount = mk_Boxes.size();
     
@@ -179,14 +179,17 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
                 connectBoxes(lk_ProxyBox_, lk_Box_);
             }
         }
-        // if this script has input files, and there is not input file box (and no snippet)
-        // yet, add and connect an input file box
-        if (lb_DesktopWasEmpty && (!lk_ScriptBox_->script()->inputGroupKeys().isEmpty()) && lk_Box_->incomingBoxes().empty())
+        if (ab_AutoAddFileBoxIfEmpty)
         {
-            //IDesktopBox* lk_InputFileBox_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
-            IDesktopBox* lk_InputFileBox_ = addInputFileListBox(false);
-            if (lk_InputFileBox_)
-                connectBoxes(lk_InputFileBox_, lk_Box_);
+            // if this script has input files, and there is not input file box (and no snippet)
+            // yet, add and connect an input file box
+            if (lb_DesktopWasEmpty && (!lk_ScriptBox_->script()->inputGroupKeys().isEmpty()) && lk_Box_->incomingBoxes().empty())
+            {
+                //IDesktopBox* lk_InputFileBox_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
+                IDesktopBox* lk_InputFileBox_ = addInputFileListBox(false);
+                if (lk_InputFileBox_)
+                    connectBoxes(lk_InputFileBox_, lk_Box_);
+            }
         }
         
         // place box construct
@@ -758,7 +761,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
 }
 
 
-void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
+void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_DescriptionBasePath)
 {
     int li_ScriptCount = 0;
     if (ak_Description.contains("scriptBoxes"))
@@ -784,7 +787,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
         QString ls_CompleteUri = mk_Proteomatic.completePathForScript(ls_Uri);
         tk_YamlMap lk_OutputBoxes = lk_BoxDescription["activeOutputFiles"].toMap();
         tk_YamlMap lk_InputProxyBoxes = lk_BoxDescription["inputProxyBoxes"].toMap();
-        IDesktopBox* lk_Box_ = addScriptBox(ls_CompleteUri, false);
+        IDesktopBox* lk_Box_ = addScriptBox(ls_CompleteUri, false, false);
         if (!lk_Box_)
         {
             // loading a script failed, now cancel this whole thing
@@ -903,8 +906,14 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
         tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
         moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
         tk_YamlSequence lk_Paths = lk_BoxDescription["paths"].toList();
-        foreach (QVariant ls_Path, lk_Paths)
-            dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id])->addPath(ls_Path.toString());
+        foreach (QVariant lk_Path, lk_Paths)
+        {
+            QString ls_Path = lk_Path.toString();
+            // if the file does not exist, try a path relative to the pipeline file
+            if (!QFileInfo(ls_Path).exists())
+                ls_Path = QFileInfo(QDir(as_DescriptionBasePath), QFileInfo(ls_Path).fileName()).absoluteFilePath();
+            dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id])->addPath(ls_Path);
+        }
         if (lk_BoxDescription["batchMode"].toString() == "yes" || 
             lk_BoxDescription["batchMode"].toString() == "true")
             lk_BatchModeFileListBoxes << dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id]);
@@ -2386,14 +2395,20 @@ void k_Desktop::dropEvent(QDropEvent* event)
     }
     if (!lk_Files.empty())
     {
-        k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(addInputFileListBox());
-        if (lk_FileListBox_)
+        if ((lk_Files.size() == 1) && (lk_Files.first().endsWith(QString(FILE_EXTENSION_PIPELINE))))
+            // IT'S A PIPELINE!!
+            mk_PipelineMainWindow.loadPipeline(lk_Files.first());
+        else
         {
-            lk_FileListBox_->addPaths(lk_Files);
-            QSize lk_Size = lk_FileListBox_->size();
-            lk_Size.setWidth(lk_Size.width() * 0.5);
-            lk_Size.setHeight(lk_Size.width() * 0.1);
-            lk_FileListBox_->move(mapToScene(event->pos()).toPoint() - QPoint(lk_Size.width(), lk_Size.height()));
+            k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(addInputFileListBox());
+            if (lk_FileListBox_)
+            {
+                lk_FileListBox_->addPaths(lk_Files);
+                QSize lk_Size = lk_FileListBox_->size();
+                lk_Size.setWidth(lk_Size.width() * 0.5);
+                lk_Size.setHeight(lk_Size.width() * 0.1);
+                lk_FileListBox_->move(mapToScene(event->pos()).toPoint() - QPoint(lk_Size.width(), lk_Size.height()));
+            }
         }
     }
 }

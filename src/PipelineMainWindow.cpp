@@ -278,22 +278,29 @@ void k_PipelineMainWindow::newPipeline()
 }
 
 
-void k_PipelineMainWindow::loadPipeline()
+void k_PipelineMainWindow::loadPipeline(QString as_Path)
 {
     if (!askForSaveIfNecessary())
         return;
+    
     QString ls_Path;
     
-    QString ls_StartingPath = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PIPELINE_PATH).toString();
-    if (!QFileInfo(ls_StartingPath).isDir())
-        ls_StartingPath = QDir::homePath();
+    if (as_Path.isEmpty())
+    {
+        QString ls_StartingPath = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_PIPELINE_PATH).toString();
+        if (!QFileInfo(ls_StartingPath).isDir())
+            ls_StartingPath = QDir::homePath();
 
-    ls_Path = QFileDialog::getOpenFileName(this, "Load pipeline", ls_StartingPath, "Proteomatic Pipeline (*.pipeline)");
-    if (!ls_Path.isEmpty())
+        ls_Path = QFileDialog::getOpenFileName(this, "Load pipeline", ls_StartingPath, "Proteomatic Pipeline (*" + QString(FILE_EXTENSION_PIPELINE) + ")");
+    }
+    else
+        ls_Path = as_Path;
+    
+    if ((!ls_Path.isEmpty()) && QFileInfo(ls_Path).exists())
     {
         tk_YamlMap lk_Description = k_Yaml::parseFromFile(ls_Path).toMap();
         ms_PipelineFilename = ls_Path;
-        mk_Desktop_->applyPipelineDescription(lk_Description);
+        mk_Desktop_->applyPipelineDescription(lk_Description, QFileInfo(ls_Path).absolutePath());
         forceRefresh();
         mk_Desktop_->setHasUnsavedChanges(false);
     }
@@ -318,7 +325,7 @@ void k_PipelineMainWindow::savePipelineAs()
     if (!QFileInfo(ls_StartingPath).isDir())
         ls_StartingPath = QDir::homePath();
 
-    ms_PipelineFilename = QFileDialog::getSaveFileName(this, "Save pipeline as...", ls_StartingPath + "/" + (ms_PipelineFilename.isEmpty() ? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName()) + ".pipeline", "Proteomatic Pipeline (*.pipeline)");
+    ms_PipelineFilename = QFileDialog::getSaveFileName(this, "Save pipeline as...", ls_StartingPath + "/" + (ms_PipelineFilename.isEmpty() ? "Unnamed" : QFileInfo(ms_PipelineFilename).completeBaseName()) + FILE_EXTENSION_PIPELINE, "Proteomatic Pipeline (*" + QString(FILE_EXTENSION_PIPELINE) + ")");
     if (ms_PipelineFilename != "")
     {
         mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_PIPELINE_PATH] = QFileInfo(ms_PipelineFilename).absolutePath();
