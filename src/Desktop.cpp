@@ -130,7 +130,7 @@ IDesktopBox* k_Desktop::addSnippetBox(bool ab_AutoAdjust)
 {
     IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeSnippetBox(this, mk_Proteomatic);
     k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
-    addBox(lk_Box_, true, ab_AutoAdjust, 400, 250);
+    addBox(lk_Box_, true, ab_AutoAdjust, 350, 200);
     refresh();
     return lk_DesktopBox_;
 }

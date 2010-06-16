@@ -698,6 +698,31 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
     int li_Count = 0;
     mk_ScriptKeywords.clear();
     QRegExp lk_WordSplitter("\\W+");
+    QProcess lk_CollectProcess;
+    lk_CollectProcess.setWorkingDirectory(QFileInfo(lk_Scripts.first()).absolutePath());
+    QStringList lk_Arguments;
+    lk_Arguments << "-W0" << "helper/collect-scripts.rb" << "--interactive";
+    
+    lk_CollectProcess.start(scriptInterpreter("ruby"), lk_Arguments);
+    lk_CollectProcess.waitForStarted();
+    lk_CollectProcess.setReadChannel(QProcess::StandardOutput);
+    QTextStream lk_CollectStream(&lk_CollectProcess);
+    
+    bool lb_NextPlease = false;
+    while (!lb_NextPlease)
+    {
+        lk_CollectProcess.waitForReadyRead();
+        while (!lk_CollectStream.atEnd())
+        {
+            QString ls_Line = lk_CollectStream.readLine().trimmed();
+            if (ls_Line == "NEXT PLEASE")
+                lb_NextPlease = true;
+        }
+    }
+    
+/*    lk_CollectStream << "run-omssa.rb\n";
+    lk_CollectStream.flush();*/
+    
     foreach (QString ls_Path, lk_Scripts)
     {
         mk_Application.processEvents();
@@ -758,30 +783,36 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             else
             {
                 // retrieve information from script
-                QProcess lk_QueryProcess;
-                lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
-                QStringList lk_Arguments;
-                lk_Arguments << ls_Path << "---yamlInfo" << "--short";
-                // ignore Ruby warnings for ---yamlInfo
-                if (interpreterKeyForScript(ls_Path) == "ruby")
-                    lk_Arguments.insert(0, "-W0");
-                lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+                QString ls_Response;
+                lk_CollectStream << ls_Path + "\n";
+                lk_CollectStream.flush();
                 
-                lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
-                if (lk_QueryProcess.waitForFinished())
+                bool lb_NextPlease = false;
+                while (!lb_NextPlease)
                 {
-                    ls_Response = lk_QueryProcess.readAll();
-                    if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
+                    lk_CollectProcess.waitForReadyRead();
+                    while (!lk_CollectStream.atEnd())
                     {
-                        // update cached information
-                        QFile lk_File(ls_CacheFilename);
-                        if (lk_File.open(QIODevice::WriteOnly))
+                        QString ls_Line = lk_CollectStream.readLine();
+                        if (ls_Line.startsWith("NEXT PLEASE"))
+                            lb_NextPlease = true;
+                        else
                         {
-                            QTextStream lk_Stream(&lk_File);
-                            lk_Stream << ls_Response;
-                            lk_Stream.flush();
-                            lk_File.close();
+                            ls_Response += ls_Line + "\n";
                         }
+                    }
+                }
+                
+                if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
+                {
+                    // update cached information
+                    QFile lk_File(ls_CacheFilename);
+                    if (lk_File.open(QIODevice::WriteOnly))
+                    {
+                        QTextStream lk_Stream(&lk_File);
+                        lk_Stream << ls_Response;
+                        lk_Stream.flush();
+                        lk_File.close();
                     }
                 }
             }
@@ -832,6 +863,9 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             }
         }
     }
+    lk_CollectStream << "\n";
+    lk_CollectStream.flush();
+    lk_CollectProcess.waitForFinished();
 }
 
 
