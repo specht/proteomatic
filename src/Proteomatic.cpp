@@ -720,9 +720,6 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
         }
     }
     
-/*    lk_CollectStream << "run-omssa.rb\n";
-    lk_CollectStream.flush();*/
-    
     foreach (QString ls_Path, lk_Scripts)
     {
         mk_Application.processEvents();
@@ -764,12 +761,6 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                 if (ls_Line != "---yamlInfo")
                     lb_UseCache = false;
             }
-            // check if cached file is newer than script
-            if (lb_UseCache)
-            {
-                if (!(QFileInfo(ls_CacheFilename).lastModified() > QFileInfo(ls_Path).lastModified()))
-                    lb_UseCache = false;
-            }
             if (lb_UseCache)
             {
                 // re-use cached information
@@ -783,7 +774,6 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             else
             {
                 // retrieve information from script
-                QString ls_Response;
                 lk_CollectStream << ls_Path + "\n";
                 lk_CollectStream.flush();
                 
