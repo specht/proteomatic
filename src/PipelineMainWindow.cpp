@@ -299,8 +299,8 @@ void k_PipelineMainWindow::loadPipeline(QString as_Path)
     if ((!ls_Path.isEmpty()) && QFileInfo(ls_Path).exists())
     {
         tk_YamlMap lk_Description = k_Yaml::parseFromFile(ls_Path).toMap();
-        ms_PipelineFilename = ls_Path;
-        mk_Desktop_->applyPipelineDescription(lk_Description, QFileInfo(ls_Path).absolutePath());
+        if (mk_Desktop_->applyPipelineDescription(lk_Description, QFileInfo(ls_Path).absolutePath()))
+            ms_PipelineFilename = ls_Path;
         forceRefresh();
         mk_Desktop_->setHasUnsavedChanges(false);
     }

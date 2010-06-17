@@ -58,7 +58,7 @@ public:
     virtual bool hasBoxes();
     virtual bool hasScriptBoxes();
     virtual tk_YamlMap pipelineDescription();
-    virtual void applyPipelineDescription(tk_YamlMap ak_Description, QString as_DescriptionBasePath);
+    virtual bool applyPipelineDescription(tk_YamlMap ak_Description, QString as_DescriptionBasePath);
     
     virtual void setHasUnsavedChanges(bool ab_Flag);
     virtual bool hasUnsavedChanges() const;

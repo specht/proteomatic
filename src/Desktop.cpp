@@ -761,7 +761,7 @@ tk_YamlMap k_Desktop::pipelineDescription()
 }
 
 
-void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_DescriptionBasePath)
+bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_DescriptionBasePath)
 {
     int li_ScriptCount = 0;
     if (ak_Description.contains("scriptBoxes"))
@@ -815,10 +815,18 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
                     QFileInfo(QDir(ls_ScriptBasePath), "helper/resolve-dependencies.rb").absoluteFilePath() << 
                     "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_Map.keys(), "Installing external tools");
                 if (!lb_Flag)
-                    return;
+                {
+                    clearAll();
+                    setHasUnsavedChanges(false);
+                    return false;
+                }
             }
             else
-                return;
+            {
+                clearAll();
+                setHasUnsavedChanges(false);
+                return false;
+            }                
         }
     }
     
@@ -841,7 +849,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
                 ":icons/dialog-warning.png");
             clearAll();
             setHasUnsavedChanges(false);
-            return;
+            return false;
         }
         if (lk_Box_)
         {
@@ -1029,6 +1037,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
             ls_Warning += "The output directory could not be set for one or more scripts.<br/>";
         mk_Proteomatic.showMessageBox("Load pipeline", ls_Warning, ":icons/emblem-important.png");
     }
+    return true;
 }
 
 
