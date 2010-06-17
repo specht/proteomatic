@@ -860,7 +860,13 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
                 if (!ls_OutputDirectory.isEmpty())
                 {
                     if (!QDir(ls_OutputDirectory).exists())
-                        lk_Warnings << "output-directory-gone";
+                    {
+                        ls_OutputDirectory = QDir::cleanPath(as_DescriptionBasePath + "/" + ls_OutputDirectory);
+                        if (!QDir(ls_OutputDirectory).exists())
+                            lk_Warnings << "output-directory-gone";
+                        else
+                            lk_ScriptBox_->setBoxOutputDirectory(ls_OutputDirectory);
+                    }
                     else
                         lk_ScriptBox_->setBoxOutputDirectory(ls_OutputDirectory);
                 }
