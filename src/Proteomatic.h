@@ -138,7 +138,7 @@ public:
     QString syncRuby(QStringList ak_Arguments);
     QString syncScript(QStringList ak_Arguments);
     QString syncScriptNoFile(QStringList ak_Arguments, QString as_Language);
-    QString syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
+    bool syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
     QString rubyPath();
     QString version();
     bool versionChanged() const;

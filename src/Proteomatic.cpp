@@ -410,6 +410,8 @@ QString k_Proteomatic::syncRuby(QStringList ak_Arguments)
 
     QFileInfo lk_FileInfo(ak_Arguments.first());
     lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+    QString ls_Script = QFileInfo(ak_Arguments.takeFirst()).fileName();
+    ak_Arguments.insert(0, ls_Script);
     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
     lk_QueryProcess.start(mk_Configuration[CONFIG_PATH_TO_RUBY].toString(), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
     if (lk_QueryProcess.waitForFinished())
@@ -425,6 +427,8 @@ QString k_Proteomatic::syncScript(QStringList ak_Arguments)
 
     QFileInfo lk_FileInfo(ak_Arguments.first());
     lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+    QString ls_Script = QFileInfo(ak_Arguments.takeFirst()).fileName();
+    ak_Arguments.insert(0, ls_Script);
     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
     lk_QueryProcess.start(interpreterForScript(ak_Arguments.first()), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
     if (lk_QueryProcess.waitForFinished())
@@ -452,6 +456,13 @@ QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Lan
         return lk_QueryProcess.readAll();
     else
         return QString();
+}
+
+
+bool k_Proteomatic::syncShowRuby(QStringList ak_Arguments, QString as_Title)
+{
+    QSharedPointer<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(*this, ak_Arguments, as_Title));
+    return lk_pRubyWindow->exec();
 }
 
 

@@ -779,6 +779,50 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     QHash<IScriptBox*, bool> lk_ShortIterationTagBoxes;
     QSet<QString> lk_Warnings;
     int li_Count = 0;
+    // first check for unresolved dependencies and try to resolve them
+    if (!ak_Description["scriptBoxes"].toList().empty())
+    {
+        QString ls_ScriptBasePath;
+        QSet<QString> lk_ScriptSet;
+        foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
+        {
+            tk_YamlMap lk_BoxDescription = lk_Item.toMap();
+            QString ls_Uri = lk_BoxDescription["uri"].toString();
+            lk_ScriptSet << ls_Uri;
+            if (ls_ScriptBasePath.isEmpty())
+            {
+                QString ls_CompleteUri = mk_Proteomatic.completePathForScript(ls_Uri);
+                ls_ScriptBasePath = QFileInfo(ls_CompleteUri).absolutePath();
+            }
+        }
+        QString ls_Response = mk_Proteomatic.syncRuby((QStringList() << 
+            QFileInfo(QDir(ls_ScriptBasePath), "helper/get-unresolved-dependencies.rb").absoluteFilePath() << 
+            "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_ScriptSet.toList());
+        tk_YamlMap lk_Map = k_Yaml::parseFromString(ls_Response).toMap();
+        if (!lk_Map.empty())
+        {
+            QStringList lk_MissingTools;
+            foreach (QVariant lk_Tool, lk_Map.values())
+                lk_MissingTools << lk_Tool.toString();
+            qSort(lk_MissingTools);
+            QString ls_MissingTools = lk_MissingTools.join(", ");
+            int li_Result = mk_Proteomatic.showMessageBox("Unresolved dependencies", "This pipeline requires the following external tools that are currently not installed:\n\n"
+                + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
+            if (li_Result == QMessageBox::Yes)
+            {
+                qDebug() << lk_Map.keys();
+                bool lb_Flag = mk_Proteomatic.syncShowRuby((QStringList() << 
+                    QFileInfo(QDir(ls_ScriptBasePath), "helper/resolve-dependencies.rb").absoluteFilePath() << 
+                    "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_Map.keys(), "Installing external tools");
+                if (!lb_Flag)
+                    return;
+            }
+            else
+                return;
+        }
+    }
+    
+    // now load the scripts
     foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
     {
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
