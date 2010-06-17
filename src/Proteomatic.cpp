@@ -699,6 +699,10 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
         foreach (QString ls_Path, lk_Paths)
             lk_Scripts << lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
     }
+    
+    if (lk_Scripts.empty())
+      return;
+    
     QProgressDialog lk_ProgressDialog("Collecting scripts...", "", 0, lk_Scripts.size(), mk_MessageBoxParent_);
     lk_ProgressDialog.setCancelButton(0);
     lk_ProgressDialog.setWindowTitle("Proteomatic");
