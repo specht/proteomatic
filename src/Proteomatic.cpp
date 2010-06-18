@@ -768,19 +768,33 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             else
             {
                 // retrieve information from script
-                QProcess lk_QueryProcess;
-                lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
-                QStringList lk_Arguments;
-                lk_Arguments << ls_Path << "---yamlInfo" << "--short";
-                // ignore Ruby warnings for ---yamlInfo
-                if (interpreterKeyForScript(ls_Path) == "ruby")
-                    lk_Arguments.insert(0, "-W0");
-                lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);                
-                
-                lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
-                if (lk_QueryProcess.waitForFinished())
+                // first check whether a cached yamlinfo is already in the scripts package
+                QString ls_ScriptCachePath = QFileInfo(lk_FileInfo.absolutePath() + "/cache/" + lk_FileInfo.fileName() + ".yamlinfo").filePath();
+                if (QFileInfo(ls_ScriptCachePath).exists())
                 {
-                    ls_Response = lk_QueryProcess.readAll();
+                    QFile lk_File(ls_ScriptCachePath);
+                    lk_File.open(QIODevice::ReadOnly);
+                    QTextStream lk_Stream(&lk_File);
+                    ls_Response = lk_Stream.readAll();
+                    lk_File.close();
+                }
+                else
+                {
+                    QProcess lk_QueryProcess;
+                    lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
+                    QStringList lk_Arguments;
+                    lk_Arguments << ls_Path << "---yamlInfo" << "--short";
+                    // ignore Ruby warnings for ---yamlInfo
+                    if (interpreterKeyForScript(ls_Path) == "ruby")
+                        lk_Arguments.insert(0, "-W0");
+                    lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
+                    lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
+                    if (lk_QueryProcess.waitForFinished())
+                        ls_Response = lk_QueryProcess.readAll();
+                }
+                
+                if (!ls_Response.isEmpty())
+                {
                     if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())                
                     {
                         // update cached information
