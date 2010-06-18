@@ -86,22 +86,23 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
     {
         // insert text before \r
         int li_Length = li_Position - li_Offset;
-        // delete at most li_Length following characters
-        int li_DeleteLength = qMin(li_Length, document()->characterCount() - textCursor().position());
+        // insert text in overwrite mode
+        QString ls_Bit = ls_Text.mid(li_Offset, li_Length);
+        int li_DeleteLength = qMin(document()->characterCount() - textCursor().position(), ls_Bit.length());
         for (int i = 0; i < li_DeleteLength; ++i)
             textCursor().deleteChar();
-        textCursor().insertText(ls_Text.mid(li_Offset, li_Length));
+        textCursor().insertText(ls_Bit);
+        // move to start of line because of \r
         moveCursor(QTextCursor::StartOfLine);
         li_Offset = li_Position + 1;
     }
     // insert remaining text
-    int li_Length = ls_Text.length() - li_Offset;
-    // delete at most li_Length following characters
-    int li_DeleteLength = qMin(li_Length, document()->characterCount() - textCursor().position());
+    // insert text in overwrite mode
+    QString ls_Bit = ls_Text.mid(li_Offset);
+    int li_DeleteLength = qMin(document()->characterCount() - textCursor().position(), ls_Bit.length());
     for (int i = 0; i < li_DeleteLength; ++i)
         textCursor().deleteChar();
-    textCursor().insertText(ls_Text.mid(li_Offset));
-    moveCursor(QTextCursor::End);
+    textCursor().insertText(ls_Bit);
 }
 
 
