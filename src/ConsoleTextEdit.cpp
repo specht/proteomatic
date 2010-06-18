@@ -60,6 +60,7 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
     
     int li_Position = -1;
     int li_Offset = 0;
+    /*
     while ((li_Position = ls_Text.indexOf("\r", li_Offset)) >= 0)
     {
         int li_PreviousNewLine = ls_Text.lastIndexOf("\n", li_Position - 1);
@@ -76,7 +77,7 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
             ls_Text.remove(li_PreviousNewLine + 1, li_DeleteLength);
         }
         li_Offset = li_Position + 1;
-    }
+    }*/
     
     // now print the text
     
@@ -86,11 +87,21 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
     {
         // insert text before \r
         int li_Length = li_Position - li_Offset;
-        // delete at most li_Length following characters
-        int li_DeleteLength = qMin(li_Length, document()->characterCount() - textCursor().position());
-        for (int i = 0; i < li_DeleteLength; ++i)
-            textCursor().deleteChar();
-        textCursor().insertText(ls_Text.mid(li_Offset, li_Length));
+        if (li_Length > 0)
+        {
+            // delete at most li_Length following characters
+            int li_DeleteLength = qMin(li_Length, document()->characterCount() - textCursor().position());
+            for (int i = 0; i < li_DeleteLength; ++i)
+                textCursor().deleteChar();
+            textCursor().insertText(ls_Text.mid(li_Offset, li_Length));
+            QString s = ls_Text.mid(li_Offset, li_Length);
+            for (int i = 0; i < s.length(); ++i)
+                fprintf(stderr, "%02x ", s.at(i).toAscii());
+            fprintf(stderr, "\n");
+            for (int i = 0; i < s.length(); ++i)
+                fprintf(stderr, "%c", s.at(i).toAscii());
+            fprintf(stderr, "\n");
+        }
         moveCursor(QTextCursor::StartOfLine);
         li_Offset = li_Position + 1;
     }
@@ -101,6 +112,13 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
     for (int i = 0; i < li_DeleteLength; ++i)
         textCursor().deleteChar();
     textCursor().insertText(ls_Text.mid(li_Offset));
+    QString s = ls_Text.mid(li_Offset);
+    for (int i = 0; i < s.length(); ++i)
+        fprintf(stderr, "%02x ", s.at(i).toAscii());
+    fprintf(stderr, "\n");
+    for (int i = 0; i < s.length(); ++i)
+        fprintf(stderr, "%c", s.at(i).toAscii());
+    fprintf(stderr, "\n");
     moveCursor(QTextCursor::End);
 }
 

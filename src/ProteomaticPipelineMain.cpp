@@ -21,6 +21,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "Proteomatic.h"
 #include "PipelineMainWindow.h"
+#include "ConsoleTextEdit.h"
 
 
 int main(int ai_ArgumentCount, char** ac_Arguments__)
@@ -28,6 +29,14 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
     Q_INIT_RESOURCE(Proteomatic);
     QApplication lk_App(ai_ArgumentCount, ac_Arguments__);
     QDir::setCurrent(lk_App.applicationDirPath());
+    
+    k_Proteomatic lk_Proteomatic(lk_App);
+    k_ConsoleTextEdit e(lk_Proteomatic);
+    e.show();
+    e.append("Hello\nscan 1...   \rscan 2...   ");
+    e.append("\rscan 3...   ");
+    
+/*    
     
     k_Proteomatic lk_Proteomatic(lk_App);
     
@@ -42,7 +51,7 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
     {
         lk_MainWindow.setEnabled(false);
         lk_Proteomatic.checkForUpdates();
-    }
+    }*/
 
     return lk_App.exec();
 }
