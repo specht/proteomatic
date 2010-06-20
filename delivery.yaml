@@ -2,6 +2,8 @@ projects:
   - .
   #- src/projects/Revelio
 #binaryPath: bin
+#addProteomaticScripts: (version)
+#runProteomaticScriptsCommands: ["ruby qtrace.rb --resolveDependencies"]
 qt: [core, gui]
 versionInject:
   debian/changelog: |
