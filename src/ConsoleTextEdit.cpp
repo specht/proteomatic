@@ -103,6 +103,7 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
     for (int i = 0; i < li_DeleteLength; ++i)
         textCursor().deleteChar();
     textCursor().insertText(ls_Bit);
+    ensureCursorVisible();
 }
 
 
