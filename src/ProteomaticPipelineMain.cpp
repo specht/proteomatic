@@ -30,14 +30,12 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
     QApplication lk_App(ai_ArgumentCount, ac_Arguments__);
     QDir::setCurrent(lk_App.applicationDirPath());
     
-    k_Proteomatic lk_Proteomatic(lk_App);
+/*    k_Proteomatic lk_Proteomatic(lk_App);
     k_ConsoleTextEdit e(lk_Proteomatic);
     e.show();
-    e.append("Hello\nscan 1...   \rscan 2...   ");
-    e.append("\rscan 3...   ");
-    
-/*    
-    
+    e.append("ABC\rDEFGHI\rJK\nABC\rDEFGHI\rJK\nHOLLIPOLLI\nABC\rDEFGHI\rJK\n");
+    e.append("Alla! this is so many lines OMG!!!1!!\rO\r\nAlla! this is so many lines OMG!!!1!!\rO\r\nAlla! this is so many lines OMG!!!1!!\rO\r\n");*/
+
     k_Proteomatic lk_Proteomatic(lk_App);
     
     k_PipelineMainWindow lk_MainWindow(NULL, lk_Proteomatic, lk_App);
@@ -51,7 +49,7 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
     {
         lk_MainWindow.setEnabled(false);
         lk_Proteomatic.checkForUpdates();
-    }*/
+    }
 
     return lk_App.exec();
 }
