@@ -309,6 +309,7 @@ void k_PipelineMainWindow::loadPipeline(QString as_Path)
             mb_PreventUpdates = false;
             centralWidget()->show();
             toggleUi();
+            updateStatusBar();
             showAll();
         }
         forceRefresh();
@@ -442,6 +443,8 @@ void k_PipelineMainWindow::showAll()
 
 void k_PipelineMainWindow::updateStatusBar()
 {
+    if (mb_PreventUpdates)
+        return;
     QSet<IDesktopBox*> lk_SelectedBoxes = mk_Desktop_->selectedBoxes();
     mk_StatusBarMessage_->setText("");
 /*  QObject* lk_Object_ = dynamic_cast<QObject*>(mk_WatchedBoxObject_);
