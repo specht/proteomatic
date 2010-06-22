@@ -249,6 +249,11 @@ k_PipelineMainWindow::~k_PipelineMainWindow()
 
 void k_PipelineMainWindow::closeEvent(QCloseEvent* event)
 {
+    if (!mk_QuitAction_->isEnabled())
+    {
+        event->ignore();
+        return;
+    }
     if (askForSaveIfNecessary())
         event->accept();
     else
