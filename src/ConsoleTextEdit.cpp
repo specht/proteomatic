@@ -63,12 +63,20 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
             // now canonicalize the line and insert it plus a \n
             int li_CarriageReturnIndex = 0;
             int li_End = ls_Line.length();
-            while ((li_CarriageReturnIndex = ls_Line.lastIndexOf('\r', li_CarriageReturnIndex - 1)) >= 0)
+            while (true)
             {
+                li_CarriageReturnIndex = ls_Line.lastIndexOf('\r', li_CarriageReturnIndex - 1);
+                
+                if (li_CarriageReturnIndex < 0)
+                    break;
+                
                 QString ls_Bit = ls_Line.mid(li_CarriageReturnIndex + 1, li_End - li_CarriageReturnIndex - 1);
                 li_End = li_CarriageReturnIndex;
                 ls_Bit = ls_Bit.mid(ls_CanonicalLine.length());
                 ls_CanonicalLine += ls_Bit;
+                
+                if (li_CarriageReturnIndex < 1)
+                    break;
             }
             QString ls_Bit = ls_Line.mid(li_CarriageReturnIndex + 1, li_End - li_CarriageReturnIndex - 1);
             ls_Bit = ls_Bit.mid(ls_CanonicalLine.length());
