@@ -30,11 +30,16 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
     QApplication lk_App(ai_ArgumentCount, ac_Arguments__);
     QDir::setCurrent(lk_App.applicationDirPath());
     
-/*    k_Proteomatic lk_Proteomatic(lk_App);
-    k_ConsoleTextEdit e(lk_Proteomatic);
-    e.show();
-    e.append("ABC\rDEFGHI\rJK\nABC\rDEFGHI\rJK\nHOLLIPOLLI\nABC\rDEFGHI\rJK\n");
-    e.append("Alla! this is so many lines OMG!!!1!!\rO\r\nAlla! this is so many lines OMG!!!1!!\rO\r\nAlla! this is so many lines OMG!!!1!!\rO\r\n");*/
+//     k_Proteomatic lk_Proteomatic(lk_App);
+//     k_ConsoleTextEdit e(lk_Proteomatic);
+//     e.show();
+//     e.append("ABC\rDEFGHI\rJK\nABC\rDEFGHI\rJK\nHOLLIPOLLI\nABC\rDEFGHI\rJK\n");
+//     e.append("ABC\rDEFGHI\rJK\nABC\rD");
+//     e.append("EFGHI\rJK\nHOLLIPOLLI\nABC\rDEFGHI\rJK\n");
+//     e.append("ABC\rDEFGHI\rJK\nABC\rDEFG");
+//     e.append("HI\rJK\nHOLLIPOLLI\nABC\rDEFGHI\rJK\n\n");
+//     e.append("Alla! this is so many lines OMG!!!1!!\rO\r\nAlla! this is so many lines OMG!!!1!!\rO\r\nAlla! this is so many lines OMG!!!1!!\rO\r\n");
+//     e.append("\r\r1. hello\r\r\n\r\r2. hello\r\r\n\r\r3. hello\r\r");
 
     k_Proteomatic lk_Proteomatic(lk_App);
     
