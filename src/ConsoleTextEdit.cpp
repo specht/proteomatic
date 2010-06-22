@@ -23,6 +23,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_ConsoleTextEdit::k_ConsoleTextEdit(k_Proteomatic& ak_Proteomatic, QWidget* parent)
     : QTextEdit(parent)
     , mk_Proteomatic(ak_Proteomatic)
+    , ms_LastLine(QString())
+    , mi_LastLineCursorPosition(0)
 {
     this->initialize();
 }
@@ -31,6 +33,8 @@ k_ConsoleTextEdit::k_ConsoleTextEdit(k_Proteomatic& ak_Proteomatic, QWidget* par
 k_ConsoleTextEdit::k_ConsoleTextEdit(const QString& text, k_Proteomatic& ak_Proteomatic, QWidget* parent)
     : QTextEdit(text, parent)
     , mk_Proteomatic(ak_Proteomatic)
+    , ms_LastLine(QString())
+    , mi_LastLineCursorPosition(0)
 {
     this->initialize();
 }
@@ -43,54 +47,84 @@ k_ConsoleTextEdit::~k_ConsoleTextEdit()
 
 void k_ConsoleTextEdit::append(const QString& as_Text)
 {
-    QString ls_Text = as_Text;
-    
-    // process the first and last line the slow way, but canonicalize all lines in between
-    int li_Offset = 0;
-    int li_NewLineIndex;
-    bool lb_FirstLine = true;
-    QString ls_CanonicalBlock;
-    while ((li_NewLineIndex = ls_Text.indexOf('\n', li_Offset)) >= 0)
+    /*
+    PROBLEM: \r makes the cursor jump to beginning of the line, characters
+    coming after that will be overwritten, but a \n will never overwrite 
+    characters. Implementing this on a character-by-character basis is way
+    too slow (30 seconds for 10,000 lines instead of 5).
+    CONCEPT: Handle the stream line by line, like Ruby's each_line iterator.
+    */
+    int li_NewLineIndex = -1;
+    while (true)
     {
-        // we're not yet at the last line, but maybe it's the first
-        if (lb_FirstLine)
-            appendTheSlowWay(ls_Text.mid(li_Offset, li_NewLineIndex - li_Offset + 1));
-        else
+        int li_Start = li_NewLineIndex + 1;
+        li_NewLineIndex = as_Text.indexOf('\n', li_Start);
+        int li_End = (li_NewLineIndex < 0) ? (as_Text.length() - 1) : li_NewLineIndex;
+        
+        if (li_End < li_Start)
+            break;
+        
+        // as_Text[li_Start, li_End - li_Start + 1] is the current line,
+        // possibly including the trailing \n, now handle this line
+        
+        QString ls_Line = as_Text.mid(li_Start, li_End - li_Start + 1);
+        
+        bool lb_LineHasNewLine = ls_Line.at(ls_Line.length() - 1) == '\n';
+        if (lb_LineHasNewLine)
+            ls_Line = ls_Line.left(ls_Line.length() - 1);
+        
+        // canonicalize the line: split at \r
+        
+        int li_CarriageReturnIndex = -1;
+        while (true)
         {
-            QString ls_CanonicalLine;
-            QString ls_Line = ls_Text.mid(li_Offset, li_NewLineIndex - li_Offset);
-            // ls_Line is a whole line without the trailing \n
-            // now canonicalize the line and insert it plus a \n
-            int li_CarriageReturnIndex = 0;
-            int li_End = ls_Line.length();
-            while (true)
-            {
-                li_CarriageReturnIndex = ls_Line.lastIndexOf('\r', li_CarriageReturnIndex - 1);
-                
-                if (li_CarriageReturnIndex < 0)
-                    break;
-                
-                QString ls_Bit = ls_Line.mid(li_CarriageReturnIndex + 1, li_End - li_CarriageReturnIndex - 1);
-                li_End = li_CarriageReturnIndex;
-                ls_Bit = ls_Bit.mid(ls_CanonicalLine.length());
-                ls_CanonicalLine += ls_Bit;
-                
-                if (li_CarriageReturnIndex < 1)
-                    break;
-            }
-            QString ls_Bit = ls_Line.mid(li_CarriageReturnIndex + 1, li_End - li_CarriageReturnIndex - 1);
-            ls_Bit = ls_Bit.mid(ls_CanonicalLine.length());
-            ls_CanonicalLine += ls_Bit;
+            int li_SubStart = li_CarriageReturnIndex + 1;
+            li_CarriageReturnIndex = ls_Line.indexOf('\r', li_SubStart);
+            int li_SubEnd = (li_CarriageReturnIndex < 0) ? (ls_Line.length() - 1) : li_CarriageReturnIndex;
             
-            ls_CanonicalLine += '\n';
-            ls_CanonicalBlock += ls_CanonicalLine;
+            if (li_SubEnd < li_SubStart)
+                break;
+            
+            // ls_Line[li_SubStart, li_SubEnd - li_SubStart + 1] is the current item,
+            // possibly including the trailing \r
+            
+            QString ls_SubLine = ls_Line.mid(li_SubStart, li_SubEnd - li_SubStart + 1);
+            
+            bool lb_LineHasCarriageReturn = ls_SubLine.at(ls_SubLine.length() - 1) == '\r';
+            if (lb_LineHasCarriageReturn)
+                ls_SubLine = ls_SubLine.left(ls_SubLine.length() - 1);
+            
+            // now consider ms_LastLine and mi_LastLineCursorPosition
+            if (ls_SubLine.length() > 0)
+            {
+                int li_DeleteLength = qMin(ls_SubLine.length(), ms_LastLine.length() - mi_LastLineCursorPosition);
+                if (li_DeleteLength > 0)
+                    ms_LastLine.remove(mi_LastLineCursorPosition, li_DeleteLength);
+                ms_LastLine.insert(mi_LastLineCursorPosition, ls_SubLine);
+                mi_LastLineCursorPosition += ls_SubLine.length();
+            }
+            
+            if (lb_LineHasCarriageReturn)
+                mi_LastLineCursorPosition = 0;
+            
+            if ((li_CarriageReturnIndex < 0) || (li_SubEnd == ls_Line.length() - 1))
+                break;
         }
-        lb_FirstLine = false;
-        li_Offset = li_NewLineIndex + 1;
+        // replace the entire last line of the text edit with ms_LastLine
+        QTextCursor lk_Cursor = textCursor();
+        lk_Cursor.movePosition(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
+        lk_Cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+        lk_Cursor.removeSelectedText();
+        lk_Cursor.insertText(ms_LastLine);
+        if (lb_LineHasNewLine)
+        {
+            lk_Cursor.insertText("\n");
+            ms_LastLine.clear();
+            mi_LastLineCursorPosition = 0;
+        }
+        if ((li_NewLineIndex < 0) || (li_End == as_Text.length() - 1))
+            break;
     }
-    textCursor().insertText(ls_CanonicalBlock);
-    appendTheSlowWay(ls_Text.mid(li_Offset));
-    
     ensureCursorVisible();
 }
 
@@ -101,29 +135,4 @@ void k_ConsoleTextEdit::initialize()
     this->setFont(mk_Proteomatic.consoleFont());
     this->setAcceptRichText(false);
     document()->setMaximumBlockCount(1000);
-}
-
-
-void k_ConsoleTextEdit::appendTheSlowWay(const QString& as_Text)
-{
-    // now insert text char by char :TODO: speed this up, but seems complicated
-    for (int i = 0; i < as_Text.length(); ++i)
-    {
-        QChar lc_Char = as_Text[i];
-        if (lc_Char == '\r')
-        {
-            moveCursor(QTextCursor::StartOfLine);
-        }
-        else if (lc_Char == '\n')
-        {
-            moveCursor(QTextCursor::EndOfLine);
-            textCursor().insertText(lc_Char);
-        }
-        else
-        {
-            if (!textCursor().atEnd())
-                textCursor().deleteChar();
-            textCursor().insertText(lc_Char);
-        }
-    }
 }
