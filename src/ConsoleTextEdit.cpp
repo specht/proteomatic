@@ -45,64 +45,44 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
 {
     QString ls_Text = as_Text;
     
-    // preprocess \r where possible
-    // the thing is: if we do this cursor thing too often, it
-    // will take 30 seconds to print 10000 lines of "Hello\rThis is a test.\n"
-    // but the terminal can do it in 5 seconds, which is what we want 
-    // observation: the output comes in big chunks, and if we remove
-    // \r where we can, the overall output should be much faster
-
-    /*
-    "Hello!\rThis is a test.\nHello!\rThis is a test.\n"
-    becomes:
-    "This is a test.\nThis is a test.\n"
-    */
-    
-    int li_Position = -1;
+    // process the first and last line the slow way, but canonicalize all lines in between
     int li_Offset = 0;
-    while ((li_Position = ls_Text.indexOf("\r", li_Offset)) >= 0)
+    int li_NewLineIndex;
+    bool lb_FirstLine = true;
+    QString ls_CanonicalBlock;
+    while ((li_NewLineIndex = ls_Text.indexOf('\n', li_Offset)) >= 0)
     {
-        int li_PreviousNewLine = ls_Text.lastIndexOf("\n", li_Position - 1);
-        if (li_PreviousNewLine >= 0)
+        // we're not yet at the last line, but maybe it's the first
+        if (lb_FirstLine)
+            appendTheSlowWay(ls_Text.mid(li_Offset, li_NewLineIndex - li_Offset + 1));
+        else
         {
-            // if we see the previous newline, we can resolve this \r !!!
-            int li_NextNewLine = ls_Text.indexOf("\n", li_Position + 1);
-            if (li_NextNewLine < 0)
-                li_NextNewLine = ls_Text.length();
-            int li_LeftLength = li_Position - li_PreviousNewLine;
-            int li_RightLength = li_NextNewLine - li_Position;
-            int li_DeleteLength = qMin(li_LeftLength, li_RightLength);
-            // remove text before \r and also the \r itself
-            ls_Text.remove(li_PreviousNewLine + 1, li_DeleteLength);
+            QString ls_CanonicalLine;
+            QString ls_Line = ls_Text.mid(li_Offset, li_NewLineIndex - li_Offset);
+            // ls_Line is a whole line without the trailing \n
+            // now canonicalize the line and insert it plus a \n
+            int li_CarriageReturnIndex = 0;
+            int li_End = ls_Line.length();
+            while ((li_CarriageReturnIndex = ls_Line.lastIndexOf('\r', li_CarriageReturnIndex - 1)) >= 0)
+            {
+                QString ls_Bit = ls_Line.mid(li_CarriageReturnIndex + 1, li_End - li_CarriageReturnIndex - 1);
+                li_End = li_CarriageReturnIndex;
+                ls_Bit = ls_Bit.mid(ls_CanonicalLine.length());
+                ls_CanonicalLine += ls_Bit;
+            }
+            QString ls_Bit = ls_Line.mid(li_CarriageReturnIndex + 1, li_End - li_CarriageReturnIndex - 1);
+            ls_Bit = ls_Bit.mid(ls_CanonicalLine.length());
+            ls_CanonicalLine += ls_Bit;
+            
+            ls_CanonicalLine += '\n';
+            ls_CanonicalBlock += ls_CanonicalLine;
         }
-        li_Offset = li_Position + 1;
+        lb_FirstLine = false;
+        li_Offset = li_NewLineIndex + 1;
     }
+    textCursor().insertText(ls_CanonicalBlock);
+    appendTheSlowWay(ls_Text.mid(li_Offset));
     
-    // now print the text
-    
-    li_Position = -1;
-    li_Offset = 0;
-    while ((li_Position = ls_Text.indexOf("\r", li_Offset)) >= 0)
-    {
-        // insert text before \r
-        int li_Length = li_Position - li_Offset;
-        // insert text in overwrite mode
-        QString ls_Bit = ls_Text.mid(li_Offset, li_Length);
-        int li_DeleteLength = qMin(document()->characterCount() - textCursor().position(), ls_Bit.length());
-        for (int i = 0; i < li_DeleteLength; ++i)
-            textCursor().deleteChar();
-        textCursor().insertText(ls_Bit);
-        // move to start of line because of \r
-        moveCursor(QTextCursor::StartOfLine);
-        li_Offset = li_Position + 1;
-    }
-    // insert remaining text
-    // insert text in overwrite mode
-    QString ls_Bit = ls_Text.mid(li_Offset);
-    int li_DeleteLength = qMin(document()->characterCount() - textCursor().position(), ls_Bit.length());
-    for (int i = 0; i < li_DeleteLength; ++i)
-        textCursor().deleteChar();
-    textCursor().insertText(ls_Bit);
     ensureCursorVisible();
 }
 
@@ -113,4 +93,29 @@ void k_ConsoleTextEdit::initialize()
     this->setFont(mk_Proteomatic.consoleFont());
     this->setAcceptRichText(false);
     document()->setMaximumBlockCount(1000);
+}
+
+
+void k_ConsoleTextEdit::appendTheSlowWay(const QString& as_Text)
+{
+    // now insert text char by char :TODO: speed this up, but seems complicated
+    for (int i = 0; i < as_Text.length(); ++i)
+    {
+        QChar lc_Char = as_Text[i];
+        if (lc_Char == '\r')
+        {
+            moveCursor(QTextCursor::StartOfLine);
+        }
+        else if (lc_Char == '\n')
+        {
+            moveCursor(QTextCursor::EndOfLine);
+            textCursor().insertText(lc_Char);
+        }
+        else
+        {
+            if (!textCursor().atEnd())
+                textCursor().deleteChar();
+            textCursor().insertText(lc_Char);
+        }
+    }
 }
