@@ -42,7 +42,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     , mk_WatchedBoxObject_(NULL)
     , mb_JustStarted(true)
     , mk_WordSplitter("\\W+")
-
+    , mb_PreventUpdates(false)
 {
 }
 
@@ -299,8 +299,18 @@ void k_PipelineMainWindow::loadPipeline(QString as_Path)
     if ((!ls_Path.isEmpty()) && QFileInfo(ls_Path).exists())
     {
         tk_YamlMap lk_Description = k_Yaml::parseFromFile(ls_Path).toMap();
-        if (mk_Desktop_->applyPipelineDescription(lk_Description, QFileInfo(ls_Path).absolutePath()))
-            ms_PipelineFilename = ls_Path;
+        {
+            mb_PreventUpdates = true;
+            centralWidget()->hide();
+            mk_PaneDockWidget_->hide();
+            QCoreApplication::processEvents();
+            if (mk_Desktop_->applyPipelineDescription(lk_Description, QFileInfo(ls_Path).absolutePath()))
+                ms_PipelineFilename = ls_Path;
+            mb_PreventUpdates = false;
+            centralWidget()->show();
+            toggleUi();
+            showAll();
+        }
         forceRefresh();
         mk_Desktop_->setHasUnsavedChanges(false);
     }
@@ -604,10 +614,13 @@ void k_PipelineMainWindow::toggleUi()
         mk_Application.setStyleSheet(ls_NewStyleSheet);
         ms_CurrentStyleSheet = ls_NewStyleSheet;
     }
-    if (!mk_Desktop_->hasScriptBoxes())
-        mk_PaneDockWidget_->hide();
-    else
-        mk_PaneDockWidget_->show();
+    if (!mb_PreventUpdates)
+    {
+        if (!mk_Desktop_->hasScriptBoxes())
+            mk_PaneDockWidget_->hide();
+        else
+            mk_PaneDockWidget_->show();
+    }
 }
 
 
@@ -632,7 +645,8 @@ void k_PipelineMainWindow::setCurrentScriptBox(IScriptBox* ak_ScriptBox_)
         if (mb_JustStarted)
         {
             mb_JustStarted = false;
-            mk_PaneDockWidget_->show();
+            if (!mb_PreventUpdates)
+                mk_PaneDockWidget_->show();
 /*          QList<int> lk_Sizes;
             lk_Sizes.push_back(width() - 450);
             lk_Sizes.push_back(450);

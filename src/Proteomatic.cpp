@@ -716,7 +716,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 
     foreach (QString ls_Path, lk_Scripts)
     {
-        mk_Application.processEvents();
+        QCoreApplication::processEvents();
         ++li_Count;
         lk_ProgressDialog.setValue(li_Count);
         if (ls_Path.contains(".defunct."))
