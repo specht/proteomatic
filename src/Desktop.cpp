@@ -763,6 +763,9 @@ tk_YamlMap k_Desktop::pipelineDescription()
 
 bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_DescriptionBasePath)
 {
+    QHash<IDesktopBox*, QPoint> lk_BoxPositions;
+    QHash<IDesktopBox*, QSize> lk_BoxSizes;
+    
     int li_ScriptCount = 0;
     if (ak_Description.contains("scriptBoxes"))
         li_ScriptCount = ak_Description["scriptBoxes"].toList().size();
@@ -880,9 +883,11 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
                 if (lk_BoxDescription["size"].toList().size() == 2)
                 {
                     tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                    lk_BoxSizes[lk_Box_] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
                     dynamic_cast<k_DesktopBox*>(lk_Box_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
                 }
                 tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+                lk_BoxPositions[lk_Box_] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
                 moveBoxTo(lk_Box_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                 bool lb_ShortTags = false;
                 if (lk_BoxDescription["shortIterationTags"].toString() == "yes" ||
@@ -901,9 +906,11 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
                         if (lk_OutBoxDescription["size"].toList().size() == 2)
                         {
                             tk_YamlSequence lk_Size = lk_OutBoxDescription["size"].toList();
+                            lk_BoxSizes[lk_OutputBox_] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
                             dynamic_cast<k_DesktopBox*>(lk_OutputBox_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
                         }
                         tk_YamlSequence lk_Position = lk_OutBoxDescription["position"].toList();
+                        lk_BoxPositions[lk_OutputBox_] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
                         moveBoxTo(lk_OutputBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         if (lk_OutBoxDescription["batchMode"].toString() == "yes" || 
                             lk_OutBoxDescription["batchMode"].toString() == "true")
@@ -916,9 +923,11 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
                     if (lk_BoxDescription["size"].toList().size() == 2)
                     {
                         tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                        lk_BoxSizes[lk_Box_->outgoingBoxes().toList().first()] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
                         dynamic_cast<k_DesktopBox*>(lk_Box_->outgoingBoxes().toList().first())->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
                     }
                     tk_YamlSequence lk_Position = lk_BoxDescription["converterOutputFileBoxPosition"].toList();
+                    lk_BoxPositions[lk_Box_->outgoingBoxes().toList().first()] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
                     moveBoxTo(lk_Box_->outgoingBoxes().toList().first(), QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                     lk_BoxForId[lk_BoxDescription["converterOutputFileBoxId"].toString()] = lk_Box_->outgoingBoxes().toList().first();
                     if (lk_BoxDescription["converterOutputFileBoxBatchMode"].toString() == "yes" || 
@@ -939,9 +948,11 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
                             if (lk_BoxDescription["size"].toList().size() == 2)
                             {
                                 tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                                lk_BoxSizes[lk_ProxyBox_] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
                                 dynamic_cast<k_DesktopBox*>(lk_ProxyBox_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
                             }
                             tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+                            lk_BoxPositions[lk_ProxyBox_] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
                             moveBoxTo(lk_ProxyBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         }
                     }
@@ -959,9 +970,11 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
         if (lk_BoxDescription["size"].toList().size() == 2)
         {
             tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+            lk_BoxSizes[lk_BoxForId[ls_Id]] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
             dynamic_cast<k_DesktopBox*>(lk_BoxForId[ls_Id])->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
         }
         tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+        lk_BoxPositions[lk_BoxForId[ls_Id]] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
         moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
         tk_YamlSequence lk_Paths = lk_BoxDescription["paths"].toList();
         foreach (QVariant lk_Path, lk_Paths)
@@ -984,9 +997,11 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
         if (lk_BoxDescription["size"].toList().size() == 2)
         {
             tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+            lk_BoxSizes[lk_BoxForId[ls_Id]] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
             dynamic_cast<k_DesktopBox*>(lk_BoxForId[ls_Id])->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
         }
         tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+        lk_BoxPositions[lk_BoxForId[ls_Id]] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
         moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
         
         dynamic_cast<k_SnippetBox*>(lk_BoxForId[ls_Id])->setText(lk_BoxDescription["text"].toString());
@@ -1034,6 +1049,11 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     redraw();
     setHasUnsavedChanges(false);
     emit showAllRequested();
+
+    foreach (IDesktopBox* lk_Box_, lk_BoxSizes.keys())
+        dynamic_cast<k_DesktopBox*>(lk_Box_)->resize(lk_BoxSizes[lk_Box_]);
+    foreach (IDesktopBox* lk_Box_, lk_BoxPositions.keys())
+        moveBoxTo(lk_Box_, lk_BoxPositions[lk_Box_]);
     
     // handle warnings
     if (!lk_Warnings.empty())
