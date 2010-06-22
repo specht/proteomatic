@@ -136,7 +136,8 @@ IDesktopBox* k_Desktop::addSnippetBox(bool ab_AutoAdjust)
 }
 
 
-IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust, bool ab_AutoAddFileBoxIfEmpty)
+IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust, 
+                                     bool ab_AutoAddFileBoxIfEmpty)
 {
     int li_OldBoxCount = mk_Boxes.size();
     
@@ -785,6 +786,7 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     // first check for unresolved dependencies and try to resolve them
     if (!ak_Description["scriptBoxes"].toList().empty())
     {
+        QCoreApplication::processEvents();
         QString ls_ScriptBasePath;
         QSet<QString> lk_ScriptSet;
         foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
@@ -836,6 +838,7 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     // now load the scripts
     foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
     {
+        QCoreApplication::processEvents();
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
         QString ls_Uri = lk_BoxDescription["uri"].toString();
         QString ls_Id = lk_BoxDescription["id"].toString();
@@ -857,6 +860,9 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
         if (lk_Box_)
         {
             IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+            
+            QCoreApplication::processEvents();
+            
             if (lk_ScriptBox_)
             {
                 QString ls_OutputDirectory = lk_BoxDescription["outputDirectory"].toString();
@@ -964,6 +970,7 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     }
     foreach (QVariant lk_Item, ak_Description["inputFileListBoxes"].toList())
     {
+        QCoreApplication::processEvents();
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
         QString ls_Id = lk_BoxDescription["id"].toString();
         lk_BoxForId[ls_Id] = addInputFileListBox(false);
@@ -991,6 +998,7 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     }
     foreach (QVariant lk_Item, ak_Description["snippetBoxes"].toList())
     {
+        QCoreApplication::processEvents();
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
         QString ls_Id = lk_BoxDescription["id"].toString();
         lk_BoxForId[ls_Id] = addSnippetBox(false);
@@ -1027,6 +1035,7 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     // lead to slot being called immediately)
     while (true)
     {
+        QCoreApplication::processEvents();
         bool lb_AllBatchModeOk = true;
         foreach (k_FileListBox* lk_Box_, lk_BatchModeFileListBoxes)
         {
@@ -1044,11 +1053,12 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     foreach (IScriptBox* lk_ScriptBox_, lk_ShortIterationTagBoxes.keys())
         lk_ScriptBox_->setUseShortIterationTags(lk_ShortIterationTagBoxes[lk_ScriptBox_]);
     
+    resetCachedContent();
     animateAdjustView(true, QSet<IDesktopBox*>(), false);
     
     redraw();
     setHasUnsavedChanges(false);
-    emit showAllRequested();
+//     emit showAllRequested();
 
     foreach (IDesktopBox* lk_Box_, lk_BoxSizes.keys())
         dynamic_cast<k_DesktopBox*>(lk_Box_)->resize(lk_BoxSizes[lk_Box_]);

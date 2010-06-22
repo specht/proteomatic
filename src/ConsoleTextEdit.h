@@ -36,6 +36,7 @@ public slots:
     
 protected:
     void initialize();
+    void appendTheSlowWay(const QString& as_Text);
     
     k_Proteomatic& mk_Proteomatic;
 };

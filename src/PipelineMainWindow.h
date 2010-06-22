@@ -114,4 +114,6 @@ protected:
     QRegExp mk_WordSplitter;
     QSharedPointer<QListWidget> mk_pSearchPopup;
     QString ms_CurrentStyleSheet;
+    
+    bool mb_PreventUpdates;
 };
