@@ -2450,7 +2450,10 @@ QSet<IScriptBox*> k_Desktop::incomingScriptBoxes(IDesktopBox* ak_Box_) const
 
 void k_Desktop::dragEnterEvent(QDragEnterEvent* event)
 {
-    event->acceptProposedAction();
+    if (running())
+        event->ignore();
+    else
+        event->acceptProposedAction();
 }
 
 
@@ -2465,6 +2468,12 @@ void k_Desktop::dragMoveEvent(QDragMoveEvent* event)
 
 void k_Desktop::dropEvent(QDropEvent* event)
 {
+    if (running())
+    {
+        event->ignore();
+        return;
+    }
+    
     // only accept this if there is no box under the mouse pointer
     if (boxAt(mapToScene(event->pos())))
     {
