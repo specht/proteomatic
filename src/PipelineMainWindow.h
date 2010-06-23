@@ -57,6 +57,8 @@ signals:
 protected:
     virtual void closeEvent(QCloseEvent* event);
     virtual void keyPressEvent(QKeyEvent* ak_Event_);
+    virtual void hideEvent(QHideEvent* ak_Event_);
+    virtual void showEvent(QShowEvent* ak_Event_);
 
 protected slots:
     void quit();

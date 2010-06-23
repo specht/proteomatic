@@ -272,6 +272,20 @@ void k_PipelineMainWindow::keyPressEvent(QKeyEvent* ak_Event_)
 }
 
 
+void k_PipelineMainWindow::hideEvent(QHideEvent* ak_Event_)
+{
+    mk_Desktop_->saveBoxPositions();
+    ak_Event_->accept();
+}
+
+
+void k_PipelineMainWindow::showEvent(QShowEvent* ak_Event_)
+{
+    mk_Desktop_->restoreBoxPositions();
+    ak_Event_->accept();
+}
+
+
 void k_PipelineMainWindow::newPipeline()
 {
     if (!askForSaveIfNecessary())

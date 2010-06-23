@@ -72,12 +72,16 @@ k_ScriptBox::~k_ScriptBox()
 
 QString k_ScriptBox::description()
 {
-    return QString("[%1] (%2/%3) script box %4%5").
+    return QString("[%1] (%2/%3) script box %4%5: %6:%7 %8x%9").
         arg(topologicalIndex()).
         arg(incomingBoxes().size()).
         arg(outgoingBoxes().size()).
         arg(mb_BatchMode ? "(batch mode) " : "").
-        arg(script()->title());
+        arg(script()->title()).
+        arg(pos().x()).
+        arg(pos().y()).
+        arg(width()).
+        arg(height());
 }
 
 

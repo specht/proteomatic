@@ -1143,6 +1143,24 @@ QList<IDesktopBox*> k_Desktop::boxesByTopologicalOrder()
 }
 
 
+void k_Desktop::saveBoxPositions()
+{
+    mk_SavedBoxPositions.clear();
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        mk_SavedBoxPositions[lk_Box_] = boxLocation(lk_Box_);
+}
+
+
+void k_Desktop::restoreBoxPositions()
+{
+    foreach (IDesktopBox* lk_Box_, mk_SavedBoxPositions.keys())
+    {
+        if (mk_Boxes.contains(lk_Box_))
+            moveBoxTo(lk_Box_, mk_SavedBoxPositions[lk_Box_]);
+    }
+}
+
+
 void k_Desktop::bringBoxToFrontSender()
 {
     QGraphicsProxyWidget* lk_ProxyWidget_ = dynamic_cast<QGraphicsProxyWidget*>(sender());

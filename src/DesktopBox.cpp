@@ -128,11 +128,15 @@ QSet<IDesktopBox*> k_DesktopBox::outgoingBoxes() const
 
 QString k_DesktopBox::description()
 {
-    return QString("generic box [%1] (%2 in, %3 out)%4").
+    return QString("generic box [%1] (%2 in, %3 out)%4: %5:%6 %7x%8").
         arg(topologicalIndex()).
         arg(incomingBoxes().size()).
         arg(outgoingBoxes().size()).
-        arg(mb_BatchMode ? " (batch mode)" : "");
+        arg(mb_BatchMode ? " (batch mode)" : "").
+        arg(pos().x()).
+        arg(pos().y()).
+        arg(width()).
+        arg(height());
 }
 
 
