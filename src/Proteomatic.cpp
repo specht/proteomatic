@@ -111,7 +111,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
         QFile lk_File(ls_UpdateHelperPath);
         if (lk_File.open(QIODevice::WriteOnly))
         {
-            QFile lk_Template(":/helper/update.rb");
+            QFile lk_Template(":/update.rb");
             if (lk_Template.open(QIODevice::ReadOnly))
             {
                 lk_File.write(lk_Template.readAll());
