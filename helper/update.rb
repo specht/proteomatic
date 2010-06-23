@@ -9,6 +9,8 @@ require 'digest/md5'
 $stdout.sync = true
 $stderr.sync = true
 
+$scriptsPath = nil
+
 # change into this script's directory
 Dir::chdir(File.dirname(__FILE__))
 
@@ -169,7 +171,8 @@ def updateScripts(info)
     FileUtils::rm_rf('temp')
     FileUtils::mkdir('temp')
     # determine currently installed scripts version
-    scriptsDir = File::join('..', 'scripts')
+    scriptsDir = $scriptsPath
+    scriptsDir ||= File::join('..', 'scripts')
     unless File::directory?(scriptsDir)
         if File::file?(scriptsDir)
             puts "Error: A file called 'scripts' exists, but we need to create a directory there."
@@ -260,7 +263,7 @@ end
 ls_Uri = ''
 
 if ARGV.size < 1
-    puts 'Usage: ruby update.rb [Proteomatic update URI] [(optional) --dryrun] [packages]'
+    puts 'Usage: ruby update.rb [Proteomatic update URI] [--dryrun] [--scriptsPath <path>] [packages]'
     puts "Packages may be 'scripts' or 'proteomatic'."
     exit 1
 end
@@ -271,6 +274,13 @@ lb_DryRun = false
 if ARGV.include?('--dryrun')
     lb_DryRun = true
     ARGV.delete('--dryrun')
+end
+
+if ARGV.include?('--scriptsPath')
+    i = ARGV.index('--scriptsPath')
+    $scriptsPath = ARGV[i + 1]
+    ARGV.delete_at(i)
+    ARGV.delete_at(i)
 end
 
 updatePackages = Array.new
@@ -311,89 +321,3 @@ updatePackages.each do |package|
 end
 
 FileUtils::rm_rf('temp')
-
-__END__
-
-ls_PackagePath = File::join(ls_OutPath, ls_Current)
-puts "Fetching #{ls_Current}"
-$stdout.flush
-fetchUriAsFile(File::join(ls_Uri, ls_Current), ls_PackagePath)
-puts
-$stdout.flush
-
-puts "Unpacking..."
-$stdout.flush
-
-ls_OldDir = Dir::pwd()
-Dir::chdir(File::dirname(ls_PackagePath))
-ls_Platform = determinePlatform()
-
-if (ls_Platform == 'linux' || ls_Platform == 'macx')
-    unless system("bzip2 -dc \"#{File::basename(ls_PackagePath)}\" | tar xf -")
-        puts "Error: Unable to unpack #{ls_PackagePath}."
-        exit 1
-    end
-elsif (ls_Platform == 'win32')
-    ls_Command = "#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x \"#{ls_PackagePath}\""
-    begin
-        lk_Process = IO.popen(ls_Command)
-        lk_Process.read
-    rescue StandardError => e
-        puts 'Error: There was an error while executing 7zip.'
-        exit 1
-    end
-
-    FileUtils::rm_f(ls_PackagePath)
-    ls_PackagePath.sub!('.bz2', '')
-    
-    ls_Command = "#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x \"#{ls_PackagePath}\""
-    begin
-        lk_Process = IO.popen(ls_Command)
-        lk_Process.read
-    rescue StandardError => e
-        puts 'Error: There was an error while executing 7zip.'
-        exit 1
-    end
-end
-
-$stdout.flush
-unless (ls_OldPath.empty?)
-    puts "Copying configuration files..."
-    $stdout.flush
-    lk_OldFiles = Dir[File::join(ls_OldPath, 'config/**/*')]
-    #lk_OldFiles += Dir[File::join(ls_OldPath, 'ext/**/*')]
-    lk_OldFiles.collect! { |x| x.sub(ls_OldPath, '') }
-    ls_NewPath = File::join(ls_OutPath, ls_Current.sub('.tar.bz2', ''))
-    lk_NewFiles = Dir[File::join(ls_NewPath, 'config/**/*')]
-    #lk_NewFiles += Dir[File::join(ls_NewPath, 'ext/**/*')]
-    
-    # strip base dir
-    lk_NewFiles.collect! { |x| x.sub(ls_NewPath, '') }
-    
-    # reject files that are already in the new location
-    lk_OldFiles.reject! { |x| lk_NewFiles.include?(x) }
-    
-    # expand to full path again
-    lk_OldFiles.collect! { |x| File::join(ls_OldPath, x) }
-    
-    # extact dirs
-    lk_OldExtraDirs = lk_OldFiles.select { |x| File::directory?(x) } 
-    
-    # reject dirs
-    lk_OldFiles.reject! { |x| File::directory?(x) }
-    
-    # create dirs in new location
-    lk_OldExtraDirs.each do |ls_Dir|
-        FileUtils::mkpath(File::join(ls_NewPath, ls_Dir.sub(ls_OldPath, '')))
-    end
-    
-    # copy files to new location
-    lk_OldFiles.each do |ls_File|
-        FileUtils::cp(ls_File, File::join(ls_NewPath, ls_File.sub(ls_OldPath, '')))
-    end
-end
-
-puts "Update completed successfully."
-
-Dir::chdir(ls_OldDir)
-FileUtils::rm_f(ls_PackagePath)

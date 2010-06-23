@@ -233,6 +233,7 @@ protected:
     QString ms_DataDirectory;
     QString ms_ExternalToolsPath;
     QString ms_TempPath;
+    QString ms_HelperPath;
     QString ms_ManagedScriptsPath;
     QStringList mk_AdditionalScriptPaths;
     QString ms_ConfigurationPath;
