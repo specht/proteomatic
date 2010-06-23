@@ -34,7 +34,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 
-#define DEFAULT_UPDATE_URI "ftp://gpf.uni-muenster.de/download/proteomatic/update"
+#define DEFAULT_UPDATE_URI "http://www.proteomatic.org/review_update"
 
 
 #ifdef Q_OS_WIN32
