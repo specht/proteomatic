@@ -63,7 +63,7 @@ def fetchUriAsFile(as_Uri, as_Path, ab_ShowProgress = true)
         end
     else
         li_Size = 0
-        open(ls_Uri, 
+        open(as_Uri, 
             :content_length_proc => lambda { |t| li_Size = t }, 
             :progress_proc => lambda { |t| print "\rDownloaded #{bytesToString(t)} of #{bytesToString(li_Size)}    "  if ab_ShowProgress }) do |lk_RemoteFile|
             File::open(as_Path, 'wb') { |lk_Out| lk_Out.write(lk_RemoteFile.read) }
