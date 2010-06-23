@@ -34,6 +34,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 
+#define DEFAULT_UPDATE_URI "ftp://gpf.uni-muenster.de/download/proteomatic/update"
+
+
 #ifdef Q_OS_WIN32
     #define FILE_URL_PREFIX "file:///"
 #else
@@ -90,9 +93,34 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     ms_TempPath = QDir::cleanPath(ms_DataDirectory + "/temp");
     if (!lk_Dir.exists(ms_TempPath))
         lk_Dir.mkdir(ms_TempPath);
+    ms_HelperPath = QDir::cleanPath(ms_DataDirectory + "/helper");
+    if (!lk_Dir.exists(ms_HelperPath))
+        lk_Dir.mkdir(ms_HelperPath);
 
     ms_ManagedScriptsPath = QDir::cleanPath(ms_DataDirectory + "/scripts");
     ms_ConfigurationPath = QDir::cleanPath(ms_DataDirectory + "/proteomatic.conf.yaml");
+    
+#ifndef PROTEOMATIC_PORTABLE
+    // Linux: this is a non-portable package, and the data directory points to 
+    // ~/.proteomatic now the update.rb helper is missing in the beginning and 
+    // also the scripts, so write the update helper and attempt to download the 
+    // scripts
+    QString ls_UpdateHelperPath = QDir::cleanPath(ms_HelperPath + "/update.rb");
+    if (!QFileInfo(ls_UpdateHelperPath).exists())
+    {
+        QFile lk_File(ls_UpdateHelperPath);
+        if (lk_File.open(QIODevice::WriteOnly))
+        {
+            QFile lk_Template(":/helper/update.rb");
+            if (lk_Template.open(QIODevice::ReadOnly))
+            {
+                lk_File.write(lk_Template.readAll());
+                lk_Template.close();
+            }
+        }
+        lk_File.close();
+    }
+#endif
 }
 
 
@@ -171,7 +199,10 @@ void k_Proteomatic::checkForUpdates()
 {
     if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
     {
-        QStringList lk_Arguments = QStringList() << "-W0" << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
+        QStringList lk_Arguments = QStringList() << "-W0" << ms_HelperPath + "/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
+        #ifndef PROTEOMATIC_PORTABLE
+        lk_Arguments << "--scriptsPath" << QDir(ms_ManagedScriptsPath).absolutePath();
+        #endif
         mk_pModalProcess = QSharedPointer<QProcess>(new QProcess());
         QFileInfo lk_FileInfo(lk_Arguments.first());
         mk_pModalProcess->setWorkingDirectory(lk_FileInfo.absolutePath());
@@ -267,7 +298,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                         if (!mk_Desktop_->hasUnsavedChanges())
                         {
                             QStringList lk_Arguments;
-                            lk_Arguments = QStringList() << "-W0" << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
+                            lk_Arguments = QStringList() << "-W0" << ms_HelperPath + "/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             if (lk_RubyWindow.exec())
                             {
@@ -308,7 +339,10 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                                 QDir().mkpath(ms_ManagedScriptsPath);
                             
                             QStringList lk_Arguments;
-                            lk_Arguments = QStringList() << "-W0" << QDir::currentPath() + "/helper/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
+                            lk_Arguments = QStringList() << "-W0" << ms_HelperPath + "/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
+                            #ifndef PROTEOMATIC_PORTABLE
+                            lk_Arguments << "--scriptsPath" << QDir(ms_ManagedScriptsPath).absolutePath();
+                            #endif
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             lk_RubyWindow.exec();
                             
@@ -549,7 +583,7 @@ void k_Proteomatic::loadConfiguration()
     }
     if (!mk_Configuration.contains(CONFIG_SCRIPTS_URL) || mk_Configuration[CONFIG_SCRIPTS_URL].type() != QVariant::String)
     {
-        mk_Configuration[CONFIG_SCRIPTS_URL] = "";
+        mk_Configuration[CONFIG_SCRIPTS_URL] = DEFAULT_UPDATE_URI;
         lb_InsertedDefaultValue = true;
     }
     if (!mk_Configuration.contains(CONFIG_FOLLOW_NEW_BOXES) || mk_Configuration[CONFIG_FOLLOW_NEW_BOXES].type() != QVariant::String)
@@ -588,7 +622,7 @@ void k_Proteomatic::loadConfiguration()
     
     if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
     {
-        mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = false;
+        mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES] = true;
         lb_InsertedDefaultValue = true;
     }
     if (!mk_Configuration.contains(CONFIG_WARN_ABOUT_MIXED_PROFILES) || mk_Configuration[CONFIG_WARN_ABOUT_MIXED_PROFILES].type() != QVariant::String)

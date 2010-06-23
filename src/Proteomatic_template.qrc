@@ -59,6 +59,7 @@
   <file>icons/utilities-terminal.png</file>
   <file>icons/view-fullscreen.png</file>
   <file>icons/view-refresh.png</file>
+  <file alias='update.rb'>../helper/update.rb</file>
   <file>ext/cli-tools-atlas/text-formats.txt</file>
 <!-- FORMAT FILES -->
 <!-- insert files here -->
