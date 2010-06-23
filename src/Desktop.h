@@ -69,6 +69,9 @@ public:
     
     virtual QList<IDesktopBox*> boxesByTopologicalOrder();
     
+    virtual void saveBoxPositions();
+    virtual void restoreBoxPositions();
+    
 public slots:
     virtual void clearAll();
     virtual void refresh();
@@ -208,4 +211,5 @@ protected:
     QSet<IDesktopBox*> mk_BoxesMarkedForUpdate;
     
     bool mb_GlobalUpdateRequested;
+    QHash<IDesktopBox*, QPoint> mk_SavedBoxPositions;
 };
