@@ -229,6 +229,7 @@ void k_FileListBox::toggleUi()
     mk_FileList.refresh();
     
     mk_BatchModeButton.setVisible(mb_ListMode);
+    mk_BatchModeButton.setEnabled(mk_FileList.files().size() > 1);
     mk_RemoveSelectionButton.setEnabled(!mk_FileList.selectedItems().empty());
     QString ls_Label;
     if (ms_Label.isEmpty())
@@ -339,6 +340,12 @@ void k_FileListBox::update()
         if (!mk_FilenamesForTag.contains(ls_Tag))
             mk_FilenamesForTag[ls_Tag] = QStringList();
         mk_FilenamesForTag[ls_Tag] << ls_Filename;
+    }
+    
+    if (batchMode() && (mk_FileList.files().size() < 2))
+    {
+        setBatchMode(false);
+        mk_BatchModeButton.setDown(false);
     }
     
     mk_Desktop_->setHasUnsavedChanges(true);
