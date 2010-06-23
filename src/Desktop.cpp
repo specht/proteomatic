@@ -815,7 +815,6 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
                 + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
             if (li_Result == QMessageBox::Yes)
             {
-                qDebug() << lk_Map.keys();
                 bool lb_Flag = mk_Proteomatic.syncShowRuby((QStringList() << 
                     QFileInfo(QDir(ls_ScriptBasePath), "helper/resolve-dependencies.rb").absoluteFilePath() << 
                     "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_Map.keys(), "Installing external tools");
@@ -1052,6 +1051,17 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
     // set 'use short iteration tags' options
     foreach (IScriptBox* lk_ScriptBox_, lk_ShortIterationTagBoxes.keys())
         lk_ScriptBox_->setUseShortIterationTags(lk_ShortIterationTagBoxes[lk_ScriptBox_]);
+    
+    // select first script box
+    foreach (IDesktopBox* lk_Box_, boxesByTopologicalOrder())
+    {
+        IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+        if (lk_ScriptBox_)
+        {
+            setCurrentScriptBox(lk_ScriptBox_);
+            break;
+        }
+    }
     
     resetCachedContent();
     animateAdjustView(true, QSet<IDesktopBox*>(), false);

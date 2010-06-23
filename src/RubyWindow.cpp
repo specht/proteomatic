@@ -32,7 +32,7 @@ k_RubyWindow::k_RubyWindow(k_Proteomatic& ak_Proteomatic, QStringList ak_Argumen
     mk_pDialog->setWindowTitle(as_Title);
     mk_pDialog->resize(512, 250);
     QBoxLayout* lk_VLayout_ = new QVBoxLayout(mk_pDialog.data());
-    QBoxLayout* lk_HLayout_ = new QHBoxLayout(mk_pDialog.data());
+    QBoxLayout* lk_HLayout_ = new QHBoxLayout(NULL);
     mk_Output_ = new k_ConsoleTextEdit(mk_Proteomatic, mk_pDialog.data());
     lk_VLayout_->addWidget(mk_Output_);
     lk_VLayout_->addLayout(lk_HLayout_);
