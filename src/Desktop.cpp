@@ -1158,6 +1158,7 @@ void k_Desktop::restoreBoxPositions()
         if (mk_Boxes.contains(lk_Box_))
             moveBoxTo(lk_Box_, mk_SavedBoxPositions[lk_Box_]);
     }
+    mk_SavedBoxPositions.clear();
 }
 
 
