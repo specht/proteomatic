@@ -1220,6 +1220,7 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
     mb_UseFileTrackerIfAvailable = ab_UseFileTrackingIfAvailable;
     // collect all script boxes
     mk_RemainingScriptBoxes.clear();
+    mk_RemainingScriptBoxIterationKeys.clear();
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
     {
         IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
@@ -2449,11 +2450,12 @@ QPointF k_Desktop::findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, QRectF ak
 
 IScriptBox* k_Desktop::pickNextScriptBox()
 {
-    foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
+    foreach (IDesktopBox* lk_Box_, boxesByTopologicalOrder())
     {
         IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
-        if (lk_ScriptBox_ && lk_ScriptBox_->checkReadyToGo())
-            return lk_ScriptBox_;
+        if (lk_ScriptBox_ && mk_RemainingScriptBoxes.contains(lk_ScriptBox_))
+            if (lk_ScriptBox_->checkReadyToGo())
+                return lk_ScriptBox_;
     }
     return NULL;
 }
