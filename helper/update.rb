@@ -6,13 +6,8 @@ require 'fileutils'
 require 'yaml'
 require 'digest/md5'
 
-flushThread = Thread.new do 
-    loop do
-        STDOUT.flush
-        STDERR.flush
-        sleep 1
-    end
-end
+$stdout.sync = true
+$stderr.sync = true
 
 # change into this script's directory
 Dir::chdir(File.dirname(__FILE__))
