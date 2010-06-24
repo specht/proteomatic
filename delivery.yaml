@@ -3,7 +3,6 @@ projects:
   #- src/projects/Revelio
 #binaryPath: bin
 addProteomaticScripts: review
-runProteomaticScriptsCommands: ["mkdir ../../ext", "ruby qtrace.rb --extToolsPath ../../ext/ --resolveDependencies"]
 qt: [core, gui]
 versionInject:
   debian/changelog: |
