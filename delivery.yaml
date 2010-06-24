@@ -2,7 +2,6 @@ projects:
   - .
   #- src/projects/Revelio
 #binaryPath: bin
-addProteomaticScripts: review
 qt: [core, gui]
 versionInject:
   debian/changelog: |
