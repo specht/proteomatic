@@ -16,7 +16,7 @@
    version="1.1"
    inkscape:version="0.47 r22583"
    sodipodi:docname="dmg-background.svg"
-   inkscape:export-filename="/home/michael/Desktop/dmg-background.png"
+   inkscape:export-filename="/home/michael/programming/proteomatic/src/icons/craft/dmg-background.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -934,7 +934,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="0.985"
      inkscape:cx="453.98281"
-     inkscape:cy="143.09495"
+     inkscape:cy="224.31322"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -1100,7 +1100,7 @@
        style="fill:#77be31;fill-opacity:1;stroke:#4b8415;stroke-width:18.96737289;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;display:none" />
     <path
        transform="matrix(21.338294,0,0,21.338294,288.57121,592.02906)"
-       d="m -14,10 a 4,4 0 1 1 -8,0 4,4 0 1 1 8,0 z"
+       d="m -14,10 c 0,2.209139 -1.790861,4 -4,4 -2.209139,0 -4,-1.790861 -4,-4 0,-2.209139 1.790861,-4 4,-4 2.209139,0 4,1.790861 4,4 z"
        sodipodi:ry="4"
        sodipodi:rx="4"
        sodipodi:cy="10"
@@ -1120,7 +1120,7 @@
        sodipodi:cy="10"
        sodipodi:rx="4"
        sodipodi:ry="4"
-       d="m -14,10 a 4,4 0 1 1 -8,0 4,4 0 1 1 8,0 z"
+       d="m -14,10 c 0,2.209139 -1.790861,4 -4,4 -2.209139,0 -4,-1.790861 -4,-4 0,-2.209139 1.790861,-4 4,-4 2.209139,0 4,1.790861 4,4 z"
        transform="matrix(16.006461,-9.2413342,9.2413342,16.006461,726.03532,557.84827)" />
     <path
        sodipodi:type="arc"
@@ -1130,7 +1130,7 @@
        sodipodi:cy="35"
        sodipodi:rx="16.964285"
        sodipodi:ry="18.571428"
-       d="m 116.07142,35 a 16.964285,18.571428 0 1 1 -33.928565,0 16.964285,18.571428 0 1 1 33.928565,0 z"
+       d="m 116.07142,35 c 0,10.256717 -7.59516,18.571428 -16.96428,18.571428 -9.369116,0 -16.964285,-8.314711 -16.964285,-18.571428 0,-10.256717 7.595169,-18.571428 16.964285,-18.571428 9.36912,0 16.96428,8.314711 16.96428,18.571428 z"
        transform="matrix(5.5903825,0,0,5.1066007,-4.2712402,740.88824)"
        inkscape:export-filename="C:\Users\Micha\Desktop\gpf-16.png"
        inkscape:export-xdpi="46.450001"
@@ -1214,7 +1214,7 @@
        d="m 613.39039,982.28239 -7.16892,20.74341 c -2.47543,-1.2674 -4.66184,-2.9418 -6.34224,-5.30904 l 0.56418,23.59674 -0.1828,0.6596 0.33377,6.4854 4.10103,-4.5461 0.1828,-0.6597 15.08482,-18.5498 c -3.04382,0.9531 -6.3387,0.8775 -9.30675,0.2622 l 7.35172,-21.40311 -4.61761,-1.2796 z"
        style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#000000;fill:#4b8415;fill-opacity:1;stroke:none;stroke-width:0.2;marker:none;visibility:visible;display:none;overflow:visible;enable-background:accumulate;font-family:Andale Mono;-inkscape-font-specification:Andale Mono" />
     <flowRoot
-       transform="translate(-54.891995,729.01529)"
+       transform="translate(-54.891995,715.01529)"
        style="font-size:6px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial;-inkscape-font-specification:Arial"
        id="flowRoot4669"
        xml:space="preserve"><flowRegion
@@ -1225,7 +1225,9 @@
            width="604.82849"
            id="rect4673" /></flowRegion><flowPara
          style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Bitstream Charter;-inkscape-font-specification:Bitstream Charter"
-         id="flowPara4677">To install, drag Proteomatic to the Applications shortcut</flowPara></flowRoot>    <g
+         id="flowPara2995">Before you run Proteomatic, please drag it to your </flowPara><flowPara
+         style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Bitstream Charter;-inkscape-font-specification:Bitstream Charter"
+         id="flowPara2999">Applications folder or onto your Desktop.</flowPara></flowRoot>    <g
        id="g5951"
        style="opacity:0.75"
        transform="translate(-10,0)">
