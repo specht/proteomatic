@@ -77,24 +77,40 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
         }
         else
         {
-            QStringList lk_Arguments;
-            lk_Arguments << as_ScriptPath << "---yamlInfo";
-            lk_Arguments << "--extToolsPath";
-            lk_Arguments << mk_Proteomatic.externalToolsPath();
-            // ignore Ruby warnings for ---yamlInfo
-            if (mk_Proteomatic.interpreterKeyForScript(as_ScriptPath) == "ruby")
-                lk_Arguments.insert(0, "-W0");
-            ls_Response = mk_Proteomatic.syncScriptNoFile(lk_Arguments, mk_Proteomatic.interpreterKeyForScript(as_ScriptPath));
-            if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
+            QString ls_ScriptCachePath = QFileInfo(lk_FileInfo.absolutePath() + "/cache/" + lk_FileInfo.fileName() + ".long.yamlinfo").filePath();
+            if (QFileInfo(ls_ScriptCachePath).exists())
             {
-                // update cached information
-                QFile lk_File(ls_CacheFilename);
-                if (lk_File.open(QIODevice::WriteOnly))
+                QFile lk_File(ls_ScriptCachePath);
+                lk_File.open(QIODevice::ReadOnly);
+                QTextStream lk_Stream(&lk_File);
+                ls_Response = lk_Stream.readAll();
+                lk_File.close();
+            }
+            else
+            {
+                QStringList lk_Arguments;
+                lk_Arguments << as_ScriptPath << "---yamlInfo";
+                lk_Arguments << "--extToolsPath";
+                lk_Arguments << mk_Proteomatic.externalToolsPath();
+                // ignore Ruby warnings for ---yamlInfo
+                if (mk_Proteomatic.interpreterKeyForScript(as_ScriptPath) == "ruby")
+                    lk_Arguments.insert(0, "-W0");
+                ls_Response = mk_Proteomatic.syncScriptNoFile(lk_Arguments, mk_Proteomatic.interpreterKeyForScript(as_ScriptPath));
+            }
+            
+            if (!ls_Response.isEmpty())
+            {
+                if (mk_Proteomatic.getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
                 {
-                    QTextStream lk_Stream(&lk_File);
-                    lk_Stream << ls_Response;
-                    lk_Stream.flush();
-                    lk_File.close();
+                    // update cached information
+                    QFile lk_File(ls_CacheFilename);
+                    if (lk_File.open(QIODevice::WriteOnly))
+                    {
+                        QTextStream lk_Stream(&lk_File);
+                        lk_Stream << ls_Response;
+                        lk_Stream.flush();
+                        lk_File.close();
+                    }
                 }
             }
         }
