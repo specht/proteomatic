@@ -59,25 +59,33 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     , mk_ScriptEnabledIcon(":icons/proteomatic.png")
     , mk_ScriptDisabledIcon(":icons/proteomatic-disabled.png")
 {
+    // data directory is home path by default
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
-#ifdef Q_OS_WIN32
+
+    // but if we're on Windows, %APPDATA%/Proteomatic is the data directory
+    #ifdef Q_OS_WIN32
     TCHAR ls_TempPath_[MAX_PATH + 1]; 
     // MSDN says it's FOLDERID_LocalAppData from Vista on
     // but that it's still valid... but for how long??
     // On the other hand, it did not seem to work in Win XP
     if (SHGetSpecialFolderPath(NULL, ls_TempPath_, CSIDL_APPDATA, NULL))
     {
-#ifdef UNICODE
+        #ifdef UNICODE
         ms_DataDirectory = QString::fromUtf16((ushort*)ls_TempPath_);
-#else
+        #else
         ms_DataDirectory = QString::fromLocal8Bit(ls_TempPath_);
-#endif
+        #endif
         ms_DataDirectory += "/Proteomatic";
     }
-#endif
-#ifdef PROTEOMATIC_PORTABLE
+    #endif
+
+    // however, if we're a portable version, the data directory is
+    // simply THIS directory... right?
+    #ifdef PROTEOMATIC_PORTABLE
     ms_DataDirectory = ".";
-#endif
+    #endif
+    
+    // now turn the data directory into an absolute, clean path
     ms_DataDirectory = QFileInfo(ms_DataDirectory).absoluteFilePath();
     ms_DataDirectory = QDir::cleanPath(ms_DataDirectory);
 
@@ -99,14 +107,12 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
 
     ms_ManagedScriptsPath = QDir::cleanPath(ms_DataDirectory + "/scripts");
     ms_ConfigurationPath = QDir::cleanPath(ms_DataDirectory + "/proteomatic.conf.yaml");
-    
-#ifndef PROTEOMATIC_PORTABLE
-    // Linux: this is a non-portable package, and the data directory points to 
-    // ~/.proteomatic now the update.rb helper is missing in the beginning and 
-    // also the scripts, so write the update helper and attempt to download the 
-    // scripts
+
+    // write the update helper if it's not there already, or if an old version is there
     QString ls_UpdateHelperPath = QDir::cleanPath(ms_HelperPath + "/update.rb");
-    if (!QFileInfo(ls_UpdateHelperPath).exists())
+    QString ls_PackagedUpdateMd5 = md5ForFile(":/update.rb");
+    QString ls_RealUpdateMd5 = md5ForFile(ls_UpdateHelperPath, false);
+    if (ls_PackagedUpdateMd5 != ls_RealUpdateMd5)
     {
         QFile lk_File(ls_UpdateHelperPath);
         if (lk_File.open(QIODevice::WriteOnly))
@@ -120,7 +126,6 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
         }
         lk_File.close();
     }
-#endif
 }
 
 
@@ -324,9 +329,11 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
             if (ls_LatestVersion != ls_InstalledVersion)
             {
                 lb_SomethingNewAvailable = true;
+                QString ls_Message = QString("A new version of Proteomatic scripts is available.<br /> ") + "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?";
+                if (ls_InstalledVersion.isEmpty())
+                        ls_Message = QString("<p><b>Welcome to Proteomatic</b></p><p>Because Proteomatic has been started for the first time, there are no scripts available yet. Do you want to download the latest scripts package now?</p>");
                 if (this->showMessageBox("Online update", 
-                    QString("A new version of Proteomatic scripts is available.<br /> ") + 
-                    "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?",
+                    ls_Message,
                     ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
                 {
                     if (mk_PipelineMainWindow_ && mk_Desktop_)
@@ -1849,28 +1856,39 @@ void k_Proteomatic::openFileLink(QString as_Path)
 }
 
 
-QString k_Proteomatic::md5ForFile(QString as_Path)
+QString k_Proteomatic::md5ForFile(QString as_Path, bool ab_ShowProgress)
 {   
-    QProgressDialog lk_ProgressDialog("Determining MD5 hash...", "Cancel", 0, QFileInfo(as_Path).size(), mk_MessageBoxParent_);
-    lk_ProgressDialog.setWindowModality(Qt::ApplicationModal);
-    lk_ProgressDialog.setWindowFlags(lk_ProgressDialog.windowFlags() | Qt::WindowStaysOnTopHint);
+    QSharedPointer<QProgressDialog> lk_pProgressDialog;
+    if (ab_ShowProgress)
+    {
+        lk_pProgressDialog = QSharedPointer<QProgressDialog>(new QProgressDialog("Determining MD5 hash...", "Cancel", 0, QFileInfo(as_Path).size(), mk_MessageBoxParent_));
+        lk_pProgressDialog->setWindowModality(Qt::ApplicationModal);
+        lk_pProgressDialog->setWindowFlags(lk_pProgressDialog->windowFlags() | Qt::WindowStaysOnTopHint);
+    }
 
     QFile lk_File(as_Path);
-    lk_File.open(QIODevice::ReadOnly);
+    if (!lk_File.open(QIODevice::ReadOnly))
+        return QString();
+    
     // calculate MD5 of file content
     md5_state_s lk_Md5State;
     md5_init(&lk_Md5State);
     qint64 li_BytesRead = 0;
     while (!lk_File.atEnd())
     {
-        if (lk_ProgressDialog.wasCanceled())
-            return QString();
+        if (ab_ShowProgress)
+        {
+            if (lk_pProgressDialog->wasCanceled())
+                return QString();
+        }
         QByteArray lk_Bytes = lk_File.read(8 * 1024 * 1024);
         li_BytesRead += lk_Bytes.size();
-        lk_ProgressDialog.setValue(li_BytesRead);
+        if (ab_ShowProgress)
+            lk_pProgressDialog->setValue(li_BytesRead);
         md5_append(&lk_Md5State, (md5_byte_t*)lk_Bytes.constData(), lk_Bytes.size());
     }
-    lk_ProgressDialog.setValue(QFileInfo(as_Path).size());
+    if (ab_ShowProgress)
+        lk_pProgressDialog->setValue(QFileInfo(as_Path).size());
     lk_File.close();
     unsigned char lk_Md5[16];
     md5_finish(&lk_Md5State, (md5_byte_t*)(&lk_Md5));
