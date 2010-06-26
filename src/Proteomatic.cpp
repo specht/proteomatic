@@ -126,6 +126,24 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
         }
         lk_File.close();
     }
+
+    #ifdef Q_OS_WIN32
+    // If we're on Windows, and there's no 7zip yet in the helper directory,
+    // copy it over, it must be here.
+    if (!QDir(ms_HelperPath + "/7zip").exists())
+    {
+        if (QDir(ms_HelperPath).mkdir("7zip"))
+        {
+            if (QDir(ms_HelperPath + "/7zip").mkdir("7za457"))
+            {
+                QString ls_OldPath = "./helper/7zip/7za457/";
+                QString ls_NewPath = ms_HelperPath + "/7zip/7za457/";
+                foreach (QString ls_Path, QDir(ls_OldPath).entryList(QDir::Files))
+                    QFile::copy(ls_OldPath + ls_Path, ls_NewPath + ls_Path);
+            }
+        }
+    }
+    #endif
 }
 
 
