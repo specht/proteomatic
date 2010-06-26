@@ -828,7 +828,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             {
                 // retrieve information from script
                 // first check whether a cached yamlinfo is already in the scripts package
-                QString ls_ScriptCachePath = QFileInfo(lk_FileInfo.absolutePath() + "/cache/" + lk_FileInfo.fileName() + ".yamlinfo").filePath();
+                QString ls_ScriptCachePath = QFileInfo(lk_FileInfo.absolutePath() + "/cache/" + lk_FileInfo.fileName() + ".short.yamlinfo").filePath();
                 if (QFileInfo(ls_ScriptCachePath).exists())
                 {
                     QFile lk_File(ls_ScriptCachePath);
@@ -865,19 +865,6 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                             lk_Stream.flush();
                             lk_File.close();                
                         }
-                    }
-                }
-                
-                if (getConfiguration(CONFIG_CACHE_SCRIPT_INFO).toBool())
-                {
-                    // update cached information
-                    QFile lk_File(ls_CacheFilename);
-                    if (lk_File.open(QIODevice::WriteOnly))
-                    {
-                        QTextStream lk_Stream(&lk_File);
-                        lk_Stream << ls_Response;
-                        lk_Stream.flush();
-                        lk_File.close();
                     }
                 }
             }
