@@ -243,10 +243,13 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
         foreach (IDesktopBox* lk_MoveBox_, lk_AllBoxes)
             dynamic_cast<k_DesktopBox*>(lk_MoveBox_)->move(dynamic_cast<k_DesktopBox*>(lk_MoveBox_)->pos() + QPoint((int)lk_FreeSpace.x(), (int)lk_FreeSpace.y()));
         
-        mk_SelectedArrows.clear();
-        mk_SelectedBoxes.clear();
-        foreach (IDesktopBox* lk_MoveBox_, lk_AllBoxes)
-            mk_SelectedBoxes << lk_MoveBox_;
+        if (!lb_DesktopWasEmpty)
+        {
+            mk_SelectedArrows.clear();
+            mk_SelectedBoxes.clear();
+            foreach (IDesktopBox* lk_MoveBox_, lk_AllBoxes)
+                mk_SelectedBoxes << lk_MoveBox_;
+        }
         
         if (mk_ArrowStartBoxAutoConnect_)
         {
