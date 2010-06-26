@@ -329,9 +329,11 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
             if (ls_LatestVersion != ls_InstalledVersion)
             {
                 lb_SomethingNewAvailable = true;
+                QString ls_Message = QString("A new version of Proteomatic scripts is available.<br /> ") + "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?";
+                if (ls_InstalledVersion.isEmpty())
+                        ls_Message = QString("<p><b>Welcome to Proteomatic</b></p><p>Because Proteomatic has been started for the first time, there are no scripts available yet. Do you want to download the latest scripts package now?</p>");
                 if (this->showMessageBox("Online update", 
-                    QString("A new version of Proteomatic scripts is available.<br /> ") + 
-                    "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?",
+                    ls_Message,
                     ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
                 {
                     if (mk_PipelineMainWindow_ && mk_Desktop_)
@@ -1859,9 +1861,9 @@ QString k_Proteomatic::md5ForFile(QString as_Path, bool ab_ShowProgress)
     QSharedPointer<QProgressDialog> lk_pProgressDialog;
     if (ab_ShowProgress)
     {
-        lk_pProgressDialog = QSharedPointer<QProgressDialog>("Determining MD5 hash...", "Cancel", 0, QFileInfo(as_Path).size(), mk_MessageBoxParent_);
+        lk_pProgressDialog = QSharedPointer<QProgressDialog>(new QProgressDialog("Determining MD5 hash...", "Cancel", 0, QFileInfo(as_Path).size(), mk_MessageBoxParent_));
         lk_pProgressDialog->setWindowModality(Qt::ApplicationModal);
-        lk_pProgressDialog->setWindowFlags(lk_ProgressDialog.windowFlags() | Qt::WindowStaysOnTopHint);
+        lk_pProgressDialog->setWindowFlags(lk_pProgressDialog->windowFlags() | Qt::WindowStaysOnTopHint);
     }
 
     QFile lk_File(as_Path);
