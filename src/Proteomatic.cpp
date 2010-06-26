@@ -349,7 +349,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                 lb_SomethingNewAvailable = true;
                 QString ls_Message = QString("A new version of Proteomatic scripts is available.<br /> ") + "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?";
                 if (ls_InstalledVersion.isEmpty())
-                        ls_Message = QString("<p><b>Welcome to Proteomatic</b></p><p>Because Proteomatic has been started for the first time, there are no scripts available yet. Do you want to download the latest scripts package now?</p>");
+                        ls_Message = QString("<p><b>Welcome to Proteomatic!</b></p><p>Because Proteomatic has been started for the first time, there are no scripts available yet. Do you want to download the latest scripts package now?</p>");
                 if (this->showMessageBox("Online update", 
                     ls_Message,
                     ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
