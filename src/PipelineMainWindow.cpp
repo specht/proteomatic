@@ -107,8 +107,8 @@ void k_PipelineMainWindow::initialize()
     statusBar()->show();
     mk_StatusBarMessage_ = new QLabel("", this);
     statusBar()->addWidget(mk_StatusBarMessage_);
-    statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerIconLabel());
-    statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerLabel());
+//     statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerIconLabel());
+//     statusBar()->addPermanentWidget(mk_Proteomatic.fileTrackerLabel());
     
     mk_AddToolBar_ = new QToolBar(this);
     

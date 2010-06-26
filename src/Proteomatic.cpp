@@ -1141,13 +1141,14 @@ void k_Proteomatic::showConfigurationDialog()
     
     lk_VLayout_->addLayout(lk_HLayout_);
     
-    lk_HLayout_ = new QHBoxLayout(NULL);
-    lk_HLayout_->addWidget(new QLabel("Filetracker URL:", lk_pDialog.data()));
+/*    lk_HLayout_ = new QHBoxLayout(NULL);
+    lk_HLayout_->addWidget(new QLabel("Filetracker URL:", lk_pDialog.data()));*/
     QLineEdit* lk_FileTrackerUrlLineEdit_ = new QLineEdit(lk_pDialog.data());
-    lk_FileTrackerUrlLineEdit_->setText(getConfiguration(CONFIG_FILETRACKER_URL).toString());
-    lk_FileTrackerUrlLineEdit_->home(false);
-    lk_HLayout_->addWidget(lk_FileTrackerUrlLineEdit_);
-    lk_VLayout_->addLayout(lk_HLayout_);
+    lk_FileTrackerUrlLineEdit_->hide();
+/*    lk_FileTrackerUrlLineEdit_->setText(getConfiguration(CONFIG_FILETRACKER_URL).toString());
+    lk_FileTrackerUrlLineEdit_->home(false);*/
+//     lk_HLayout_->addWidget(lk_FileTrackerUrlLineEdit_);
+//     lk_VLayout_->addLayout(lk_HLayout_);
 
     lk_Frame_ = new QFrame(lk_pDialog.data());
     lk_Frame_->setFrameStyle(QFrame::HLine | QFrame::Sunken);
