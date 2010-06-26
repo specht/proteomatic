@@ -15,7 +15,10 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.47 r22583"
-   sodipodi:docname="New document 1">
+   sodipodi:docname="nsis-header.svg"
+   inkscape:export-filename="/home/michael/programming/proteomatic/src/icons/nsis-header.png"
+   inkscape:export-xdpi="360"
+   inkscape:export-ydpi="360">
   <defs
      id="defs4">
     <linearGradient
@@ -1875,9 +1878,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.2066667"
-     inkscape:cx="65.584282"
-     inkscape:cy="-9.7731171"
+     inkscape:zoom="1.1033333"
+     inkscape:cx="82.78349"
+     inkscape:cy="-61.723915"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"

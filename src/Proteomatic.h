@@ -160,7 +160,7 @@ public:
     QString managedScriptsVersion();
     bool fileUpToDate(QString as_Path, QStringList ak_Dependencies);
     static void openFileLink(QString as_Path);
-    QString md5ForFile(QString as_Path);
+    QString md5ForFile(QString as_Path, bool ab_ShowProgress = true);
     QString md5ForString(QString as_Content);
     void reloadScripts();
     QToolButton* startButton();
