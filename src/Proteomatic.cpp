@@ -83,6 +83,24 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     // simply THIS directory... right?
     #ifdef PROTEOMATIC_PORTABLE
     ms_DataDirectory = ".";
+    // Now check whether this portable data directory is also writable,
+    // it should be! This way, we can make sure that Proteomatic is not
+    // started from within the (write-protected because compressed)
+    // disk image on Mac
+    QFile lk_WriteTest(ms_DataDirectory + "/can_has_write.txt");
+    if (!lk_WriteTest.open(QIODevice::WriteOnly))
+    {
+        QString ls_Message;
+        #ifdef Q_OS_MAC
+        ls_Message = "<p><b>Proteomatic has no permission to write files.</b></p><p>Please drag the Proteomatic icon to the Applications shortcut or to your Desktop and try again.</p>"
+        #else
+        ls_Message = "<p><b>Proteomatic has no permission to write files.</b></p><p>The directory from which Proteomatic was started is not writable. Because Proteomatic needs to download scripts and external programs, please move the Proteomatic folder to a writable location such as your Desktop and try again.</p>";
+        #endif
+        showMessageBox("Unable to start Proteomatic", ls_Message, ":icons/dialog-warning.png");
+        exit(1);
+    }
+    else
+        lk_WriteTest.remove();
     #endif
     
     // now turn the data directory into an absolute, clean path
