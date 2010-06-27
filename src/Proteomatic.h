@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include "LockFile.h"
 #include "Yaml.h"
 
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
@@ -277,4 +278,7 @@ protected:
     QIcon mk_ScriptDisabledIcon;
     QHash<QMenu*, QSet<QString> > mk_ExtensionsForScriptsMenuSubMenu;
     QHash<QAction*, QSet<QString> > mk_ExtensionsForScriptsMenuAction;
+    
+    QString ms_ScriptLockId;
+    QSharedPointer<k_LockFile> mk_pLockFile;
 };

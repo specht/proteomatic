@@ -94,6 +94,7 @@ HEADERS += \
     src/IScript.h \
     src/IScriptBox.h \
     src/LocalScript.h \
+    src/LockFile.h \
     src/NoSlashValidator.h \
     src/PipelineMainWindow.h \
     src/ProfileManager.h \
@@ -128,6 +129,7 @@ SOURCES += \
     src/HintLineEdit.cpp \
     src/InputGroupProxyBox.cpp \
     src/LocalScript.cpp \
+    src/LockFile.cpp \
     src/NoSlashValidator.cpp \
     src/PipelineMainWindow.cpp \
     src/ProfileManager.cpp \
