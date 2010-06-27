@@ -92,7 +92,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     {
         QString ls_Message;
         #ifdef Q_OS_MAC
-        ls_Message = "<p><b>Proteomatic has no permission to write files.</b></p><p>Please drag the Proteomatic icon to the Applications shortcut or to your Desktop and try again.</p>"
+        ls_Message = "<p><b>Proteomatic has no permission to write files.</b></p><p>Please drag the Proteomatic icon to the Applications shortcut or to your Desktop and try again.</p>";
         #else
         ls_Message = "<p><b>Proteomatic has no permission to write files.</b></p><p>The directory from which Proteomatic was started is not writable. Because Proteomatic needs to download scripts and external programs, please move the Proteomatic folder to a writable location such as your Desktop and try again.</p>";
         #endif
