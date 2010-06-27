@@ -429,6 +429,13 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
 }
 
 
+void k_Proteomatic::touchScriptsLockFile()
+{
+    if (mk_pLockFile)
+        mk_pLockFile->touch();
+}
+
+
 QString k_Proteomatic::interpreterForScript(QString as_Path)
 {
     QString ls_Interpreter = interpreterKeyForScript(as_Path);

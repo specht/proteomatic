@@ -112,8 +112,8 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
         }
         // replace the entire last line of the text edit with ms_LastLine
         QTextCursor lk_Cursor = textCursor();
-        lk_Cursor.movePosition(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
-        lk_Cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+        lk_Cursor.movePosition(QTextCursor::StartOfBlock, QTextCursor::MoveAnchor);
+        lk_Cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
         lk_Cursor.removeSelectedText();
         lk_Cursor.insertText(ms_LastLine);
         if (lb_LineHasNewLine)

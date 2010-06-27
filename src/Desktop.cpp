@@ -1746,6 +1746,7 @@ void k_Desktop::clearSelection()
 
 void k_Desktop::scriptStarted()
 {
+    mk_Proteomatic.touchScriptsLockFile();
     IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
     setCurrentScriptBoxForce(lk_ScriptBox_);
     lk_ScriptBox_->showOutputBox(true);

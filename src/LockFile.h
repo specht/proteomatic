@@ -28,6 +28,8 @@ public:
     k_LockFile(const QString& as_Path);
     virtual ~k_LockFile();
     
+    void touch();
+    
 private:
     QFile mk_File;
 };
