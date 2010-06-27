@@ -23,11 +23,18 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 k_LockFile::k_LockFile(const QString& as_Path)
     : mk_File(as_Path)
 {
-    mk_File.open(QIODevice::WriteOnly);
+    this->touch();
 }
 
 
 k_LockFile::~k_LockFile()
 {
     mk_File.remove();
+}
+
+
+void k_LockFile::touch()
+{
+    mk_File.open(QIODevice::WriteOnly);
+    mk_File.close();
 }

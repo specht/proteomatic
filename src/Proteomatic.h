@@ -184,6 +184,7 @@ public slots:
     void checkForUpdatesProgress();
     void checkForUpdatesCanceled();
     void checkForUpdatesScriptFinished();
+    void touchScriptsLockFile();
 
 signals: 
     void scriptMenuScriptClicked(QAction* ak_Action_);
