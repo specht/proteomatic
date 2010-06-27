@@ -6,6 +6,8 @@ require 'fileutils'
 require 'yaml'
 require 'digest/md5'
 
+DANGLING_LOCK_KEEP_TIME = 7 * 24 * 60 * 60 # this is seven days in seconds!
+
 $stdout.sync = true
 $stderr.sync = true
 
@@ -250,7 +252,23 @@ def updateScripts(info)
             # remove old script packages
             newDir = File::join(scriptsDir, 'proteomatic-scripts-' + info['version'])
             Dir[File::join(scriptsDir, '*')].each do |path|
-                FileUtils::rm_rf(path) unless path == newDir
+                
+                # don't delete if it's the fresh, just-fetched-and-unpacked package!
+                next if path == newDir
+                
+                # now see if there are any locks, either a lock is there because another
+                # Proteomatic is using it and it will be deleted when this Proteomatic 
+                # has finished, OR: the lock is dangling because Proteomatic crashed
+                # at some point and the lock is still there. 
+                # Solution: Ignore the lock if it's too old already, as defined in
+                # DANGLING_LOCK_KEEP_TIME
+                lockFiles = Dir[File::join(path, '.lock', '*')]
+                lockFiles.reject! { |x| (Time.now - File.mtime(x)) > DANGLING_LOCK_KEEP_TIME }
+                next unless lockFiles.empty?
+                
+                # now delete the script package
+                FileUtils::rm_rf(path) 
+                
             end
         else
             puts "Error: The downloaded package was corrupt."

@@ -162,6 +162,11 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
         }
     }
     #endif
+
+    // the script lock id looks like this: 4qn-l4ougm
+    ms_ScriptLockId = QString("%1-%2").
+        arg(QCoreApplication::applicationPid(), 0, 36).
+        arg(QDateTime::currentDateTime().toTime_t(), 0, 36);
 }
 
 
@@ -380,6 +385,9 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                             // create scripts path if it doesn't exist
                             if (!QDir(ms_ManagedScriptsPath).exists())
                                 QDir().mkpath(ms_ManagedScriptsPath);
+                            
+                            // remove the old lock file, if there is any
+                            mk_pLockFile = QSharedPointer<k_LockFile>(NULL);
                             
                             QStringList lk_Arguments;
                             lk_Arguments = QStringList() << "-W0" << ms_HelperPath + "/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
@@ -762,6 +770,17 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
         QStringList lk_Paths = lk_Dir.entryList(QStringList() << "*.rb" << "*.py" << "*.php" << "*.php5" << "*.php4" << ".pl", QDir::Files);
         foreach (QString ls_Path, lk_Paths)
             lk_Scripts << lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
+        
+        // write the scripts lock ... and don't forget to delete it later.
+        // if the program crashes, and the lock stays there it only means
+        // that the scripts package will not be deleted after updating to
+        // a newer version until the lock is at least (variable, but maybe
+        // one week) old.
+        QDir lk_LockDir(ls_Path + "/.lock");
+        if (!lk_LockDir.exists())
+            QDir(ls_Path).mkdir(".lock");
+        QString ls_LockFilePath = ls_Path + "/.lock/" + ms_ScriptLockId; 
+        mk_pLockFile = QSharedPointer<k_LockFile>(new k_LockFile(ls_LockFilePath));
     }
     
     // collect scripts text file formats
