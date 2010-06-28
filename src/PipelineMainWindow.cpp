@@ -43,6 +43,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     , mb_JustStarted(true)
     , mk_WordSplitter("\\W+")
     , mb_PreventUpdates(false)
+    , mb_IsInitialized(false)
 {
 }
 
@@ -230,6 +231,8 @@ void k_PipelineMainWindow::initialize()
     
     connect(&mk_Proteomatic, SIGNAL(configurationChanged()), this, SLOT(toggleUi()));
     
+    mb_IsInitialized = true;
+    
     updateStatusBar();
     toggleUi();
 }
@@ -378,9 +381,39 @@ void k_PipelineMainWindow::addScript(QAction* ak_Action_)
 {
     if (!mk_Desktop_)
         return;
-    
-    QString ls_ScriptUri = ak_Action_->data().toString();
-    mk_Desktop_->addScriptBox(ls_ScriptUri);
+
+    QString ls_Uri = ak_Action_->data().toString();
+    // first check for unresolved dependencies and try to resolve them
+    QString ls_ScriptBasePath = QFileInfo(ls_Uri).absolutePath();
+    qDebug() << (QStringList() << 
+        QFileInfo(QDir(ls_ScriptBasePath), "helper/get-unresolved-dependencies.rb").absoluteFilePath() << 
+        "--extToolsPath" << mk_Proteomatic.externalToolsPath() << QFileInfo(ls_Uri).fileName());
+    QString ls_Response = mk_Proteomatic.syncRuby((QStringList() << 
+        QFileInfo(QDir(ls_ScriptBasePath), "helper/get-unresolved-dependencies.rb").absoluteFilePath() << 
+        "--extToolsPath" << mk_Proteomatic.externalToolsPath() << QFileInfo(ls_Uri).fileName()));
+    qDebug() << ls_Response;
+    tk_YamlMap lk_Map = k_Yaml::parseFromString(ls_Response).toMap();
+    if (!lk_Map.empty())
+    {
+        QStringList lk_MissingTools;
+        foreach (QVariant lk_Tool, lk_Map.values())
+            lk_MissingTools << lk_Tool.toString();
+        qSort(lk_MissingTools);
+        QString ls_MissingTools = lk_MissingTools.join(", ");
+        int li_Result = mk_Proteomatic.showMessageBox("Unresolved dependencies", "This script requires the following external tools that are currently not installed:\n\n"
+            + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
+        if (li_Result == QMessageBox::Yes)
+        {
+            bool lb_Flag = mk_Proteomatic.syncShowRuby((QStringList() << 
+                QFileInfo(QDir(ls_ScriptBasePath), "helper/resolve-dependencies.rb").absoluteFilePath() << 
+                "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_Map.keys(), "Installing external tools");
+            if (!lb_Flag)
+                return;
+        }
+        else
+            return;
+    }
+    mk_Desktop_->addScriptBox(ls_Uri);
 }
 
 
@@ -607,6 +640,8 @@ void k_PipelineMainWindow::restartProteomatic()
 
 void k_PipelineMainWindow::toggleUi()
 {
+    if (!mb_IsInitialized)
+        return;
     updateWindowTitle();
     mk_ProteomaticButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_NewPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
@@ -614,7 +649,7 @@ void k_PipelineMainWindow::toggleUi()
     mk_SavePipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_SavePipelineAsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-    mk_AddScriptAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+    mk_AddScriptAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (!mk_Proteomatic.availableScripts().empty()));
     mk_AddFilesButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_Proteomatic.startButton()->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
     mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());

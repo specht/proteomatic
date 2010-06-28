@@ -27,12 +27,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include <md5.h>
 
-#ifdef Q_OS_WIN32
-#define _WIN32_IE 0x0400
-#include <windows.h>
-#include <shlobj.h>
-#endif
-
 
 #define DEFAULT_UPDATE_URI "http://www.proteomatic.org/review_update"
 
@@ -62,23 +56,6 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     // data directory is home path by default
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
 
-    // but if we're on Windows, %APPDATA%/Proteomatic is the data directory
-    #ifdef Q_OS_WIN32
-    TCHAR ls_TempPath_[MAX_PATH + 1]; 
-    // MSDN says it's FOLDERID_LocalAppData from Vista on
-    // but that it's still valid... but for how long??
-    // On the other hand, it did not seem to work in Win XP
-    if (SHGetSpecialFolderPath(NULL, ls_TempPath_, CSIDL_APPDATA, NULL))
-    {
-        #ifdef UNICODE
-        ms_DataDirectory = QString::fromUtf16((ushort*)ls_TempPath_);
-        #else
-        ms_DataDirectory = QString::fromLocal8Bit(ls_TempPath_);
-        #endif
-        ms_DataDirectory += "/Proteomatic";
-    }
-    #endif
-
     // however, if we're a portable version, the data directory is
     // simply THIS directory... right?
     #ifdef PROTEOMATIC_PORTABLE
@@ -92,7 +69,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     {
         QString ls_Message;
         #ifdef Q_OS_MAC
-        ls_Message = "<p><b>Proteomatic has no permission to write files.</b></p><p>Please drag the Proteomatic icon to the Applications shortcut or to your Desktop and try again.</p>";
+        ls_Message = "<b>Proteomatic has no permission to write files.</b><br /><br />Please drag the Proteomatic icon to the Applications shortcut or to your Desktop and try again.";
         #else
         ls_Message = "<p><b>Proteomatic has no permission to write files.</b></p><p>The directory from which Proteomatic was started is not writable. Because Proteomatic needs to download scripts and external programs, please move the Proteomatic folder to a writable location such as your Desktop and try again.</p>";
         #endif
@@ -959,6 +936,8 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             }
         }
     }
+    if (mk_PipelineMainWindow_)
+        mk_PipelineMainWindow_->toggleUi();
 }
 
 
@@ -990,6 +969,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
         QStringList lk_GroupElements = ls_Group.split("/");
         QString ls_IncPath = "";
         QMenu* lk_ParentMenu_ = lk_Menu_;
+        mk_ExtensionsForScriptsMenuSubMenu[lk_ParentMenu_] = QSet<QString>();
         foreach (QString ls_GroupElement, lk_GroupElements)
         {
             if (!ls_IncPath.isEmpty())
