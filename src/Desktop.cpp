@@ -1518,7 +1518,7 @@ void k_Desktop::arrowReleased()
     if (mk_ArrowStartBox_ && !mk_ArrowEndBox_)
     {
         // show scripts menu and insert a script box here
-        if (!boxAt(mk_ArrowEndPoint))
+        if ((!boxAt(mk_ArrowEndPoint)) && (!mk_Proteomatic.availableScripts().empty()))
         {
             mk_ArrowStartBoxAutoConnect_ = mk_ArrowStartBox_;
             QStringList lk_InputPaths;

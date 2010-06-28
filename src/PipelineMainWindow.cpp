@@ -614,7 +614,7 @@ void k_PipelineMainWindow::toggleUi()
     mk_SavePipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_SavePipelineAsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-    mk_AddScriptAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+    mk_AddScriptAction_->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (!mk_Proteomatic.availableScripts().empty()));
     mk_AddFilesButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_Proteomatic.startButton()->setEnabled(mk_Desktop_ && (!mk_Desktop_->running()) && (mk_Desktop_->hasBoxes()));
     mk_AbortAction_->setEnabled(mk_Desktop_ && mk_Desktop_->running());
