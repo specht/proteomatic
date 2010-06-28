@@ -118,4 +118,5 @@ protected:
     QString ms_CurrentStyleSheet;
     
     bool mb_PreventUpdates;
+    bool mb_IsInitialized;
 };

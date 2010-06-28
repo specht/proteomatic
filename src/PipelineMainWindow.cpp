@@ -43,6 +43,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     , mb_JustStarted(true)
     , mk_WordSplitter("\\W+")
     , mb_PreventUpdates(false)
+    , mb_IsInitialized(false)
 {
 }
 
@@ -229,6 +230,8 @@ void k_PipelineMainWindow::initialize()
     //setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
     
     connect(&mk_Proteomatic, SIGNAL(configurationChanged()), this, SLOT(toggleUi()));
+    
+    mb_IsInitialized = true;
     
     updateStatusBar();
     toggleUi();
@@ -607,6 +610,8 @@ void k_PipelineMainWindow::restartProteomatic()
 
 void k_PipelineMainWindow::toggleUi()
 {
+    if (!mb_IsInitialized)
+        return;
     updateWindowTitle();
     mk_ProteomaticButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_NewPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());

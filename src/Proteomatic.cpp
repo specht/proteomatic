@@ -959,7 +959,8 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
             }
         }
     }
-    mk_PipelineMainWindow_->toggleUi();
+    if (mk_PipelineMainWindow_)
+        mk_PipelineMainWindow_->toggleUi();
 }
 
 
@@ -991,6 +992,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
         QStringList lk_GroupElements = ls_Group.split("/");
         QString ls_IncPath = "";
         QMenu* lk_ParentMenu_ = lk_Menu_;
+        mk_ExtensionsForScriptsMenuSubMenu[lk_ParentMenu_] = QSet<QString>();
         foreach (QString ls_GroupElement, lk_GroupElements)
         {
             if (!ls_IncPath.isEmpty())
