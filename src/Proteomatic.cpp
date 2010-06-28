@@ -27,12 +27,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include <md5.h>
 
-#ifdef Q_OS_WIN32
-#define _WIN32_IE 0x0400
-#include <windows.h>
-#include <shlobj.h>
-#endif
-
 
 #define DEFAULT_UPDATE_URI "ftp://gpf.uni-muenster.de/download/proteomatic/update"
 
@@ -61,23 +55,6 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
 {
     // data directory is home path by default
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
-
-    // but if we're on Windows, %APPDATA%/Proteomatic is the data directory
-    #ifdef Q_OS_WIN32
-    TCHAR ls_TempPath_[MAX_PATH + 1]; 
-    // MSDN says it's FOLDERID_LocalAppData from Vista on
-    // but that it's still valid... but for how long??
-    // On the other hand, it did not seem to work in Win XP
-    if (SHGetSpecialFolderPath(NULL, ls_TempPath_, CSIDL_APPDATA, NULL))
-    {
-        #ifdef UNICODE
-        ms_DataDirectory = QString::fromUtf16((ushort*)ls_TempPath_);
-        #else
-        ms_DataDirectory = QString::fromLocal8Bit(ls_TempPath_);
-        #endif
-        ms_DataDirectory += "/Proteomatic";
-    }
-    #endif
 
     // however, if we're a portable version, the data directory is
     // simply THIS directory... right?
