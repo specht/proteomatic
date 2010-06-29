@@ -47,6 +47,8 @@ k_ConsoleTextEdit::~k_ConsoleTextEdit()
 
 void k_ConsoleTextEdit::append(const QString& as_Text)
 {
+    // reset cursor to the last position in case somebody moved it by clicking
+    setTextCursor(mk_Cursor);
     /*
     PROBLEM: \r makes the cursor jump to beginning of the line, characters
     coming after that will be overwritten, but a \n will never overwrite 
@@ -126,6 +128,7 @@ void k_ConsoleTextEdit::append(const QString& as_Text)
             break;
     }
     ensureCursorVisible();
+    mk_Cursor = textCursor();
 }
 
 
@@ -135,4 +138,5 @@ void k_ConsoleTextEdit::initialize()
     this->setFont(mk_Proteomatic.consoleFont());
     this->setAcceptRichText(false);
     document()->setMaximumBlockCount(1000);
+    mk_Cursor = textCursor();
 }

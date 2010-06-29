@@ -385,13 +385,9 @@ void k_PipelineMainWindow::addScript(QAction* ak_Action_)
     QString ls_Uri = ak_Action_->data().toString();
     // first check for unresolved dependencies and try to resolve them
     QString ls_ScriptBasePath = QFileInfo(ls_Uri).absolutePath();
-    qDebug() << (QStringList() << 
-        QFileInfo(QDir(ls_ScriptBasePath), "helper/get-unresolved-dependencies.rb").absoluteFilePath() << 
-        "--extToolsPath" << mk_Proteomatic.externalToolsPath() << QFileInfo(ls_Uri).fileName());
     QString ls_Response = mk_Proteomatic.syncRuby((QStringList() << 
         QFileInfo(QDir(ls_ScriptBasePath), "helper/get-unresolved-dependencies.rb").absoluteFilePath() << 
         "--extToolsPath" << mk_Proteomatic.externalToolsPath() << QFileInfo(ls_Uri).fileName()));
-    qDebug() << ls_Response;
     tk_YamlMap lk_Map = k_Yaml::parseFromString(ls_Response).toMap();
     if (!lk_Map.empty())
     {
