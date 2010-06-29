@@ -40,4 +40,5 @@ protected:
     k_Proteomatic& mk_Proteomatic;
     QString ms_LastLine;
     int mi_LastLineCursorPosition;
+    QTextCursor mk_Cursor;
 };
