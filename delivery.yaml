@@ -1,9 +1,6 @@
 projects:
   - .
-  #- src/projects/Revelio
 #binaryPath: bin
-#addProteomaticScripts: (version)
-#runProteomaticScriptsCommands: ["ruby qtrace.rb --resolveDependencies"]
 qt: [core, gui]
 versionInject:
   debian/changelog: |
@@ -40,6 +37,7 @@ versionInject:
 addFiles:
   proteomatic.conf.yaml: |
     fileTrackerUrl: peaks.uni-muenster.de:5556
+    scriptsUrl: ftp://gpf.uni-muenster.de/download/proteomatic/update
 
 externals: [helper]
 macAppPackage: true
