@@ -140,7 +140,6 @@ public:
     QString syncScript(QStringList ak_Arguments);
     QString syncScriptNoFile(QStringList ak_Arguments, QString as_Language);
     bool syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
-    QString rubyPath();
     QString version();
     bool versionChanged() const;
     int showMessageBox(QString as_Title, QString as_Text, QString as_Icon = "", 

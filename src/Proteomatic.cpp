@@ -498,6 +498,12 @@ QString k_Proteomatic::syncScript(QStringList ak_Arguments)
     lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
     QString ls_Script = QFileInfo(ak_Arguments.takeFirst()).fileName();
     ak_Arguments.insert(0, ls_Script);
+    QString ls_InterpreterKey = interpreterKeyForScript(ak_Arguments.first());
+    if (ls_InterpreterKey != "ruby")
+    {
+        ak_Arguments.insert(1, "--pathToRuby");
+        ak_Arguments.insert(2, scriptInterpreter("ruby"));
+    }
     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
     lk_QueryProcess.start(interpreterForScript(ak_Arguments.first()), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
     if (lk_QueryProcess.waitForFinished())
@@ -520,6 +526,11 @@ QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Lan
     lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
     
+    if (as_Language != "ruby")
+    {
+        ak_Arguments.insert(1, "--pathToRuby");
+        ak_Arguments.insert(2, scriptInterpreter("ruby"));
+    }
     lk_QueryProcess.start(scriptInterpreter(as_Language), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
     if (lk_QueryProcess.waitForFinished())
         return lk_QueryProcess.readAll();
@@ -867,6 +878,11 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                     // ignore Ruby warnings for ---yamlInfo
                     if (interpreterKeyForScript(ls_Path) == "ruby")
                         lk_Arguments.insert(0, "-W0");
+                    else
+                    {
+                        lk_Arguments.insert(1, "--pathToRuby");
+                        lk_Arguments.insert(2, scriptInterpreter("ruby"));
+                    }
                     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
                     lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
                     if (lk_QueryProcess.waitForFinished())

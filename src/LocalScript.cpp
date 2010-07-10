@@ -200,7 +200,18 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
     }
     lk_AdditionalParameters << "--extToolsPath";
     lk_AdditionalParameters << mk_Proteomatic.externalToolsPath();
-    mk_Process.start(mk_Proteomatic.interpreterForScript(this->uri()), (QStringList() << this->uri()) + commandLineArguments() + lk_AdditionalParameters + ak_Files, QIODevice::ReadOnly | QIODevice::Unbuffered);
+    QStringList lk_Arguments;
+    lk_Arguments << this->uri();
+    lk_Arguments += commandLineArguments();
+    lk_Arguments += lk_AdditionalParameters;
+    lk_Arguments += ak_Files;
+    QString ls_InterpreterKey = mk_Proteomatic.interpreterKeyForScript(this->uri());
+    if (ls_InterpreterKey != "ruby")
+    {
+        lk_Arguments.insert(1, "--pathToRuby");
+        lk_Arguments.insert(2, mk_Proteomatic.scriptInterpreter("ruby"));
+    }
+    mk_Process.start(mk_Proteomatic.interpreterForScript(this->uri()), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
     return QString();
 }
 

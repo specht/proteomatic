@@ -64,6 +64,12 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
         
         lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
         
+        QString ls_InterpreterKey = mk_Proteomatic.interpreterKeyForScript(ms_Uri);
+        if (ls_InterpreterKey != "ruby")
+        {
+            lk_Arguments.insert(1, "--pathToRuby");
+            lk_Arguments.insert(2, mk_Proteomatic.scriptInterpreter("ruby"));
+        }
         lk_QueryProcess.start(mk_Proteomatic.interpreterForScript(ms_Uri), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
         if (lk_QueryProcess.waitForFinished())
         {
