@@ -44,7 +44,7 @@ public:
     virtual QGraphicsScene& graphicsScene();
     virtual IDesktopBox* addInputFileListBox(bool ab_AutoAdjust = true);
     virtual IDesktopBox* addSnippetBox(bool ab_AutoAdjust = true);
-    virtual IDesktopBox* addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust = true);
+    virtual IDesktopBox* addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust = true, bool ab_AutoAddFileBoxIfEmpty = true);
     virtual void addBox(IDesktopBox* ak_Box_, bool ab_PlaceBox = true, bool ab_AutoAdjust = true, int ai_Width = 1, int ai_Height = 1);
     virtual void removeBox(IDesktopBox* ak_Box_);
     virtual void connectBoxes(IDesktopBox* ak_Source_, IDesktopBox* ak_Destination_);
@@ -58,7 +58,7 @@ public:
     virtual bool hasBoxes();
     virtual bool hasScriptBoxes();
     virtual tk_YamlMap pipelineDescription();
-    virtual void applyPipelineDescription(tk_YamlMap ak_Description);
+    virtual bool applyPipelineDescription(tk_YamlMap ak_Description, QString as_DescriptionBasePath);
     
     virtual void setHasUnsavedChanges(bool ab_Flag);
     virtual bool hasUnsavedChanges() const;
@@ -68,6 +68,9 @@ public:
     virtual void bringBoxToFront(IDesktopBox* ak_Box_);
     
     virtual QList<IDesktopBox*> boxesByTopologicalOrder();
+    
+    virtual void saveBoxPositions();
+    virtual void restoreBoxPositions();
     
 public slots:
     virtual void clearAll();
@@ -208,4 +211,5 @@ protected:
     QSet<IDesktopBox*> mk_BoxesMarkedForUpdate;
     
     bool mb_GlobalUpdateRequested;
+    QHash<IDesktopBox*, QPoint> mk_SavedBoxPositions;
 };

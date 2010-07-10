@@ -22,7 +22,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtCore>
 #include <QtGui>
 #include "Proteomatic.h"
-#include "ConsoleString.h"
+#include "ConsoleTextEdit.h"
 
 
 class k_TicketWindow: public QWidget
@@ -57,7 +57,7 @@ protected:
     QLabel* mk_PrefixLabel_;
     QLineEdit* mk_Prefix_;
     QPushButton* mk_SaveButton_;
-    k_ConsoleString mk_StandardOutput;
+    k_ConsoleTextEdit mk_StandardOutput;
     bool mb_GotStandardOutput;
     int mi_Delay;
     QStringList mk_OutputFiles;

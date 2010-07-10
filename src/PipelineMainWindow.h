@@ -22,7 +22,6 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "Desktop.h"
 #include "Proteomatic.h"
-#include "ConsoleString.h"
 #include "FoldedHeader.h"
 
 
@@ -45,7 +44,7 @@ public slots:
     void toggleUi();
     void togglePaneFloat();
     void newPipeline();
-    void loadPipeline();
+    void loadPipeline(QString as_Path = QString());
     void savePipeline();
     void savePipelineAs();
     void searchFieldPopup(const QString& as_String);
@@ -58,6 +57,8 @@ signals:
 protected:
     virtual void closeEvent(QCloseEvent* event);
     virtual void keyPressEvent(QKeyEvent* ak_Event_);
+    virtual void hideEvent(QHideEvent* ak_Event_);
+    virtual void showEvent(QShowEvent* ak_Event_);
 
 protected slots:
     void quit();
@@ -77,6 +78,7 @@ protected slots:
 protected:
     QApplication& mk_Application;
     k_Desktop* mk_Desktop_;
+    QToolButton* mk_ProteomaticButton_;
     QToolButton* mk_AddScriptAction_;
     QAction* mk_NewPipelineAction_;
     QAction* mk_LoadPipelineAction_;
@@ -84,7 +86,8 @@ protected:
     QAction* mk_SavePipelineAsAction_;
     QAction* mk_QuitAction_;
     QToolButton* mk_AddScriptButton_;
-    QToolButton* mk_AddFileListButton_;
+    QToolButton* mk_AddFilesButton_;
+    QAction* mk_AddFileListAction_;
     QAction* mk_AddSnippetAction_;
     QAction* mk_AbortAction_;
     QAction* mk_RefreshAction_;
@@ -97,7 +100,6 @@ protected:
     //QAction* mk_ClearPrefixForAllScriptsAction_;
     QAction* mk_ProposePrefixForAllScriptsAction_;
     k_Proteomatic& mk_Proteomatic;
-    k_ConsoleString ms_Log;
     IScriptBox* mk_CurrentScriptBox_;
     QWidget* mk_PaneLayoutWidget_;
     QBoxLayout* mk_PaneLayout_;
@@ -114,4 +116,7 @@ protected:
     QRegExp mk_WordSplitter;
     QSharedPointer<QListWidget> mk_pSearchPopup;
     QString ms_CurrentStyleSheet;
+    
+    bool mb_PreventUpdates;
+    bool mb_IsInitialized;
 };

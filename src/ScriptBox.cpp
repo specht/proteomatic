@@ -41,7 +41,6 @@ k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Paren
     , mk_OutputFileViewerContainer_(NULL)
     , mk_OutputBoxIterationKeyChooserContainer_(NULL)
     , mk_OutputBoxIterationKeyChooser_(NULL)
-    , mk_OutputBox_(NULL)
     , mk_IterationsTagsDontMatchIcon_(NULL)
     , mk_UseShortTagsCheckBox_(NULL)
     , mk_LastUserAdjustedSize(0, 0)
@@ -73,12 +72,16 @@ k_ScriptBox::~k_ScriptBox()
 
 QString k_ScriptBox::description()
 {
-    return QString("[%1] (%2/%3) script box %4%5").
+    return QString("[%1] (%2/%3) script box %4%5: %6:%7 %8x%9").
         arg(topologicalIndex()).
         arg(incomingBoxes().size()).
         arg(outgoingBoxes().size()).
         arg(mb_BatchMode ? "(batch mode) " : "").
-        arg(script()->title());
+        arg(script()->title()).
+        arg(pos().x()).
+        arg(pos().y()).
+        arg(width()).
+        arg(height());
 }
 
 
@@ -272,7 +275,7 @@ void k_ScriptBox::outputFileActionToggled()
             mk_pScript->outputFileDetails(ls_Key)["label"], this);
         dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
         mk_OutputFileBoxes[ls_Key] = lk_Box_;
-        mk_Desktop_->addBox(lk_Box_, false);
+        mk_Desktop_->addBox(lk_Box_, false, false, 270, 120);
         mk_Desktop_->connectBoxes(this, lk_Box_);
         QPoint lk_BoxPosition = pos() + QPoint(width() / 2, height() + 80);
         dynamic_cast<k_DesktopBox*>(lk_Box_)->move(lk_BoxPosition - QPoint(dynamic_cast<k_DesktopBox*>(lk_Box_)->width() / 2, dynamic_cast<k_DesktopBox*>(lk_Box_)->height() / 2));
@@ -437,7 +440,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
     mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->findText(ms_CurrentIterationKeyShowing));
     
     if (!mk_Output.contains(as_IterationKey))
-        mk_Output.insert(as_IterationKey, QSharedPointer<k_ConsoleString>(new k_ConsoleString()));
+        mk_Output.insert(as_IterationKey, QSharedPointer<k_ConsoleTextEdit>(new k_ConsoleTextEdit(mk_Proteomatic)));
     mk_Output[as_IterationKey]->clear();
     emit readyRead();
     mk_pScript->start(lk_InputFiles, lk_Parameters, mk_Desktop_->useFileTrackerIfAvailable());
@@ -461,12 +464,6 @@ void k_ScriptBox::addOutput(QString as_Text)
 {
     if (mk_Output.contains(ms_CurrentIterationKeyRunning))
         mk_Output[ms_CurrentIterationKeyRunning]->append(as_Text);
-    if (ms_CurrentIterationKeyRunning == ms_CurrentIterationKeyShowing)
-    {
-        mk_OutputBox_->setText(mk_Output[ms_CurrentIterationKeyShowing]->text());
-        mk_OutputBox_->moveCursor(QTextCursor::End);
-        mk_OutputBox_->ensureCursorVisible();
-    }
 }
 
 
@@ -516,10 +513,10 @@ void k_ScriptBox::scriptParameterChanged(const QString& as_Key)
 
 void k_ScriptBox::chooseOutputDirectory()
 {
-    QString ls_StartingPath = mk_Proteomatic.getConfiguration(CONFIG_REMEMBER_OUTPUT_PATH).toString();
-    if (!QFileInfo(ls_StartingPath).isDir())
-        ls_StartingPath = QDir::homePath();
-
+    QString ls_StartingPath = QDir::homePath();
+    if (!ms_OutputDirectoryDefiningInputPath.isEmpty())
+        ls_StartingPath = QFileInfo(ms_OutputDirectoryDefiningInputPath).absolutePath();
+    
     QString ls_Path = QFileDialog::getExistingDirectory(this, tr("Select output directory"), mk_OutputDirectory.text().isEmpty()? ls_StartingPath: mk_OutputDirectory.text());
     if (ls_Path.length() > 0)
     {
@@ -549,9 +546,8 @@ void k_ScriptBox::outputBoxIterationKeyChooserChanged()
     ms_CurrentIterationKeyShowing = mk_OutputBoxIterationKeyChooser_->currentText(); 
     if (mk_Output.contains(ms_CurrentIterationKeyShowing))
     {
-        mk_OutputBox_->setText(mk_Output[ms_CurrentIterationKeyShowing]->text());
-        mk_OutputBox_->moveCursor(QTextCursor::End);
-        mk_OutputBox_->ensureCursorVisible();
+        foreach (QString ls_Key, mk_Output.keys())
+            mk_Output[ls_Key].data()->setVisible(ls_Key == ms_CurrentIterationKeyShowing);
     }
 }
 
@@ -677,7 +673,10 @@ void k_ScriptBox::update()
     {
         mk_OutputBoxIterationKeyChooser_->addItem(ls_Key);
         if (!mk_Output.contains(ls_Key))
-            mk_Output[ls_Key] = QSharedPointer<k_ConsoleString>(new k_ConsoleString());
+        {
+            mk_Output[ls_Key] = QSharedPointer<k_ConsoleTextEdit>(new k_ConsoleTextEdit(mk_Proteomatic));
+            mk_OutputBoxLayout_->insertWidget(1, mk_Output[ls_Key].data());
+        }
         if (ls_Key == ls_CurrentText)
             mk_OutputBoxIterationKeyChooser_->setCurrentIndex(mk_OutputBoxIterationKeyChooser_->count() - 1);
     }
@@ -975,12 +974,15 @@ void k_ScriptBox::setupLayout()
 
     // now comes the output box
     mk_OutputBoxContainer_ = new QWidget(this);
-    mk_OutputBox_ = new QTextEdit(mk_OutputBoxContainer_);
+//     mk_OutputBox_ = new QTextEdit(mk_OutputBoxContainer_);
     mk_OutputBoxIterationKeyChooser_ = new QComboBox(mk_OutputBoxContainer_);
-    mk_OutputBox_->setReadOnly(true);
-    mk_OutputBox_->setFont(mk_Proteomatic.consoleFont());
+//     mk_OutputBox_->setReadOnly(true);
+//     mk_OutputBox_->setFont(mk_Proteomatic.consoleFont());
     
-    lk_VLayout_ = new QVBoxLayout(mk_OutputBoxContainer_);
+    mk_OutputBoxLayout_ = new QVBoxLayout(mk_OutputBoxContainer_);
+    #ifdef Q_OS_MAC
+    mk_OutputBoxLayout_->setContentsMargins(4, 4, 4, 4);
+    #endif
     
     mk_OutputBoxIterationKeyChooserContainer_ = new QWidget(this);
     lk_HLayout_ = new QHBoxLayout(mk_OutputBoxIterationKeyChooserContainer_);
@@ -992,8 +994,8 @@ void k_ScriptBox::setupLayout()
     lk_HLayout_->setStretch(0, 0);
     lk_HLayout_->setStretch(1, 1);
 
-    lk_VLayout_->addWidget(mk_OutputBoxIterationKeyChooserContainer_);
-    lk_VLayout_->addWidget(mk_OutputBox_);
+    mk_OutputBoxLayout_->addWidget(mk_OutputBoxIterationKeyChooserContainer_);
+//     lk_VLayout_->addWidget(mk_OutputBox_);
     
     mk_OutputBoxIterationKeyChooserContainer_->hide();
     
@@ -1050,6 +1052,10 @@ void k_ScriptBox::setupLayout()
         mk_FoldedHeader_->hideBuddy();
         
         lk_VLayout_ = new QVBoxLayout(lk_Container_);
+        #ifdef Q_OS_MAC
+        lk_VLayout_->setSpacing(6);
+        #endif
+
         lk_VLayout_->setContentsMargins(0, 0, 0, 0);
 
         // horizontal rule
@@ -1160,7 +1166,7 @@ void k_ScriptBox::setupLayout()
             lk_Box_->setProtectedFromUserDeletion(true);
             dynamic_cast<QObject*>(lk_Box_)->setProperty("key", ls_Key);
             mk_OutputFileBoxes[ls_Key] = lk_Box_;
-            mk_Desktop_->addBox(lk_Box_, false);
+            mk_Desktop_->addBox(lk_Box_, false, false, 270, 120);
             mk_Desktop_->connectBoxes(this, lk_Box_);
             // make the output file box of a converter script a list
             dynamic_cast<k_FileListBox*>(lk_Box_)->setListMode(mk_pScript->type() == r_ScriptType::Converter || batchMode());

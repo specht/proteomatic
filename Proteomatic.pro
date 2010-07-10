@@ -80,7 +80,7 @@ HEADERS += \
     src/CiListWidgetItem.h \
     src/ClickableGraphicsProxyWidget.h \
     src/ClickableLabel.h \
-    src/ConsoleString.h \
+    src/ConsoleTextEdit.h \
     src/Desktop.h \
     src/DesktopBox.h \
     src/DesktopBoxFactory.h \
@@ -94,6 +94,7 @@ HEADERS += \
     src/IScript.h \
     src/IScriptBox.h \
     src/LocalScript.h \
+    src/LockFile.h \
     src/NoSlashValidator.h \
     src/PipelineMainWindow.h \
     src/ProfileManager.h \
@@ -118,7 +119,7 @@ HEADERS += \
 SOURCES += \
     src/ClickableGraphicsProxyWidget.cpp \
     src/ClickableLabel.cpp \
-    src/ConsoleString.cpp \
+    src/ConsoleTextEdit.cpp \
     src/Desktop.cpp \
     src/DesktopBox.cpp \
     src/DesktopBoxFactory.cpp \
@@ -128,6 +129,7 @@ SOURCES += \
     src/HintLineEdit.cpp \
     src/InputGroupProxyBox.cpp \
     src/LocalScript.cpp \
+    src/LockFile.cpp \
     src/NoSlashValidator.cpp \
     src/PipelineMainWindow.cpp \
     src/ProfileManager.cpp \

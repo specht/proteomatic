@@ -229,6 +229,7 @@ void k_FileListBox::toggleUi()
     mk_FileList.refresh();
     
     mk_BatchModeButton.setVisible(mb_ListMode);
+    mk_BatchModeButton.setEnabled(mk_FileList.files().size() > 1);
     mk_RemoveSelectionButton.setEnabled(!mk_FileList.selectedItems().empty());
     QString ls_Label;
     if (ms_Label.isEmpty())
@@ -271,9 +272,6 @@ void k_FileListBox::toggleUi()
 
 void k_FileListBox::filenameDoubleClicked()
 {
-#ifdef DEBUG
-    printf("double click!\n");
-#endif
     if (mk_FileList.files().empty())
         return;
     
@@ -342,6 +340,12 @@ void k_FileListBox::update()
         if (!mk_FilenamesForTag.contains(ls_Tag))
             mk_FilenamesForTag[ls_Tag] = QStringList();
         mk_FilenamesForTag[ls_Tag] << ls_Filename;
+    }
+    
+    if (batchMode() && (mk_FileList.files().size() < 2))
+    {
+        setBatchMode(false);
+        mk_BatchModeButton.setDown(false);
     }
     
     mk_Desktop_->setHasUnsavedChanges(true);
@@ -420,7 +424,7 @@ void k_FileListBox::setupLayout()
 
     
     lk_VLayout_->addLayout(lk_HLayout_);
-    
+
     toggleUi();
     emit resized();
 }

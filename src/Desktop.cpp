@@ -63,6 +63,7 @@ k_Desktop::k_Desktop(QWidget* ak_Parent_, k_Proteomatic& ak_Proteomatic, k_Pipel
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setAcceptDrops(true);
     setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+    setResizeAnchor(QGraphicsView::AnchorViewCenter);
     setScene(&mk_GraphicsScene);
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::TextAntialiasing, true);
@@ -129,15 +130,18 @@ IDesktopBox* k_Desktop::addSnippetBox(bool ab_AutoAdjust)
 {
     IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeSnippetBox(this, mk_Proteomatic);
     k_DesktopBox* lk_DesktopBox_ = dynamic_cast<k_DesktopBox*>(lk_Box_);
-    addBox(lk_Box_, true, ab_AutoAdjust, 400, 250);
+    addBox(lk_Box_, true, ab_AutoAdjust, 350, 200);
     refresh();
     return lk_DesktopBox_;
 }
 
 
-IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust)
+IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAdjust, 
+                                     bool ab_AutoAddFileBoxIfEmpty)
 {
     int li_OldBoxCount = mk_Boxes.size();
+    
+    bool lb_DesktopWasEmpty = mk_Boxes.empty();
     
     IDesktopBox* lk_Box_ = k_DesktopBoxFactory::makeScriptBox(as_ScriptUri, this, mk_Proteomatic);
     if (lk_Box_)
@@ -174,6 +178,18 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
             {
                 addBox(lk_ProxyBox_, false, false);
                 connectBoxes(lk_ProxyBox_, lk_Box_);
+            }
+        }
+        if (ab_AutoAddFileBoxIfEmpty)
+        {
+            // if this script has input files, and there is not input file box (and no snippet)
+            // yet, add and connect an input file box
+            if (lb_DesktopWasEmpty && (!lk_ScriptBox_->script()->inputGroupKeys().isEmpty()) && lk_Box_->incomingBoxes().empty())
+            {
+                //IDesktopBox* lk_InputFileBox_ = k_DesktopBoxFactory::makeFileListBox(this, mk_Proteomatic);
+                IDesktopBox* lk_InputFileBox_ = addInputFileListBox(false);
+                if (lk_InputFileBox_)
+                    connectBoxes(lk_InputFileBox_, lk_Box_);
             }
         }
         
@@ -227,10 +243,13 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
         foreach (IDesktopBox* lk_MoveBox_, lk_AllBoxes)
             dynamic_cast<k_DesktopBox*>(lk_MoveBox_)->move(dynamic_cast<k_DesktopBox*>(lk_MoveBox_)->pos() + QPoint((int)lk_FreeSpace.x(), (int)lk_FreeSpace.y()));
         
-        mk_SelectedArrows.clear();
-        mk_SelectedBoxes.clear();
-        foreach (IDesktopBox* lk_MoveBox_, lk_AllBoxes)
-            mk_SelectedBoxes << lk_MoveBox_;
+        if (!lb_DesktopWasEmpty)
+        {
+            mk_SelectedArrows.clear();
+            mk_SelectedBoxes.clear();
+            foreach (IDesktopBox* lk_MoveBox_, lk_AllBoxes)
+                mk_SelectedBoxes << lk_MoveBox_;
+        }
         
         if (mk_ArrowStartBoxAutoConnect_)
         {
@@ -268,14 +287,21 @@ IDesktopBox* k_Desktop::addScriptBox(const QString& as_ScriptUri, bool ab_AutoAd
             }
         }
         setCurrentScriptBox(lk_ScriptBox_);
+        mk_ArrowStartBoxAutoConnect_ = NULL;
+        redrawSelection();
+        emit selectionChanged();
+        refresh();
+        if (mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()))
+        {
+            if (ab_AutoAdjust)
+            {
+                if (lb_DesktopWasEmpty)
+                    animateAdjustView(true, QSet<IDesktopBox*>(), false);
+                else
+                    animateAdjustView(false, mk_SelectedBoxes);
+            }
+        }
     }
-    mk_ArrowStartBoxAutoConnect_ = NULL;
-    redrawSelection();
-    emit selectionChanged();
-    if (mk_Proteomatic.stringToBool(mk_Proteomatic.getConfiguration(CONFIG_FOLLOW_NEW_BOXES).toString()))
-        if (ab_AutoAdjust)
-            animateAdjustView(false, mk_SelectedBoxes);
-    refresh();
     return lk_Box_;
 }
 
@@ -739,8 +765,11 @@ tk_YamlMap k_Desktop::pipelineDescription()
 }
 
 
-void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
+bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_DescriptionBasePath)
 {
+    QHash<IDesktopBox*, QPoint> lk_BoxPositions;
+    QHash<IDesktopBox*, QSize> lk_BoxSizes;
+    
     int li_ScriptCount = 0;
     if (ak_Description.contains("scriptBoxes"))
         li_ScriptCount = ak_Description["scriptBoxes"].toList().size();
@@ -757,15 +786,68 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     QHash<IScriptBox*, bool> lk_ShortIterationTagBoxes;
     QSet<QString> lk_Warnings;
     int li_Count = 0;
+    // first check for unresolved dependencies and try to resolve them
+    if (!ak_Description["scriptBoxes"].toList().empty())
+    {
+        QCoreApplication::processEvents();
+        QString ls_ScriptBasePath;
+        QSet<QString> lk_ScriptSet;
+        foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
+        {
+            tk_YamlMap lk_BoxDescription = lk_Item.toMap();
+            QString ls_Uri = lk_BoxDescription["uri"].toString();
+            lk_ScriptSet << ls_Uri;
+            if (ls_ScriptBasePath.isEmpty())
+            {
+                QString ls_CompleteUri = mk_Proteomatic.completePathForScript(ls_Uri);
+                ls_ScriptBasePath = QFileInfo(ls_CompleteUri).absolutePath();
+            }
+        }
+        QString ls_Response = mk_Proteomatic.syncRuby((QStringList() << 
+            QFileInfo(QDir(ls_ScriptBasePath), "helper/get-unresolved-dependencies.rb").absoluteFilePath() << 
+            "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_ScriptSet.toList());
+        tk_YamlMap lk_Map = k_Yaml::parseFromString(ls_Response).toMap();
+        if (!lk_Map.empty())
+        {
+            QStringList lk_MissingTools;
+            foreach (QVariant lk_Tool, lk_Map.values())
+                lk_MissingTools << lk_Tool.toString();
+            qSort(lk_MissingTools);
+            QString ls_MissingTools = lk_MissingTools.join(", ");
+            int li_Result = mk_Proteomatic.showMessageBox("Unresolved dependencies", "This pipeline requires the following external tools that are currently not installed:\n\n"
+                + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
+            if (li_Result == QMessageBox::Yes)
+            {
+                bool lb_Flag = mk_Proteomatic.syncShowRuby((QStringList() << 
+                    QFileInfo(QDir(ls_ScriptBasePath), "helper/resolve-dependencies.rb").absoluteFilePath() << 
+                    "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_Map.keys(), "Installing external tools");
+                if (!lb_Flag)
+                {
+                    clearAll();
+                    setHasUnsavedChanges(false);
+                    return false;
+                }
+            }
+            else
+            {
+                clearAll();
+                setHasUnsavedChanges(false);
+                return false;
+            }                
+        }
+    }
+    
+    // now load the scripts
     foreach (QVariant lk_Item, ak_Description["scriptBoxes"].toList())
     {
+        QCoreApplication::processEvents();
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
         QString ls_Uri = lk_BoxDescription["uri"].toString();
         QString ls_Id = lk_BoxDescription["id"].toString();
         QString ls_CompleteUri = mk_Proteomatic.completePathForScript(ls_Uri);
         tk_YamlMap lk_OutputBoxes = lk_BoxDescription["activeOutputFiles"].toMap();
         tk_YamlMap lk_InputProxyBoxes = lk_BoxDescription["inputProxyBoxes"].toMap();
-        IDesktopBox* lk_Box_ = addScriptBox(ls_CompleteUri, false);
+        IDesktopBox* lk_Box_ = addScriptBox(ls_CompleteUri, false, false);
         if (!lk_Box_)
         {
             // loading a script failed, now cancel this whole thing
@@ -775,18 +857,27 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                 ":icons/dialog-warning.png");
             clearAll();
             setHasUnsavedChanges(false);
-            return;
+            return false;
         }
         if (lk_Box_)
         {
             IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+            
+            QCoreApplication::processEvents();
+            
             if (lk_ScriptBox_)
             {
                 QString ls_OutputDirectory = lk_BoxDescription["outputDirectory"].toString();
                 if (!ls_OutputDirectory.isEmpty())
                 {
                     if (!QDir(ls_OutputDirectory).exists())
-                        lk_Warnings << "output-directory-gone";
+                    {
+                        ls_OutputDirectory = QDir::cleanPath(as_DescriptionBasePath + "/" + ls_OutputDirectory);
+                        if (!QDir(ls_OutputDirectory).exists())
+                            lk_Warnings << "output-directory-gone";
+                        else
+                            lk_ScriptBox_->setBoxOutputDirectory(ls_OutputDirectory);
+                    }
                     else
                         lk_ScriptBox_->setBoxOutputDirectory(ls_OutputDirectory);
                 }
@@ -800,9 +891,11 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                 if (lk_BoxDescription["size"].toList().size() == 2)
                 {
                     tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                    lk_BoxSizes[lk_Box_] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
                     dynamic_cast<k_DesktopBox*>(lk_Box_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
                 }
                 tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+                lk_BoxPositions[lk_Box_] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
                 moveBoxTo(lk_Box_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                 bool lb_ShortTags = false;
                 if (lk_BoxDescription["shortIterationTags"].toString() == "yes" ||
@@ -821,9 +914,11 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                         if (lk_OutBoxDescription["size"].toList().size() == 2)
                         {
                             tk_YamlSequence lk_Size = lk_OutBoxDescription["size"].toList();
+                            lk_BoxSizes[lk_OutputBox_] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
                             dynamic_cast<k_DesktopBox*>(lk_OutputBox_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
                         }
                         tk_YamlSequence lk_Position = lk_OutBoxDescription["position"].toList();
+                        lk_BoxPositions[lk_OutputBox_] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
                         moveBoxTo(lk_OutputBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         if (lk_OutBoxDescription["batchMode"].toString() == "yes" || 
                             lk_OutBoxDescription["batchMode"].toString() == "true")
@@ -836,9 +931,11 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                     if (lk_BoxDescription["size"].toList().size() == 2)
                     {
                         tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                        lk_BoxSizes[lk_Box_->outgoingBoxes().toList().first()] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
                         dynamic_cast<k_DesktopBox*>(lk_Box_->outgoingBoxes().toList().first())->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
                     }
                     tk_YamlSequence lk_Position = lk_BoxDescription["converterOutputFileBoxPosition"].toList();
+                    lk_BoxPositions[lk_Box_->outgoingBoxes().toList().first()] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
                     moveBoxTo(lk_Box_->outgoingBoxes().toList().first(), QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                     lk_BoxForId[lk_BoxDescription["converterOutputFileBoxId"].toString()] = lk_Box_->outgoingBoxes().toList().first();
                     if (lk_BoxDescription["converterOutputFileBoxBatchMode"].toString() == "yes" || 
@@ -859,9 +956,11 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
                             if (lk_BoxDescription["size"].toList().size() == 2)
                             {
                                 tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+                                lk_BoxSizes[lk_ProxyBox_] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
                                 dynamic_cast<k_DesktopBox*>(lk_ProxyBox_)->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
                             }
                             tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+                            lk_BoxPositions[lk_ProxyBox_] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
                             moveBoxTo(lk_ProxyBox_, QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
                         }
                     }
@@ -873,34 +972,46 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     }
     foreach (QVariant lk_Item, ak_Description["inputFileListBoxes"].toList())
     {
+        QCoreApplication::processEvents();
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
         QString ls_Id = lk_BoxDescription["id"].toString();
         lk_BoxForId[ls_Id] = addInputFileListBox(false);
         if (lk_BoxDescription["size"].toList().size() == 2)
         {
             tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+            lk_BoxSizes[lk_BoxForId[ls_Id]] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
             dynamic_cast<k_DesktopBox*>(lk_BoxForId[ls_Id])->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
         }
         tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+        lk_BoxPositions[lk_BoxForId[ls_Id]] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
         moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
         tk_YamlSequence lk_Paths = lk_BoxDescription["paths"].toList();
-        foreach (QVariant ls_Path, lk_Paths)
-            dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id])->addPath(ls_Path.toString());
+        foreach (QVariant lk_Path, lk_Paths)
+        {
+            QString ls_Path = lk_Path.toString();
+            // if the file does not exist, try a path relative to the pipeline file
+            if (!QFileInfo(ls_Path).exists())
+                ls_Path = as_DescriptionBasePath + "/" + ls_Path;
+            dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id])->addPath(ls_Path);
+        }
         if (lk_BoxDescription["batchMode"].toString() == "yes" || 
             lk_BoxDescription["batchMode"].toString() == "true")
             lk_BatchModeFileListBoxes << dynamic_cast<k_FileListBox*>(lk_BoxForId[ls_Id]);
     }
     foreach (QVariant lk_Item, ak_Description["snippetBoxes"].toList())
     {
+        QCoreApplication::processEvents();
         tk_YamlMap lk_BoxDescription = lk_Item.toMap();
         QString ls_Id = lk_BoxDescription["id"].toString();
         lk_BoxForId[ls_Id] = addSnippetBox(false);
         if (lk_BoxDescription["size"].toList().size() == 2)
         {
             tk_YamlSequence lk_Size = lk_BoxDescription["size"].toList();
+            lk_BoxSizes[lk_BoxForId[ls_Id]] = QSize(lk_Size[0].toInt(), lk_Size[1].toInt());
             dynamic_cast<k_DesktopBox*>(lk_BoxForId[ls_Id])->resize(lk_Size[0].toInt(), lk_Size[1].toInt());
         }
         tk_YamlSequence lk_Position = lk_BoxDescription["position"].toList();
+        lk_BoxPositions[lk_BoxForId[ls_Id]] = QPoint(lk_Position[0].toInt(), lk_Position[1].toInt());
         moveBoxTo(lk_BoxForId[ls_Id], QPoint(lk_Position[0].toInt(), lk_Position[1].toInt()));
         
         dynamic_cast<k_SnippetBox*>(lk_BoxForId[ls_Id])->setText(lk_BoxDescription["text"].toString());
@@ -926,6 +1037,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     // lead to slot being called immediately)
     while (true)
     {
+        QCoreApplication::processEvents();
         bool lb_AllBatchModeOk = true;
         foreach (k_FileListBox* lk_Box_, lk_BatchModeFileListBoxes)
         {
@@ -943,11 +1055,28 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
     foreach (IScriptBox* lk_ScriptBox_, lk_ShortIterationTagBoxes.keys())
         lk_ScriptBox_->setUseShortIterationTags(lk_ShortIterationTagBoxes[lk_ScriptBox_]);
     
+    // select first script box
+    foreach (IDesktopBox* lk_Box_, boxesByTopologicalOrder())
+    {
+        IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
+        if (lk_ScriptBox_)
+        {
+            setCurrentScriptBox(lk_ScriptBox_);
+            break;
+        }
+    }
+    
+    resetCachedContent();
     animateAdjustView(true, QSet<IDesktopBox*>(), false);
     
     redraw();
     setHasUnsavedChanges(false);
-    emit showAllRequested();
+//     emit showAllRequested();
+
+    foreach (IDesktopBox* lk_Box_, lk_BoxSizes.keys())
+        dynamic_cast<k_DesktopBox*>(lk_Box_)->resize(lk_BoxSizes[lk_Box_]);
+    foreach (IDesktopBox* lk_Box_, lk_BoxPositions.keys())
+        moveBoxTo(lk_Box_, lk_BoxPositions[lk_Box_]);
     
     // handle warnings
     if (!lk_Warnings.empty())
@@ -957,6 +1086,7 @@ void k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description)
             ls_Warning += "The output directory could not be set for one or more scripts.<br/>";
         mk_Proteomatic.showMessageBox("Load pipeline", ls_Warning, ":icons/emblem-important.png");
     }
+    return true;
 }
 
 
@@ -1013,6 +1143,25 @@ QList<IDesktopBox*> k_Desktop::boxesByTopologicalOrder()
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
         lk_BoxesByTopologicalIndex.insert(lk_Box_->topologicalIndex(), lk_Box_);
     return lk_BoxesByTopologicalIndex.values();
+}
+
+
+void k_Desktop::saveBoxPositions()
+{
+    mk_SavedBoxPositions.clear();
+    foreach (IDesktopBox* lk_Box_, mk_Boxes)
+        mk_SavedBoxPositions[lk_Box_] = boxLocation(lk_Box_);
+}
+
+
+void k_Desktop::restoreBoxPositions()
+{
+    foreach (IDesktopBox* lk_Box_, mk_SavedBoxPositions.keys())
+    {
+        if (mk_Boxes.contains(lk_Box_))
+            moveBoxTo(lk_Box_, mk_SavedBoxPositions[lk_Box_]);
+    }
+    mk_SavedBoxPositions.clear();
 }
 
 
@@ -1074,6 +1223,7 @@ void k_Desktop::start(bool ab_UseFileTrackingIfAvailable)
     mb_UseFileTrackerIfAvailable = ab_UseFileTrackingIfAvailable;
     // collect all script boxes
     mk_RemainingScriptBoxes.clear();
+    mk_RemainingScriptBoxIterationKeys.clear();
     foreach (IDesktopBox* lk_Box_, mk_Boxes)
     {
         IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
@@ -1194,44 +1344,6 @@ void k_Desktop::abort()
 void k_Desktop::showAll()
 {
     animateAdjustView();
-    return;
-    if (mk_Boxes.empty())
-        return;
-
-    // reset scaling to 1.0
-    md_Scale = 1.0;
-    QMatrix lk_Matrix = this->matrix();
-    lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
-    this->setMatrix(lk_Matrix);
-    
-    // determine bounding box
-    QRectF lk_Rect;
-    foreach (IDesktopBox* lk_Box_, mk_Boxes)
-        lk_Rect = lk_Rect.united(lk_Box_->rect());
-    lk_Rect.adjust(-10.0, -10.0, 10.0, 10.0);
-    
-    // center
-    centerOn(lk_Rect.center());
-    
-    // adjust scaling
-    QPointF lk_A = mapToScene(QPoint(0, 0));
-    QPointF lk_B = mapToScene(QPoint(frameRect().width(), frameRect().height()));
-    double ld_WindowX = lk_B.x() - lk_A.x();
-    double ld_WindowY = lk_B.y() - lk_A.y();
-    double ld_SceneX = lk_Rect.width();
-    double ld_SceneY = lk_Rect.height();
-    double a = ld_WindowX / ld_SceneX;
-    if (ld_WindowY / ld_SceneY < a)
-        a = ld_WindowY / ld_SceneY;
-    if (a < 1.0)
-    {
-        md_Scale *= a;
-        md_Scale = std::max<double>(md_Scale, 0.3);
-        md_Scale = std::min<double>(md_Scale, 1.0);
-        QMatrix lk_Matrix = this->matrix();
-        lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
-        this->setMatrix(lk_Matrix);
-    }
 }
 
 
@@ -1406,7 +1518,7 @@ void k_Desktop::arrowReleased()
     if (mk_ArrowStartBox_ && !mk_ArrowEndBox_)
     {
         // show scripts menu and insert a script box here
-        if (!boxAt(mk_ArrowEndPoint))
+        if ((!boxAt(mk_ArrowEndPoint)) && (!mk_Proteomatic.availableScripts().empty()))
         {
             mk_ArrowStartBoxAutoConnect_ = mk_ArrowStartBox_;
             QStringList lk_InputPaths;
@@ -1634,6 +1746,7 @@ void k_Desktop::clearSelection()
 
 void k_Desktop::scriptStarted()
 {
+    mk_Proteomatic.touchScriptsLockFile();
     IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(sender());
     setCurrentScriptBoxForce(lk_ScriptBox_);
     lk_ScriptBox_->showOutputBox(true);
@@ -1979,7 +2092,7 @@ void k_Desktop::mouseDoubleClickEvent(QMouseEvent* event)
     }
     event->ignore();
     mk_MoveStartPoint = mapToScene(event->globalPos());
-    QGraphicsView::mousePressEvent(event);
+    QGraphicsView::mouseDoubleClickEvent(event);
 }
 
 
@@ -2047,6 +2160,8 @@ void k_Desktop::wheelEvent(QWheelEvent* event)
         lk_Matrix.setMatrix(md_Scale, lk_Matrix.m12(), lk_Matrix.m21(), md_Scale, lk_Matrix.dx(), lk_Matrix.dy());
         this->setMatrix(lk_Matrix);
     }
+    else if (event->modifiers() == 0)
+        QGraphicsView::wheelEvent(event);
 }
 
 
@@ -2339,11 +2454,12 @@ QPointF k_Desktop::findFreeSpace(QRectF ak_BoundRect, int ai_BoxCount, QRectF ak
 
 IScriptBox* k_Desktop::pickNextScriptBox()
 {
-    foreach (IScriptBox* lk_Box_, mk_RemainingScriptBoxes)
+    foreach (IDesktopBox* lk_Box_, boxesByTopologicalOrder())
     {
         IScriptBox* lk_ScriptBox_ = dynamic_cast<IScriptBox*>(lk_Box_);
-        if (lk_ScriptBox_ && lk_ScriptBox_->checkReadyToGo())
-            return lk_ScriptBox_;
+        if (lk_ScriptBox_ && mk_RemainingScriptBoxes.contains(lk_ScriptBox_))
+            if (lk_ScriptBox_->checkReadyToGo())
+                return lk_ScriptBox_;
     }
     return NULL;
 }
@@ -2369,7 +2485,10 @@ QSet<IScriptBox*> k_Desktop::incomingScriptBoxes(IDesktopBox* ak_Box_) const
 
 void k_Desktop::dragEnterEvent(QDragEnterEvent* event)
 {
-    event->acceptProposedAction();
+    if (running())
+        event->ignore();
+    else
+        event->acceptProposedAction();
 }
 
 
@@ -2384,6 +2503,12 @@ void k_Desktop::dragMoveEvent(QDragMoveEvent* event)
 
 void k_Desktop::dropEvent(QDropEvent* event)
 {
+    if (running())
+    {
+        event->ignore();
+        return;
+    }
+    
     // only accept this if there is no box under the mouse pointer
     if (boxAt(mapToScene(event->pos())))
     {
@@ -2403,14 +2528,20 @@ void k_Desktop::dropEvent(QDropEvent* event)
     }
     if (!lk_Files.empty())
     {
-        k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(addInputFileListBox());
-        if (lk_FileListBox_)
+        if ((lk_Files.size() == 1) && (lk_Files.first().endsWith(QString(FILE_EXTENSION_PIPELINE))))
+            // IT'S A PIPELINE!!
+            mk_PipelineMainWindow.loadPipeline(lk_Files.first());
+        else
         {
-            lk_FileListBox_->addPaths(lk_Files);
-            QSize lk_Size = lk_FileListBox_->size();
-            lk_Size.setWidth(lk_Size.width() * 0.5);
-            lk_Size.setHeight(lk_Size.width() * 0.1);
-            lk_FileListBox_->move(mapToScene(event->pos()).toPoint() - QPoint(lk_Size.width(), lk_Size.height()));
+            k_FileListBox* lk_FileListBox_ = dynamic_cast<k_FileListBox*>(addInputFileListBox());
+            if (lk_FileListBox_)
+            {
+                lk_FileListBox_->addPaths(lk_Files);
+                QSize lk_Size = lk_FileListBox_->size();
+                lk_Size.setWidth(lk_Size.width() * 0.5);
+                lk_Size.setHeight(lk_Size.width() * 0.1);
+                lk_FileListBox_->move(mapToScene(event->pos()).toPoint() - QPoint(lk_Size.width(), lk_Size.height()));
+            }
         }
     }
 }

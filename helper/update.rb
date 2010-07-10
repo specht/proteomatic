@@ -6,13 +6,12 @@ require 'fileutils'
 require 'yaml'
 require 'digest/md5'
 
-flushThread = Thread.new do 
-    loop do
-        STDOUT.flush
-        STDERR.flush
-        sleep 1
-    end
-end
+DANGLING_LOCK_KEEP_TIME = 7 * 24 * 60 * 60 # this is seven days in seconds!
+
+$stdout.sync = true
+$stderr.sync = true
+
+$scriptsPath = nil
 
 # change into this script's directory
 Dir::chdir(File.dirname(__FILE__))
@@ -21,11 +20,11 @@ $scriptDir = Dir::pwd()
 
 def determinePlatform()
     case RUBY_PLATFORM.downcase
-    when /linux/
+    when /linux/ then
         'linux'
-    when /darwin/
+    when /darwin/ then
         'macx'
-    when /mswin/
+    when /mswin/ then
         'win32'
     else
         puts "Internal error: #{RUBY_PLATFORM} platform not supported."
@@ -66,7 +65,7 @@ def fetchUriAsFile(as_Uri, as_Path, ab_ShowProgress = true)
         end
     else
         li_Size = 0
-        open(ls_Uri, 
+        open(as_Uri, 
             :content_length_proc => lambda { |t| li_Size = t }, 
             :progress_proc => lambda { |t| print "\rDownloaded #{bytesToString(t)} of #{bytesToString(li_Size)}    "  if ab_ShowProgress }) do |lk_RemoteFile|
             File::open(as_Path, 'wb') { |lk_Out| lk_Out.write(lk_RemoteFile.read) }
@@ -174,7 +173,8 @@ def updateScripts(info)
     FileUtils::rm_rf('temp')
     FileUtils::mkdir('temp')
     # determine currently installed scripts version
-    scriptsDir = File::join('..', 'scripts')
+    scriptsDir = $scriptsPath
+    scriptsDir ||= File::join('..', 'scripts')
     unless File::directory?(scriptsDir)
         if File::file?(scriptsDir)
             puts "Error: A file called 'scripts' exists, but we need to create a directory there."
@@ -252,7 +252,23 @@ def updateScripts(info)
             # remove old script packages
             newDir = File::join(scriptsDir, 'proteomatic-scripts-' + info['version'])
             Dir[File::join(scriptsDir, '*')].each do |path|
-                FileUtils::rm_rf(path) unless path == newDir
+                
+                # don't delete if it's the fresh, just-fetched-and-unpacked package!
+                next if path == newDir
+                
+                # now see if there are any locks, either a lock is there because another
+                # Proteomatic is using it and it will be deleted when this Proteomatic 
+                # has finished, OR: the lock is dangling because Proteomatic crashed
+                # at some point and the lock is still there. 
+                # Solution: Ignore the lock if it's too old already, as defined in
+                # DANGLING_LOCK_KEEP_TIME
+                lockFiles = Dir[File::join(path, '.lock', '*')]
+                lockFiles.reject! { |x| (Time.now - File.mtime(x)) > DANGLING_LOCK_KEEP_TIME }
+                next unless lockFiles.empty?
+                
+                # now delete the script package
+                FileUtils::rm_rf(path) 
+                
             end
         else
             puts "Error: The downloaded package was corrupt."
@@ -265,7 +281,7 @@ end
 ls_Uri = ''
 
 if ARGV.size < 1
-    puts 'Usage: ruby update.rb [Proteomatic update URI] [(optional) --dryrun] [packages]'
+    puts 'Usage: ruby update.rb [Proteomatic update URI] [--dryrun] [--scriptsPath <path>] [packages]'
     puts "Packages may be 'scripts' or 'proteomatic'."
     exit 1
 end
@@ -276,6 +292,13 @@ lb_DryRun = false
 if ARGV.include?('--dryrun')
     lb_DryRun = true
     ARGV.delete('--dryrun')
+end
+
+if ARGV.include?('--scriptsPath')
+    i = ARGV.index('--scriptsPath')
+    $scriptsPath = ARGV[i + 1]
+    ARGV.delete_at(i)
+    ARGV.delete_at(i)
 end
 
 updatePackages = Array.new
@@ -307,98 +330,12 @@ updatePackages.sort!
 updatePackages.each do |package|
     if lk_CurrentInfo[package]
         case package
-        when 'proteomatic':
+        when 'proteomatic' then
             updateProteomatic(lk_CurrentInfo[package])
-        when 'scripts':
+        when 'scripts' then
             updateScripts(lk_CurrentInfo[package])
         end
     end
 end
 
 FileUtils::rm_rf('temp')
-
-__END__
-
-ls_PackagePath = File::join(ls_OutPath, ls_Current)
-puts "Fetching #{ls_Current}"
-$stdout.flush
-fetchUriAsFile(File::join(ls_Uri, ls_Current), ls_PackagePath)
-puts
-$stdout.flush
-
-puts "Unpacking..."
-$stdout.flush
-
-ls_OldDir = Dir::pwd()
-Dir::chdir(File::dirname(ls_PackagePath))
-ls_Platform = determinePlatform()
-
-if (ls_Platform == 'linux' || ls_Platform == 'macx')
-    unless system("bzip2 -dc \"#{File::basename(ls_PackagePath)}\" | tar xf -")
-        puts "Error: Unable to unpack #{ls_PackagePath}."
-        exit 1
-    end
-elsif (ls_Platform == 'win32')
-    ls_Command = "#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x \"#{ls_PackagePath}\""
-    begin
-        lk_Process = IO.popen(ls_Command)
-        lk_Process.read
-    rescue StandardError => e
-        puts 'Error: There was an error while executing 7zip.'
-        exit 1
-    end
-
-    FileUtils::rm_f(ls_PackagePath)
-    ls_PackagePath.sub!('.bz2', '')
-    
-    ls_Command = "#{File::join(ls_OldDir, '7zip', '7za457', '7za.exe')} x \"#{ls_PackagePath}\""
-    begin
-        lk_Process = IO.popen(ls_Command)
-        lk_Process.read
-    rescue StandardError => e
-        puts 'Error: There was an error while executing 7zip.'
-        exit 1
-    end
-end
-
-$stdout.flush
-unless (ls_OldPath.empty?)
-    puts "Copying configuration files..."
-    $stdout.flush
-    lk_OldFiles = Dir[File::join(ls_OldPath, 'config/**/*')]
-    #lk_OldFiles += Dir[File::join(ls_OldPath, 'ext/**/*')]
-    lk_OldFiles.collect! { |x| x.sub(ls_OldPath, '') }
-    ls_NewPath = File::join(ls_OutPath, ls_Current.sub('.tar.bz2', ''))
-    lk_NewFiles = Dir[File::join(ls_NewPath, 'config/**/*')]
-    #lk_NewFiles += Dir[File::join(ls_NewPath, 'ext/**/*')]
-    
-    # strip base dir
-    lk_NewFiles.collect! { |x| x.sub(ls_NewPath, '') }
-    
-    # reject files that are already in the new location
-    lk_OldFiles.reject! { |x| lk_NewFiles.include?(x) }
-    
-    # expand to full path again
-    lk_OldFiles.collect! { |x| File::join(ls_OldPath, x) }
-    
-    # extact dirs
-    lk_OldExtraDirs = lk_OldFiles.select { |x| File::directory?(x) } 
-    
-    # reject dirs
-    lk_OldFiles.reject! { |x| File::directory?(x) }
-    
-    # create dirs in new location
-    lk_OldExtraDirs.each do |ls_Dir|
-        FileUtils::mkpath(File::join(ls_NewPath, ls_Dir.sub(ls_OldPath, '')))
-    end
-    
-    # copy files to new location
-    lk_OldFiles.each do |ls_File|
-        FileUtils::cp(ls_File, File::join(ls_NewPath, ls_File.sub(ls_OldPath, '')))
-    end
-end
-
-puts "Update completed successfully."
-
-Dir::chdir(ls_OldDir)
-FileUtils::rm_f(ls_PackagePath)

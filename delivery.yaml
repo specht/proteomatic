@@ -1,6 +1,5 @@
 projects:
   - .
-  #- src/projects/Revelio
 #binaryPath: bin
 qt: [core, gui]
 versionInject:
@@ -14,7 +13,7 @@ versionInject:
     
   src/version.cpp: |
     /*
-    Copyright (c) 2007-2009 Michael Specht
+    Copyright (c) 2007-2010 Michael Specht
     
     This file is part of Proteomatic.
     
@@ -37,8 +36,8 @@ versionInject:
     QString gs_ProteomaticVersion = "#{VERSION}";
 addFiles:
   proteomatic.conf.yaml: |
-    autoCheckForUpdates: true
     fileTrackerUrl: peaks.uni-muenster.de:5556
-    scriptsUrl: "ftp://gpf.uni-muenster.de/download/proteomatic/update"
+    scriptsUrl: ftp://gpf.uni-muenster.de/download/proteomatic/update
 
 externals: [helper]
+macAppPackage: true

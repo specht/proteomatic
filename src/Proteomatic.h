@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include "LockFile.h"
 #include "Yaml.h"
 
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
@@ -41,6 +42,9 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_FOLLOW_NEW_BOXES "followNewBoxes"
 #define CONFIG_ANIMATION "animation"
 #define CONFIG_APPEARANCE_SIZE "appearanceSize"
+
+#define FILE_EXTENSION_PIPELINE ".pipeline"
+#define FILE_EXTENSION_PROFILE ".pp"
 
 /*
  we need locations for the following:
@@ -135,8 +139,7 @@ public:
     QString syncRuby(QStringList ak_Arguments);
     QString syncScript(QStringList ak_Arguments);
     QString syncScriptNoFile(QStringList ak_Arguments, QString as_Language);
-    QString syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
-    QString rubyPath();
+    bool syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
     QString version();
     bool versionChanged() const;
     int showMessageBox(QString as_Title, QString as_Text, QString as_Icon = "", 
@@ -157,7 +160,7 @@ public:
     QString managedScriptsVersion();
     bool fileUpToDate(QString as_Path, QStringList ak_Dependencies);
     static void openFileLink(QString as_Path);
-    QString md5ForFile(QString as_Path);
+    QString md5ForFile(QString as_Path, bool ab_ShowProgress = true);
     QString md5ForString(QString as_Content);
     void reloadScripts();
     QToolButton* startButton();
@@ -180,6 +183,7 @@ public slots:
     void checkForUpdatesProgress();
     void checkForUpdatesCanceled();
     void checkForUpdatesScriptFinished();
+    void touchScriptsLockFile();
 
 signals: 
     void scriptMenuScriptClicked(QAction* ak_Action_);
@@ -199,6 +203,7 @@ protected slots:
     void remoteHubRequestFinishedSlot(int ai_SocketId, bool ab_Error);
     void rebuildRemoteScriptsMenu();
     void checkRubyTextChanged(const QString& as_Text);
+    void checkRubyResize();
     void checkRubySearchDialog();
     void purgeCacheAndTempFiles();
 
@@ -229,6 +234,7 @@ protected:
     QString ms_DataDirectory;
     QString ms_ExternalToolsPath;
     QString ms_TempPath;
+    QString ms_HelperPath;
     QString ms_ManagedScriptsPath;
     QStringList mk_AdditionalScriptPaths;
     QString ms_ConfigurationPath;
@@ -272,4 +278,7 @@ protected:
     QIcon mk_ScriptDisabledIcon;
     QHash<QMenu*, QSet<QString> > mk_ExtensionsForScriptsMenuSubMenu;
     QHash<QAction*, QSet<QString> > mk_ExtensionsForScriptsMenuAction;
+    
+    QString ms_ScriptLockId;
+    QSharedPointer<k_LockFile> mk_pLockFile;
 };

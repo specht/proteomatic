@@ -36,7 +36,7 @@ k_DesktopBox::k_DesktopBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic,
     , mb_Moving(false)
     , mb_Resizing(false)
 {
-    setAttribute(Qt::WA_OpaquePaintEvent, true);
+    setAttribute(Qt::WA_NoSystemBackground, true);
     setFocusPolicy(Qt::StrongFocus);
     setContentsMargins(0, 0, 0, 0);
 }
@@ -128,11 +128,15 @@ QSet<IDesktopBox*> k_DesktopBox::outgoingBoxes() const
 
 QString k_DesktopBox::description()
 {
-    return QString("generic box [%1] (%2 in, %3 out)%4").
+    return QString("generic box [%1] (%2 in, %3 out)%4: %5:%6 %7x%8").
         arg(topologicalIndex()).
         arg(incomingBoxes().size()).
         arg(outgoingBoxes().size()).
-        arg(mb_BatchMode ? " (batch mode)" : "");
+        arg(mb_BatchMode ? " (batch mode)" : "").
+        arg(pos().x()).
+        arg(pos().y()).
+        arg(width()).
+        arg(height());
 }
 
 
@@ -266,6 +270,7 @@ void k_DesktopBox::paintEvent(QPaintEvent* /*event*/)
     compactSize();
     
     QPainter lk_Painter(this);
+    lk_Painter.setRenderHint(QPainter::Antialiasing, true);
     
     QPen lk_Pen(TANGO_ALUMINIUM_3);
     float lf_PenWidth = 1.5;
@@ -296,6 +301,7 @@ void k_DesktopBox::mousePressEvent(QMouseEvent* event)
     else
         emit clicked(event);
     event->accept();
+//     QWidget::mousePressEvent(event);
 }
 
 
@@ -304,6 +310,7 @@ void k_DesktopBox::mouseReleaseEvent(QMouseEvent* event)
     mb_Moving = false;
     mb_Resizing = false;
     event->accept();
+//     QWidget::mouseReleaseEvent(event);
 }
 
 

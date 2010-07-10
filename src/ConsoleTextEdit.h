@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Michael Specht
+Copyright (c) 2010 Michael Specht
 
 This file is part of Proteomatic.
 
@@ -19,25 +19,26 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <QtCore>
+#include <QtGui>
+#include "Proteomatic.h"
 
 
-class k_ConsoleString: public QObject
+class k_ConsoleTextEdit: public QTextEdit
 {
     Q_OBJECT
 public:
-    k_ConsoleString();
-    virtual ~k_ConsoleString();
+    k_ConsoleTextEdit(k_Proteomatic& ak_Proteomatic, QWidget* parent = 0);
+    k_ConsoleTextEdit(const QString& text, k_Proteomatic& ak_Proteomatic, QWidget* parent = 0);
+    virtual ~k_ConsoleTextEdit();
     
-    void clear();
-    QString text() const;
-    void append(QString as_Text);
-    
-signals:
-    void changed();
+public slots:
+    virtual void append(const QString& as_Text);
     
 protected:
-    QString ms_Output;
-    QString ms_CurrentLine;
-    int mi_CurrentLineIndex;
+    void initialize();
+    
+    k_Proteomatic& mk_Proteomatic;
+    QString ms_LastLine;
+    int mi_LastLineCursorPosition;
+    QTextCursor mk_Cursor;
 };
