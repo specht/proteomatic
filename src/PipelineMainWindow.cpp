@@ -41,7 +41,6 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     , ms_PipelineFilename(QString())
     , mk_WatchedBoxObject_(NULL)
     , mb_JustStarted(true)
-    , mk_WordSplitter("\\W+")
     , mb_PreventUpdates(false)
     , mb_IsInitialized(false)
 {
@@ -115,10 +114,9 @@ void k_PipelineMainWindow::initialize()
     
     mk_AddToolBar_->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
 
-
     mk_ProteomaticButton_ = new QToolButton(mk_AddToolBar_);
     mk_ProteomaticButton_->setIcon(QIcon(":/icons/proteomatic-pipeline.png"));
-    mk_ProteomaticButton_->setText("Pipeline");
+    mk_ProteomaticButton_->setText("&Pipeline");
     QMenu* lk_ProteomaticMenu_ = new QMenu(this);
     mk_NewPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-new.png"), "New pipeline", this, SLOT(newPipeline()), QKeySequence("Ctrl+N"));
     mk_LoadPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-open.png"), "Open pipeline...", this, SLOT(loadPipeline()), QKeySequence("Ctrl+O"));
@@ -133,7 +131,7 @@ void k_PipelineMainWindow::initialize()
 
     mk_AddScriptButton_ = new QToolButton(mk_AddToolBar_);
     mk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
-    mk_AddScriptButton_->setText("Add script");
+    mk_AddScriptButton_->setText("Add &script");
     mk_AddScriptButton_->setPopupMode(QToolButton::InstantPopup);
     mk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     mk_AddToolBar_->addWidget(mk_AddScriptButton_);
@@ -153,7 +151,7 @@ void k_PipelineMainWindow::initialize()
     
     mk_AddFilesButton_ = new QToolButton(this);
     mk_AddFilesButton_->setIcon(QIcon(":icons/document-open.png"));
-    mk_AddFilesButton_->setText("Add files");
+    mk_AddFilesButton_->setText("Add &files");
     mk_AddFilesButton_->setPopupMode(QToolButton::InstantPopup);
     mk_AddFilesButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     mk_AddFilesButton_->setMenu(new QMenu(mk_AddFilesButton_));
@@ -555,75 +553,6 @@ void k_PipelineMainWindow::updateWindowTitle()
         .arg(ls_ScriptsVersion);
     setWindowTitle(ls_WindowTitle);
     setWindowModified(mk_Desktop_->hasUnsavedChanges());
-}
-
-
-void k_PipelineMainWindow::searchFieldPopup(const QString& as_String)
-{
-    QString ls_String = as_String.toLower();
-    QStringList lk_Tags = ls_String.split(mk_WordSplitter, QString::SkipEmptyParts);
-    QHash<QString, QStringList>& lk_Keywords = mk_Proteomatic.mk_ScriptKeywords;
-    QHash<QString, int> lk_Targets;
-    foreach (QString ls_Tag, lk_Tags)
-    {
-        foreach (QString ls_Keyword, lk_Keywords.keys())
-        {
-            if (ls_Keyword.startsWith(ls_Tag))
-            {
-                foreach (QString ls_Target, lk_Keywords[ls_Keyword])
-                {
-                    if (ls_Target.startsWith("script/"))
-                    {
-                        ls_Target.replace("script/", "");
-                        QString ls_Class = ls_Target.left(ls_Target.indexOf("/"));
-                        int li_ClassScore = 0;
-                        if (ls_Class == "title")
-                            li_ClassScore = 100;
-                        else if (ls_Class == "group")
-                            li_ClassScore = 10;
-                        else if (ls_Class == "description")
-                            li_ClassScore = 1;
-                        ls_Target.replace(ls_Class + "/", "");
-                        if (!lk_Targets.contains(ls_Target))
-                            lk_Targets[ls_Target] = 0;
-                        lk_Targets[ls_Target] += li_ClassScore;
-                    }
-                }
-            }
-        }
-    }
-    QMultiMap<int, QString> lk_TargetsSorted;
-    foreach (QString ls_Target, lk_Targets.keys())
-        lk_TargetsSorted.insert(lk_Targets[ls_Target], ls_Target);
-    
-    mk_pSearchPopup = QSharedPointer<QListWidget>(new QListWidget(this));
-    
-    if (lk_TargetsSorted.empty())
-        return;
-    
-    QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constEnd();
-    do
-    {
-        --lk_Iter;
-        
-        QString ls_ScriptPath = lk_Iter.value();
-        QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
-        if (!ls_Title.isEmpty())
-            new QListWidgetItem(QIcon("src/icons/proteomatic.png"), ls_Title, mk_pSearchPopup.data());
-    } while (lk_Iter != lk_TargetsSorted.constBegin());
-    
-    //mk_pSearchPopup->setWindowModality(Qt::NonModal);
-    QWidget* lk_Sender_ = dynamic_cast<QWidget*>(sender());
-    if (lk_Sender_)
-    {
-        mk_pSearchPopup->move(mapFromGlobal(lk_Sender_->mapToGlobal(QPoint(0, lk_Sender_->height()))));
-        mk_pSearchPopup->resize(250, 100);
-        //mk_pSearchPopup->setIconSize(QSize(16, 16));
-        mk_pSearchPopup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        mk_pSearchPopup->show();
-        //connect(lk_Sender_, SIGNAL(focusOut()), mk_pSearchPopup.data(), SLOT(hide()));
-        //lk_Sender_->setFocus(Qt::MouseFocusReason);
-    }
 }
 
 

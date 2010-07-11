@@ -104,6 +104,7 @@ HEADERS += \
     src/Script.h \
     src/ScriptBox.h \
     src/ScriptFactory.h \
+    src/SearchMenu.h \
     src/SnippetBox.h \
     src/StopWatch.h \
     src/Tango.h \
@@ -140,6 +141,7 @@ SOURCES += \
     src/Script.cpp \
     src/ScriptBox.cpp \
     src/ScriptFactory.cpp \
+    src/SearchMenu.cpp \
     src/SnippetBox.cpp \
     src/StopWatch.cpp \
     src/TicketWindow.cpp \

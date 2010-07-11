@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Michael Specht
+Copyright (c) 2007-2010 Michael Specht
 
 This file is part of Proteomatic.
 
@@ -23,6 +23,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "HintLineEdit.h"
 #include "PipelineMainWindow.h"
 #include "RubyWindow.h"
+#include "SearchMenu.h"
 #include "Yaml.h"
 #include "version.h"
 #include <md5.h>
@@ -149,7 +150,6 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
 
 k_Proteomatic::~k_Proteomatic()
 {
-    mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(NULL);
 }
 
 
@@ -209,6 +209,12 @@ void k_Proteomatic::initialize()
 void k_Proteomatic::setPipelineMainWindow(k_PipelineMainWindow* ak_PipelineMainWindow_)
 {
     mk_PipelineMainWindow_ = ak_PipelineMainWindow_;
+}
+
+
+k_PipelineMainWindow* k_Proteomatic::pipelineMainWindow()
+{
+    return mk_PipelineMainWindow_;
 }
 
 
@@ -959,8 +965,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
 
 void k_Proteomatic::createProteomaticScriptsMenu()
 {
-    mk_pProteomaticScriptsMenu = QSharedPointer<QMenu>(new QMenu(mk_PipelineMainWindow_));
-    QMenu* lk_Menu_ = new QMenu(NULL);
+    k_SearchMenu* lk_Menu_ = new k_SearchMenu(*this, NULL);
     QHash<QString, QMenu* > lk_GroupMenus;
     lk_GroupMenus[""] = lk_Menu_;
 
@@ -1003,11 +1008,11 @@ void k_Proteomatic::createProteomaticScriptsMenu()
         }
     }
     
-    mk_RemoteMenu_ = new QMenu("Remote", lk_Menu_);
-    mk_RemoteMenu_->setIcon(QIcon(":/icons/applications-internet.png"));
-    mk_RemoteMenu_->setEnabled(false);
-    
-    rebuildRemoteScriptsMenu();
+//     mk_RemoteMenu_ = new QMenu("Remote", lk_Menu_);
+//     mk_RemoteMenu_->setIcon(QIcon(":/icons/applications-internet.png"));
+//     mk_RemoteMenu_->setEnabled(false);
+//     
+//     rebuildRemoteScriptsMenu();
 
     // insert menu entries
     foreach (QString ls_Title, lk_ScriptOrder.keys())
@@ -1040,19 +1045,15 @@ void k_Proteomatic::createProteomaticScriptsMenu()
         connect(lk_Action_, SIGNAL(triggered()), this, SLOT(scriptMenuScriptClickedInternal()));
     }
     
-//     lk_SearchField_->setHint("Search");
-    mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(new QWidgetAction(NULL));
-    QLineEdit* lk_LineEdit_ = new QLineEdit(NULL);
-    mk_pSearchWidgetAction->setDefaultWidget(lk_LineEdit_);
-    connect(lk_LineEdit_, SIGNAL(textEdited(const QString&)), mk_PipelineMainWindow_, SLOT(searchFieldPopup(const QString&)));
-    lk_Menu_->addSeparator();
-    lk_Menu_->addAction(mk_pSearchWidgetAction.data());
+    lk_Menu_->addSearchField();
+//     lk_Menu_->addSeparator();
+//     lk_Menu_->addAction(mk_pSearchWidgetAction.data());
 
 // disable remote scripts as of now!
 //     lk_Menu_->addSeparator();
 //      lk_Menu_->addMenu(mk_RemoteMenu_);
 
-    mk_pProteomaticScriptsMenu = QSharedPointer<QMenu>(lk_Menu_);
+    mk_pProteomaticScriptsMenu = QSharedPointer<k_SearchMenu>(lk_Menu_);
     emit scriptMenuChanged();
 // 
 //  ms_RemoteHubStdout = "";

@@ -23,6 +23,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "LockFile.h"
 #include "Yaml.h"
 
+class k_SearchMenu;
+
 #define CONFIG_PATH_TO_RUBY "pathToRuby"
 #define CONFIG_PATH_TO_PYTHON "pathToPython"
 #define CONFIG_PATH_TO_PHP "pathToPhp"
@@ -127,6 +129,7 @@ public:
     virtual void initialize();
     
     void setPipelineMainWindow(k_PipelineMainWindow* ak_PipelineMainWindow_);
+    k_PipelineMainWindow* pipelineMainWindow();
     void setDesktop(k_Desktop* ak_Desktop_);
     
     QString interpreterForScript(QString as_Path);
@@ -225,7 +228,7 @@ protected:
     // uri / path => uri, title, group, description, optional: parameters
     QHash<QString, QHash<QString, QVariant> > mk_ScriptInfo;
     QWidget* mk_MessageBoxParent_;
-    QSharedPointer<QMenu> mk_pProteomaticScriptsMenu;
+    QSharedPointer<k_SearchMenu> mk_pProteomaticScriptsMenu;
     QMenu* mk_RemoteMenu_;
 //  QSharedPointer<QProcess> mk_pRemoteHubProcess;
     QString ms_RemoteHubStdout;
@@ -267,8 +270,6 @@ protected:
     QSharedPointer<QProgressDialog> mk_pModalProgressDialog;
     // mb_ModalProcessUserRequested is true if an update button has been clicked
     bool mb_ModalProcessUserRequested;
-    
-    QSharedPointer<QWidgetAction> mk_pSearchWidgetAction;
     
     QMap<QString, QPair<QString, QStringList> > mk_OwnTextFileFormats;
     QMap<QString, QPair<QString, QStringList> > mk_OwnPlusScriptsTextFileFormats;

@@ -47,7 +47,6 @@ public slots:
     void loadPipeline(QString as_Path = QString());
     void savePipeline();
     void savePipelineAs();
-    void searchFieldPopup(const QString& as_String);
     void restartProteomatic();
     
 signals:
@@ -113,8 +112,6 @@ protected:
     QLabel* mk_FauxTitleBarWidgetFloatingLabel_;
     QWidget* mk_FauxTitleBarWidgetFloating_;
     bool mb_JustStarted;
-    QRegExp mk_WordSplitter;
-    QSharedPointer<QListWidget> mk_pSearchPopup;
     QString ms_CurrentStyleSheet;
     
     bool mb_PreventUpdates;
