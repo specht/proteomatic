@@ -41,6 +41,8 @@ public:
     virtual bool askForSaveIfNecessary();
     
 public slots:
+    void addScript(QAction* ak_Action_);
+    void addScript(QString as_Uri);
     void toggleUi();
     void togglePaneFloat();
     void newPipeline();
@@ -61,7 +63,6 @@ protected:
 
 protected slots:
     void quit();
-    void addScript(QAction* ak_Action_);
     void start();
     void startUntracked();
     void abort();

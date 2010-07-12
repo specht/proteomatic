@@ -38,6 +38,7 @@ public:
     
 protected slots:
     void searchFieldPopup(const QString& as_String);
+    void itemClickedSlot(QListWidgetItem* ak_Item_);
     
 protected:
     void initialize();
@@ -51,4 +52,8 @@ protected:
     QSharedPointer<QWidgetAction> mk_pSearchResultWidgetAction;
     QSharedPointer<QListWidget> mk_pSearchResultList;
     QRegExp mk_WordSplitter;
+    bool mb_ResultListInserted;
+    
+    int mi_Ticket;
+    int mi_GotTicket;
 };

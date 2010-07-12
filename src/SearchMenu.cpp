@@ -41,7 +41,7 @@ k_SearchMenu::k_SearchMenu(k_Proteomatic& ak_Proteomatic, const QString& title, 
 
 k_SearchMenu::~k_SearchMenu()
 {
-    mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(NULL);
+//     mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(NULL);
 }
 
 
@@ -58,10 +58,12 @@ void k_SearchMenu::addSearchField()
     
     mk_pSearchResultWidgetAction = QSharedPointer<QWidgetAction>(new QWidgetAction(NULL));
     mk_pSearchResultList = QSharedPointer<QListWidget>(new QListWidget());
+    connect(mk_pSearchResultList.data(), SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(itemClickedSlot(QListWidgetItem*)));
+    connect(mk_pSearchResultList.data(), SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(itemClickedSlot(QListWidgetItem*)));
     mk_pSearchResultWidgetAction->setDefaultWidget(mk_pSearchResultList.data());
     mk_pSearchResultList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mk_pSearchResultList->setMaximumHeight(100);
-    this->addAction(mk_pSearchResultWidgetAction.data());
+    mk_pSearchResultList->setSelectionMode(QAbstractItemView::NoSelection);
     
     mk_pSearchResultList->hide();
 }
@@ -105,17 +107,17 @@ void k_SearchMenu::searchFieldPopup(const QString& as_String)
     foreach (QString ls_Target, lk_Targets.keys())
         lk_TargetsSorted.insert(lk_Targets[ls_Target], ls_Target);
     
-    //mk_pSearchPopup = QSharedPointer<QListWidget>(new QListWidget(this));
-    //mk_pSearchPopup->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
-    
     if (lk_TargetsSorted.empty())
     {
-        mk_pSearchResultList->hide();
+        if (mb_ResultListInserted)
+        {
+            this->removeAction(mk_pSearchResultWidgetAction.data());
+            mb_ResultListInserted = false;
+        }
         return;
     }
     
     mk_pSearchResultList->clear();
-    mk_pSearchResultList->show();
     QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constEnd();
     do
     {
@@ -124,27 +126,36 @@ void k_SearchMenu::searchFieldPopup(const QString& as_String)
         QString ls_ScriptPath = lk_Iter.value();
         QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
         if (!ls_Title.isEmpty())
-            new QListWidgetItem(QIcon(":src/icons/proteomatic.png"), ls_Title, mk_pSearchResultList.data());
+        {
+            QListWidgetItem* lk_Item_ = new QListWidgetItem(QIcon(":src/icons/proteomatic.png"), ls_Title, mk_pSearchResultList.data());
+            lk_Item_->setData(Qt::UserRole, ls_ScriptPath);
+
+        }
     } while (lk_Iter != lk_TargetsSorted.constBegin());
-    
-    //mk_pSearchPopup->setWindowModality(Qt::NonModal);
-/*    QWidget* lk_Sender_ = dynamic_cast<QWidget*>(sender());
-    if (lk_Sender_)
+    if (!mb_ResultListInserted)
     {
-        mk_pSearchPopup->move(this->pos() + QPoint(0, this->height()));
-        mk_pSearchPopup->resize(250, 100);
-        //mk_pSearchPopup->setIconSize(QSize(16, 16));
-        mk_pSearchPopup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        mk_pSearchPopup->show();
-        //connect(lk_Sender_, SIGNAL(focusOut()), mk_pSearchPopup.data(), SLOT(hide()));
-        //lk_Sender_->setFocus(Qt::MouseFocusReason);
-    }*/
+        this->addAction(mk_pSearchResultWidgetAction.data());
+        mb_ResultListInserted = true;
+    }
+}
+
+
+void k_SearchMenu::itemClickedSlot(QListWidgetItem* ak_Item_)
+{
+    if (mi_GotTicket >= mi_Ticket)
+        return;
+    mi_GotTicket = mi_Ticket;
+    QString ls_Uri = ak_Item_->data(Qt::UserRole).toString();
+    mk_Proteomatic.pipelineMainWindow()->addScript(ls_Uri);
 }
 
 
 void k_SearchMenu::initialize()
 {
     mk_WordSplitter = QRegExp("\\W+");
+    mb_ResultListInserted = false;
+    mi_Ticket = 0;
+    mi_GotTicket = 0;
 }
 
 
@@ -153,31 +164,31 @@ void k_SearchMenu::showEvent(QShowEvent* event)
     if (mk_pHintLineEdit.data())
         mk_pHintLineEdit->clear();
     
-    QMenu::showEvent(event);
-/*    if (mk_pHintLineEdit.data())
-        mk_pHintLineEdit->setFocus(Qt::OtherFocusReason);*/
-
     if (mk_pSearchResultList.data())
-        mk_pSearchResultList->hide();
+        mk_pSearchResultList->clear();
+    
+    if (mb_ResultListInserted)
+    {
+        this->removeAction(mk_pSearchResultWidgetAction.data());
+        mb_ResultListInserted = false;
+    }
+    
+    mi_Ticket += 1;
+    
+    QMenu::showEvent(event);
+    if (mk_pHintLineEdit.data())
+        mk_pHintLineEdit->clearFocus();
+    setActiveAction(NULL);
 }
 
 
 void k_SearchMenu::hideEvent(QHideEvent* event)
 {
-/*    if ((mk_pSearchPopup.data()) && (mk_pSearchPopup->isVisible()))
-        mk_pSearchPopup->hide();*/
     QMenu::hideEvent(event);
 }
 
 
 void k_SearchMenu::keyPressEvent(QKeyEvent* event)
 {
-/*    if ((mk_pHintLineEdit.data()) && (mk_pHintLineEdit->hasFocus()) && (event->key() == Qt::Key_Down))
-    {
-        mk_pSearchPopup->setCurrentRow(0);
-        mk_pSearchPopup->setFocus(Qt::OtherFocusReason);
-        event->accept();
-    }
-    else*/
-        QMenu::keyPressEvent(event);
+    QMenu::keyPressEvent(event);
 }
