@@ -513,7 +513,7 @@ QString k_Proteomatic::syncScript(QStringList ak_Arguments)
 }
 
 
-QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Language)
+QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Language, bool ab_AddPathToRuby)
 {
     QProcess lk_QueryProcess;
 
@@ -526,7 +526,7 @@ QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Lan
     lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
     
-    if (as_Language != "ruby")
+    if (ab_AddPathToRuby && (as_Language != "ruby"))
     {
         ak_Arguments.insert(1, "--pathToRuby");
         ak_Arguments.insert(2, scriptInterpreter("ruby"));
@@ -1688,10 +1688,11 @@ $ su\n\
     lk_Languages << "php";
     lk_Languages << "perl";
     
+    // TODO: CODE DUPLICATION!
     foreach (QString ls_Language, lk_Languages)
     {
         QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language).toLower();
+        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
         if (ls_Language == "perl")
         {
             ls_Result.replace("this is", "");
@@ -1726,10 +1727,11 @@ $ su\n\
             break;
     }
 
+    // TODO: CODE DUPLICATION!
     foreach (QString ls_Language, lk_Languages)
     {
         QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language).toLower();
+        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
         if (ls_Language == "perl")
         {
             ls_Result.replace("this is", "");
