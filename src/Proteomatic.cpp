@@ -570,8 +570,6 @@ void k_Proteomatic::loadConfiguration()
     if (QFile(ms_ConfigurationPath).exists())
         mk_Configuration = k_Yaml::parseFromFile(ms_ConfigurationPath).toMap();
         
-    qDebug() << k_Yaml::emitToString(mk_Configuration);
-        
     // insert default values
     bool lb_InsertedDefaultValue = false;
     if (!mk_Configuration.contains(CONFIG_PATH_TO_RUBY) || mk_Configuration[CONFIG_PATH_TO_RUBY].type() != QVariant::String)
