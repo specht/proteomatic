@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Michael Specht
+Copyright (c) 2007-2010 Michael Specht
 
 This file is part of Proteomatic.
 
@@ -28,7 +28,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <md5.h>
 
 
-#define DEFAULT_UPDATE_URI "ftp://gpf.uni-muenster.de/download/proteomatic/update"
+#define DEFAULT_UPDATE_URI "http://www.proteomatic.org/update"
 
 
 #ifdef Q_OS_WIN32
