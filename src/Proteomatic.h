@@ -141,7 +141,7 @@ public:
     QMenu* proteomaticScriptsMenu() const;
     QString syncRuby(QStringList ak_Arguments);
     QString syncScript(QStringList ak_Arguments);
-    QString syncScriptNoFile(QStringList ak_Arguments, QString as_Language);
+    QString syncScriptNoFile(QStringList ak_Arguments, QString as_Language, bool ab_AddPathToRuby = true);
     bool syncShowRuby(QStringList ak_Arguments, QString as_Title = "Ruby script");
     QString version();
     bool versionChanged() const;

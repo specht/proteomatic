@@ -36,8 +36,7 @@ versionInject:
     QString gs_ProteomaticVersion = "#{VERSION}";
 addFiles:
   proteomatic.conf.yaml: |
-    fileTrackerUrl: peaks.uni-muenster.de:5556
-    scriptsUrl: ftp://gpf.uni-muenster.de/download/proteomatic/update
+    scriptsUrl: http://www.proteomatic.org/update
 
 externals: [helper]
 macAppPackage: true

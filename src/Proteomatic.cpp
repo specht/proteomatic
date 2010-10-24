@@ -29,7 +29,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <md5.h>
 
 
-#define DEFAULT_UPDATE_URI "ftp://gpf.uni-muenster.de/download/proteomatic/update"
+#define DEFAULT_UPDATE_URI "http://www.proteomatic.org/update"
 
 
 #ifdef Q_OS_WIN32
@@ -519,7 +519,7 @@ QString k_Proteomatic::syncScript(QStringList ak_Arguments)
 }
 
 
-QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Language)
+QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Language, bool ab_AddPathToRuby)
 {
     QProcess lk_QueryProcess;
 
@@ -532,7 +532,7 @@ QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Lan
     lk_QueryProcess.setWorkingDirectory(lk_FileInfo.absolutePath());
     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
     
-    if (as_Language != "ruby")
+    if (ab_AddPathToRuby && (as_Language != "ruby"))
     {
         ak_Arguments.insert(1, "--pathToRuby");
         ak_Arguments.insert(2, scriptInterpreter("ruby"));
@@ -1689,10 +1689,11 @@ $ su\n\
     lk_Languages << "php";
     lk_Languages << "perl";
     
+    // TODO: CODE DUPLICATION!
     foreach (QString ls_Language, lk_Languages)
     {
         QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language).toLower();
+        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
         if (ls_Language == "perl")
         {
             ls_Result.replace("this is", "");
@@ -1701,18 +1702,25 @@ $ su\n\
         mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
     }
     
+    bool lb_DidNotFindRuby = false;
     while (true)
     {
         mk_Configuration[CONFIG_PATH_TO_RUBY] = QVariant(mk_CheckRubyLocation_->text());
         QString ls_Version = syncRuby(QStringList() << "-v");
         QString ls_Error;
         if (!ls_Version.startsWith("ruby"))
+        {
+            lb_DidNotFindRuby = true;
             ls_Error = "Proteomatic cannot find Ruby, which is required in order to run the scripts.";
+        }
         else
         {
-            // if we're here, we have found a Ruby! Now we save the configuration so that the dialog won't pop up the next time.
-            this->saveConfiguration();
-            updateConfigDependentStuff();
+            if (lb_DidNotFindRuby)
+            {
+                // if we're here, we have found a Ruby! Now we save the configuration so that the dialog won't pop up the next time.
+                this->saveConfiguration();
+                updateConfigDependentStuff();
+            }
         }
         if (ls_Error != "")
         {
@@ -1727,10 +1735,11 @@ $ su\n\
             break;
     }
 
+    // TODO: CODE DUPLICATION!
     foreach (QString ls_Language, lk_Languages)
     {
         QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language).toLower();
+        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
         if (ls_Language == "perl")
         {
             ls_Result.replace("this is", "");
