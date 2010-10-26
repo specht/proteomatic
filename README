@@ -11,6 +11,7 @@ BUILDING PROTEOMATIC
 
 Proteomatic requires Qt, and building is straightforward:
 
+$ git submodule update --init
 $ qmake "PROTEOMATIC_PORTABLE=1"
 $ make release
 
