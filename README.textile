@@ -9,7 +9,7 @@ h1. Building Proteomatic
 
 h2. Prerequisites
 
-Proteomatic requires Qt, "http://code.google.com/p/yaml-cpp/":libyaml-cpp, and "http://sourceforge.net/projects/libmd5-rfc/":libmd5-rfc.
+Proteomatic requires Qt, "libyaml-cpp":http://code.google.com/p/yaml-cpp/, and "libmd5-rfc":http://sourceforge.net/projects/libmd5-rfc/.
 
 h2. Building procedure
 
