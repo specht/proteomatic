@@ -168,6 +168,7 @@ public:
     QLabel* fileTrackerIconLabel();
     QLabel* fileTrackerLabel();
     QString scriptInterpreter(const QString& as_Language);
+    QString scriptInterpreterAbsoluteNativePath(const QString& as_Language);
     QString configKeyForScriptingLanguage(const QString& as_Language);
     bool stringToBool(const QString& as_String);
     QString scriptsVersion();
