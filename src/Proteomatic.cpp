@@ -2008,11 +2008,11 @@ QString k_Proteomatic::scriptInterpreter(const QString& as_Language)
 QString k_Proteomatic::scriptInterpreterAbsoluteNativePath(const QString& as_Language)
 {
     QString ls_Path = this->scriptInterpreter(as_Language);
-//    qDebug() << "Original:" << ls_Path;
+    // qDebug() << "Original:" << ls_Path;
     QFileInfo lk_FileInfo(ls_Path);
     if (lk_FileInfo.path() != ".")
-        ls_Path = QFileInfo(QDir(QDir::toNativeSeparators(QFileInfo(ls_Path).path())), QFileInfo(ls_Path).fileName()).canonicalFilePath();
-//    qDebug() << "Smooth:" << ls_Path;
+        ls_Path = QDir::toNativeSeparators(QFileInfo(ls_Path).dir().absolutePath()) + QDir::separator() + QFileInfo(ls_Path).fileName();
+    // qDebug() << "Smooth:" << ls_Path;
     return ls_Path;
 }
 
