@@ -43,6 +43,9 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
         lk_MainWindow.setEnabled(false);
         lk_Proteomatic.checkForUpdates();
     }
+    
+    if (ai_ArgumentCount > 1)
+        lk_MainWindow.loadPipeline(ac_Arguments__[1]);
 
     return lk_App.exec();
 }

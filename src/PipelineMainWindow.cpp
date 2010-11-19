@@ -122,7 +122,7 @@ void k_PipelineMainWindow::initialize()
     QMenu* lk_ProteomaticMenu_ = new QMenu(this);
     mk_NewPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-new.png"), "New pipeline", this, SLOT(newPipeline()), QKeySequence("Ctrl+N"));
     mk_LoadPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-open.png"), "Open pipeline...", this, SLOT(loadPipeline()), QKeySequence("Ctrl+O"));
-    mk_RecentPipelinesMenu_ = lk_ProteomaticMenu_->addMenu(QIcon(":icons/document-open.png"), "Open recent pipeline...");
+    mk_RecentPipelinesMenu_ = lk_ProteomaticMenu_->addMenu(QIcon(":icons/document-open.png"), "Open recent pipeline");
     this->updateRecentPipelinesMenu();
     mk_SavePipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-save.png"), "Save pipeline", this, SLOT(savePipeline()), QKeySequence("Ctrl+S"));
     mk_SavePipelineAsAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-save-as.png"), "Save pipeline as...", this, SLOT(savePipelineAs()));
