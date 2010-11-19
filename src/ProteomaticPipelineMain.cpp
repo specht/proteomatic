@@ -45,7 +45,11 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
     }
     
     if (ai_ArgumentCount > 1)
-        lk_MainWindow.loadPipeline(ac_Arguments__[1]);
+    {
+        QString ls_Path = ac_Arguments__[1];
+        if (ls_Path.endsWith(FILE_EXTENSION_PIPELINE))
+            lk_MainWindow.loadPipeline(ls_Path);
+    }
 
     return lk_App.exec();
 }

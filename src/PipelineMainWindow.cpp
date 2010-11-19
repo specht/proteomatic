@@ -346,7 +346,6 @@ void k_PipelineMainWindow::loadPipeline(QString as_Path)
             showAll();
         }
         this->addPipelineToRecentPipelinesMenu(ls_Path);
-        this->updateRecentPipelinesMenu();
         forceRefresh();
         mk_Desktop_->setHasUnsavedChanges(false);
     }
@@ -578,6 +577,13 @@ void k_PipelineMainWindow::updateRecentPipelinesMenu()
         lk_Action_->setStatusTip(lk_Path.toString());
         lk_Action_->setIcon(QIcon(":icons/proteomatic-pipeline.png"));
     }
+    if (!lk_Files.empty())
+    {
+        mk_RecentPipelinesMenu_->addSeparator();
+        QAction* lk_Action_ = mk_RecentPipelinesMenu_->addAction("Clear history", this, SLOT(clearRecentPipelinesMenu()));
+        lk_Action_->setIcon(QIcon(":icons/edit-clear.png"));
+    }
+    toggleUi();
 }
 
 
@@ -591,6 +597,10 @@ void k_PipelineMainWindow::recentPipelineClicked()
 
 void k_PipelineMainWindow::addPipelineToRecentPipelinesMenu(QString as_Path)
 {
+    // don't add it if it's not the correct filename extension
+    if (!as_Path.endsWith(FILE_EXTENSION_PIPELINE))
+        return;
+
     tk_YamlSequence lk_Files = mk_Proteomatic.getConfiguration(CONFIG_RECENT_PIPELINES).toList();
     if (lk_Files.contains(as_Path))
         lk_Files.removeAll(as_Path);
@@ -599,6 +609,16 @@ void k_PipelineMainWindow::addPipelineToRecentPipelinesMenu(QString as_Path)
         lk_Files.pop_back();
     mk_Proteomatic.setConfiguration(CONFIG_RECENT_PIPELINES, lk_Files);
     mk_Proteomatic.saveConfiguration();
+    this->updateRecentPipelinesMenu();
+}
+
+
+void k_PipelineMainWindow::clearRecentPipelinesMenu()
+{
+    tk_YamlSequence lk_Files;
+    mk_Proteomatic.setConfiguration(CONFIG_RECENT_PIPELINES, lk_Files);
+    mk_Proteomatic.saveConfiguration();
+    this->updateRecentPipelinesMenu();
 }
 
 

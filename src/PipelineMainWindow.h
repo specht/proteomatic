@@ -77,6 +77,7 @@ protected slots:
     void updateRecentPipelinesMenu();
     void recentPipelineClicked();
     void addPipelineToRecentPipelinesMenu(QString as_Path);
+    void clearRecentPipelinesMenu();
 
 protected:
     QApplication& mk_Application;
