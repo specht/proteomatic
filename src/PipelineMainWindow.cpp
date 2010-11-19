@@ -308,7 +308,7 @@ void k_PipelineMainWindow::newPipeline()
 
 void k_PipelineMainWindow::loadPipeline(QString as_Path)
 {
-    if (!QFileInfo(as_Path).exists())
+    if ((!as_Path.isEmpty()) && (!QFileInfo(as_Path).exists()))
     {
         mk_Proteomatic.showMessageBox("File does not exist", "Unable to load pipeline.", ":/icons/dialog-warning.png");
         return;
@@ -345,10 +345,10 @@ void k_PipelineMainWindow::loadPipeline(QString as_Path)
             updateStatusBar();
             showAll();
         }
-        forceRefresh();
-        mk_Desktop_->setHasUnsavedChanges(false);
         this->addPipelineToRecentPipelinesMenu(ls_Path);
         this->updateRecentPipelinesMenu();
+        forceRefresh();
+        mk_Desktop_->setHasUnsavedChanges(false);
     }
 }
 
@@ -575,6 +575,8 @@ void k_PipelineMainWindow::updateRecentPipelinesMenu()
     {
         QAction* lk_Action_ = mk_RecentPipelinesMenu_->addAction(QFileInfo(lk_Path.toString()).fileName(), this, SLOT(recentPipelineClicked()));
         lk_Action_->setData(lk_Path);
+        lk_Action_->setStatusTip(lk_Path.toString());
+        lk_Action_->setIcon(QIcon(":icons/proteomatic-pipeline.png"));
     }
 }
 
@@ -684,7 +686,7 @@ void k_PipelineMainWindow::toggleUi()
     mk_ProteomaticButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_NewPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_LoadPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
-    mk_RecentPipelinesMenu_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+    mk_RecentPipelinesMenu_->setEnabled((mk_Desktop_ && !mk_Desktop_->running()) && (!mk_RecentPipelinesMenu_->isEmpty()));
     mk_SavePipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_SavePipelineAsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
