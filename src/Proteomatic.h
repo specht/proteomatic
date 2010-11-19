@@ -35,6 +35,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIG_REMEMBER_OUTPUT_PATH "rememberOutputPath"
 #define CONFIG_SCRIPTS_URL "scriptsUrl"
 #define CONFIG_ADDITIONAL_SCRIPT_PATHS "additionalScriptsPaths"
+#define CONFIG_RECENT_PIPELINES "recentPipelines"
 #define CONFIG_AUTO_CHECK_FOR_UPDATES "autoCheckForUpdates"
 #define CONFIG_WARN_ABOUT_MIXED_PROFILES "warnAboutMixedProfiles"
 #define CONFIG_CACHE_SCRIPT_INFO "cacheScriptInfo"
@@ -45,6 +46,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 #define FILE_EXTENSION_PIPELINE ".pipeline"
 #define FILE_EXTENSION_PROFILE ".pp"
+#define MAX_RECENT_PIPELINES 7
 
 /*
  we need locations for the following:
@@ -155,6 +157,7 @@ public:
     QStringList additionalScriptPaths() const;
     
     QVariant getConfiguration(QString as_Key);
+    void setConfiguration(QString as_Key, QVariant ak_Value);
     tk_YamlMap& getConfigurationRoot();
     void saveConfiguration();
     QString managedScriptsVersion();

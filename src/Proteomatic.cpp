@@ -665,6 +665,25 @@ void k_Proteomatic::loadConfiguration()
         mk_Configuration[CONFIG_ADDITIONAL_SCRIPT_PATHS] = lk_Paths;
         lb_InsertedDefaultValue = true;
     }
+    // RecentPipeInput
+    if (mk_Configuration.contains(CONFIG_RECENT_PIPELINES))
+    {
+        if (mk_Configuration[CONFIG_RECENT_PIPELINES].type() != QVariant::List)
+        {
+            // if a single pipe path is defined as a string, upgrade to string array!
+            tk_YamlSequence lk_Paths;
+            if (mk_Configuration[CONFIG_RECENT_PIPELINES].type() == QVariant::String)
+                lk_Paths << mk_Configuration[CONFIG_RECENT_PIPELINES].toString();
+            mk_Configuration[CONFIG_RECENT_PIPELINES] = lk_Paths;
+            lb_InsertedDefaultValue = true;
+        }
+    }
+    else
+    {
+        tk_YamlSequence lk_Paths;
+        mk_Configuration[CONFIG_RECENT_PIPELINES] = lk_Paths;
+        lb_InsertedDefaultValue = true;
+    }
     
     if (!mk_Configuration.contains(CONFIG_AUTO_CHECK_FOR_UPDATES) || mk_Configuration[CONFIG_AUTO_CHECK_FOR_UPDATES].type() != QVariant::String)
     {
@@ -1513,6 +1532,12 @@ void k_Proteomatic::rebuildRemoteScriptsMenu()
 QVariant k_Proteomatic::getConfiguration(QString as_Key)
 {
     return mk_Configuration[as_Key];
+}
+
+
+void k_Proteomatic::setConfiguration(QString as_Key, QVariant ak_Value)
+{
+    mk_Configuration[as_Key] = ak_Value;
 }
 
 

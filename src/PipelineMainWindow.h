@@ -74,6 +74,9 @@ protected slots:
     void updateStatusBar();
     void scriptMenuChanged();
     void updateWindowTitle();
+    void updateRecentPipelinesMenu();
+    void recentPipelineClicked();
+    void addPipelineToRecentPipelinesMenu(QString as_Path);
 
 protected:
     QApplication& mk_Application;
@@ -82,6 +85,7 @@ protected:
     QToolButton* mk_AddScriptAction_;
     QAction* mk_NewPipelineAction_;
     QAction* mk_LoadPipelineAction_;
+    QMenu*   mk_RecentPipelinesMenu_;
     QAction* mk_SavePipelineAction_;
     QAction* mk_SavePipelineAsAction_;
     QAction* mk_QuitAction_;
