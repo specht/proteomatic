@@ -365,12 +365,28 @@ void k_ScriptBox::start(const QString& as_IterationKey)
     QHash<QString, QString> lk_Parameters;
     
     // if we have input snippets, flush them to disk
+    QSet<k_SnippetBox*> lk_InputSnippets;
+
     foreach (IDesktopBox* lk_Box_, incomingBoxes())
     {
         k_SnippetBox* lk_SnippetBox_ = dynamic_cast<k_SnippetBox*>(lk_Box_);
         if (lk_SnippetBox_)
-            lk_SnippetBox_->flushFile();
+            lk_InputSnippets << lk_SnippetBox_;
+
+        // now check input group proxy boxes, they might have snippets in front of them
+        k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
+        if (lk_ProxyBox_)
+        {
+            foreach (IDesktopBox* lk_SubBox_, lk_ProxyBox_->incomingBoxes())
+            {
+                k_SnippetBox* lk_SnippetBox_ = dynamic_cast<k_SnippetBox*>(lk_SubBox_);
+                if (lk_SnippetBox_)
+                    lk_InputSnippets << lk_SnippetBox_;
+            }
+        }
     }
+    foreach (k_SnippetBox* lk_SnippetBox_, lk_InputSnippets)
+        lk_SnippetBox_->flushFile();
 
     // set output directory
     if (!this->scriptOutputDirectory().isEmpty())

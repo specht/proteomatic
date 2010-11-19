@@ -508,7 +508,7 @@ QString k_Proteomatic::syncScript(QStringList ak_Arguments)
     if (ls_InterpreterKey != "ruby")
     {
         ak_Arguments.insert(1, "--pathToRuby");
-        ak_Arguments.insert(2, scriptInterpreter("ruby"));
+        ak_Arguments.insert(2, scriptInterpreterAbsoluteNativePath("ruby"));
     }
     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
     lk_QueryProcess.start(interpreterForScript(ak_Arguments.first()), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
@@ -535,7 +535,7 @@ QString k_Proteomatic::syncScriptNoFile(QStringList ak_Arguments, QString as_Lan
     if (ab_AddPathToRuby && (as_Language != "ruby"))
     {
         ak_Arguments.insert(1, "--pathToRuby");
-        ak_Arguments.insert(2, scriptInterpreter("ruby"));
+        ak_Arguments.insert(2, scriptInterpreterAbsoluteNativePath("ruby"));
     }
     lk_QueryProcess.start(scriptInterpreter(as_Language), ak_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
     if (lk_QueryProcess.waitForFinished())
@@ -669,6 +669,25 @@ void k_Proteomatic::loadConfiguration()
     {
         tk_YamlSequence lk_Paths;
         mk_Configuration[CONFIG_ADDITIONAL_SCRIPT_PATHS] = lk_Paths;
+        lb_InsertedDefaultValue = true;
+    }
+    // RecentPipeInput
+    if (mk_Configuration.contains(CONFIG_RECENT_PIPELINES))
+    {
+        if (mk_Configuration[CONFIG_RECENT_PIPELINES].type() != QVariant::List)
+        {
+            // if a single pipe path is defined as a string, upgrade to string array!
+            tk_YamlSequence lk_Paths;
+            if (mk_Configuration[CONFIG_RECENT_PIPELINES].type() == QVariant::String)
+                lk_Paths << mk_Configuration[CONFIG_RECENT_PIPELINES].toString();
+            mk_Configuration[CONFIG_RECENT_PIPELINES] = lk_Paths;
+            lb_InsertedDefaultValue = true;
+        }
+    }
+    else
+    {
+        tk_YamlSequence lk_Paths;
+        mk_Configuration[CONFIG_RECENT_PIPELINES] = lk_Paths;
         lb_InsertedDefaultValue = true;
     }
     
@@ -887,7 +906,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
                     else
                     {
                         lk_Arguments.insert(1, "--pathToRuby");
-                        lk_Arguments.insert(2, scriptInterpreter("ruby"));
+                        lk_Arguments.insert(2, scriptInterpreterAbsoluteNativePath("ruby"));
                     }
                     lk_QueryProcess.setProcessChannelMode(QProcess::MergedChannels);
                     lk_QueryProcess.start(interpreterForScript(ls_Path), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
@@ -1517,6 +1536,12 @@ QVariant k_Proteomatic::getConfiguration(QString as_Key)
 }
 
 
+void k_Proteomatic::setConfiguration(QString as_Key, QVariant ak_Value)
+{
+    mk_Configuration[as_Key] = ak_Value;
+}
+
+
 tk_YamlMap& k_Proteomatic::getConfigurationRoot()
 {
     return mk_Configuration;
@@ -2003,6 +2028,18 @@ QLabel* k_Proteomatic::fileTrackerLabel()
 QString k_Proteomatic::scriptInterpreter(const QString& as_Language)
 {
     return mk_Configuration[configKeyForScriptingLanguage(as_Language)].toString();
+}
+
+
+QString k_Proteomatic::scriptInterpreterAbsoluteNativePath(const QString& as_Language)
+{
+    QString ls_Path = this->scriptInterpreter(as_Language);
+    // qDebug() << "Original:" << ls_Path;
+    QFileInfo lk_FileInfo(ls_Path);
+    if (lk_FileInfo.path() != ".")
+        ls_Path = QDir::toNativeSeparators(QFileInfo(ls_Path).dir().absolutePath()) + QDir::separator() + QFileInfo(ls_Path).fileName();
+    // qDebug() << "Smooth:" << ls_Path;
+    return ls_Path;
 }
 
 

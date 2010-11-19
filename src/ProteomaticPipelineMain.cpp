@@ -43,6 +43,13 @@ int main(int ai_ArgumentCount, char** ac_Arguments__)
         lk_MainWindow.setEnabled(false);
         lk_Proteomatic.checkForUpdates();
     }
+    
+    if (ai_ArgumentCount > 1)
+    {
+        QString ls_Path = ac_Arguments__[1];
+        if (ls_Path.endsWith(FILE_EXTENSION_PIPELINE))
+            lk_MainWindow.loadPipeline(ls_Path);
+    }
 
     return lk_App.exec();
 }

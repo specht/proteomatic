@@ -68,7 +68,7 @@ k_Script::k_Script(r_ScriptLocation::Enumeration ae_Location, QString as_ScriptU
         if (ls_InterpreterKey != "ruby")
         {
             lk_Arguments.insert(1, "--pathToRuby");
-            lk_Arguments.insert(2, mk_Proteomatic.scriptInterpreter("ruby"));
+            lk_Arguments.insert(2, mk_Proteomatic.scriptInterpreterAbsoluteNativePath("ruby"));
         }
         lk_QueryProcess.start(mk_Proteomatic.interpreterForScript(ms_Uri), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
         if (lk_QueryProcess.waitForFinished())

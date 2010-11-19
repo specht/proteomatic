@@ -120,6 +120,8 @@ void k_PipelineMainWindow::initialize()
     QMenu* lk_ProteomaticMenu_ = new QMenu(this);
     mk_NewPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-new.png"), "New pipeline", this, SLOT(newPipeline()), QKeySequence("Ctrl+N"));
     mk_LoadPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-open.png"), "Open pipeline...", this, SLOT(loadPipeline()), QKeySequence("Ctrl+O"));
+    mk_RecentPipelinesMenu_ = lk_ProteomaticMenu_->addMenu(QIcon(":icons/document-open.png"), "Open recent pipeline");
+    this->updateRecentPipelinesMenu();
     mk_SavePipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-save.png"), "Save pipeline", this, SLOT(savePipeline()), QKeySequence("Ctrl+S"));
     mk_SavePipelineAsAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-save-as.png"), "Save pipeline as...", this, SLOT(savePipelineAs()));
     lk_ProteomaticMenu_->addSeparator();
@@ -304,6 +306,12 @@ void k_PipelineMainWindow::newPipeline()
 
 void k_PipelineMainWindow::loadPipeline(QString as_Path)
 {
+    if ((!as_Path.isEmpty()) && (!QFileInfo(as_Path).exists()))
+    {
+        mk_Proteomatic.showMessageBox("File does not exist", "Unable to load pipeline.", ":/icons/dialog-warning.png");
+        return;
+    }
+
     if (!askForSaveIfNecessary())
         return;
     
@@ -319,7 +327,6 @@ void k_PipelineMainWindow::loadPipeline(QString as_Path)
     }
     else
         ls_Path = as_Path;
-    
     if ((!ls_Path.isEmpty()) && QFileInfo(ls_Path).exists())
     {
         tk_YamlMap lk_Description = k_Yaml::parseFromFile(ls_Path).toMap();
@@ -336,6 +343,7 @@ void k_PipelineMainWindow::loadPipeline(QString as_Path)
             updateStatusBar();
             showAll();
         }
+        this->addPipelineToRecentPipelinesMenu(ls_Path);
         forceRefresh();
         mk_Desktop_->setHasUnsavedChanges(false);
     }
@@ -564,6 +572,62 @@ void k_PipelineMainWindow::updateWindowTitle()
 }
 
 
+void k_PipelineMainWindow::updateRecentPipelinesMenu()
+{
+    mk_RecentPipelinesMenu_->clear();
+    tk_YamlSequence lk_Files = mk_Proteomatic.getConfiguration(CONFIG_RECENT_PIPELINES).toList();
+    foreach (QVariant lk_Path, lk_Files)
+    {
+        QAction* lk_Action_ = mk_RecentPipelinesMenu_->addAction(QFileInfo(lk_Path.toString()).fileName(), this, SLOT(recentPipelineClicked()));
+        lk_Action_->setData(lk_Path);
+        lk_Action_->setStatusTip(lk_Path.toString());
+        lk_Action_->setIcon(QIcon(":icons/proteomatic-pipeline.png"));
+    }
+    if (!lk_Files.empty())
+    {
+        mk_RecentPipelinesMenu_->addSeparator();
+        QAction* lk_Action_ = mk_RecentPipelinesMenu_->addAction("Clear history", this, SLOT(clearRecentPipelinesMenu()));
+        lk_Action_->setIcon(QIcon(":icons/edit-clear.png"));
+    }
+    toggleUi();
+}
+
+
+void k_PipelineMainWindow::recentPipelineClicked()
+{
+    QAction* lk_Action_ = dynamic_cast <QAction*> (sender());
+    if (lk_Action_ )
+        this->loadPipeline( lk_Action_->data().toString());
+}
+
+
+void k_PipelineMainWindow::addPipelineToRecentPipelinesMenu(QString as_Path)
+{
+    // don't add it if it's not the correct filename extension
+    if (!as_Path.endsWith(FILE_EXTENSION_PIPELINE))
+        return;
+
+    tk_YamlSequence lk_Files = mk_Proteomatic.getConfiguration(CONFIG_RECENT_PIPELINES).toList();
+    if (lk_Files.contains(as_Path))
+        lk_Files.removeAll(as_Path);
+    lk_Files.push_front(as_Path);
+    while (lk_Files.size() > MAX_RECENT_PIPELINES)
+        lk_Files.pop_back();
+    mk_Proteomatic.setConfiguration(CONFIG_RECENT_PIPELINES, lk_Files);
+    mk_Proteomatic.saveConfiguration();
+    this->updateRecentPipelinesMenu();
+}
+
+
+void k_PipelineMainWindow::clearRecentPipelinesMenu()
+{
+    tk_YamlSequence lk_Files;
+    mk_Proteomatic.setConfiguration(CONFIG_RECENT_PIPELINES, lk_Files);
+    mk_Proteomatic.saveConfiguration();
+    this->updateRecentPipelinesMenu();
+}
+
+
 void k_PipelineMainWindow::restartProteomatic()
 {
     if (askForSaveIfNecessary())
@@ -579,6 +643,7 @@ void k_PipelineMainWindow::toggleUi()
     mk_ProteomaticButton_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_NewPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
     mk_LoadPipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());
+    mk_RecentPipelinesMenu_->setEnabled((mk_Desktop_ && !mk_Desktop_->running()) && (!mk_RecentPipelinesMenu_->isEmpty()));
     mk_SavePipelineAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_SavePipelineAsAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running() && mk_Desktop_->hasBoxes());
     mk_QuitAction_->setEnabled(mk_Desktop_ && !mk_Desktop_->running());

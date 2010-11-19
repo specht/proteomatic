@@ -29,7 +29,7 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems,
     , mk_OpenFileAction(QIcon(":icons/document-open.png"), "&Open file", this)
     , mk_OpenContainingFolderAction(QIcon(":icons/folder.png"), "Open containing &folder", this)
     , mk_RemoveFileFromListAction(QIcon(":icons/list-remove.png"), "&Remove from list", this)
-    , mk_DeleteFileAction(QIcon(":icons/dialog-cancel.png"), "&Delete file", this)
+    , mk_DeleteFileAction(QIcon(":icons/user-trash.png"), "&Delete file", this)
     , mb_ReallyRemoveItems(ab_ReallyRemoveItems)
     , mb_FileMode(ab_FileMode)
     , mb_Refreshing(false)

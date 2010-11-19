@@ -48,6 +48,8 @@ public:
     virtual void setProtectedFromUserDeletion(bool ab_Flag);
     virtual QSet<IDesktopBox*> incomingBoxes() const;
     virtual QSet<IDesktopBox*> outgoingBoxes() const;
+    virtual QSet<IDesktopBox*> incomingBoxesRecursive(bool ab_IncludingSelf = false);
+    virtual QSet<IDesktopBox*> outgoingBoxesRecursive(bool ab_IncludingSelf = false);
     virtual QString description();
     virtual void update();
     

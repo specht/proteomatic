@@ -36,7 +36,8 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     , mi_MinHeight(21)
     , mk_OpenFileAction_(new QAction(QIcon(":icons/document-open.png"), "&Open file", this))
     , mk_OpenContainingFolderAction_(new QAction(QIcon(":icons/folder.png"), "Open containing &folder", this))
-    , mk_DeleteFileAction_(new QAction(QIcon(":icons/dialog-cancel.png"), "&Delete file", this))
+    , mk_DeleteFileAction_(new QAction(QIcon(":icons/user-trash.png"), "&Delete file", this))
+    , mk_DeleteAllDownstreamFilesAction_(new QAction(QIcon(":icons/user-trash.png"), "Delete &all downstream files", this))
     , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ScriptBoxParent_(ak_ScriptBoxParent_)
@@ -285,7 +286,14 @@ void k_FileListBox::showContextMenu()
 {
     QString ls_Path = mk_FileList.files().first();
     mk_OpenFileAction_->setEnabled(QFileInfo(ls_Path).exists());
+    // :TODO: check if there are existing downstream files
     mk_DeleteFileAction_->setEnabled(QFileInfo(ls_Path).exists());
+    QStringList lk_DownstreamFilenames = this->getExistingDownstreamFilenames();
+    mk_DeleteAllDownstreamFilesAction_->setEnabled(lk_DownstreamFilenames.size() > 1);
+    if (lk_DownstreamFilenames.size() < 2)
+        mk_DeleteAllDownstreamFilesAction_->setText(QString("Delete downstream files"));
+    else
+        mk_DeleteAllDownstreamFilesAction_->setText(QString("Delete %1 downstream %2").arg(lk_DownstreamFilenames.size()).arg(lk_DownstreamFilenames.size() == 1 ? "file" : "files"));
     ls_Path = QFileInfo(ls_Path).absolutePath();
     mk_OpenContainingFolderAction_->setEnabled(QFileInfo(ls_Path).isDir());
     mk_PopupMenu.exec(QCursor::pos());
@@ -353,6 +361,26 @@ void k_FileListBox::update()
 }
 
 
+QStringList k_FileListBox::getExistingDownstreamFilenames()
+{
+    QStringList lk_Files;
+    QSet<IDesktopBox*> lk_AllBoxes = this->outgoingBoxesRecursive(true);
+    foreach (IDesktopBox* lk_Box_, lk_AllBoxes)
+    {
+        IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
+        if (lk_FileBox_)
+        {
+            foreach (QString ls_Path, lk_FileBox_->filenames())
+            {
+                if (QFileInfo(ls_Path).exists())
+                    lk_Files.append(ls_Path);
+            }
+        }
+    }
+    return lk_Files;
+}
+
+
 void k_FileListBox::setupLayout()
 {
     QBoxLayout* lk_VLayout_;
@@ -364,9 +392,11 @@ void k_FileListBox::setupLayout()
     mk_PopupMenu.addAction(mk_OpenContainingFolderAction_);
     mk_PopupMenu.addSeparator();
     mk_PopupMenu.addAction(mk_DeleteFileAction_);
+    mk_PopupMenu.addAction(mk_DeleteAllDownstreamFilesAction_);
     connect(mk_OpenFileAction_, SIGNAL(triggered()), this, SLOT(openFile()));
     connect(mk_OpenContainingFolderAction_, SIGNAL(triggered()), this, SLOT(openContainingDirectory()));
     connect(mk_DeleteFileAction_, SIGNAL(triggered()), this, SLOT(deleteFile()));
+    connect(mk_DeleteAllDownstreamFilesAction_, SIGNAL(triggered()), this, SLOT(deleteAllDownstreamFiles()));
     
     lk_VLayout_ = new QVBoxLayout(this);
     lk_VLayout_->setContentsMargins(11, 11, 11, 11);
@@ -474,6 +504,25 @@ void k_FileListBox::deleteFile()
         if (!lk_Dir.remove(ls_Path))
             mk_Proteomatic.showMessageBox("Delete file", "Error: The file could not be deleted.", ":icons/dialog-warning.png");
     }
+}
+
+
+void k_FileListBox::deleteAllDownstreamFiles()
+{
+    int li_ErrorCount = 0;
+    QStringList lk_DownstreamFilenames = this->getExistingDownstreamFilenames();
+//     QString ls_Path = QDir::cleanPath(mk_FileList.files().first());
+    if (mk_Proteomatic.showMessageBox("Delete file", QString("You are about to delete %1 output files. Are you sure you want to do this?").arg(lk_DownstreamFilenames.size()), ":icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+    {
+        foreach (QString ls_Path, lk_DownstreamFilenames)
+        {
+            QDir lk_Dir;
+            if (!lk_Dir.remove(ls_Path))
+                ++li_ErrorCount;
+        }
+    }
+    if (li_ErrorCount > 0)
+        mk_Proteomatic.showMessageBox("Delete downstream files", QString("Error: Unable to delete %1 files.").arg(li_ErrorCount), ":icons/dialog-warning.png");
 }
 
 

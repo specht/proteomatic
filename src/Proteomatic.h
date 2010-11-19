@@ -37,6 +37,7 @@ class k_SearchMenu;
 #define CONFIG_REMEMBER_OUTPUT_PATH "rememberOutputPath"
 #define CONFIG_SCRIPTS_URL "scriptsUrl"
 #define CONFIG_ADDITIONAL_SCRIPT_PATHS "additionalScriptsPaths"
+#define CONFIG_RECENT_PIPELINES "recentPipelines"
 #define CONFIG_AUTO_CHECK_FOR_UPDATES "autoCheckForUpdates"
 #define CONFIG_WARN_ABOUT_MIXED_PROFILES "warnAboutMixedProfiles"
 #define CONFIG_CACHE_SCRIPT_INFO "cacheScriptInfo"
@@ -47,6 +48,7 @@ class k_SearchMenu;
 
 #define FILE_EXTENSION_PIPELINE ".pipeline"
 #define FILE_EXTENSION_PROFILE ".pp"
+#define MAX_RECENT_PIPELINES 7
 
 /*
  we need locations for the following:
@@ -158,6 +160,7 @@ public:
     QStringList additionalScriptPaths() const;
     
     QVariant getConfiguration(QString as_Key);
+    void setConfiguration(QString as_Key, QVariant ak_Value);
     tk_YamlMap& getConfigurationRoot();
     void saveConfiguration();
     QString managedScriptsVersion();
@@ -171,6 +174,7 @@ public:
     QLabel* fileTrackerIconLabel();
     QLabel* fileTrackerLabel();
     QString scriptInterpreter(const QString& as_Language);
+    QString scriptInterpreterAbsoluteNativePath(const QString& as_Language);
     QString configKeyForScriptingLanguage(const QString& as_Language);
     bool stringToBool(const QString& as_String);
     QString scriptsVersion();

@@ -126,6 +126,28 @@ QSet<IDesktopBox*> k_DesktopBox::outgoingBoxes() const
 }
 
 
+QSet<IDesktopBox*> k_DesktopBox::incomingBoxesRecursive(bool ab_IncludingSelf)
+{
+    QSet<IDesktopBox*> lk_Boxes;
+    if (ab_IncludingSelf)
+        lk_Boxes << this;
+    foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
+        lk_Boxes |= lk_Box_->incomingBoxesRecursive(true);
+    return lk_Boxes;
+}
+
+
+QSet<IDesktopBox*> k_DesktopBox::outgoingBoxesRecursive(bool ab_IncludingSelf)
+{
+    QSet<IDesktopBox*> lk_Boxes;
+    if (ab_IncludingSelf)
+        lk_Boxes << this;
+    foreach (IDesktopBox* lk_Box_, mk_ConnectedOutgoingBoxes)
+        lk_Boxes |= lk_Box_->outgoingBoxesRecursive(true);
+    return lk_Boxes;
+}
+
+
 QString k_DesktopBox::description()
 {
     return QString("generic box [%1] (%2 in, %3 out)%4: %5:%6 %7x%8").

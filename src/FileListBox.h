@@ -52,6 +52,7 @@ public:
     virtual void addPath(const QString& as_Path);
     virtual void addPaths(const QStringList& ak_Paths);
     virtual void update();
+    virtual QStringList getExistingDownstreamFilenames();
     
 public slots:
     virtual void connectOutgoingBox(IDesktopBox* ak_Other_);
@@ -74,6 +75,7 @@ protected slots:
     virtual void openFile();
     virtual void openContainingDirectory();
     virtual void deleteFile();
+    virtual void deleteAllDownstreamFiles();
     virtual void fileBoxChanged();
     
 protected:
@@ -95,6 +97,7 @@ protected:
     QAction* mk_OpenFileAction_;
     QAction* mk_OpenContainingFolderAction_;
     QAction* mk_DeleteFileAction_;
+    QAction* mk_DeleteAllDownstreamFilesAction_;
     QPixmap mk_InactiveArrow;
     QPixmap mk_ActiveArrow;
     k_ClickableLabel mk_ArrowLabel;

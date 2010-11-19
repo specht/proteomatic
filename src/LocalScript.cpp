@@ -209,7 +209,7 @@ QString k_LocalScript::start(const QStringList& ak_Files, tk_StringStringHash ak
     if (ls_InterpreterKey != "ruby")
     {
         lk_Arguments.insert(1, "--pathToRuby");
-        lk_Arguments.insert(2, mk_Proteomatic.scriptInterpreter("ruby"));
+        lk_Arguments.insert(2, mk_Proteomatic.scriptInterpreterAbsoluteNativePath("ruby"));
     }
     mk_Process.start(mk_Proteomatic.interpreterForScript(this->uri()), lk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
     return QString();

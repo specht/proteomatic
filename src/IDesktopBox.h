@@ -35,6 +35,8 @@ struct IDesktopBox
     virtual void setProtectedFromUserDeletion(bool ab_Flag) = 0;
     virtual QSet<IDesktopBox*> incomingBoxes() const = 0;
     virtual QSet<IDesktopBox*> outgoingBoxes() const = 0;
+    virtual QSet<IDesktopBox*> incomingBoxesRecursive(bool ab_IncludingSelf) = 0;
+    virtual QSet<IDesktopBox*> outgoingBoxesRecursive(bool ab_IncludingSelf) = 0;
     virtual QString description() = 0;
     virtual void update() = 0;
     
