@@ -55,22 +55,14 @@ void k_SearchMenu::addSearchField()
     
     this->addSeparator();
     this->addAction(mk_pSearchWidgetAction.data());
-    
-    mk_pSearchResultWidgetAction = QSharedPointer<QWidgetAction>(new QWidgetAction(NULL));
-    mk_pSearchResultList = QSharedPointer<QListWidget>(new QListWidget());
-    connect(mk_pSearchResultList.data(), SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(itemClickedSlot(QListWidgetItem*)));
-    connect(mk_pSearchResultList.data(), SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(itemClickedSlot(QListWidgetItem*)));
-    mk_pSearchResultWidgetAction->setDefaultWidget(mk_pSearchResultList.data());
-    mk_pSearchResultList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    mk_pSearchResultList->setMaximumHeight(100);
-    mk_pSearchResultList->setSelectionMode(QAbstractItemView::NoSelection);
-    
-    mk_pSearchResultList->hide();
 }
 
 
 void k_SearchMenu::searchFieldPopup(const QString& as_String)
 {
+    QList<QSharedPointer<QAction> > lk_pOldSearchResultActions = mk_pSearchResultActions;
+    mk_pSearchResultActions.clear();
+    
     QString ls_String = as_String.toLower();
     QStringList lk_Tags = ls_String.split(mk_WordSplitter, QString::SkipEmptyParts);
     QHash<QString, QStringList>& lk_Keywords = mk_Proteomatic.mk_ScriptKeywords;
@@ -107,55 +99,45 @@ void k_SearchMenu::searchFieldPopup(const QString& as_String)
     foreach (QString ls_Target, lk_Targets.keys())
         lk_TargetsSorted.insert(lk_Targets[ls_Target], ls_Target);
     
-    if (lk_TargetsSorted.empty())
     {
-        if (mb_ResultListInserted)
+        QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constBegin();
+        for (; lk_Iter != lk_TargetsSorted.constEnd(); ++lk_Iter)
         {
-            this->removeAction(mk_pSearchResultWidgetAction.data());
-            mb_ResultListInserted = false;
+            QString ls_ScriptPath = lk_Iter.value();
+            QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
         }
-        return;
     }
     
-    mk_pSearchResultList->clear();
-    QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constEnd();
-    do
+    if (!lk_TargetsSorted.empty())
     {
-        --lk_Iter;
-        
-        QString ls_ScriptPath = lk_Iter.value();
-        QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
-        if (!ls_Title.isEmpty())
+        QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constEnd();
+        int li_Count = 0;
+        do
         {
-            QListWidgetItem* lk_Item_ = new QListWidgetItem(QIcon(":src/icons/proteomatic.png"), ls_Title, mk_pSearchResultList.data());
-            lk_Item_->setData(Qt::UserRole, ls_ScriptPath);
-
-        }
-    } while (lk_Iter != lk_TargetsSorted.constBegin());
-    if (!mb_ResultListInserted)
-    {
-        this->addAction(mk_pSearchResultWidgetAction.data());
-        mb_ResultListInserted = true;
+            --lk_Iter;
+            
+            QString ls_ScriptPath = lk_Iter.value();
+            QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
+            if (!ls_Title.isEmpty())
+            {
+                QAction* lk_Action_ = new QAction(QIcon(":icons/proteomatic.png"), ls_Title, NULL);
+                lk_Action_->setData(ls_ScriptPath);
+                mk_pSearchResultActions.push_back(QSharedPointer<QAction>(lk_Action_));
+                this->addAction(lk_Action_);
+                ++li_Count;
+            }
+        } while ((lk_Iter != lk_TargetsSorted.constBegin()) && (li_Count < 10));
     }
-}
-
-
-void k_SearchMenu::itemClickedSlot(QListWidgetItem* ak_Item_)
-{
-    if (mi_GotTicket >= mi_Ticket)
-        return;
-    mi_GotTicket = mi_Ticket;
-    QString ls_Uri = ak_Item_->data(Qt::UserRole).toString();
-    mk_Proteomatic.pipelineMainWindow()->addScript(ls_Uri);
+    setUpdatesEnabled(false);
+    QApplication::processEvents();
+    lk_pOldSearchResultActions.clear();
+    setUpdatesEnabled(true);
 }
 
 
 void k_SearchMenu::initialize()
 {
     mk_WordSplitter = QRegExp("\\W+");
-    mb_ResultListInserted = false;
-    mi_Ticket = 0;
-    mi_GotTicket = 0;
 }
 
 
@@ -164,31 +146,18 @@ void k_SearchMenu::showEvent(QShowEvent* event)
     if (mk_pHintLineEdit.data())
         mk_pHintLineEdit->clear();
     
-    if (mk_pSearchResultList.data())
-        mk_pSearchResultList->clear();
-    
-    if (mb_ResultListInserted)
-    {
-        this->removeAction(mk_pSearchResultWidgetAction.data());
-        mb_ResultListInserted = false;
-    }
-    
-    mi_Ticket += 1;
+    mk_pSearchResultActions.clear();
     
     QMenu::showEvent(event);
     if (mk_pHintLineEdit.data())
-        mk_pHintLineEdit->clearFocus();
-    setActiveAction(NULL);
+    {
+        mk_pHintLineEdit->setFocus();
+        setActiveAction(mk_pSearchWidgetAction.data());
+    }
 }
 
 
 void k_SearchMenu::hideEvent(QHideEvent* event)
 {
     QMenu::hideEvent(event);
-}
-
-
-void k_SearchMenu::keyPressEvent(QKeyEvent* event)
-{
-    QMenu::keyPressEvent(event);
 }

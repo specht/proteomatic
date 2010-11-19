@@ -38,22 +38,15 @@ public:
     
 protected slots:
     void searchFieldPopup(const QString& as_String);
-    void itemClickedSlot(QListWidgetItem* ak_Item_);
     
 protected:
     void initialize();
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
-    void keyPressEvent(QKeyEvent* event);
     
     k_Proteomatic& mk_Proteomatic;
     QSharedPointer<QWidgetAction> mk_pSearchWidgetAction;
     QSharedPointer<k_HintLineEdit> mk_pHintLineEdit;
-    QSharedPointer<QWidgetAction> mk_pSearchResultWidgetAction;
-    QSharedPointer<QListWidget> mk_pSearchResultList;
     QRegExp mk_WordSplitter;
-    bool mb_ResultListInserted;
-    
-    int mi_Ticket;
-    int mi_GotTicket;
+    QList<QSharedPointer<QAction> > mk_pSearchResultActions;
 };
