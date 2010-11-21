@@ -36,17 +36,25 @@ public:
     
     void addSearchField();
     
+signals:    
+    void addNewSearchResultsSignal(const QString& as_String);
+    void clearOldSearchResultsSignal();
+    
 protected slots:
     void searchFieldPopup(const QString& as_String);
+    void addNewSearchResults(const QString& as_String);
+    void clearOldSearchResults();
     
 protected:
     void initialize();
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
+    void keyPressEvent(QKeyEvent* event);
     
     k_Proteomatic& mk_Proteomatic;
     QSharedPointer<QWidgetAction> mk_pSearchWidgetAction;
     QSharedPointer<k_HintLineEdit> mk_pHintLineEdit;
     QRegExp mk_WordSplitter;
     QList<QSharedPointer<QAction> > mk_pSearchResultActions;
+    QList<QSharedPointer<QAction> > mk_DeleteTheseActions;
 };

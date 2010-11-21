@@ -51,7 +51,9 @@ void k_SearchMenu::addSearchField()
     mk_pHintLineEdit = QSharedPointer<k_HintLineEdit>(new k_HintLineEdit());
     mk_pHintLineEdit->setHint("Enter search term");
     mk_pSearchWidgetAction->setDefaultWidget(mk_pHintLineEdit.data());
-    connect(mk_pHintLineEdit.data(), SIGNAL(textEdited(const QString&)), this, SLOT(searchFieldPopup(const QString&)));
+    connect(mk_pHintLineEdit.data(), SIGNAL(textEdited(const QString&)), this, SLOT(searchFieldPopup(const QString&)), Qt::QueuedConnection);
+    connect(this, SIGNAL(addNewSearchResultsSignal(const QString&)), this, SLOT(addNewSearchResults(const QString&)), Qt::QueuedConnection);
+    connect(this, SIGNAL(clearOldSearchResultsSignal()), this, SLOT(clearOldSearchResults()), Qt::QueuedConnection);
     
     this->addSeparator();
     this->addAction(mk_pSearchWidgetAction.data());
@@ -60,9 +62,15 @@ void k_SearchMenu::addSearchField()
 
 void k_SearchMenu::searchFieldPopup(const QString& as_String)
 {
-    QList<QSharedPointer<QAction> > lk_pOldSearchResultActions = mk_pSearchResultActions;
+    mk_DeleteTheseActions.append(mk_pSearchResultActions);
     mk_pSearchResultActions.clear();
-    
+    emit addNewSearchResultsSignal(as_String);
+    emit clearOldSearchResultsSignal();
+}
+
+void k_SearchMenu::addNewSearchResults(const QString& as_String)
+{
+    QApplication::processEvents();
     QString ls_String = as_String.toLower();
     QStringList lk_Tags = ls_String.split(mk_WordSplitter, QString::SkipEmptyParts);
     QHash<QString, QStringList>& lk_Keywords = mk_Proteomatic.mk_ScriptKeywords;
@@ -99,15 +107,6 @@ void k_SearchMenu::searchFieldPopup(const QString& as_String)
     foreach (QString ls_Target, lk_Targets.keys())
         lk_TargetsSorted.insert(lk_Targets[ls_Target], ls_Target);
     
-    {
-        QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constBegin();
-        for (; lk_Iter != lk_TargetsSorted.constEnd(); ++lk_Iter)
-        {
-            QString ls_ScriptPath = lk_Iter.value();
-            QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
-        }
-    }
-    
     if (!lk_TargetsSorted.empty())
     {
         QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constEnd();
@@ -128,10 +127,13 @@ void k_SearchMenu::searchFieldPopup(const QString& as_String)
             }
         } while ((lk_Iter != lk_TargetsSorted.constBegin()) && (li_Count < 10));
     }
-    setUpdatesEnabled(false);
+}
+
+
+void k_SearchMenu::clearOldSearchResults()
+{
     QApplication::processEvents();
-    lk_pOldSearchResultActions.clear();
-    setUpdatesEnabled(true);
+    mk_DeleteTheseActions.clear();
 }
 
 
@@ -147,6 +149,7 @@ void k_SearchMenu::showEvent(QShowEvent* event)
         mk_pHintLineEdit->clear();
     
     mk_pSearchResultActions.clear();
+    mk_DeleteTheseActions.clear();
     
     QMenu::showEvent(event);
     if (mk_pHintLineEdit.data())
@@ -160,4 +163,11 @@ void k_SearchMenu::showEvent(QShowEvent* event)
 void k_SearchMenu::hideEvent(QHideEvent* event)
 {
     QMenu::hideEvent(event);
+}
+
+
+void k_SearchMenu::keyPressEvent(QKeyEvent* event)
+{
+    QMenu::keyPressEvent(event);
+    QApplication::processEvents();
 }
