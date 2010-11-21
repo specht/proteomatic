@@ -356,6 +356,7 @@ void k_PipelineMainWindow::savePipeline()
         savePipelineAs();
     else
     {
+        this->addPipelineToRecentPipelinesMenu(ms_PipelineFilename);
         k_Yaml::emitToFile(mk_Desktop_->pipelineDescription(), ms_PipelineFilename);
         mk_Desktop_->setHasUnsavedChanges(false);
     }
@@ -373,6 +374,7 @@ void k_PipelineMainWindow::savePipelineAs()
     {
         mk_Proteomatic.getConfigurationRoot()[CONFIG_REMEMBER_PIPELINE_PATH] = QFileInfo(ms_PipelineFilename).absolutePath();
         savePipeline();
+        mk_Desktop_->setHasUnsavedChanges(false);
     }
 }
 

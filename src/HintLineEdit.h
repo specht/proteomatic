@@ -32,6 +32,8 @@ public:
     ~k_HintLineEdit();
     
     void setHint(const QString& as_Hint);
+    void setHintVisibleWhenFocused(bool ab_Flag);
+    void triggerKeyPressEvent(QKeyEvent* event);
 
 signals:
     void focusOut();
@@ -41,4 +43,5 @@ protected:
     virtual void focusOutEvent(QFocusEvent* event);
     
     QString ms_Hint;
+    bool mb_HintVisibleWhenFocused;
 };

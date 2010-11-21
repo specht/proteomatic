@@ -50,6 +50,7 @@ void k_SearchMenu::addSearchField()
     mk_pSearchWidgetAction = QSharedPointer<QWidgetAction>(new QWidgetAction(NULL));
     mk_pHintLineEdit = QSharedPointer<k_HintLineEdit>(new k_HintLineEdit());
     mk_pHintLineEdit->setHint("Enter search term");
+    mk_pHintLineEdit->setHintVisibleWhenFocused(true);
     mk_pSearchWidgetAction->setDefaultWidget(mk_pHintLineEdit.data());
     connect(mk_pHintLineEdit.data(), SIGNAL(textEdited(const QString&)), this, SLOT(searchFieldPopup(const QString&)), Qt::QueuedConnection);
     connect(this, SIGNAL(addNewSearchResultsSignal(const QString&)), this, SLOT(addNewSearchResults(const QString&)), Qt::QueuedConnection);
@@ -168,6 +169,12 @@ void k_SearchMenu::hideEvent(QHideEvent* event)
 
 void k_SearchMenu::keyPressEvent(QKeyEvent* event)
 {
+/*    if (!mk_pHintLineEdit.data()->hasFocus())
+    {
+        mk_pHintLineEdit.data()->setFocus();*/
+//         setActiveAction(mk_pSearchWidgetAction.data());
+//         mk_pHintLineEdit.data()->triggerKeyPressEvent(event);
+//     }
     QMenu::keyPressEvent(event);
     QApplication::processEvents();
 }

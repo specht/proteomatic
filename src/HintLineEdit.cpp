@@ -22,16 +22,18 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 k_HintLineEdit::k_HintLineEdit(QWidget* parent)
     : QLineEdit(parent)
+    , ms_Hint(QString())
+    , mb_HintVisibleWhenFocused(false)
 {
-    ms_Hint = "";
 }
 
 
 k_HintLineEdit::k_HintLineEdit(const QString& contents, QWidget* parent)
     : QLineEdit(contents, parent)
+    , ms_Hint(QString())
+    , mb_HintVisibleWhenFocused(false)
 {
     this->setText(contents);
-    ms_Hint = "";
 }
 
 
@@ -47,10 +49,22 @@ void k_HintLineEdit::setHint(const QString& as_Hint)
 }
 
 
+void k_HintLineEdit::setHintVisibleWhenFocused(bool ab_Flag)
+{
+    mb_HintVisibleWhenFocused = ab_Flag;
+}
+
+
+void k_HintLineEdit::triggerKeyPressEvent(QKeyEvent* event)
+{
+    this->keyPressEvent(event);
+}
+
+
 void k_HintLineEdit::paintEvent(QPaintEvent* event)
 {
     QLineEdit::paintEvent(event);
-    if (this->text().isEmpty() && (!this->hasFocus()))
+    if (this->text().isEmpty() && (mb_HintVisibleWhenFocused || (!this->hasFocus())))
     {
         QPainter lk_Painter(this);
         lk_Painter.setPen(QColor("#888"));
