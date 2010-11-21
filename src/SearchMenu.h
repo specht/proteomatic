@@ -45,6 +45,7 @@ protected slots:
     void searchFieldPopup(const QString& as_String);
     void addNewSearchResults(const QString& as_String);
     void clearOldSearchResults();
+    void aboutToShowSlot();
     
 protected:
     void initialize();

@@ -55,6 +55,7 @@ void k_SearchMenu::addSearchField()
     connect(mk_pHintLineEdit.data(), SIGNAL(textEdited(const QString&)), this, SLOT(searchFieldPopup(const QString&)), Qt::QueuedConnection);
     connect(this, SIGNAL(addNewSearchResultsSignal(const QString&)), this, SLOT(addNewSearchResults(const QString&)), Qt::QueuedConnection);
     connect(this, SIGNAL(clearOldSearchResultsSignal()), this, SLOT(clearOldSearchResults()), Qt::QueuedConnection);
+    connect(this, SIGNAL(aboutToShow()), this, SLOT(aboutToShowSlot()));
     
     this->addSeparator();
     this->addAction(mk_pSearchWidgetAction.data());
@@ -158,6 +159,14 @@ void k_SearchMenu::clearOldSearchResults()
 {
     QApplication::processEvents();
     mk_DeleteTheseActions.clear();
+    QApplication::processEvents();
+}
+
+
+void k_SearchMenu::aboutToShowSlot()
+{
+    searchFieldPopup(QString());
+    QApplication::processEvents();
 }
 
 
