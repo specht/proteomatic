@@ -1529,7 +1529,7 @@ void k_Desktop::arrowReleased()
                     lk_InputPaths << ls_Path;
                 mk_Proteomatic.highlightScriptsMenu(lk_InputPaths);
             }
-            QAction* lk_Action_ = mk_Proteomatic.proteomaticScriptsMenu()->exec(mapFromScene(mk_ArrowEndPoint) + mapToGlobal(pos()) - QPoint(8, 8));
+            QAction* lk_Action_ = mk_Proteomatic.proteomaticScriptsMenu()->exec(mapFromScene(mk_ArrowEndPoint) + mapToGlobal(pos()) + QPoint(4, 4));
             if (lk_FileBox_)
                 mk_Proteomatic.highlightScriptsMenu();
             if (!lk_Action_)
