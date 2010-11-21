@@ -61,6 +61,26 @@ void k_SearchMenu::addSearchField()
 }
 
 
+void k_SearchMenu::setInputFilenames(QStringList ak_Paths)
+{
+    mk_InputFilenames = ak_Paths;
+    mk_AllInputSuffixes = QSet<QString>();
+    // always add the 'any' file suffix
+    if (!ak_Paths.empty())
+        mk_AllInputSuffixes << "";
+    foreach (QString ls_Path, ak_Paths)
+    {
+        QString ls_Suffix = QFileInfo(ls_Path).completeSuffix().toLower();
+        QStringList lk_SuffixList = ls_Suffix.split(".");
+        for (int i = 0; i < lk_SuffixList.size(); ++i)
+        {
+            QString ls_SubSuffix = QStringList(lk_SuffixList.mid(lk_SuffixList.size() - 1 - i, i + 1)).join(".");
+            mk_AllInputSuffixes << "." + ls_SubSuffix;
+        }
+    }
+}
+
+
 void k_SearchMenu::searchFieldPopup(const QString& as_String)
 {
     mk_DeleteTheseActions.append(mk_pSearchResultActions);
@@ -121,6 +141,9 @@ void k_SearchMenu::addNewSearchResults(const QString& as_String)
             if (!ls_Title.isEmpty())
             {
                 QAction* lk_Action_ = new QAction(QIcon(":icons/proteomatic.png"), ls_Title, NULL);
+                // set disabled icon if it wouldn't fit to the input files
+                if (!(mk_AllInputSuffixes.empty() || (!(mk_AllInputSuffixes & mk_Proteomatic.mk_ExtensionsForScriptPath[ls_ScriptPath]).empty())))
+                    lk_Action_->setIcon(QIcon(":icons/proteomatic-disabled.png"));
                 lk_Action_->setData(ls_ScriptPath);
                 mk_pSearchResultActions.push_back(QSharedPointer<QAction>(lk_Action_));
                 this->addAction(lk_Action_);
@@ -169,12 +192,6 @@ void k_SearchMenu::hideEvent(QHideEvent* event)
 
 void k_SearchMenu::keyPressEvent(QKeyEvent* event)
 {
-/*    if (!mk_pHintLineEdit.data()->hasFocus())
-    {
-        mk_pHintLineEdit.data()->setFocus();*/
-//         setActiveAction(mk_pSearchWidgetAction.data());
-//         mk_pHintLineEdit.data()->triggerKeyPressEvent(event);
-//     }
     QMenu::keyPressEvent(event);
     QApplication::processEvents();
 }

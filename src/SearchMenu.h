@@ -35,6 +35,7 @@ public:
     virtual ~k_SearchMenu();
     
     void addSearchField();
+    void setInputFilenames(QStringList ak_Paths);
     
 signals:    
     void addNewSearchResultsSignal(const QString& as_String);
@@ -57,4 +58,6 @@ protected:
     QRegExp mk_WordSplitter;
     QList<QSharedPointer<QAction> > mk_pSearchResultActions;
     QList<QSharedPointer<QAction> > mk_DeleteTheseActions;
+    QStringList mk_InputFilenames;
+    QSet<QString> mk_AllInputSuffixes;
 };

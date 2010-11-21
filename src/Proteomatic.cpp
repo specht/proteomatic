@@ -1002,6 +1002,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
     
     mk_ExtensionsForScriptsMenuSubMenu.clear();
     mk_ExtensionsForScriptsMenuAction.clear();
+    mk_ExtensionsForScriptPath.clear();
 
     // create sub menus
     foreach (QString ls_Group, lk_GroupKeys)
@@ -1047,6 +1048,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
         lk_Action_->setStatusTip(doc.toPlainText());
         lk_Action_->setData(lk_ScriptInfo["uri"].toString());
         mk_ExtensionsForScriptsMenuAction[lk_Action_] = QSet<QString>();
+        mk_ExtensionsForScriptPath[ls_Path] = QSet<QString>();
         QSet<QString> lk_ThisExtensionsSet;
         foreach (QVariant lk_InputItem, lk_ScriptInfo["input"].toList())
         {
@@ -1054,6 +1056,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
             lk_ThisExtensionsSet |= lk_InputItemMap["extensions"].toString().split("/").toSet();
         }
         mk_ExtensionsForScriptsMenuAction[lk_Action_] |= lk_ThisExtensionsSet;
+        mk_ExtensionsForScriptPath[ls_Path] |= lk_ThisExtensionsSet;
         QStringList lk_Group = ls_Group.split("/");
         for (int i = 1; i <= lk_Group.size(); ++i)
         {

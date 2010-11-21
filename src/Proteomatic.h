@@ -184,6 +184,7 @@ public:
     void highlightScriptsMenu(QStringList ak_InputPaths = QStringList());
     
     QHash<QString, QStringList> mk_ScriptKeywords;
+    QHash<QString, QSet<QString> > mk_ExtensionsForScriptPath;
     
 public slots:
     void checkForUpdates();

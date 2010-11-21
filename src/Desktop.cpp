@@ -27,6 +27,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "InputGroupProxyBox.h"
 #include "IScriptBox.h"
 #include "ScriptBox.h"
+#include "SearchMenu.h"
 #include "PipelineMainWindow.h"
 #include "Tango.h"
 #include "Yaml.h"
@@ -1528,10 +1529,18 @@ void k_Desktop::arrowReleased()
                 foreach (QString ls_Path, lk_FileBox_->filenames())
                     lk_InputPaths << ls_Path;
                 mk_Proteomatic.highlightScriptsMenu(lk_InputPaths);
+                k_SearchMenu* lk_SearchMenu_ = dynamic_cast<k_SearchMenu*>(mk_Proteomatic.proteomaticScriptsMenu());
+                if (lk_SearchMenu_)
+                    lk_SearchMenu_->setInputFilenames(lk_InputPaths);
             }
             QAction* lk_Action_ = mk_Proteomatic.proteomaticScriptsMenu()->exec(mapFromScene(mk_ArrowEndPoint) + mapToGlobal(pos()) + QPoint(4, 4));
             if (lk_FileBox_)
+            {
                 mk_Proteomatic.highlightScriptsMenu();
+                k_SearchMenu* lk_SearchMenu_ = dynamic_cast<k_SearchMenu*>(mk_Proteomatic.proteomaticScriptsMenu());
+                if (lk_SearchMenu_)
+                    lk_SearchMenu_->setInputFilenames(lk_InputPaths);
+            }
             if (!lk_Action_)
                 mk_ArrowStartBoxAutoConnect_ = NULL;
         }
