@@ -1539,7 +1539,7 @@ void k_Desktop::arrowReleased()
                 mk_Proteomatic.highlightScriptsMenu();
                 k_SearchMenu* lk_SearchMenu_ = dynamic_cast<k_SearchMenu*>(mk_Proteomatic.proteomaticScriptsMenu());
                 if (lk_SearchMenu_)
-                    lk_SearchMenu_->setInputFilenames(lk_InputPaths);
+                    lk_SearchMenu_->setInputFilenames(QStringList());
             }
             if (!lk_Action_)
                 mk_ArrowStartBoxAutoConnect_ = NULL;

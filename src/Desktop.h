@@ -163,7 +163,7 @@ protected:
     QHash<tk_BoxPair, QGraphicsPathItem*> mk_ArrowForBoxPair;
     // secondary hash, all arrows for each box
     QHash<IDesktopBox*, QSet<QGraphicsPathItem* > > mk_ArrowsForBox;
-    // and a think invisible line under each arrow for picking!
+    // and a thick invisible line under each arrow for picking!
     QHash<QGraphicsPathItem*, QGraphicsLineItem*> mk_ArrowProxy;
     QHash<QGraphicsLineItem*, QGraphicsPathItem*> mk_ArrowForProxy;
     
