@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Michael Specht
+Copyright (c) 2007-2010 Michael Specht
 
 This file is part of Proteomatic.
 
@@ -1977,6 +1977,19 @@ void k_Desktop::keyPressEvent(QKeyEvent* event)
     {
         if ((event->matches(QKeySequence::Delete) || (event->key() == Qt::Key_Backspace)) && !mb_Running)
             deleteSelected();
+        if (event->matches(QKeySequence::Paste) && !mb_Running)
+        {
+            QClipboard* lk_Clipboard_ = QApplication::clipboard();
+            if (lk_Clipboard_->mimeData()->hasText())
+            {
+                QString ls_Text = lk_Clipboard_->text();
+                if (!ls_Text.isEmpty())
+                {
+                    k_SnippetBox* lk_Box_ = dynamic_cast<k_SnippetBox*>(this->addSnippetBox(true));
+                    lk_Box_->setText(ls_Text);
+                }
+            }
+        }
 #ifdef DEBUG
         
         if (event->text().toLower() == "d")
