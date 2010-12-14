@@ -1,0 +1,18 @@
+Proteomatic to do list
+----------------------
+
+Bugs
+
+* crashes during wild file list resizing (stack overflow due to recursion)
+* problems with C:\Users\Gümpel (strange paths), won't install external software
+
+Features
+
+* minimize to system tray icon
+* automatically install PHP, Python, and Perl on Windows
+* indicate that script update or software installation has finished
+
+Script requests
+
+* Prepend FASTA IDs with prefix
+* Filter FASTA file by 'ID contains x'
