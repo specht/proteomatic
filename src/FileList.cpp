@@ -33,6 +33,7 @@ k_FileList::k_FileList(QWidget* ak_Parent_, bool ab_ReallyRemoveItems,
     , mb_ReallyRemoveItems(ab_ReallyRemoveItems)
     , mb_FileMode(ab_FileMode)
     , mb_Refreshing(false)
+    , mi_AvailableFileCount(0)
 {
     setMinimumWidth(200);
     setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -180,6 +181,12 @@ int k_FileList::fileCount() const
 }
 
 
+int k_FileList::availableFileCount() const
+{
+    return mi_AvailableFileCount;
+}
+
+
 void k_FileList::removeSelection()
 {
     if (mb_FileMode)
@@ -304,6 +311,7 @@ void k_FileList::refresh()
     if (!mb_FileMode)
         return;
 
+    mi_AvailableFileCount = 0;
     if (mk_Keys.empty())
     {
         QList<QListWidgetItem*> lk_ToBeDeleted;
@@ -313,7 +321,12 @@ void k_FileList::refresh()
             QListWidgetItem* lk_Item_ = item(i);
             QString ls_Path = lk_Item_->data(Qt::UserRole).toString();
             if (mk_Files[""].contains(ls_Path))
-                lk_Item_->setForeground(QFileInfo(ls_Path).exists() ? QBrush(TANGO_SKY_BLUE_2) : QBrush(TANGO_ALUMINIUM_3));
+            {
+                bool lb_Exists = QFileInfo(ls_Path).exists();
+                lk_Item_->setForeground(lb_Exists ? QBrush(TANGO_SKY_BLUE_2) : QBrush(TANGO_ALUMINIUM_3));
+                if (lb_Exists)
+                    ++mi_AvailableFileCount;
+            }
             else
                 lk_ToBeDeleted.push_back(lk_Item_);
             
@@ -329,7 +342,10 @@ void k_FileList::refresh()
         {
             QListWidgetItem* lk_Item_ = new QListWidgetItem(QFileInfo(ls_Path).fileName(), this);
             lk_Item_->setData(Qt::UserRole, ls_Path);
-            lk_Item_->setForeground(QFileInfo(ls_Path).exists() ? QBrush(TANGO_SKY_BLUE_2) : QBrush(TANGO_ALUMINIUM_3));
+            bool lb_Exists = QFileInfo(ls_Path).exists();
+            lk_Item_->setForeground(lb_Exists ? QBrush(TANGO_SKY_BLUE_2) : QBrush(TANGO_ALUMINIUM_3));
+            if (lb_Exists)
+                ++mi_AvailableFileCount;
         }
     }
     else
@@ -350,7 +366,10 @@ void k_FileList::refresh()
                 QString ls_Filename = QFileInfo(ls_Path).fileName();
                 QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Filename, this);
                 lk_Item_->setData(Qt::UserRole, ls_Path);
-                lk_Item_->setForeground(QFileInfo(ls_Path).exists() ? QBrush("#000") : QBrush(TANGO_ALUMINIUM_3));
+                bool lb_Exists = QFileInfo(ls_Path).exists();
+                lk_Item_->setForeground(lb_Exists ? QBrush("#000") : QBrush(TANGO_ALUMINIUM_3));
+                if (lb_Exists)
+                    ++mi_AvailableFileCount;
             }
         }
     }

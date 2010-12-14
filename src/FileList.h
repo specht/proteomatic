@@ -37,6 +37,7 @@ public:
     // TODO: tell files sorted by key to solve ambiguous cases
     QStringList files() const;
     int fileCount() const;
+    int availableFileCount() const;
 
 signals:
     void remove(QList<QListWidgetItem *>);
@@ -82,6 +83,7 @@ protected:
     QAction mk_RemoveFileFromListAction;
     QAction mk_DeleteFileAction;
     QMenu mk_PopupMenu;
+    int mi_AvailableFileCount;
 
 private:
     bool mb_ReallyRemoveItems;

@@ -37,7 +37,7 @@ k_FileListBox::k_FileListBox(k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomati
     , mk_OpenFileAction_(new QAction(QIcon(":icons/document-open.png"), "&Open file", this))
     , mk_OpenContainingFolderAction_(new QAction(QIcon(":icons/folder.png"), "Open containing &folder", this))
     , mk_DeleteFileAction_(new QAction(QIcon(":icons/user-trash.png"), "&Delete file", this))
-    , mk_DeleteAllDownstreamFilesAction_(new QAction(QIcon(":icons/user-trash.png"), "Delete &all downstream files", this))
+    , mk_DeleteAllDownstreamFilesAction_(new QAction(QIcon(":icons/user-trash.png"), "Delete &all files from here", this))
     , mk_InactiveArrow(QPixmap(":icons/arrow-semi-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ActiveArrow(QPixmap(":icons/arrow-semi-transparent.png").scaledToWidth(20, Qt::SmoothTransformation))
     , mk_ScriptBoxParent_(ak_ScriptBoxParent_)
@@ -232,6 +232,7 @@ void k_FileListBox::toggleUi()
     mk_BatchModeButton.setVisible(mb_ListMode);
     mk_BatchModeButton.setEnabled(mk_FileList.files().size() > 1);
     mk_RemoveSelectionButton.setEnabled(!mk_FileList.selectedItems().empty());
+    mk_FileList.refresh();
     QString ls_Label;
     if (ms_Label.isEmpty())
     {
@@ -250,10 +251,16 @@ void k_FileListBox::toggleUi()
         else if (mk_FileList.fileCount() == 1)
             ls_Label += QString(" (1 file)");
         else
-            ls_Label += QString(" (%1 files)").arg(mk_FileList.fileCount());
+        {
+            int li_FileCount = mk_FileList.fileCount();
+            int li_AvailableFileCount = mk_FileList.availableFileCount();
+            if (li_AvailableFileCount != li_FileCount)
+                ls_Label += QString(" (%1 of %2 files)").arg(li_AvailableFileCount).arg(li_FileCount);
+            else
+                ls_Label += QString(" (%1 files)").arg(li_FileCount);
+        }
     }
     mk_Label.setText(ls_Label);
-    mk_FileList.refresh();
     if ((!mb_ListMode) && (mk_FileList.fileCount() > 0))
     {
         QString ls_Path = mk_FileList.files().first();
@@ -291,9 +298,9 @@ void k_FileListBox::showContextMenu()
     QStringList lk_DownstreamFilenames = this->getExistingDownstreamFilenames();
     mk_DeleteAllDownstreamFilesAction_->setEnabled(lk_DownstreamFilenames.size() > 1);
     if (lk_DownstreamFilenames.size() < 2)
-        mk_DeleteAllDownstreamFilesAction_->setText(QString("Delete downstream files"));
+        mk_DeleteAllDownstreamFilesAction_->setText(QString("Delete all files from here"));
     else
-        mk_DeleteAllDownstreamFilesAction_->setText(QString("Delete %1 downstream %2").arg(lk_DownstreamFilenames.size()).arg(lk_DownstreamFilenames.size() == 1 ? "file" : "files"));
+        mk_DeleteAllDownstreamFilesAction_->setText(QString("Delete %1 %2 from here").arg(lk_DownstreamFilenames.size()).arg(lk_DownstreamFilenames.size() == 1 ? "file" : "files"));
     ls_Path = QFileInfo(ls_Path).absolutePath();
     mk_OpenContainingFolderAction_->setEnabled(QFileInfo(ls_Path).isDir());
     mk_PopupMenu.exec(QCursor::pos());
@@ -522,7 +529,7 @@ void k_FileListBox::deleteAllDownstreamFiles()
         }
     }
     if (li_ErrorCount > 0)
-        mk_Proteomatic.showMessageBox("Delete downstream files", QString("Error: Unable to delete %1 files.").arg(li_ErrorCount), ":icons/dialog-warning.png");
+        mk_Proteomatic.showMessageBox("Delete all files from here", QString("Error: Unable to delete %1 files.").arg(li_ErrorCount), ":icons/dialog-warning.png");
 }
 
 
