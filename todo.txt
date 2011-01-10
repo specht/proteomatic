@@ -8,11 +8,11 @@ Bugs
 
 Features
 
-* minimize to system tray icon
+* minimize to system tray icon when closing
 * automatically install PHP, Python, and Perl on Windows
 * indicate that script update or software installation has finished
 
 Script requests
 
 * Prepend FASTA IDs with prefix
-* Filter FASTA file by 'ID contains x'
+* Filter FASTA file by 'ID contains x' or ID is one of those in a text file
