@@ -1128,6 +1128,33 @@ QString k_Proteomatic::tempPath() const
     return ms_TempPath;
 }
 
+void k_Proteomatic::checkScriptingLanguages(QString as_Language/* = QString()*/)
+{
+    QStringList lk_Languages = mk_Languages;
+    if (!as_Language.isEmpty())
+    {
+        lk_Languages.clear();
+        lk_Languages << as_Language;
+    }
+    foreach (QString ls_Language, lk_Languages)
+    {
+        QString ls_Key = configKeyForScriptingLanguage(ls_Language);
+        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
+        if (ls_Language == "perl")
+        {
+            ls_Result.replace("this is", "");
+            ls_Result = ls_Result.trimmed();
+        }
+        mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
+    }
+}
+
+
+QString k_Proteomatic::dataDirectory() const
+{
+    return ms_DataDirectory;
+}
+
 
 /*
 QStringList k_Proteomatic::scriptPaths() const
@@ -1718,18 +1745,7 @@ $ su\n\
     // see whether there's a local Ruby installed and prefer that
     // if there is a local Ruby then overwrite the configuration
     
-    // TODO: CODE DUPLICATION!
-    foreach (QString ls_Language, mk_Languages)
-    {
-        QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
-        if (ls_Language == "perl")
-        {
-            ls_Result.replace("this is", "");
-            ls_Result = ls_Result.trimmed();
-        }
-        mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
-    }
+    this->checkScriptingLanguages();
     
     bool lb_DidNotFindRuby = false;
     while (true)
@@ -1764,18 +1780,7 @@ $ su\n\
             break;
     }
 
-    // TODO: CODE DUPLICATION!
-    foreach (QString ls_Language, mk_Languages)
-    {
-        QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
-        if (ls_Language == "perl")
-        {
-            ls_Result.replace("this is", "");
-            ls_Result = ls_Result.trimmed();
-        }
-        mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
-    }
+    this->checkScriptingLanguages();
 }
 
 void k_Proteomatic::checkRubyTextChanged(const QString& as_Text)
