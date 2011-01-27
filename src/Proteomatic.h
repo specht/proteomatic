@@ -136,6 +136,7 @@ public:
     
     QString interpreterForScript(QString as_Path);
     QString interpreterKeyForScript(QString as_Path);
+    bool scriptInterpreterWorking(QString as_Language);
     QStringList availableScripts();
     QHash<QString, QVariant> scriptInfo(QString as_ScriptPath);
     QVariant scriptInfo(QString as_ScriptPath, QString as_Key);
@@ -185,6 +186,8 @@ public:
     
     QHash<QString, QStringList> mk_ScriptKeywords;
     QHash<QString, QSet<QString> > mk_ExtensionsForScriptPath;
+    
+    QStringList mk_Languages;
     
 public slots:
     void checkForUpdates();
