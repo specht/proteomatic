@@ -437,6 +437,7 @@ void k_PipelineMainWindow::addScript(QString as_Uri)
                 // convert to relative path
                 QDir lk_Dir(mk_Proteomatic.dataDirectory());
                 mk_Proteomatic.setConfiguration(ls_ScriptKey, QDir::toNativeSeparators("./" + lk_Dir.relativeFilePath(ls_Path)));
+                mk_Proteomatic.saveConfiguration();
                 // now re-evaluate whether scripts are working
                 mk_Proteomatic.checkScriptingLanguages(ls_Language);
             }
