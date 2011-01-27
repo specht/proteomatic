@@ -39,19 +39,13 @@ public:
     
 signals:    
     void addNewSearchResultsSignal(const QString& as_String);
-    void clearOldSearchResultsSignal();
     
 protected slots:
-    void searchFieldPopup(const QString& as_String);
     void addNewSearchResults(const QString& as_String);
-    void clearOldSearchResults();
     void aboutToShowSlot();
     
 protected:
     void initialize();
-    void showEvent(QShowEvent* event);
-    void hideEvent(QHideEvent* event);
-    void keyPressEvent(QKeyEvent* event);
     
     k_Proteomatic& mk_Proteomatic;
     QSharedPointer<QWidgetAction> mk_pSearchWidgetAction;
@@ -61,4 +55,5 @@ protected:
     QList<QSharedPointer<QAction> > mk_DeleteTheseActions;
     QStringList mk_InputFilenames;
     QSet<QString> mk_AllInputSuffixes;
+    QList<QAction*> mk_SearchResults;
 };

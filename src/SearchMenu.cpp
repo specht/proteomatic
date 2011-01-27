@@ -22,6 +22,8 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Proteomatic.h"
 #include "PipelineMainWindow.h"
 
+#define MAX_SEARCH_RESULTS 10
+
 
 k_SearchMenu::k_SearchMenu(k_Proteomatic& ak_Proteomatic, QWidget* parent)
     : QMenu(parent)
@@ -52,13 +54,19 @@ void k_SearchMenu::addSearchField()
     mk_pHintLineEdit->setHint("Enter search term");
     mk_pHintLineEdit->setHintVisibleWhenFocused(true);
     mk_pSearchWidgetAction->setDefaultWidget(mk_pHintLineEdit.data());
-    connect(mk_pHintLineEdit.data(), SIGNAL(textEdited(const QString&)), this, SLOT(searchFieldPopup(const QString&)), Qt::QueuedConnection);
-    connect(this, SIGNAL(addNewSearchResultsSignal(const QString&)), this, SLOT(addNewSearchResults(const QString&)), Qt::QueuedConnection);
-    connect(this, SIGNAL(clearOldSearchResultsSignal()), this, SLOT(clearOldSearchResults()), Qt::QueuedConnection);
+    connect(mk_pHintLineEdit.data(), SIGNAL(textChanged(const QString&)), this, SLOT(addNewSearchResults(const QString&))/*, Qt::QueuedConnection*/);
     connect(this, SIGNAL(aboutToShow()), this, SLOT(aboutToShowSlot()));
     
     this->addSeparator();
     this->addAction(mk_pSearchWidgetAction.data());
+    this->setDefaultAction(NULL);
+    for (int i = 0; i < MAX_SEARCH_RESULTS; ++i)
+    {
+        QAction* lk_Action_ = new QAction("", this);
+        lk_Action_->setText(QString());
+        this->addAction(lk_Action_);
+        mk_SearchResults << lk_Action_;
+    }
 }
 
 
@@ -82,17 +90,10 @@ void k_SearchMenu::setInputFilenames(QStringList ak_Paths)
 }
 
 
-void k_SearchMenu::searchFieldPopup(const QString& as_String)
-{
-    mk_DeleteTheseActions.append(mk_pSearchResultActions);
-    mk_pSearchResultActions.clear();
-    emit addNewSearchResultsSignal(as_String);
-    emit clearOldSearchResultsSignal();
-}
-
 void k_SearchMenu::addNewSearchResults(const QString& as_String)
 {
     QApplication::processEvents();
+    setUpdatesEnabled(false);
     QString ls_String = as_String.toLower();
     QStringList lk_Tags = ls_String.split(mk_WordSplitter, QString::SkipEmptyParts);
     QHash<QString, QStringList>& lk_Keywords = mk_Proteomatic.mk_ScriptKeywords;
@@ -125,66 +126,62 @@ void k_SearchMenu::addNewSearchResults(const QString& as_String)
             }
         }
     }
-    QMultiMap<int, QString> lk_TargetsSorted;
+    QMultiMap<QString, QString> lk_TargetsSorted;
     foreach (QString ls_Target, lk_Targets.keys())
-        lk_TargetsSorted.insert(lk_Targets[ls_Target], ls_Target);
-    
+        lk_TargetsSorted.insert(QString("%1-%2").arg(lk_Targets[ls_Target], 16, 10, QChar('0')).arg(ls_Target), ls_Target);
+    int li_Count = 0;
     if (!lk_TargetsSorted.empty())
     {
-        QMultiMap<int, QString>::const_iterator lk_Iter = lk_TargetsSorted.constEnd();
-        int li_Count = 0;
+        QMultiMap<QString, QString>::const_iterator lk_Iter = lk_TargetsSorted.constEnd();
         do
         {
             --lk_Iter;
             
             QString ls_ScriptPath = lk_Iter.value();
-            QString ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
+            QString ls_Title;
+            ls_Title = mk_Proteomatic.scriptInfo(ls_ScriptPath)["title"].toString();
             if (!ls_Title.isEmpty())
             {
-                QAction* lk_Action_ = new QAction(QIcon(":icons/proteomatic.png"), ls_Title, NULL);
-                // set disabled icon if it wouldn't fit to the input files
+                if (mk_SearchResults[li_Count]->text() != ls_Title)
+                {
+                    QTextDocument doc;
+                    doc.setHtml(mk_Proteomatic.scriptInfo(ls_ScriptPath)["description"].toString());
+                    doc.setHtml(doc.toPlainText());
+                    mk_SearchResults[li_Count]->setStatusTip(doc.toPlainText());
+                    mk_SearchResults[li_Count]->setText(ls_Title);
+                    QApplication::processEvents();
+                }
                 if (!(mk_AllInputSuffixes.empty() || (!(mk_AllInputSuffixes & mk_Proteomatic.mk_ExtensionsForScriptPath[ls_ScriptPath]).empty())))
-                    lk_Action_->setIcon(QIcon(":icons/proteomatic-disabled.png"));
-                lk_Action_->setData(ls_ScriptPath);
-                mk_pSearchResultActions.push_back(QSharedPointer<QAction>(lk_Action_));
-                this->addAction(lk_Action_);
+                    mk_SearchResults[li_Count]->setIcon(QIcon(":icons/proteomatic-disabled.png"));
+                else
+                    mk_SearchResults[li_Count]->setIcon(QIcon(":icons/proteomatic.png"));
+                mk_SearchResults[li_Count]->setData(ls_ScriptPath);
+                mk_SearchResults[li_Count]->setVisible(true);
+                QApplication::processEvents();
                 ++li_Count;
             }
-        } while ((lk_Iter != lk_TargetsSorted.constBegin()) && (li_Count < 10));
+        } while ((lk_Iter != lk_TargetsSorted.constBegin()) && (li_Count < MAX_SEARCH_RESULTS));
     }
-}
-
-
-void k_SearchMenu::clearOldSearchResults()
-{
-    QApplication::processEvents();
-    mk_DeleteTheseActions.clear();
+    while (li_Count < MAX_SEARCH_RESULTS)
+    {
+        mk_SearchResults[li_Count]->setVisible(false);
+        QApplication::processEvents();
+        ++li_Count;
+    }
+    
+    setUpdatesEnabled(true);
     QApplication::processEvents();
 }
 
 
 void k_SearchMenu::aboutToShowSlot()
 {
-    searchFieldPopup(QString());
-    QApplication::processEvents();
-}
-
-
-void k_SearchMenu::initialize()
-{
-    mk_WordSplitter = QRegExp("\\W+");
-}
-
-
-void k_SearchMenu::showEvent(QShowEvent* event)
-{
     if (mk_pHintLineEdit.data())
         mk_pHintLineEdit->clear();
     
-    mk_pSearchResultActions.clear();
-    mk_DeleteTheseActions.clear();
-    
-    QMenu::showEvent(event);
+    addNewSearchResults(QString());
+    QApplication::processEvents();
+
     if (mk_pHintLineEdit.data())
     {
         mk_pHintLineEdit->setFocus();
@@ -193,14 +190,7 @@ void k_SearchMenu::showEvent(QShowEvent* event)
 }
 
 
-void k_SearchMenu::hideEvent(QHideEvent* event)
+void k_SearchMenu::initialize()
 {
-    QMenu::hideEvent(event);
-}
-
-
-void k_SearchMenu::keyPressEvent(QKeyEvent* event)
-{
-    QMenu::keyPressEvent(event);
-    QApplication::processEvents();
+    mk_WordSplitter = QRegExp("\\W+");
 }

@@ -5,6 +5,7 @@ Bugs
 
 * crashes during wild file list resizing (stack overflow due to recursion)
 * problems with C:\Users\Gümpel (strange paths), won't install external software
+* show script description in status bar for script search results on hover
 
 Features
 
