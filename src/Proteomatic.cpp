@@ -145,6 +145,14 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     ms_ScriptLockId = QString("%1-%2").
         arg(QCoreApplication::applicationPid(), 0, 36).
         arg(QDateTime::currentDateTime().toTime_t(), 0, 36);
+        
+    // load documentation style sheet if available
+    QFile lk_DocCss(QDir::cleanPath(ms_DataDirectory + "/documentation.css"));
+    if (lk_DocCss.open(QIODevice::ReadOnly))
+    {
+        ms_DocStyleSheet = lk_DocCss.readAll();
+        lk_DocCss.close();
+    }
 }
 
 
@@ -1076,6 +1084,7 @@ void k_Proteomatic::createProteomaticScriptsMenu()
 //      lk_Menu_->addMenu(mk_RemoteMenu_);
 
     mk_pProteomaticScriptsMenu = QSharedPointer<k_SearchMenu>(lk_Menu_);
+    
     emit scriptMenuChanged();
 // 
 //  ms_RemoteHubStdout = "";
@@ -1617,6 +1626,12 @@ void k_Proteomatic::highlightScriptsMenu(QStringList ak_InputPaths)
         else
             lk_Action_->setIcon(mk_ScriptDisabledIcon);
     }
+}
+
+
+const QString& k_Proteomatic::documentationStyleSheet() const
+{
+    return ms_DocStyleSheet;
 }
 
 

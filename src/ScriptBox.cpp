@@ -986,7 +986,7 @@ void k_ScriptBox::setupLayout()
     lk_ScrollArea_->setWidget(mk_pScript->parameterWidget());
     connect(mk_Desktop_, SIGNAL(pipelineIdle(bool)), mk_pScript->parameterWidget(), SLOT(setEnabled(bool)));
     lk_ScrollArea_->setWidgetResizable(true);
-    mk_TabWidget_->addTab(lk_ScrollArea_, "Parameters");
+    mk_TabWidget_->addTab(lk_ScrollArea_, QIcon(":icons/preferences-system.png"), "Parameters");
 
     // now comes the output box
     mk_OutputBoxContainer_ = new QWidget(this);
@@ -1015,8 +1015,31 @@ void k_ScriptBox::setupLayout()
     
     mk_OutputBoxIterationKeyChooserContainer_->hide();
     
-    mk_TabWidget_->addTab(mk_OutputBoxContainer_, "Output messages");
+    mk_TabWidget_->addTab(mk_OutputBoxContainer_, QIcon(":icons/utilities-terminal.png"), "Output messages");
     
+//     lk_Browser_->setStyleSheet(mk_Proteomatic.documentationStyleSheet());
+    QString ls_DocPath = QFileInfo(mk_pScript->uri()).path() + "/include/documentation/" + QFileInfo(mk_pScript->uri()).baseName() + ".html";
+    if (QFileInfo(ls_DocPath).exists())
+    {
+        QFile lk_Doc(ls_DocPath);
+        if (lk_Doc.open(QIODevice::ReadOnly))
+        {
+            QString ls_Doc = QString(lk_Doc.readAll());
+            for (int i = 4; i >= 1; --i)
+            {
+                ls_Doc.replace(QString("<h%1>").arg(i), QString("<h%1>").arg(i + 1));
+                ls_Doc.replace(QString("</h%1>").arg(i), QString("</h%1>").arg(i + 1));
+            }
+            QTextBrowser* lk_Browser_ = new QTextBrowser(this);
+            lk_Browser_->setSearchPaths(QStringList() << QFileInfo(mk_pScript->uri()).path() + "/include/documentation/");
+            lk_Browser_->setOpenLinks(false);
+            lk_Browser_->setOpenExternalLinks(false);
+            ls_Doc = "<html><head><style type='text/css'>" + mk_Proteomatic.documentationStyleSheet() + "</style></head><body>" + ls_Doc + "</body></html>";
+            lk_Browser_->setHtml(ls_Doc);
+            mk_TabWidget_->addTab(lk_Browser_, QIcon(":icons/help-browser.png"), "Documentation");
+            lk_Doc.close();
+        }
+    }
     // now the script box ...
     
     lk_VLayout_ = new QVBoxLayout(this);
