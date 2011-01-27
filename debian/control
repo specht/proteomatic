@@ -8,7 +8,7 @@ Homepage: http://www.proteomatic.org
 
 Package: proteomatic
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, bzip2, gzip, unzip, ruby, libqtcore4 (>= 4.5), libqtgui4 (>= 4.5)
+Depends: ${shlibs:Depends}, ${misc:Depends}, tar, bzip2, gzip, unzip, ruby, python, php5-cli, libqtcore4 (>= 4.5), libqtgui4 (>= 4.5)
 Description: Proteomatic - the Proteomics researcher's swiss army knife
  Proteomatic is a free proteomics data processing pipeline. Functionality is provided via scripts, and these scripts can be chained together into a high-throughput data processing pipeline.
  .
