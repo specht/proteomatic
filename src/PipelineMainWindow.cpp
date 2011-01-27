@@ -436,7 +436,7 @@ void k_PipelineMainWindow::addScript(QString as_Uri)
                     "--extToolsPath" << mk_Proteomatic.externalToolsPath() << ls_UnresolvedLanguage)).trimmed();
                 // convert to relative path
                 QDir lk_Dir(mk_Proteomatic.dataDirectory());
-                mk_Proteomatic.setConfiguration(ls_ScriptKey, lk_Dir.relativeFilePath(ls_Path));
+                mk_Proteomatic.setConfiguration(ls_ScriptKey, QDir::toNativeSeparators("./" + lk_Dir.relativeFilePath(ls_Path)));
                 // now re-evaluate whether scripts are working
                 mk_Proteomatic.checkScriptingLanguages(ls_Language);
             }
