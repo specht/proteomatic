@@ -339,3 +339,5 @@ updatePackages.each do |package|
 end
 
 FileUtils::rm_rf('temp')
+
+puts "Update completed successfully."

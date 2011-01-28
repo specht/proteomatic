@@ -56,7 +56,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
 {
     // data directory is home path by default
     ms_DataDirectory = QDir::homePath() + "/.proteomatic";
-
+    
     // however, if we're a portable version, the data directory is
     // simply THIS directory... right?
     #ifdef PROTEOMATIC_PORTABLE
@@ -103,6 +103,12 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
 
     ms_ManagedScriptsPath = QDir::cleanPath(ms_DataDirectory + "/scripts");
     ms_ConfigurationPath = QDir::cleanPath(ms_DataDirectory + "/proteomatic.conf.yaml");
+    
+    mk_Languages.clear();
+    mk_Languages << "ruby";
+    mk_Languages << "python";
+    mk_Languages << "php";
+    mk_Languages << "perl";
 
     // write the update helper if it's not there already, or if an old version is there
     QString ls_UpdateHelperPath = QDir::cleanPath(ms_HelperPath + "/update.rb");
@@ -454,6 +460,12 @@ QString k_Proteomatic::interpreterKeyForScript(QString as_Path)
         return "perl";
     
     return QString();
+}
+
+
+bool k_Proteomatic::scriptInterpreterWorking(QString as_Language)
+{
+    return mk_ScriptInterpreterWorking[as_Language];
 }
 
 
@@ -1125,6 +1137,33 @@ QString k_Proteomatic::tempPath() const
     return ms_TempPath;
 }
 
+void k_Proteomatic::checkScriptingLanguages(QString as_Language/* = QString()*/)
+{
+    QStringList lk_Languages = mk_Languages;
+    if (!as_Language.isEmpty())
+    {
+        lk_Languages.clear();
+        lk_Languages << as_Language;
+    }
+    foreach (QString ls_Language, lk_Languages)
+    {
+        QString ls_Key = configKeyForScriptingLanguage(ls_Language);
+        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
+        if (ls_Language == "perl")
+        {
+            ls_Result.replace("this is", "");
+            ls_Result = ls_Result.trimmed();
+        }
+        mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
+    }
+}
+
+
+QString k_Proteomatic::dataDirectory() const
+{
+    return ms_DataDirectory;
+}
+
 
 /*
 QStringList k_Proteomatic::scriptPaths() const
@@ -1231,14 +1270,8 @@ void k_Proteomatic::showConfigurationDialog()
     lk_VLayout_->addWidget(lk_Frame_);
     lk_VLayout_->addWidget(new QLabel("<b>Interpreters</b>", lk_pDialog.data()));
     
-    QStringList lk_Languages;
-    lk_Languages << "ruby";
-    lk_Languages << "python";
-    lk_Languages << "php";
-    lk_Languages << "perl";
-    
     QHash<QString, QLineEdit*> lk_LanguagePathLineEdits;
-    foreach (QString ls_Language, lk_Languages)
+    foreach (QString ls_Language, mk_Languages)
     {
         lk_HLayout_ = new QHBoxLayout(NULL);
         QString ls_Label;
@@ -1726,24 +1759,8 @@ $ su\n\
     
     // see whether there's a local Ruby installed and prefer that
     // if there is a local Ruby then overwrite the configuration
-    QStringList lk_Languages;
-    lk_Languages << "ruby";
-    lk_Languages << "python";
-    lk_Languages << "php";
-    lk_Languages << "perl";
     
-    // TODO: CODE DUPLICATION!
-    foreach (QString ls_Language, lk_Languages)
-    {
-        QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
-        if (ls_Language == "perl")
-        {
-            ls_Result.replace("this is", "");
-            ls_Result = ls_Result.trimmed();
-        }
-        mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
-    }
+    this->checkScriptingLanguages();
     
     bool lb_DidNotFindRuby = false;
     while (true)
@@ -1778,18 +1795,7 @@ $ su\n\
             break;
     }
 
-    // TODO: CODE DUPLICATION!
-    foreach (QString ls_Language, lk_Languages)
-    {
-        QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
-        if (ls_Language == "perl")
-        {
-            ls_Result.replace("this is", "");
-            ls_Result = ls_Result.trimmed();
-        }
-        mk_ScriptInterpreterWorking[ls_Language] = ls_Result.startsWith(ls_Language);
-    }
+    this->checkScriptingLanguages();
 }
 
 void k_Proteomatic::checkRubyTextChanged(const QString& as_Text)

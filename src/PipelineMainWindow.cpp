@@ -398,12 +398,18 @@ void k_PipelineMainWindow::addScript(QString as_Uri)
     
     if (!mk_Desktop_)
         return;
+    
+    QString ls_Language = mk_Proteomatic.interpreterKeyForScript(as_Uri);
+    
+    QString ls_UnresolvedLanguage;
+    if (!mk_Proteomatic.scriptInterpreterWorking(ls_Language))
+        ls_UnresolvedLanguage = "lang." + ls_Language;
 
     // first check for unresolved dependencies and try to resolve them
     QString ls_ScriptBasePath = QFileInfo(as_Uri).absolutePath();
     QString ls_Response = mk_Proteomatic.syncRuby((QStringList() << 
         QFileInfo(QDir(ls_ScriptBasePath), "helper/get-unresolved-dependencies.rb").absoluteFilePath() << 
-        "--extToolsPath" << mk_Proteomatic.externalToolsPath() << QFileInfo(as_Uri).fileName()));
+        "--extToolsPath" << mk_Proteomatic.externalToolsPath() << QFileInfo(as_Uri).fileName() << ls_UnresolvedLanguage));
     tk_YamlMap lk_Map = k_Yaml::parseFromString(ls_Response).toMap();
     if (!lk_Map.empty())
     {
@@ -419,7 +425,23 @@ void k_PipelineMainWindow::addScript(QString as_Uri)
             bool lb_Flag = mk_Proteomatic.syncShowRuby((QStringList() << 
                 QFileInfo(QDir(ls_ScriptBasePath), "helper/resolve-dependencies.rb").absoluteFilePath() << 
                 "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_Map.keys(), "Installing external tools");
-            if (!lb_Flag)
+            if (lb_Flag)
+            {
+                // record new script interpreter path in config
+                QString ls_ScriptKey = ls_Language;
+                ls_ScriptKey[0] = ls_ScriptKey[0].toUpper();
+                ls_ScriptKey = "pathTo" + ls_ScriptKey;
+                QString ls_Path = mk_Proteomatic.syncRuby((QStringList() << 
+                    QFileInfo(QDir(ls_ScriptBasePath), "helper/which-language.rb").absoluteFilePath() << 
+                    "--extToolsPath" << mk_Proteomatic.externalToolsPath() << ls_UnresolvedLanguage)).trimmed();
+                // convert to relative path
+                QDir lk_Dir(mk_Proteomatic.dataDirectory());
+                mk_Proteomatic.setConfiguration(ls_ScriptKey, QDir::toNativeSeparators("./" + lk_Dir.relativeFilePath(ls_Path)));
+                mk_Proteomatic.saveConfiguration();
+                // now re-evaluate whether scripts are working
+                mk_Proteomatic.checkScriptingLanguages(ls_Language);
+            }
+            else
                 return;
         }
         else
