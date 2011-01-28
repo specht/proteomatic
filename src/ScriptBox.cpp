@@ -30,6 +30,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "LocalScript.h"
 #include "InputGroupProxyBox.h"
 #include "SnippetBox.h"
+#include <QtWebKit>
 
 
 k_ScriptBox::k_ScriptBox(QSharedPointer<IScript> ak_pScript, k_Desktop* ak_Parent_, k_Proteomatic& ak_Proteomatic)
@@ -938,6 +939,12 @@ void k_ScriptBox::outputFilenameDetailsChanged()
 }
 
 
+void k_ScriptBox::linkClickedSlot(const QUrl& ak_Url)
+{
+    QDesktopServices::openUrl(ak_Url);
+}
+
+
 /*
 void k_ScriptBox::showPopupMenu()
 {
@@ -1019,24 +1026,59 @@ void k_ScriptBox::setupLayout()
     
 //     lk_Browser_->setStyleSheet(mk_Proteomatic.documentationStyleSheet());
     QString ls_DocPath = QFileInfo(mk_pScript->uri()).path() + "/include/documentation/" + QFileInfo(mk_pScript->uri()).baseName() + ".html";
+    QString ls_StyleSheetPath = QFileInfo(mk_pScript->uri()).path() + "/helper/documentation.css";
+    QString ls_StyleSheet;
+    if (QFileInfo(ls_StyleSheetPath).exists())
+    {
+        QFile lk_File(ls_StyleSheetPath);
+        if (lk_File.open(QIODevice::ReadOnly))
+            ls_StyleSheet = lk_File.readAll();
+    }
     if (QFileInfo(ls_DocPath).exists())
     {
         QFile lk_Doc(ls_DocPath);
         if (lk_Doc.open(QIODevice::ReadOnly))
         {
             QString ls_Doc = QString(lk_Doc.readAll());
+            
+            // resolve includes
+            QRegExp lk_RegEx("(<!--)(\\s*)(include\\()(\\s*)(.+)(\\s*)(\\))(\\s*)(-->)");
+            int li_ReplaceCount = 0;
+            int li_Pos = 0;
+            // do at most 100 substitutions to prevent infinite loop in the case of cyclic references
+            while ((li_ReplaceCount < 100) && ((li_Pos = lk_RegEx.indexIn(ls_Doc)) != -1))
+            {
+                ++li_ReplaceCount;
+                QString ls_IncludePath = QFileInfo(mk_pScript->uri()).path() + "/include/documentation/" + lk_RegEx.cap(5);
+                QString ls_Include;
+                if (QFileInfo(ls_IncludePath).exists())
+                {
+                    QFile lk_Include(ls_IncludePath);
+                    if (lk_Include.open(QIODevice::ReadOnly))
+                        ls_Include = QString(lk_Include.readAll()); 
+                }
+                ls_Doc.replace(li_Pos, lk_RegEx.cap(0).length(), ls_Include);
+            }
+
+            // increase levels of headings
             for (int i = 4; i >= 1; --i)
             {
                 ls_Doc.replace(QString("<h%1>").arg(i), QString("<h%1>").arg(i + 1));
                 ls_Doc.replace(QString("</h%1>").arg(i), QString("</h%1>").arg(i + 1));
             }
-            QTextBrowser* lk_Browser_ = new QTextBrowser(this);
-            lk_Browser_->setSearchPaths(QStringList() << QFileInfo(mk_pScript->uri()).path() + "/include/documentation/");
+            
+            QWebPage* lk_Browser_ = new QWebPage(this);
+            lk_Browser_->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+            connect(lk_Browser_, SIGNAL(linkClicked(const QUrl&)), this, SLOT(linkClickedSlot(const QUrl&)));
+/*            lk_Browser_->setSearchPaths(QStringList() << QFileInfo(mk_pScript->uri()).path() + "/include/documentation/");
             lk_Browser_->setOpenLinks(false);
-            lk_Browser_->setOpenExternalLinks(false);
-            ls_Doc = "<html><head><style type='text/css'>" + mk_Proteomatic.documentationStyleSheet() + "</style></head><body>" + ls_Doc + "</body></html>";
-            lk_Browser_->setHtml(ls_Doc);
-            mk_TabWidget_->addTab(lk_Browser_, QIcon(":icons/help-browser.png"), "Documentation");
+            lk_Browser_->setOpenExternalLinks(false);*/
+            ls_Doc = "<html><head><style type='text/css'>" + ls_StyleSheet + "</style></head><body>" + ls_Doc + "</body></html>";
+            QUrl lk_BaseUrl = QUrl::fromLocalFile(QFileInfo(mk_pScript->uri()).path() + "/include/documentation/");
+            lk_Browser_->mainFrame()->setHtml(ls_Doc, lk_BaseUrl);
+            QWebView* lk_WebView_ = new QWebView(this);
+            lk_WebView_->setPage(lk_Browser_);
+            mk_TabWidget_->addTab(lk_WebView_, QIcon(":icons/help-browser.png"), "Documentation");
             lk_Doc.close();
         }
     }

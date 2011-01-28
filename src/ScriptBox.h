@@ -88,6 +88,7 @@ protected slots:
     virtual void toggleOutputFileChooser(int ai_Index);
     virtual void zoomWebView(int ai_Delta);
     virtual void outputFilenameDetailsChanged();
+    virtual void linkClickedSlot(const QUrl& ak_Url);
     
 signals:
     void scriptStarted();
