@@ -111,12 +111,12 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     mk_Languages << "perl";
 
     // write the update helper if it's not there already, or if an old version is there
-    QString ls_UpdateHelperPath = QDir::cleanPath(ms_HelperPath + "/update.rb");
     QString ls_PackagedUpdateMd5 = md5ForFile(":/update.rb");
-    QString ls_RealUpdateMd5 = md5ForFile(ls_UpdateHelperPath, false);
+    ms_UpdateHelperPath = QDir::cleanPath(ms_HelperPath + "/update-" + ls_PackagedUpdateMd5 + ".rb");
+    QString ls_RealUpdateMd5 = md5ForFile(ms_UpdateHelperPath, false);
     if (ls_PackagedUpdateMd5 != ls_RealUpdateMd5)
     {
-        QFile lk_File(ls_UpdateHelperPath);
+        QFile lk_File(ms_UpdateHelperPath);
         if (lk_File.open(QIODevice::WriteOnly))
         {
             QFile lk_Template(":/update.rb");
@@ -234,7 +234,7 @@ void k_Proteomatic::checkForUpdates()
 {
     if (!mk_Configuration[CONFIG_SCRIPTS_URL].toString().isEmpty())
     {
-        QStringList lk_Arguments = QStringList() << "-W0" << ms_HelperPath + "/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
+        QStringList lk_Arguments = QStringList() << "-W0" << ms_UpdateHelperPath << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "--dryrun";
         #ifndef PROTEOMATIC_PORTABLE
         lk_Arguments << "--scriptsPath" << QDir(ms_ManagedScriptsPath).absolutePath();
         #endif
@@ -333,7 +333,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                         if (!mk_Desktop_->hasUnsavedChanges())
                         {
                             QStringList lk_Arguments;
-                            lk_Arguments = QStringList() << "-W0" << ms_HelperPath + "/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
+                            lk_Arguments = QStringList() << "-W0" << ms_UpdateHelperPath << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "proteomatic";
                             k_RubyWindow lk_RubyWindow(*this, lk_Arguments, "Online update", ":/icons/software-update-available.png");
                             if (lk_RubyWindow.exec())
                             {
@@ -379,7 +379,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                             mk_pLockFile = QSharedPointer<k_LockFile>(NULL);
                             
                             QStringList lk_Arguments;
-                            lk_Arguments = QStringList() << "-W0" << ms_HelperPath + "/update.rb" << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
+                            lk_Arguments = QStringList() << "-W0" << ms_UpdateHelperPath << mk_Configuration[CONFIG_SCRIPTS_URL].toString() << "scripts";
                             #ifndef PROTEOMATIC_PORTABLE
                             lk_Arguments << "--scriptsPath" << QDir(ms_ManagedScriptsPath).absolutePath();
                             #endif

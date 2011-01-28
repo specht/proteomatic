@@ -293,4 +293,5 @@ protected:
     
     QString ms_ScriptLockId;
     QSharedPointer<k_LockFile> mk_pLockFile;
+    QString ms_UpdateHelperPath;
 };
