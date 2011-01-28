@@ -186,7 +186,6 @@ public:
     QString externalToolsPath() const;
     QMap<QString, QPair<QString, QStringList> > textFileFormats() const;
     void highlightScriptsMenu(QStringList ak_InputPaths = QStringList());
-    const QString& documentationStyleSheet() const;
     
     QHash<QString, QStringList> mk_ScriptKeywords;
     QHash<QString, QSet<QString> > mk_ExtensionsForScriptPath;
@@ -294,6 +293,4 @@ protected:
     
     QString ms_ScriptLockId;
     QSharedPointer<k_LockFile> mk_pLockFile;
-    
-    QString ms_DocStyleSheet;
 };

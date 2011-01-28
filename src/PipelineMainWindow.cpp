@@ -402,8 +402,12 @@ void k_PipelineMainWindow::addScript(QString as_Uri)
     QString ls_Language = mk_Proteomatic.interpreterKeyForScript(as_Uri);
     
     QString ls_UnresolvedLanguage;
-    if (!mk_Proteomatic.scriptInterpreterWorking(ls_Language))
-        ls_UnresolvedLanguage = "lang." + ls_Language;
+    if (ls_Language != "ruby")
+    {
+        // don't attempt to install the language if it's Ruby
+        if (!mk_Proteomatic.scriptInterpreterWorking(ls_Language))
+            ls_UnresolvedLanguage = "lang." + ls_Language;
+    }
 
     // first check for unresolved dependencies and try to resolve them
     QString ls_ScriptBasePath = QFileInfo(as_Uri).absolutePath();
@@ -425,7 +429,8 @@ void k_PipelineMainWindow::addScript(QString as_Uri)
             bool lb_Flag = mk_Proteomatic.syncShowRuby((QStringList() << 
                 QFileInfo(QDir(ls_ScriptBasePath), "helper/resolve-dependencies.rb").absoluteFilePath() << 
                 "--extToolsPath" << mk_Proteomatic.externalToolsPath()) + lk_Map.keys(), "Installing external tools");
-            if (lb_Flag)
+            // if there was a missing language to resolve, update necessary parts
+            if (lb_Flag && (!ls_UnresolvedLanguage.isEmpty()))
             {
                 // record new script interpreter path in config
                 QString ls_ScriptKey = ls_Language;
@@ -441,7 +446,7 @@ void k_PipelineMainWindow::addScript(QString as_Uri)
                 // now re-evaluate whether scripts are working
                 mk_Proteomatic.checkScriptingLanguages(ls_Language);
             }
-            else
+            if (!lb_Flag)
                 return;
         }
         else
