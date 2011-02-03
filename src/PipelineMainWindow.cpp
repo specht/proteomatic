@@ -116,7 +116,11 @@ void k_PipelineMainWindow::initialize()
 
     mk_ProteomaticButton_ = new QToolButton(mk_AddToolBar_);
     mk_ProteomaticButton_->setIcon(QIcon(":/icons/proteomatic-pipeline.png"));
-    mk_ProteomaticButton_->setText("&Pipeline");
+    #ifdef Q_OS_MAC
+        mk_ProteomaticButton_->setText("Pipeline");
+    #else
+        mk_ProteomaticButton_->setText("&Pipeline");
+    #endif
     QMenu* lk_ProteomaticMenu_ = new QMenu(this);
     mk_NewPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-new.png"), "New pipeline", this, SLOT(newPipeline()), QKeySequence("Ctrl+N"));
     mk_LoadPipelineAction_ = lk_ProteomaticMenu_->addAction(QIcon(":icons/document-open.png"), "Open pipeline...", this, SLOT(loadPipeline()), QKeySequence("Ctrl+O"));
@@ -133,7 +137,11 @@ void k_PipelineMainWindow::initialize()
 
     mk_AddScriptButton_ = new QToolButton(mk_AddToolBar_);
     mk_AddScriptButton_->setIcon(QIcon(":/icons/proteomatic.png"));
-    mk_AddScriptButton_->setText("Add &script");
+    #ifdef Q_OS_MAC
+        mk_AddScriptButton_->setText("Add script");
+    #else
+        mk_AddScriptButton_->setText("Add &script");
+    #endif
     mk_AddScriptButton_->setPopupMode(QToolButton::InstantPopup);
     mk_AddScriptButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     mk_AddToolBar_->addWidget(mk_AddScriptButton_);
@@ -203,6 +211,7 @@ void k_PipelineMainWindow::initialize()
     mk_AddToolBar_->addSeparator();
     mk_ShowConfigurationAction_ = new QAction(QIcon(":icons/preferences-system.png"), "Preferences", this);
     mk_ShowConfigurationAction_->setShortcut(QKeySequence("Ctrl+P"));
+    mk_ShowConfigurationAction_->setToolTip("Preferences (Ctrl+P)");
     connect(mk_ShowConfigurationAction_, SIGNAL(triggered()), &mk_Proteomatic, SLOT(showConfigurationDialog()));
      mk_AddToolBar_->addAction(mk_ShowConfigurationAction_);
     

@@ -11,7 +11,6 @@ Features
 
 * minimize to system tray icon when closing
 * automatically install PHP, Python, and Perl on Windows
-* indicate that script update or software installation has finished
 * maybe update additional languages if new versions are available in the scripts
 
 Script requests

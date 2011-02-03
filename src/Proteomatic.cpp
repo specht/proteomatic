@@ -352,6 +352,21 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
             }
         }
 #endif
+/*
+        if (lk_CurrentVersions.contains("proteomatic"))
+        {
+            QString ls_LatestVersion = lk_CurrentVersions["proteomatic"];
+            QString ls_InstalledVersion = gs_ProteomaticVersion;
+            if (ls_LatestVersion != ls_InstalledVersion)
+            {
+                lb_SomethingNewAvailable = true;
+                this->showMessageBox("Online update", 
+                    QString("A new version of Proteomatic is available.<br /> ") + 
+                    "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Please go to <a href='http://www.proteomatic.org/'>www.proteomatic.org</a>.",
+                    ":/icons/software-update-available.png", QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
+            }
+        }
+        */
         if (lk_CurrentVersions.contains("scripts"))
         {
             QString ls_LatestVersion = lk_CurrentVersions["scripts"];
@@ -1222,6 +1237,20 @@ void k_Proteomatic::showConfigurationDialog()
     
     QVBoxLayout* lk_MainLayout_ = new QVBoxLayout(lk_pDialog.data());
     lk_MainLayout_->setContentsMargins(0, 0, 0, 0);
+
+    /*
+    QListWidget* lk_ListWidget_ = new QListWidget(lk_pDialog.data());
+    lk_ListWidget_->setUniformItemSizes(true);
+    lk_ListWidget_->setIconSize(QSize(32, 32));
+    QListWidgetItem* lk_Item_ = NULL;
+    lk_Item_ = new QListWidgetItem(QIcon(":/icons/proteomatic-pipeline.png"), "Proteomatic", lk_ListWidget_);
+    lk_Item_ = new QListWidgetItem(QIcon(":/icons/proteomatic-pipeline.png"), "Interpreters", lk_ListWidget_);
+    lk_Item_ = new QListWidgetItem(QIcon(":/icons/proteomatic-pipeline.png"), "User interface", lk_ListWidget_);
+    lk_Item_ = new QListWidgetItem(QIcon(":/icons/proteomatic-pipeline.png"), "Persistence", lk_ListWidget_);
+    lk_Item_ = new QListWidgetItem(QIcon(":/icons/proteomatic-pipeline.png"), "Miscellaneous", lk_ListWidget_);
+    lk_MainLayout_->addWidget(lk_ListWidget_);
+    */
+    
     lk_MainLayout_->addWidget(lk_ScrollArea_);
     
     QBoxLayout* lk_HLayout_ = NULL;
@@ -1898,6 +1927,7 @@ void k_Proteomatic::updateConfigDependentStuff()
         mk_StartButton_->setMenu(&mk_StartButtonMenu);
     }
     mk_StartButton_->setShortcut(QKeySequence("F5"));
+    mk_StartButton_->setToolTip("Start (F5)");
 }
 
 
