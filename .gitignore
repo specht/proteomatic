@@ -12,3 +12,5 @@ Revelio.exe
 bin
 src/Proteomatic.qrc
 Proteomatic.app
+ext/
+helper/update-*
