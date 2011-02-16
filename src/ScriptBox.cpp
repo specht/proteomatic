@@ -425,18 +425,34 @@ void k_ScriptBox::start(const QString& as_IterationKey)
     QStringList lk_InputFiles;
 
     QList<k_InputGroupProxyBox*> lk_ProxyBoxes;
+    k_InputGroupProxyBox* lk_RemainingFilesProxyBox_ = NULL;
     
     foreach (IDesktopBox* lk_Box_, mk_ConnectedIncomingBoxes)
     {
         k_InputGroupProxyBox* lk_ProxyBox_ = dynamic_cast<k_InputGroupProxyBox*>(lk_Box_);
-        if (lk_ProxyBox_ && !lk_ProxyBox_->groupKey().isEmpty())
-            lk_ProxyBoxes.push_back(lk_ProxyBox_);
+        if (lk_ProxyBox_)
+        {
+            if (lk_ProxyBox_->groupKey().isEmpty())
+                lk_RemainingFilesProxyBox_ = lk_ProxyBox_;
+            else
+                lk_ProxyBoxes.push_back(lk_ProxyBox_);
+        }
         else
         {
             IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
             if (lk_FileBox_)
                 lk_InputFiles += lk_FileBox_->filenamesForTag(as_IterationKey);
         }
+    }
+    
+    if (lk_RemainingFilesProxyBox_)
+    {
+        QStringList lk_Files;
+        foreach (IFileBox* lk_FileBox_, lk_RemainingFilesProxyBox_->fileBoxes())
+            lk_Files += lk_FileBox_->filenamesForTag(as_IterationKey);
+        
+        if (lk_Files.size() > 0)
+            lk_InputFiles += lk_Files;
     }
     
     foreach (k_InputGroupProxyBox* lk_ProxyBox_, lk_ProxyBoxes)
