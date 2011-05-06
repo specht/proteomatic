@@ -29,6 +29,7 @@ class k_SearchMenu;
 #define CONFIG_PATH_TO_PYTHON "pathToPython"
 #define CONFIG_PATH_TO_PHP "pathToPhp"
 #define CONFIG_PATH_TO_PERL "pathToPerl"
+#define CONFIG_PATH_TO_JAVA "pathToJava"
 #define CONFIG_REMOTE_SCRIPTS "remoteScripts"
 #define CONFIG_PROFILES "profiles"
 #define CONFIG_REMEMBER_PROFILE_PATH "rememberProfilePath"

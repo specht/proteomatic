@@ -109,6 +109,7 @@ k_Proteomatic::k_Proteomatic(QCoreApplication& ak_Application)
     mk_Languages << "python";
     mk_Languages << "php";
     mk_Languages << "perl";
+    mk_Languages << "java";
 
     // write the update helper if it's not there already, or if an old version is there
     QString ls_PackagedUpdateMd5 = md5ForFile(":/update.rb");
@@ -465,6 +466,8 @@ QString k_Proteomatic::interpreterKeyForScript(QString as_Path)
         return "php";
     else if (ls_Suffix == "pl")
         return "perl";
+    else if (ls_Suffix == "class")
+        return "java";
     
     return QString();
 }
@@ -623,6 +626,11 @@ void k_Proteomatic::loadConfiguration()
     if (!mk_Configuration.contains(CONFIG_PATH_TO_PERL) || mk_Configuration[CONFIG_PATH_TO_PERL].type() != QVariant::String)
     {
         mk_Configuration[CONFIG_PATH_TO_PERL] = "perl";
+        lb_InsertedDefaultValue = true;
+    }
+    if (!mk_Configuration.contains(CONFIG_PATH_TO_JAVA) || mk_Configuration[CONFIG_PATH_TO_JAVA].type() != QVariant::String)
+    {
+        mk_Configuration[CONFIG_PATH_TO_JAVA] = "java";
         lb_InsertedDefaultValue = true;
     }
     if (!mk_Configuration.contains(CONFIG_FILETRACKER_URL) || mk_Configuration[CONFIG_FILETRACKER_URL].type() != QVariant::String)
@@ -814,7 +822,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
     {
         QString ls_Path = ms_ManagedScriptsPath + "/" + ls_CurrentPackage;
         QDir lk_Dir(ls_Path);
-        QStringList lk_Paths = lk_Dir.entryList(QStringList() << "*.rb" << "*.py" << "*.php" << "*.php5" << "*.php4" << ".pl", QDir::Files);
+        QStringList lk_Paths = lk_Dir.entryList(QStringList() << "*.rb" << "*.py" << "*.php" << "*.php5" << "*.php4" << ".pl" << ".class", QDir::Files);
         foreach (QString ls_Path, lk_Paths)
             lk_Scripts << lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
         
@@ -838,7 +846,7 @@ void k_Proteomatic::collectScriptInfo(bool ab_ShowImmediately)
     foreach (QString ls_ScriptPath, mk_AdditionalScriptPaths)
     {
         QDir lk_Dir(ls_ScriptPath);
-        QStringList lk_Paths = lk_Dir.entryList(QStringList() << "*.rb" << "*.py" << "*.php" << "*.php5" << "*.php4" << ".pl", QDir::Files);
+        QStringList lk_Paths = lk_Dir.entryList(QStringList() << "*.rb" << "*.py" << "*.php" << "*.php5" << "*.php4" << ".pl" << ".class", QDir::Files);
         foreach (QString ls_Path, lk_Paths)
             lk_Scripts << lk_Dir.cleanPath(lk_Dir.absoluteFilePath(ls_Path));
     }
@@ -1154,7 +1162,10 @@ void k_Proteomatic::checkScriptingLanguages(QString as_Language/* = QString()*/)
     foreach (QString ls_Language, lk_Languages)
     {
         QString ls_Key = configKeyForScriptingLanguage(ls_Language);
-        QString ls_Result = syncScriptNoFile(QStringList() << "--version", ls_Language, false).toLower();
+        QString ls_GetVersionSwitch = "--version";
+        if (ls_Language == "java")
+            ls_GetVersionSwitch = "-version";
+        QString ls_Result = syncScriptNoFile(QStringList() << ls_GetVersionSwitch, ls_Language, false).toLower();
         if (ls_Language == "perl")
         {
             ls_Result.replace("this is", "");
@@ -1304,6 +1315,8 @@ void k_Proteomatic::showConfigurationDialog()
             ls_Label = "PHP";
         else if (ls_Language == "perl")
             ls_Label = "Perl";
+        else if (ls_Language == "java")
+            ls_Label = "Java";
         lk_HLayout_->addWidget(new QLabel(ls_Label + ":", lk_pDialog.data()));
         QLineEdit* lk_PathLineEdit_ = new QLineEdit(lk_pDialog.data());
         lk_PathLineEdit_->setText(getConfiguration(ls_Key).toString());
@@ -1387,6 +1400,7 @@ void k_Proteomatic::showConfigurationDialog()
         mk_Configuration[CONFIG_PATH_TO_PYTHON] = lk_LanguagePathLineEdits["python"]->text();
         mk_Configuration[CONFIG_PATH_TO_PHP] = lk_LanguagePathLineEdits["php"]->text();
         mk_Configuration[CONFIG_PATH_TO_PERL] = lk_LanguagePathLineEdits["perl"]->text();
+        mk_Configuration[CONFIG_PATH_TO_JAVA] = lk_LanguagePathLineEdits["java"]->text();
         mk_Configuration[CONFIG_FOLLOW_NEW_BOXES] = lk_FollowNewBoxes_->checkState() == Qt::Checked;
         mk_Configuration[CONFIG_ANIMATION] = lk_Animation_->checkState() == Qt::Checked;
         mk_Configuration[CONFIG_APPEARANCE_SIZE] = lk_AppearanceComboBox_->currentIndex();
@@ -2092,6 +2106,8 @@ QString k_Proteomatic::configKeyForScriptingLanguage(const QString& as_Language)
         return CONFIG_PATH_TO_PHP;
     else if (as_Language == "perl")
         return CONFIG_PATH_TO_PERL;
+    else if (as_Language == "java")
+        return CONFIG_PATH_TO_JAVA;
     return "";
 }
 
