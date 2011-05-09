@@ -6,7 +6,6 @@ Bugs
 * crashes during wild file list resizing (stack overflow due to recursion)
 * problems with C:\Users\Gümpel (strange paths), won't install external software
 * show script description in status bar for script search results on hover
-* converter script says 'no files remaining for conversion' to input file batch
 * fix 'delete from here' to work with file lists and through batches & converters
 
 Features

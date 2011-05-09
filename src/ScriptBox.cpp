@@ -412,7 +412,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
                     lk_InFileBox_ = NULL;
             }
             if (lk_InFileBox_)
-                ls_UseTag = QFileInfo(lk_InFileBox_->filenamesForTag(as_IterationKey).first()).baseName();
+                ls_UseTag = QFileInfo(inputFilenamesForBox(lk_InFileBox_, as_IterationKey).first()).baseName();
         }
     }
     lk_Parameters["-outputPrefix"] = mk_Prefix.text() + ls_UseTag + (ls_UseTag.isEmpty() ? "" : "-");
@@ -441,7 +441,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
         {
             IFileBox* lk_FileBox_ = dynamic_cast<IFileBox*>(lk_Box_);
             if (lk_FileBox_)
-                lk_InputFiles += lk_FileBox_->filenamesForTag(as_IterationKey);
+                lk_InputFiles += inputFilenamesForBox(lk_FileBox_, as_IterationKey);
         }
     }
     
@@ -449,7 +449,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
     {
         QStringList lk_Files;
         foreach (IFileBox* lk_FileBox_, lk_RemainingFilesProxyBox_->fileBoxes())
-            lk_Files += lk_FileBox_->filenamesForTag(as_IterationKey);
+            lk_Files += inputFilenamesForBox(lk_FileBox_, as_IterationKey);
         
         if (lk_Files.size() > 0)
             lk_InputFiles += lk_Files;
@@ -459,7 +459,7 @@ void k_ScriptBox::start(const QString& as_IterationKey)
     {
         QStringList lk_Files;
         foreach (IFileBox* lk_FileBox_, lk_ProxyBox_->fileBoxes())
-            lk_Files += lk_FileBox_->filenamesForTag(as_IterationKey);
+            lk_Files += inputFilenamesForBox(lk_FileBox_, as_IterationKey);
         
         if (lk_Files.size() > 0)
         {
@@ -1347,4 +1347,13 @@ QString k_ScriptBox::finishedOutputFilename(QString& as_Filename)
         if (mk_pScript->parameterKeys().contains(ls_Key))
             ls_Result.replace("#{" + ls_Key + "}", mk_pScript->parameterValue(ls_Key));
     return ls_Result;
+}
+
+
+QStringList k_ScriptBox::inputFilenamesForBox(IFileBox* ak_Box_, QString as_Tag)
+{
+    if (mk_pScript->type() == r_ScriptType::Converter)
+        return ak_Box_->filenames();
+    else
+        return ak_Box_->filenamesForTag(as_Tag);
 }

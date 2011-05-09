@@ -24,6 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "ConsoleTextEdit.h"
 #include "FoldedHeader.h"
 #include "IDesktopBox.h"
+#include "IFileBox.h"
 #include "IScriptBox.h"
 #include "DesktopBox.h"
 #include "HintLineEdit.h"
@@ -103,6 +104,7 @@ protected:
     virtual void dropEvent(QDropEvent* event);
     virtual Qt::DropActions supportedDropActions() const;
     QString finishedOutputFilename(QString& as_Filename);
+    QStringList inputFilenamesForBox(IFileBox* ak_Box_, QString as_Tag);
     
     QSharedPointer<IScript> mk_pScript;
     QSharedPointer<QWidget> mk_pParameterProxyWidget;
