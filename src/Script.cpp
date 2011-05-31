@@ -1144,11 +1144,11 @@ void k_Script::createParameterWidget(QString as_Info)
             if (lk_Parameter.contains("min"))
                 lk_SpinBox_->setMinimum(QVariant(lk_Parameter["min"]).toInt(&lb_Ok));
             else
-                lk_SpinBox_->setMinimum(LONG_MIN);
+                lk_SpinBox_->setMinimum(INT_MIN);
             if (lk_Parameter.contains("max"))
                 lk_SpinBox_->setMaximum(QVariant(lk_Parameter["max"]).toInt(&lb_Ok));
             else
-                lk_SpinBox_->setMaximum(LONG_MAX);
+                lk_SpinBox_->setMaximum(INT_MAX);
             if (lk_Parameter.contains("suffix"))
                 lk_SpinBox_->setSuffix(" " + lk_Parameter["suffix"]);
             if (lk_Parameter.contains("prefix"))
