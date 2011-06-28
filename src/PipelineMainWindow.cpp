@@ -161,7 +161,11 @@ void k_PipelineMainWindow::initialize()
     
     mk_AddFilesButton_ = new QToolButton(this);
     mk_AddFilesButton_->setIcon(QIcon(":icons/document-open.png"));
-    mk_AddFilesButton_->setText("Add &files");
+    #ifdef Q_OS_MAC
+        mk_AddFilesButton_->setText("Add files");
+    #else
+        mk_AddFilesButton_->setText("Add &files");
+    #endif
     mk_AddFilesButton_->setPopupMode(QToolButton::InstantPopup);
     mk_AddFilesButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     mk_AddFilesButton_->setMenu(new QMenu(mk_AddFilesButton_));
