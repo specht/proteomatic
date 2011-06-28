@@ -1,7 +1,7 @@
 projects:
   - .
 #binaryPath: bin
-qt: [core, gui, webkit]
+qt: [core, gui, network, webkit]
 versionInject:
   debian/changelog: |
     proteomatic (#{VERSION}) #{STABILITY}; urgency=low
