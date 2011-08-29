@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2008 Michael Specht
+Copyright (c) 2007-2011 Michael Specht
 
 This file is part of Proteomatic.
 
@@ -39,7 +39,6 @@ QVariant k_YamlParser::parseFromString(QString as_Yaml)
         YAML::Parser lk_Parser(lk_InfoStream);
         YAML::Node lk_Document;
         lk_Parser.GetNextDocument(lk_Document);
-        
         return parseAny(&lk_Document);
     }
     catch (YAML::ParserException& e)
@@ -52,18 +51,18 @@ QVariant k_YamlParser::parseFromString(QString as_Yaml)
 
 QVariant k_YamlParser::parseAny(const YAML::Node* ak_Node_)
 {
-    switch (ak_Node_->GetType())
+    switch (ak_Node_->Type())
     {
-    case YAML::CT_SCALAR:
+    case YAML::NodeType::Scalar:
         return parseScalar(ak_Node_);
         break;
-    case YAML::CT_SEQUENCE:
+    case YAML::NodeType::Sequence:
         return parseSequence(ak_Node_);
         break;
-    case YAML::CT_MAP:
+    case YAML::NodeType::Map:
         return parseMap(ak_Node_);
         break;
-    case YAML::CT_NONE:
+    case YAML::NodeType::Null:
         return QVariant();
         break;
     }
