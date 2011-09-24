@@ -319,7 +319,7 @@ void k_ProfileManager::editProfile()
         
     if (mk_Proteomatic.getConfiguration(CONFIG_WARN_ABOUT_MIXED_PROFILES).toBool() && mk_SelectedItem_->listWidget() != mk_ApplicableProfilesWidget_)
     {
-        if (mk_Proteomatic.showMessageBox("Warning", "If you edit a profile which is not or not completely applicable, you might end up with partially applicable profiles. <br />If you are unsure about what that means, please select 'No'.<br />Are you sure you want to continue?", ":/icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+        if (mk_Proteomatic.showMessageBox("Warning", "If you edit a profile which is not or not completely applicable, you might end up with partially applicable profiles. <br />If you are unsure about what that means, please select 'No'.<br />Are you sure you want to continue?", ":/icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel, QMessageBox::Cancel, QString(), QString(), "Continue") != QMessageBox::Yes)
             return;
     }
         
@@ -344,7 +344,7 @@ void k_ProfileManager::deleteProfile()
         return;
     
     QString ls_OldTitle = mk_SelectedItem_->text();
-    if (mk_Proteomatic.showMessageBox("Warning", QString("Are you sure you want to delete %1?").arg(ls_OldTitle), ":/icons/dialog-cancel.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+    if (mk_Proteomatic.showMessageBox("Warning", QString("Are you sure you want to delete %1?").arg(ls_OldTitle), ":/icons/dialog-cancel.png", QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Yes, QMessageBox::Cancel, QString(), QString(), "Delete") == QMessageBox::Yes)
     {
         tk_YamlMap lk_Profiles = mk_Proteomatic.getConfiguration(CONFIG_PROFILES).toMap();
         lk_Profiles.remove(ls_OldTitle);

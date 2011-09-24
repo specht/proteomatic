@@ -816,7 +816,8 @@ bool k_Desktop::applyPipelineDescription(tk_YamlMap ak_Description, QString as_D
             qSort(lk_MissingTools);
             QString ls_MissingTools = lk_MissingTools.join(", ");
             int li_Result = mk_Proteomatic.showMessageBox("Unresolved dependencies", "This pipeline requires the following external tools that are currently not installed:\n\n"
-                + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
+                + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::Cancel,
+                QMessageBox::Yes, QMessageBox::Cancel, QString(), QString(), "Install");
             if (li_Result == QMessageBox::Yes)
             {
                 bool lb_Flag = mk_Proteomatic.syncShowRuby((QStringList() << 
