@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include <QtSvg>
 #include "IDesktopBox.h"
 #include "IScriptBox.h"
 #include "StopWatch.h"
@@ -83,6 +84,7 @@ public slots:
     virtual void proposePrefixForAllScripts();
     virtual void updatePanMode();
     virtual void invalidate();
+    virtual void renderToSvg(const QString& as_Path);
     
 signals:
     void pipelineIdle(bool);

@@ -1186,6 +1186,20 @@ void k_Desktop::invalidate()
 }
 
 
+void k_Desktop::renderToSvg(const QString& as_Path)
+{
+    QSvgGenerator lk_Svg;
+    lk_Svg.setFileName(as_Path);
+    lk_Svg.setSize(QSize(200, 200));
+    lk_Svg.setViewBox(QRect(0, 0, 200, 200));
+    lk_Svg.setTitle(tr("Proteomatic"));
+    lk_Svg.setDescription(tr("Proteomatic Pipeline"));
+    
+    QPainter lk_Painter(&lk_Svg);
+    mk_GraphicsScene.render(&lk_Painter);
+}
+
+
 void k_Desktop::clearAll()
 {
     while (!mk_Boxes.empty())

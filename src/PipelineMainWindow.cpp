@@ -284,6 +284,11 @@ void k_PipelineMainWindow::keyPressEvent(QKeyEvent* ak_Event_)
         mk_Proteomatic.reloadScripts();
         return;
     }
+    if ((ak_Event_->key() == Qt::Key_Q) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
+    {
+        mk_Desktop_->renderToSvg("/home/michael/Desktop/out.svg");
+        return;
+    }
     QMainWindow::keyPressEvent(ak_Event_);
 }
 
