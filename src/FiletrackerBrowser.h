@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QtGui>
+#include <QtNetwork>
 #include "Proteomatic.h"
 
 
@@ -32,6 +33,14 @@ public:
     
     void initialize();
     
+protected slots:
+    void replyFinished(QNetworkReply* ak_Reply_);
+    
 protected:
     const k_Proteomatic& mk_Proteomatic;
+    const QString ms_CouchUri;
+    QNetworkAccessManager* mk_NetworkAccessManager_;
+    
+    QMap<QString, QListWidget*> mk_PropertyListWidgets;
+    QTableWidget* mk_SelectedRunsWidget_;
 };

@@ -56,7 +56,7 @@ void k_PipelineMainWindow::initialize()
     
     connect(mk_Desktop_, SIGNAL(selectionChanged()), this, SLOT(updateStatusBar()));
 
-    setWindowIcon(QIcon(":/icons/proteomatic-pipeline.png"));
+    setWindowIcon(QIcon(":/icons/proteomatic-pipeline-128.png"));
     updateWindowTitle();
     resize(1000, 600);
     
