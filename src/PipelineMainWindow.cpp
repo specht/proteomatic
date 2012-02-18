@@ -20,6 +20,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include "PipelineMainWindow.h"
 #include "Desktop.h"
+#include "FiletrackerBrowser.h"
 #include "HintLineEdit.h"
 #include "IFileBox.h"
 #include "IScriptBox.h"
@@ -35,6 +36,7 @@ k_PipelineMainWindow::k_PipelineMainWindow(QWidget* ak_Parent_, k_Proteomatic& a
     : QMainWindow(ak_Parent_)
     , mk_Application(ak_Application)
     , mk_Desktop_(new k_Desktop(this, ak_Proteomatic, *this))
+    , mk_FiletrackerBrowser_(new k_FiletrackerBrowser(NULL, ak_Proteomatic))
     , mk_Proteomatic(ak_Proteomatic)
     //, mk_OutputPrefix_(new QLineEdit(this))
     , mk_CurrentScriptBox_(NULL)
@@ -254,6 +256,7 @@ void k_PipelineMainWindow::initialize()
 k_PipelineMainWindow::~k_PipelineMainWindow()
 {
     delete mk_Desktop_;
+    delete mk_FiletrackerBrowser_;
 }
 
 
@@ -282,6 +285,12 @@ void k_PipelineMainWindow::keyPressEvent(QKeyEvent* ak_Event_)
     if ((ak_Event_->key() == Qt::Key_R) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
     {
         mk_Proteomatic.reloadScripts();
+        return;
+    }
+    if ((ak_Event_->key() == Qt::Key_F) && ((ak_Event_->modifiers() & Qt::ControlModifier) != 0))
+    {
+        // show filetracker browser
+        mk_FiletrackerBrowser_->show();
         return;
     }
     QMainWindow::keyPressEvent(ak_Event_);

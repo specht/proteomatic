@@ -24,6 +24,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "Proteomatic.h"
 #include "FoldedHeader.h"
 
+class k_FiletrackerBrowser;
 
 class k_PipelineMainWindow: public QMainWindow
 {
@@ -82,6 +83,7 @@ protected slots:
 protected:
     QApplication& mk_Application;
     k_Desktop* mk_Desktop_;
+    k_FiletrackerBrowser* mk_FiletrackerBrowser_;
     QToolButton* mk_ProteomaticButton_;
     QToolButton* mk_AddScriptAction_;
     QAction* mk_NewPipelineAction_;

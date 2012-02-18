@@ -55,11 +55,11 @@ macx {
 }
 
 #LIBS += $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
-LIBS += -lyaml-cpp -lmd5
+LIBS += -lyaml-cpp -lmd5 -lqjson
 
 macx {
     TARGET = Proteomatic
-    QMAKE_INFO_PLIST    = Info.plist
+    QMAKE_INFO_PLIST = Info.plist
 }
 
 DESTDIR = ./
@@ -86,6 +86,7 @@ HEADERS += \
     src/DesktopBoxFactory.h \
     src/FileList.h \
     src/FileListBox.h \
+    src/FiletrackerBrowser.h \
     src/FoldedHeader.h \
     src/HintLineEdit.h \
     src/IDesktopBox.h \
@@ -126,6 +127,7 @@ SOURCES += \
     src/DesktopBoxFactory.cpp \
     src/FileList.cpp \
     src/FileListBox.cpp \
+    src/FiletrackerBrowser.cpp \
     src/FoldedHeader.cpp \
     src/HintLineEdit.cpp \
     src/InputGroupProxyBox.cpp \
