@@ -23,6 +23,18 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtNetwork>
 #include "Proteomatic.h"
 
+typedef struct
+{
+    QString ms_User;
+    QString ms_ScriptTitle;
+    QString ms_Time;
+    QString ms_Host;
+} r_RunCoreInfo;
+
+
+typedef QHash<QString, QSet<QString> > tk_RunsByPropertyMap;
+typedef QHash<QString, QListWidgetItem*> tk_ListWidgetItemsByPropertyMap;
+
 
 class k_FiletrackerBrowser: public QWidget
 {
@@ -32,6 +44,9 @@ public:
     virtual ~k_FiletrackerBrowser();
     
     void initialize();
+    
+public slots:
+    void refresh();
     
 protected slots:
     void replyFinished(QNetworkReply* ak_Reply_);
@@ -43,4 +58,7 @@ protected:
     
     QMap<QString, QListWidget*> mk_PropertyListWidgets;
     QTableWidget* mk_SelectedRunsWidget_;
+    QMap<QString, r_RunCoreInfo> mk_CoreInfoHash;
+    QHash<QString, tk_RunsByPropertyMap> mk_RunsByPropertyMaps;
+    QHash<QString, tk_ListWidgetItemsByPropertyMap> mk_ListWidgetsByPropertyMaps;
 };

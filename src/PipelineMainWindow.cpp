@@ -291,6 +291,7 @@ void k_PipelineMainWindow::keyPressEvent(QKeyEvent* ak_Event_)
     {
         // show filetracker browser
         mk_FiletrackerBrowser_->show();
+        mk_FiletrackerBrowser_->refresh();
         return;
     }
     QMainWindow::keyPressEvent(ak_Event_);
