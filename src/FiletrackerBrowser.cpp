@@ -70,15 +70,15 @@ void k_FiletrackerBrowser::replyFinished(QNetworkReply* ak_Reply_)
             else if (ls_Intent == "fill_all_columns")
             {
                 mk_SelectedRunsWidget_->setRowCount(lk_Response.toMap()["total_rows"].toInt());
-                int li_Row = 0;
                 foreach (QVariant lk_Item, lk_Response.toMap()["rows"].toList())
                 {
                     QMap<QString, QVariant> lk_Map = lk_Item.toMap();
                     QList<QVariant> lk_Values = lk_Map["value"].toList();
                     QString ls_Id = lk_Map["id"].toString();
-                    QString ls_User = lk_Values[0].toString();
-                    QString ls_Host = lk_Values[1].toString();
-                    QString ls_ScriptTitle = lk_Values[2].toString();
+                    mk_AllIds.insert(ls_Id);
+                    QString ls_User = lk_Values[0].toString().trimmed();
+                    QString ls_Host = lk_Values[1].toString().trimmed();
+                    QString ls_ScriptTitle = lk_Values[2].toString().trimmed();
                     QString ls_Time = lk_Values[3].toString() + "/" + 
                         lk_Values[4].toString() + "/" + 
                         lk_Values[5].toString() + " " + 
@@ -87,14 +87,6 @@ void k_FiletrackerBrowser::replyFinished(QNetworkReply* ak_Reply_)
                         lk_Values[8].toString();
                     QString ls_Time_YM = lk_Values[3].toString() + "/" + 
                         lk_Values[4].toString();
-                    mk_SelectedRunsWidget_->setItem(li_Row, 0, new QTableWidgetItem(ls_Time));
-                    mk_SelectedRunsWidget_->item(li_Row, 0)->setData(Qt::UserRole, QVariant(ls_Id));
-                    mk_SelectedRunsWidget_->setItem(li_Row, 1, new QTableWidgetItem(ls_ScriptTitle));
-                    mk_SelectedRunsWidget_->setItem(li_Row, 2, new QTableWidgetItem(ls_User));
-                    mk_SelectedRunsWidget_->setItem(li_Row, 3, new QTableWidgetItem(ls_Host));
-                    for (int i = 0; i < 4; ++i)
-                        mk_SelectedRunsWidget_->item(li_Row, i)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-                    ++li_Row;
                     r_RunCoreInfo lr_RunCoreInfo;
                     lr_RunCoreInfo.ms_User = ls_User;
                     lr_RunCoreInfo.ms_Host = ls_Host;
@@ -115,6 +107,7 @@ void k_FiletrackerBrowser::replyFinished(QNetworkReply* ak_Reply_)
                         if (!mk_ListWidgetsByPropertyMaps[ls_Key].contains(ls_Value))
                         {
                             mk_ListWidgetsByPropertyMaps[ls_Key][ls_Value] = new QListWidgetItem(ls_Value);
+                            mk_ListWidgetsByPropertyMaps[ls_Key][ls_Value]->setData(Qt::UserRole, QVariant(ls_Value));
                             mk_PropertyListWidgets[ls_Key]->addItem(mk_ListWidgetsByPropertyMaps[ls_Key][ls_Value]);
                         }
                         mk_ListWidgetsByPropertyMaps[ls_Key][ls_Value]->setText(ls_Value + QString(" (%1)").arg(mk_RunsByPropertyMaps[ls_Key][ls_Value].size()));
@@ -124,6 +117,7 @@ void k_FiletrackerBrowser::replyFinished(QNetworkReply* ak_Reply_)
         }
     }
     ak_Reply_->deleteLater();
+    updateRunSelection();
 }
 
 
@@ -159,6 +153,8 @@ void k_FiletrackerBrowser::initialize()
         mk_PropertyListWidgets[ls_ItemKey]->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
         lk_Layout2_->addWidget(mk_PropertyListWidgets[ls_ItemKey]);
         lk_Layout1_->addWidget(lk_Widget2_);
+        connect(mk_PropertyListWidgets[ls_ItemKey], SIGNAL(itemSelectionChanged()),
+               this, SLOT(updateRunSelection()));
     }
     
     lk_Splitter_->addWidget(lk_Widget1_);
@@ -183,4 +179,37 @@ void k_FiletrackerBrowser::refresh()
     QNetworkReply* lk_Reply_;
     lk_Reply_ = mk_NetworkAccessManager_->get(QNetworkRequest(QUrl(ms_CouchUri + "_design/views/_view/all_scripts_core_info")));
     lk_Reply_->setProperty("intent", QVariant("fill_all_columns"));
+}
+
+
+void k_FiletrackerBrowser::updateRunSelection()
+{
+    QSet<QString> lk_Ids = mk_AllIds;
+    foreach (QString ls_Key, mk_PropertyListWidgets.keys())
+    {
+        QSet<QString> lk_SubIds;
+        if (!mk_PropertyListWidgets[ls_Key]->selectedItems().empty())
+        {
+            foreach (QListWidgetItem* lk_Item_, mk_PropertyListWidgets[ls_Key]->selectedItems())
+            {
+                QString ls_Value = lk_Item_->data(Qt::UserRole).toString();
+                lk_SubIds |= mk_RunsByPropertyMaps[ls_Key][ls_Value];
+            }
+            lk_Ids &= lk_SubIds;
+        }
+    }
+    mk_SelectedRunsWidget_->setRowCount(lk_Ids.size());
+    int li_Row = 0;
+    foreach (QString ls_Id, lk_Ids)
+    {
+        r_RunCoreInfo lr_Info = mk_CoreInfoHash[ls_Id];
+        mk_SelectedRunsWidget_->setItem(li_Row, 0, new QTableWidgetItem(lr_Info.ms_Time));
+        mk_SelectedRunsWidget_->item(li_Row, 0)->setData(Qt::UserRole, QVariant(ls_Id));
+        mk_SelectedRunsWidget_->setItem(li_Row, 1, new QTableWidgetItem(lr_Info.ms_ScriptTitle));
+        mk_SelectedRunsWidget_->setItem(li_Row, 2, new QTableWidgetItem(lr_Info.ms_User));
+        mk_SelectedRunsWidget_->setItem(li_Row, 3, new QTableWidgetItem(lr_Info.ms_Host));
+        for (int i = 0; i < 4; ++i)
+            mk_SelectedRunsWidget_->item(li_Row, i)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        ++li_Row;
+    }
 }

@@ -50,6 +50,7 @@ public slots:
     
 protected slots:
     void replyFinished(QNetworkReply* ak_Reply_);
+    void updateRunSelection();
     
 protected:
     const k_Proteomatic& mk_Proteomatic;
@@ -61,4 +62,5 @@ protected:
     QMap<QString, r_RunCoreInfo> mk_CoreInfoHash;
     QHash<QString, tk_RunsByPropertyMap> mk_RunsByPropertyMaps;
     QHash<QString, tk_ListWidgetItemsByPropertyMap> mk_ListWidgetsByPropertyMaps;
+    QSet<QString> mk_AllIds;
 };
