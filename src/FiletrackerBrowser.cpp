@@ -51,23 +51,7 @@ void k_FiletrackerBrowser::replyFinished(QNetworkReply* ak_Reply_)
         if (lb_Ok)
         {
             QString ls_Intent = ak_Reply_->property("intent").toString();
-            if (ls_Intent.startsWith("fill_column_"))
-            {
-                QString ls_Key = ls_Intent.replace("fill_column_", "");
-                foreach (QVariant lk_Item, lk_Response.toMap()["rows"].toList())
-                {
-                    QMap<QString, QVariant> lk_Map = lk_Item.toMap();
-                    QString ls_Label = lk_Map["key"].toString();
-                    if (ls_Key == "time")
-                    {
-                        QList<QVariant> lk_List = lk_Map["key"].toList();
-                        ls_Label = lk_List[0].toString() + "/" + lk_List[1].toString();
-                    }
-                    ls_Label = ls_Label.trimmed();
-                    mk_PropertyListWidgets[ls_Key]->addItem(new QListWidgetItem(ls_Label + " (" + lk_Map["value"].toString() + ")"));
-                }
-            } 
-            else if (ls_Intent == "fill_all_columns")
+            if (ls_Intent == "fill_all_columns")
             {
                 mk_SelectedRunsWidget_->setRowCount(lk_Response.toMap()["total_rows"].toInt());
                 foreach (QVariant lk_Item, lk_Response.toMap()["rows"].toList())
@@ -114,6 +98,23 @@ void k_FiletrackerBrowser::replyFinished(QNetworkReply* ak_Reply_)
                     }
                 }
             }
+            else if (ls_Intent == "update_right_pane")
+            {
+                QString ls_Text;
+                QMap<QString, QVariant> lk_Run = lk_Response.toMap()["run"].toMap();
+                ls_Text += "<b>" + lk_Run["script_title"].toString() + "</b><br />";
+                ls_Text += lk_Run["user"].toString().trimmed() + "@" + lk_Run["host"].toString().trimmed() + "<br />";
+                ls_Text += lk_Run["start_time"].toString() + "<br />";
+                ls_Text += "<br />Parameters:";
+                ls_Text += "<ul>";
+                foreach (QVariant lk_Pair, lk_Run["parameters"].toList())
+                {
+                    ls_Text += "<li>" + lk_Pair.toMap().keys().first() + ": " + 
+                    lk_Pair.toMap().values().first().toString() + "</li>";
+                }
+                ls_Text += "</ul>";
+                mk_RightPaneScriptLabel_->setHtml(ls_Text);
+            }
         }
     }
     ak_Reply_->deleteLater();
@@ -124,14 +125,30 @@ void k_FiletrackerBrowser::replyFinished(QNetworkReply* ak_Reply_)
 void k_FiletrackerBrowser::initialize()
 {
     this->setWindowTitle("Filetracker Browser");
-    this->resize(900, 600);
-    QBoxLayout* lk_MainLayout_ = new QVBoxLayout(this);
+    this->resize(1100, 600);
+    QBoxLayout* lk_OuterLayout_ = new QVBoxLayout(this);
+    QSplitter* lk_VSplitter_ = new QSplitter(this);
+    lk_OuterLayout_->addWidget(lk_VSplitter_);
+    
+    QBoxLayout* lk_MainLayout_ = new QVBoxLayout(NULL);
     QSplitter* lk_Splitter_ = new QSplitter(this);
     lk_MainLayout_->addWidget(lk_Splitter_);
     lk_Splitter_->setOrientation(Qt::Vertical);
     QWidget* lk_Widget1_ = new QWidget(this);
     QBoxLayout* lk_Layout1_ = new QHBoxLayout(lk_Widget1_);
     lk_Layout1_->setContentsMargins(0, 0, 0, 0);
+
+    lk_VSplitter_->addWidget(lk_Splitter_);
+    mk_RightPane_ = new QWidget(this);
+    mk_RightPaneLayout_ = new QVBoxLayout(mk_RightPane_);
+    mk_RightPaneScriptLabel_ = new QTextEdit(this);
+    mk_RightPaneScriptLabel_->setReadOnly(true);
+    mk_RightPaneLayout_->addWidget(mk_RightPaneScriptLabel_);
+    
+    lk_VSplitter_->addWidget(mk_RightPane_);
+    
+    lk_VSplitter_->setStretchFactor(0, 2);
+    lk_VSplitter_->setStretchFactor(1, 1);
     
     QMap<QString, QString> lk_Items;
     lk_Items["01 time"] = "Time";
@@ -168,7 +185,10 @@ void k_FiletrackerBrowser::initialize()
     mk_SelectedRunsWidget_->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     mk_SelectedRunsWidget_->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
     mk_SelectedRunsWidget_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mk_SelectedRunsWidget_->setSelectionMode(QAbstractItemView::SingleSelection);
     mk_SelectedRunsWidget_->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    connect(mk_SelectedRunsWidget_, SIGNAL(currentCellChanged(int, int, int, int)),
+            this, SLOT(selectedRunTableSelectionChanged(int, int, int, int)));
     lk_Splitter_->addWidget(mk_SelectedRunsWidget_);
 }
 
@@ -212,4 +232,13 @@ void k_FiletrackerBrowser::updateRunSelection()
             mk_SelectedRunsWidget_->item(li_Row, i)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         ++li_Row;
     }
+}
+
+
+void k_FiletrackerBrowser::selectedRunTableSelectionChanged(int ai_Row, int, int, int)
+{
+    QString ls_Id = mk_SelectedRunsWidget_->item(ai_Row, 0)->data(Qt::UserRole).toString();
+    QNetworkReply* lk_Reply_;
+    lk_Reply_ = mk_NetworkAccessManager_->get(QNetworkRequest(QUrl(ms_CouchUri + ls_Id)));
+    lk_Reply_->setProperty("intent", QVariant("update_right_pane"));
 }
