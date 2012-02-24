@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ "$1" != "go" ]; then
-	echo "This script downloads, compiles and installs the md5-rfc and yaml-cpp libs which are required for Proteomatic to compile."
+	echo "This script downloads, compiles and installs the md5-rfc, yaml-cpp and qjson libs which are required for Proteomatic to compile."
 	echo "Call with 'go' to proceed at your own risk."
 	exit 1
 fi
@@ -43,6 +43,22 @@ cd ..
 rm -rf yaml-cpp
 
 # clean up
+
+git clone git://gitorious.org/qjson/qjson.git
+cd qjson
+git checkout 0.7.1
+cd src
+qmake -project -o qjson.pro
+awk '{sub(/TEMPLATE = app/,"TEMPLATE = lib\nCONFIG += staticlib")}; 1' qjson.pro > qjson2.pro
+rm qjson.pro
+qmake
+make
+sudo cp libqjson.a /usr/local/lib
+sudo mkdir /usr/local/include/qjson
+sudo cp *.h *.hh /usr/local/include/qjson
+cd ..
+cd ..
+rm -rf qjson
 
 cd ..
 rm -rf bootstrap
