@@ -92,7 +92,7 @@ void k_FileList::addInputFileGroup(QString as_Key, QString as_Label, QStringList
     mk_Keys.push_back(as_Key);
     mk_Labels[as_Key] = ls_Label;
     mk_Extensions[as_Key] = ak_Extensions;
-    mk_Files[as_Key] = QMap<QString, bool>();
+    mk_Files[as_Key] = QStringList();
     
     QListWidgetItem* lk_Item_ = new QListWidgetItem(ls_Label + " files (0)", this);
     lk_Item_->setFlags(Qt::ItemIsEnabled);
@@ -108,9 +108,17 @@ void k_FileList::addInputFile(QString as_Path, bool ab_Refresh, bool ab_EmitSign
         return;
     
     // check if file is already in the file list, return if so!
-    foreach (QString ls_Key, mk_Keys)
+    if (!mk_Keys.empty())
     {
-        if (mk_Files[ls_Key].contains(as_Path))
+        foreach (QString ls_Key, mk_Keys)
+        {
+            if (mk_Files[ls_Key].contains(as_Path))
+                return;
+        }
+    }
+    else
+    {
+        if (mk_Files[""].contains(as_Path))
             return;
     }
     
@@ -130,7 +138,7 @@ void k_FileList::addInputFile(QString as_Path, bool ab_Refresh, bool ab_EmitSign
             }
         }
     }
-    mk_Files[ls_MatchingKey][as_Path] = true;
+    mk_Files[ls_MatchingKey].append(as_Path);
     if (ab_Refresh)
         this->refresh();
     if (ab_EmitSignal)
@@ -160,12 +168,12 @@ QStringList k_FileList::files() const
     QStringList lk_AllFiles;
     if (mk_Keys.empty())
     {
-        lk_AllFiles += mk_Files[""].keys();
+        lk_AllFiles += mk_Files[""];
     }
     else
     {
         foreach (QString ls_Key, mk_Files.keys())
-            lk_AllFiles += mk_Files[ls_Key].keys();
+            lk_AllFiles += mk_Files[ls_Key];
     }
     
     return lk_AllFiles;
@@ -199,10 +207,10 @@ void k_FileList::removeSelection()
                 if (!mk_Keys.empty())
                 {
                     foreach (QString ls_Key, mk_Keys)
-                        mk_Files[ls_Key].remove(ls_Path);
+                        mk_Files[ls_Key].removeOne(ls_Path);
                 }
                 else
-                    mk_Files[""].remove(ls_Path);
+                    mk_Files[""].removeOne(ls_Path);
             }
             this->refresh();
         }
@@ -315,7 +323,7 @@ void k_FileList::refresh()
     if (mk_Keys.empty())
     {
         QList<QListWidgetItem*> lk_ToBeDeleted;
-        QSet<QString> lk_Paths = mk_Files[""].keys().toSet();
+        QSet<QString> lk_Paths = mk_Files[""].toSet();
         for (int i = 0; i < count(); ++i)
         {
             QListWidgetItem* lk_Item_ = item(i);
@@ -359,7 +367,7 @@ void k_FileList::refresh()
             QFont lk_Font = lk_Item_->font();
             lk_Font.setBold(true);
             lk_Item_->setFont(lk_Font);
-            QStringList lk_Paths = mk_Files[ls_Key].keys();
+            QStringList lk_Paths = mk_Files[ls_Key];
             qSort(lk_Paths.begin(), lk_Paths.end());
             foreach (QString ls_Path, lk_Paths)
             {
