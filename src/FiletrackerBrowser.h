@@ -63,7 +63,8 @@ protected:
     QMap<QString, r_RunCoreInfo> mk_CoreInfoHash;
     QHash<QString, tk_RunsByPropertyMap> mk_RunsByPropertyMaps;
     QHash<QString, tk_ListWidgetItemsByPropertyMap> mk_ListWidgetsByPropertyMaps;
-    QSet<QString> mk_AllIds;
+    QList<QString> mk_AllIdsList;
+    QSet<QString> mk_AllIdsSet;
     QWidget* mk_RightPane_;
     QBoxLayout* mk_RightPaneLayout_;
     QTextEdit* mk_RightPaneScriptLabel_;

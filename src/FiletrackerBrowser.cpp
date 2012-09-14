@@ -59,7 +59,8 @@ void k_FiletrackerBrowser::replyFinished(QNetworkReply* ak_Reply_)
                     QMap<QString, QVariant> lk_Map = lk_Item.toMap();
                     QList<QVariant> lk_Values = lk_Map["value"].toList();
                     QString ls_Id = lk_Map["id"].toString();
-                    mk_AllIds.insert(ls_Id);
+                    mk_AllIdsSet << ls_Id;
+                    mk_AllIdsList << ls_Id;
                     QString ls_User = lk_Values[0].toString().trimmed();
                     QString ls_Host = lk_Values[1].toString().trimmed();
                     QString ls_ScriptTitle = lk_Values[2].toString().trimmed();
@@ -204,7 +205,7 @@ void k_FiletrackerBrowser::refresh()
 
 void k_FiletrackerBrowser::updateRunSelection()
 {
-    QSet<QString> lk_Ids = mk_AllIds;
+    QSet<QString> lk_Ids = mk_AllIdsSet;
     foreach (QString ls_Key, mk_PropertyListWidgets.keys())
     {
         QSet<QString> lk_SubIds;
@@ -220,8 +221,10 @@ void k_FiletrackerBrowser::updateRunSelection()
     }
     mk_SelectedRunsWidget_->setRowCount(lk_Ids.size());
     int li_Row = 0;
-    foreach (QString ls_Id, lk_Ids)
+    foreach (QString ls_Id, mk_AllIdsList)
     {
+        if (!mk_AllIdsSet.contains(ls_Id))
+            continue;
         r_RunCoreInfo lr_Info = mk_CoreInfoHash[ls_Id];
         mk_SelectedRunsWidget_->setItem(li_Row, 0, new QTableWidgetItem(lr_Info.ms_Time));
         mk_SelectedRunsWidget_->item(li_Row, 0)->setData(Qt::UserRole, QVariant(ls_Id));
