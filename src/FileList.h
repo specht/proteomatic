@@ -77,7 +77,8 @@ protected:
     QStringList mk_Keys;
     QHash<QString, QString> mk_Labels;
     QHash<QString, QStringList> mk_Extensions;
-    QHash<QString, QMap<QString, bool> > mk_Files;
+    // input file group -> list of files
+    QHash<QString, QStringList> mk_Files;
     QAction mk_OpenFileAction;
     QAction mk_OpenContainingFolderAction;
     QAction mk_RemoveFileFromListAction;

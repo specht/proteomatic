@@ -161,7 +161,11 @@ void k_PipelineMainWindow::initialize()
     
     mk_AddFilesButton_ = new QToolButton(this);
     mk_AddFilesButton_->setIcon(QIcon(":icons/document-open.png"));
-    mk_AddFilesButton_->setText("Add &files");
+    #ifdef Q_OS_MAC
+        mk_AddFilesButton_->setText("Add files");
+    #else
+        mk_AddFilesButton_->setText("Add &files");
+    #endif
     mk_AddFilesButton_->setPopupMode(QToolButton::InstantPopup);
     mk_AddFilesButton_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     mk_AddFilesButton_->setMenu(new QMenu(mk_AddFilesButton_));
@@ -432,7 +436,8 @@ void k_PipelineMainWindow::addScript(QString as_Uri)
         qSort(lk_MissingTools);
         QString ls_MissingTools = lk_MissingTools.join(", ");
         int li_Result = mk_Proteomatic.showMessageBox("Unresolved dependencies", "This script requires the following external tools that are currently not installed:\n\n"
-            + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
+            + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Yes, QMessageBox::Cancel,
+            QString(), QString(), "Install");
         if (li_Result == QMessageBox::Yes)
         {
             bool lb_Flag = mk_Proteomatic.syncShowRuby((QStringList() << 
@@ -489,7 +494,7 @@ void k_PipelineMainWindow::abort()
         return;
     
     if (mk_Proteomatic.showMessageBox("Abort pipeline", "Are you sure you want to abort the pipeline?", ":/icons/dialog-warning.png", 
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No, QString(), QString(), "Abort", "Continue") == QMessageBox::Yes)
         mk_Desktop_->abort();
 }
 

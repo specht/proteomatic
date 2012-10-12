@@ -505,7 +505,7 @@ void k_FileListBox::openContainingDirectory()
 void k_FileListBox::deleteFile()
 {
     QString ls_Path = QDir::cleanPath(mk_FileList.files().first());
-    if (mk_Proteomatic.showMessageBox("Delete file", QString("Are you sure you want to delete %1?").arg(ls_Path), ":icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+    if (mk_Proteomatic.showMessageBox("Delete file", QString("Are you sure you want to delete %1?").arg(ls_Path), ":icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel, QMessageBox::Cancel, QString(), QString(), "Delete file") == QMessageBox::Yes)
     {
         QDir lk_Dir;
         if (!lk_Dir.remove(ls_Path))
@@ -519,7 +519,7 @@ void k_FileListBox::deleteAllDownstreamFiles()
     int li_ErrorCount = 0;
     QStringList lk_DownstreamFilenames = this->getExistingDownstreamFilenames();
 //     QString ls_Path = QDir::cleanPath(mk_FileList.files().first());
-    if (mk_Proteomatic.showMessageBox("Delete file", QString("You are about to delete %1 output files. Are you sure you want to do this?").arg(lk_DownstreamFilenames.size()), ":icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+    if (mk_Proteomatic.showMessageBox("Delete file", QString("You are about to delete %1 output files. Are you sure you want to do this?").arg(lk_DownstreamFilenames.size()), ":icons/dialog-warning.png", QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel, QMessageBox::Cancel, QString(), QString(), "Delete files") == QMessageBox::Yes)
     {
         foreach (QString ls_Path, lk_DownstreamFilenames)
         {

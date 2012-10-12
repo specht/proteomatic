@@ -153,7 +153,8 @@ public:
         QMessageBox::StandardButtons ae_Buttons = QMessageBox::Ok, 
         QMessageBox::StandardButton ae_DefaultButton = QMessageBox::Ok, 
         QMessageBox::StandardButton ae_EscapeButton = QMessageBox::Ok,
-        QString as_InformativeText = QString(), QString as_DetailedText = QString());
+        QString as_InformativeText = QString(), QString as_DetailedText = QString(),
+        QString as_OverrideYesText = QString(), QString as_OverrideNoText = QString());
     void setMessageBoxParent(QWidget* ak_Widget_);
     QWidget* messageBoxParent() const;
     int queryRemoteHub(QString as_Uri, QStringList ak_Arguments);

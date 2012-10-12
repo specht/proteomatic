@@ -326,7 +326,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                 if (this->showMessageBox("Online update", 
                     QString("A new version of Proteomatic is available.<br /> ") + 
                     "Latest version: " + ls_LatestVersion + ", installed: " + (ls_InstalledVersion.isEmpty() ? "none" : ls_InstalledVersion) + "<br />Do you want to update to the latest version?",
-                    ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+                    ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Yes, QMessageBox::Cancel, QString(), QString(), "Update") == QMessageBox::Yes)
                 {
                     if (mk_PipelineMainWindow_ && mk_Desktop_)
                     {
@@ -380,7 +380,7 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                         ls_Message = QString("<p><b>Welcome to Proteomatic!</b></p><p>Because Proteomatic has been started for the first time, there are no scripts available yet. Do you want to download the latest scripts package now?</p>");
                 if (this->showMessageBox("Online update", 
                     ls_Message,
-                    ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+                    ":/icons/software-update-available.png", QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Yes, QMessageBox::Cancel, QString(), QString(), "Update") == QMessageBox::Yes)
                 {
                     if (mk_PipelineMainWindow_ && mk_Desktop_)
                     {
@@ -1199,7 +1199,9 @@ QString k_Proteomatic::scriptPathAndPackage() const
 int k_Proteomatic::showMessageBox(QString as_Title, QString as_Text, QString as_Icon, 
                                   QMessageBox::StandardButtons ae_Buttons, QMessageBox::StandardButton ae_DefaultButton, 
                                   QMessageBox::StandardButton ae_EscapeButton,
-                                  QString as_InformativeText, QString as_DetailedText)
+                                  QString as_InformativeText, QString as_DetailedText,
+                                  QString as_OverrideYesText, QString as_OverrideNoText)
+
 {
     QMessageBox lk_MessageBox(mk_MessageBoxParent_);
     if (as_Icon != "")
@@ -1210,6 +1212,10 @@ int k_Proteomatic::showMessageBox(QString as_Title, QString as_Text, QString as_
     lk_MessageBox.setStandardButtons(ae_Buttons);
     lk_MessageBox.setEscapeButton(ae_EscapeButton);
     lk_MessageBox.setDefaultButton(ae_DefaultButton);
+    if ((ae_Buttons & QMessageBox::Yes) && !as_OverrideYesText.isEmpty())
+        lk_MessageBox.button(QMessageBox::Yes)->setText(as_OverrideYesText);
+    if ((ae_Buttons & QMessageBox::No) && !as_OverrideNoText.isEmpty())
+        lk_MessageBox.button(QMessageBox::No)->setText(as_OverrideNoText);
     if (!as_InformativeText.isEmpty())
         lk_MessageBox.setInformativeText(as_InformativeText);
     if (!as_DetailedText.isEmpty())

@@ -135,7 +135,8 @@ k_LocalScript::k_LocalScript(QString as_ScriptPath, k_Proteomatic& ak_Proteomati
             QString ls_MissingTools = lk_Tools.join(", ");
                     
             int li_Result = mk_Proteomatic.showMessageBox("Unresolved dependencies", "This script requires the following external tools that are currently not installed:\n\n"
-            + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, QMessageBox::No);
+            + ls_MissingTools + "\n\nWould you like to install them now?", ":/icons/package-x-generic.png", QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Yes, QMessageBox::Cancel,
+                QString(), QString(), "Install");
             if (li_Result == QMessageBox::Yes)
             {
                 QSharedPointer<k_RubyWindow> lk_pRubyWindow(new k_RubyWindow(mk_Proteomatic, QStringList() << as_ScriptPath << "--resolveDependencies" << "--extToolsPath" << mk_Proteomatic.externalToolsPath(), "Installing external tools", ":/icons/package-x-generic.png"));
