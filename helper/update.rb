@@ -26,6 +26,8 @@ def determinePlatform()
         'macx'
     when /mswin/ then
         'win32'
+    when /i386-mingw32/
+        'win32'
     else
         puts "Internal error: #{RUBY_PLATFORM} platform not supported."
         exit 1
