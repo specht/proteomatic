@@ -986,7 +986,7 @@ void k_ScriptBox::setupLayout()
     //mk_pParameterProxyWidget->setWindowTitle(mk_pScript->title());
     //mk_pParameterProxyWidget->setWindowIcon(QIcon(":icons/proteomatic.png"));
     
-    mk_TabWidget_ = new QTabWidget(this);
+    mk_TabWidget_ = new QTabWidget(NULL);
 
     mk_pParameterProxyWidget = QSharedPointer<QWidget>(mk_TabWidget_);
     

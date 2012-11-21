@@ -1078,12 +1078,12 @@ void k_Script::createParameterWidget(QString as_Info)
         }
     }
 
-    foreach (QString ls_Key, lk_ParametersOrder)
+    foreach (QString ls_Key_, lk_ParametersOrder)
     {
-        if (!mb_IncludeOutputFiles && ls_Key.startsWith("output"))
+        if (!mb_IncludeOutputFiles && ls_Key_.startsWith("output"))
             continue;
 
-        QHash<QString, QString> lk_Parameter = lk_Parameters[ls_Key];
+        QHash<QString, QString> lk_Parameter = lk_Parameters[ls_Key_];
         QString ls_Group = lk_Parameter["group"];
         QWidget* lk_Container_ = lk_Containers[ls_Group];
 
