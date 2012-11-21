@@ -2,7 +2,7 @@ Source: proteomatic
 Section: science
 Priority: optional
 Maintainer: Michael Specht <micha.specht@gmail.com>
-Build-Depends: debhelper (>= 7), cdbs (>= 0.4.41), libqt4-dev
+Build-Depends: debhelper (>= 7), cdbs (>= 0.4.41), libqt4-dev libyaml-cpp0.3 libquazip0-dev
 Standards-Version: 3.8.3
 Homepage: http://www.proteomatic.org
 
