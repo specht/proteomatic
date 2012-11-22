@@ -3,6 +3,6 @@ Type=Application
 Exec=Proteomatic
 Name=Proteomatic
 Comment=Proteomatic - the Proteomics researcher's swiss army knife
-Icon=/usr/share/pixmaps/proteomatic-pipeline.png
+Icon=/usr/share/pixmaps/proteomatic-pipeline.svg
 MimeType=application/x-proteomatic
 Categories=Education;Science;MedicalSoftware

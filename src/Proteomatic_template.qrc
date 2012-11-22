@@ -45,6 +45,8 @@
   <file>icons/proteomatic.png</file>
   <file>icons/proteomatic-disabled.png</file>
   <file>icons/proteomatic-pipeline.png</file>
+  <file>icons/proteomatic-pipeline-128.png</file>
+  <file>icons/proteomatic-pipeline.svg</file>
   <file>icons/revelio.png</file>
   <file>icons/ruby.png</file>
   <file>icons/select-continuous-area.png</file>

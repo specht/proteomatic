@@ -20,7 +20,7 @@ common-configure-arch::
 
 common-install-arch::
 	install -m 644 debian/proteomatic.desktop debian/proteomatic/usr/share/applications/proteomatic.desktop
-	install -m 0644 src/icons/proteomatic-pipeline-128.png $(CURDIR)/debian/proteomatic/usr/share/pixmaps/
+	install -m 0644 src/icons/proteomatic-pipeline.svg $(CURDIR)/debian/proteomatic/usr/share/pixmaps/
 	install -D -m 644 debian/x-proteomatic.desktop debian/proteomatic/usr/share/mimelnk/application/x-proteomatic.desktop
 	#mv $(CURDIR)/debian/vym/usr/share/vym/demos $(CURDIR)/debian/vym/usr/share/doc/vym
 	#mv $(CURDIR)/debian/vym/usr/share/doc/packages/vym/vym.pdf $(CURDIR)/debian/vym/usr/share/doc/vym 
@@ -31,4 +31,4 @@ common-install-arch::
 	#rmdir $(CURDIR)/debian/vym/usr/share/doc/packages/
 	#mkdir -p $(CURDIR)/debian/vym/usr/share/vym/doc/
 	#dh_link /usr/share/doc/vym/vym.pdf /usr/share/vym/doc/vym.pdf
-	dh_link	/usr/share/proteomatic/proteomatic-pipeline.png /usr/share/pixmaps/proteomatic-pipeline.png
+	dh_link	/usr/share/proteomatic/proteomatic-pipeline.svg /usr/share/pixmaps/proteomatic-pipeline.svg
