@@ -250,7 +250,8 @@ void k_Proteomatic::checkForUpdates()
         while (lk_Parent_ != NULL && dynamic_cast<QDialog*>(lk_Parent_) == NULL)
             lk_Parent_ = lk_Parent_->parentWidget();
         
-        mk_pModalProgressDialog = QSharedPointer<QProgressDialog>(new QProgressDialog("Checking for script updates...", "&Cancel", 0, 0, (lk_Parent_ != NULL) ? lk_Parent_ : mk_MessageBoxParent_));
+        mk_pModalProgressDialog = QPointer<QProgressDialog>(new QProgressDialog("Checking for script updates...", "&Cancel", 0, 0, 0));
+        // (lk_Parent_ != NULL) ? lk_Parent_ : mk_MessageBoxParent_
         connect(mk_pModalProgressDialog.data(), SIGNAL(canceled()), this, SLOT(checkForUpdatesCanceled()));
         mk_pModalProgressDialog->setAutoClose(false);
         mk_pModalProgressDialog->setWindowTitle("Proteomatic");
@@ -282,7 +283,8 @@ void k_Proteomatic::checkForUpdatesCanceled()
         mk_PipelineMainWindow_->setEnabled(true);
     mk_pModalProcess->kill();
     mk_pModalProcess->waitForFinished();
-    mk_pModalProgressDialog = QSharedPointer<QProgressDialog>(NULL);
+    if (mk_pModalProgressDialog)
+        delete mk_pModalProgressDialog;
     mk_pModalProcess = QSharedPointer<QProcess>(NULL);
 }
 
@@ -429,7 +431,8 @@ void k_Proteomatic::checkForUpdatesScriptFinished()
                 QMessageBox::Ok, QMessageBox::Ok, QMessageBox::Ok);
     }
     
-    mk_pModalProgressDialog = QSharedPointer<QProgressDialog>(NULL);
+    if (mk_pModalProgressDialog)
+        delete mk_pModalProgressDialog;
     mk_pModalProcess = QSharedPointer<QProcess>(NULL);
 }
 

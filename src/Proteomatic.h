@@ -280,7 +280,7 @@ protected:
     
     // mk_ModalProcess and mk_ModalProgressDialog are for updating...
     QSharedPointer<QProcess> mk_pModalProcess;
-    QSharedPointer<QProgressDialog> mk_pModalProgressDialog;
+    QPointer<QProgressDialog> mk_pModalProgressDialog;
     // mb_ModalProcessUserRequested is true if an update button has been clicked
     bool mb_ModalProcessUserRequested;
     
