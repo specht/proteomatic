@@ -173,7 +173,7 @@ isEmpty( DOCDIR ) {
     DOCDIR = $${DATADIR}/doc/packages/proteomatic
 }
 
-support.files = src/icons/proteomatic-pipeline.png
+support.files = src/icons/proteomatic-pipeline.svg
 support.path = $${DATADIR}/proteomatic
 INSTALLS += support 
 
