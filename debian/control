@@ -2,13 +2,13 @@ Source: proteomatic
 Section: science
 Priority: optional
 Maintainer: Michael Specht <micha.specht@gmail.com>
-Build-Depends: debhelper (>= 7), cdbs (>= 0.4.41), libqt4-dev, libyaml-cpp-dev, libquazip0-dev, ruby
+Build-Depends: debhelper (>= 7), cdbs (>= 0.4.41), libqt4-dev, libqtwebkit-dev, libyaml-cpp-dev, libquazip0-dev, ruby
 Standards-Version: 3.8.3
 Homepage: http://www.proteomatic.org
 
 Package: proteomatic
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, tar, bzip2, gzip, unzip, ruby, python, php5-cli, libqtcore4 (>= 4.5), libqtgui4 (>= 4.5), libyaml-cpp0.3, libquazip0
+Depends: ${shlibs:Depends}, ${misc:Depends}, tar, bzip2, gzip, unzip, ruby, python, php5-cli, libqtcore4, libqtgui4, libqtwebkit4, libyaml-cpp0.3, libquazip0
 Description: Proteomatic - the Proteomics researcher's swiss army knife
  Proteomatic is a free proteomics data processing pipeline. Functionality is provided via scripts, and these scripts can be chained together into a high-throughput data processing pipeline.
  .
