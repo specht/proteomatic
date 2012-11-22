@@ -12,5 +12,5 @@ Revelio.exe
 bin
 src/Proteomatic.qrc
 Proteomatic.app
-ext/
+ext/cli-tools-atlas
 helper/update-*

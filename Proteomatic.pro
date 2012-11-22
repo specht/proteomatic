@@ -54,8 +54,7 @@ macx {
     LIBPATH += /Users/dimitris/michael/ext/lib
 }
 
-#LIBS += $$MYLIBPATH/libyaml-cpp.a $$MYLIBPATH/libmd5.a
-LIBS += -lyaml-cpp -lmd5
+LIBS += -lyaml-cpp
 
 macx {
     TARGET = Proteomatic
@@ -116,6 +115,7 @@ HEADERS += \
 #     src/ZoomableWebView.h \
     src/version.h \
     src/dialogs/EditProfileDialog.h \
+    src/ext/md5/md5.h \
     
 SOURCES += \
     src/ClickableGraphicsProxyWidget.cpp \
@@ -152,6 +152,7 @@ SOURCES += \
     src/YamlParser.cpp \
 #     src/ZoomableWebView.cpp \
     src/dialogs/EditProfileDialog.cpp \
+    src/ext/md5/md5.c \
     
 RESOURCES += src/Proteomatic.qrc
 

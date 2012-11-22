@@ -26,7 +26,7 @@ along with Proteomatic.  If not, see <http://www.gnu.org/licenses/>.
 #include "SearchMenu.h"
 #include "Yaml.h"
 #include "version.h"
-#include <md5.h>
+#include "ext/md5/md5.h"
 
 
 #define DEFAULT_UPDATE_URI "http://www.proteomatic.org/update"
