@@ -531,13 +531,14 @@ void k_PipelineMainWindow::showProfileManager()
     if (mk_CurrentScriptBox_)
         lk_Script_ = mk_CurrentScriptBox_->script();
     
-    QSharedPointer<k_ProfileManager> lk_pProfileManager(new k_ProfileManager(mk_Proteomatic, lk_Script_, this));
-    lk_pProfileManager->reset();
-    if (lk_pProfileManager->exec())
+    k_ProfileManager* lk_ProfileManager_ = new k_ProfileManager(mk_Proteomatic, lk_Script_, this);
+    lk_ProfileManager_->reset();
+    if (lk_ProfileManager_->exec())
     {
         if (lk_Script_)
-            lk_Script_->setConfiguration(lk_pProfileManager->getGoodProfileMix());
+            lk_Script_->setConfiguration(lk_ProfileManager_->getGoodProfileMix());
     }
+    delete lk_ProfileManager_;
 }
 
 
