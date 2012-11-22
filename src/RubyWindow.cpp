@@ -26,27 +26,28 @@ k_RubyWindow::k_RubyWindow(k_Proteomatic& ak_Proteomatic, QStringList ak_Argumen
     , mk_Proteomatic(ak_Proteomatic)
     , mk_Arguments(ak_Arguments)
     , ms_Title(as_Title)
+    , mk_Dialog_(0)
 {
-    mk_pDialog = QSharedPointer<QDialog>(new QDialog(mk_Proteomatic.messageBoxParent()));
-    mk_pDialog->setWindowIcon(QIcon(as_IconPath));
-    mk_pDialog->setWindowTitle(as_Title);
-    mk_pDialog->resize(512, 250);
-    QBoxLayout* lk_VLayout_ = new QVBoxLayout(mk_pDialog.data());
+    mk_Dialog_ = new QDialog(mk_Proteomatic.messageBoxParent());
+    mk_Dialog_->setWindowIcon(QIcon(as_IconPath));
+    mk_Dialog_->setWindowTitle(as_Title);
+    mk_Dialog_->resize(512, 250);
+    QBoxLayout* lk_VLayout_ = new QVBoxLayout(mk_Dialog_);
     QBoxLayout* lk_HLayout_ = new QHBoxLayout(NULL);
-    mk_Output_ = new k_ConsoleTextEdit(mk_Proteomatic, mk_pDialog.data());
+    mk_Output_ = new k_ConsoleTextEdit(mk_Proteomatic, mk_Dialog_);
     lk_VLayout_->addWidget(mk_Output_);
     lk_VLayout_->addLayout(lk_HLayout_);
     lk_HLayout_->addStretch();
-    mk_AbortButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "Abort", mk_pDialog.data());
+    mk_AbortButton_ = new QPushButton(QIcon(":/icons/dialog-cancel.png"), "Abort", mk_Dialog_);
     lk_HLayout_->addWidget(mk_AbortButton_);
-    mk_CloseButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "Close", mk_pDialog.data());
+    mk_CloseButton_ = new QPushButton(QIcon(":/icons/dialog-ok.png"), "Close", mk_Dialog_);
     lk_HLayout_->addWidget(mk_CloseButton_);
-    mk_pDialog->setLayout(lk_VLayout_);
-    mk_pDialog->setModal(true);
+    mk_Dialog_->setLayout(lk_VLayout_);
+    mk_Dialog_->setModal(true);
     mk_Output_->setReadOnly(true);
     
     mk_Output_->setFont(mk_Proteomatic.consoleFont());
-    connect(mk_CloseButton_, SIGNAL(clicked()), mk_pDialog.data(), SLOT(accept()));
+    connect(mk_CloseButton_, SIGNAL(clicked()), mk_Dialog_, SLOT(accept()));
 }
 
 
@@ -80,7 +81,7 @@ bool k_RubyWindow::exec()
     lk_pProcess->setProcessChannelMode(QProcess::MergedChannels);
     lk_pProcess->start(mk_Proteomatic.scriptInterpreter("ruby"), mk_Arguments, QIODevice::ReadOnly | QIODevice::Unbuffered);
 
-    mk_pDialog->exec();
+    mk_Dialog_->exec();
     return mb_ScriptFinishedFine;
 }
 

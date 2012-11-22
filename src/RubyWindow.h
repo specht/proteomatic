@@ -41,7 +41,7 @@ protected:
     QStringList mk_Arguments;
     QString ms_Title;
     
-    QSharedPointer<QDialog> mk_pDialog;
+    QDialog* mk_Dialog_;
     k_ConsoleTextEdit* mk_Output_;
     QPushButton* mk_AbortButton_;
     QPushButton* mk_CloseButton_;
