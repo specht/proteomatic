@@ -1,8 +1,6 @@
 h1. Synopsis
 
-Proteomatic provides a free and accessible proteomics data processing pipeline.
-Bits of functionality can be chained together, and functionality is provided
-through self-descriptive scripts.
+Proteomatic provides a free and accessible proteomics data processing pipeline. Bits of functionality can be chained together, and functionality is provided through self-descriptive scripts.
 
 
 h1. Building Proteomatic
@@ -19,6 +17,4 @@ $ qmake "PROTEOMATIC_PORTABLE=1"
 $ make release
 </pre>
 
-This gives you a version which will run from within the source directory, 
-downloads all scripts and required software packages into its own directory
-and does not change anything else in the file tree.
+This gives you a version which will run from within the source directory, downloads all scripts and required software packages into its own directory and does not change anything else in the file tree.
