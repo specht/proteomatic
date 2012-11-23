@@ -9,7 +9,7 @@ h1. Building Proteomatic
 
 h2. Prerequisites
 
-Proteomatic requires "Qt":http://qt.nokia.com/, "libyaml-cpp":http://code.google.com/p/yaml-cpp/, "libmd5-rfc":http://sourceforge.net/projects/libmd5-rfc/, and "Ruby":http://www.ruby-lang.org/.
+Proteomatic requires "Qt":http://qt.digia.com/, "libyaml-cpp":http://code.google.com/p/yaml-cpp/, "QuaZIP":http://quazip.sourceforge.net/ and "Ruby":http://www.ruby-lang.org/. It also requires "libmd5-rfc":http://sourceforge.net/projects/libmd5-rfc/ but a copy of this library's source code is already included in the source code of Proteomatic.
 
 h2. Building procedure
 
