@@ -2,6 +2,8 @@ h1. Synopsis
 
 Proteomatic provides a free and accessible proteomics data processing pipeline. Bits of functionality can be chained together, and functionality is provided through self-descriptive scripts.
 
+More information can be found at "https://proteomatic.org/":https://proteomatic.org/.
+
 
 h1. Building Proteomatic
 
